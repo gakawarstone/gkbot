@@ -11,12 +11,12 @@ class Bot(object):
         bot = aiogram.Bot(token=self.__TOKEN)
         return aiogram.dispatcher.Dispatcher(bot)
 
-    def add_message_handler(self, func):
+    def __add_message_handler(self, func):
         """
         func(message -> aiogram.types.Message)
         """
         @self.dp.message_handler()
-        async def console_log(message: aiogram.types.Message):
+        async def handler(message: aiogram.types.Message):
             func(message)
 
     def start(self):
