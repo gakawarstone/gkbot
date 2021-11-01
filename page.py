@@ -15,3 +15,12 @@ class Page(object):
     def __get(self, client=client):
         """get NotionClient object"""
         return client.get_block(self.URL)
+
+
+class database(Page):
+    def __get(self, client=client):
+        """get NotionClient object"""
+        return client.get_collection_view(self.URL)
+
+    def add_row(self, params=[]):
+        pass
