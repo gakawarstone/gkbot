@@ -17,7 +17,7 @@ class Bot(object):
         """
         @self.dp.message_handler()
         async def handler(message: aiogram.types.Message):
-            func(message)
+            await func(message)
 
     def start(self):
         aiogram.utils.executor.start_polling(self.dp)
