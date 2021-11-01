@@ -1,5 +1,4 @@
 from notion.client import NotionClient
-from notion.collection import NotionDate
 from datetime import datetime
 import config
 
@@ -13,3 +12,11 @@ row.name = "Старый испанский монах"
 row.subject = "C#"
 row.deadline = datetime(2021, 10, 31, 17, 2)
 row.status = "Не начато"
+
+
+def main():
+    pass
+
+
+if __name__ == "__main__":
+    main()
