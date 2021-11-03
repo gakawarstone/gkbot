@@ -5,14 +5,14 @@ import bot_config as config
 class Bot(object):
     def __init__(self, TOKEN):
         self.__TOKEN = TOKEN
-        self.bot = self.__set_bot()
+        self.__bot = self.__set_bot()
         self.dp = self.__set_dispatcher()
 
     def __set_bot(self):
         return aiogram.Bot(token=self.__TOKEN)
 
     def __set_dispatcher(self):
-        return aiogram.dispatcher.Dispatcher(self.bot)
+        return aiogram.dispatcher.Dispatcher(self.__bot)
 
     def __add_message_handler(self, func):
         """
