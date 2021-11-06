@@ -3,10 +3,13 @@ import aiogram
 import bot_config as c
 
 
-def log_it(message: aiogram.types.Message):
-    print(message)
+async def answer_it(message: aiogram.types.Message):
     if message["from"]["username"] == "Gakawarstone":
-        return message.reply("долбаеб")
+        await message.reply("долбаеб")
+
+
+async def log_it(message: aiogram.types.Message):
+    print(message)
 
 
 bot = Bot(c.TOKEN)
