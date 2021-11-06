@@ -1,5 +1,4 @@
 import aiogram
-import bot_config as config
 
 
 class Bot(object):
@@ -14,15 +13,15 @@ class Bot(object):
     def __set_dispatcher(self):
         return aiogram.dispatcher.Dispatcher(self.__bot)
 
-    def __add_message_handler(self, func):
+    def add_message_handler(self, func):
         """
         func(message -> aiogram.types.Message)
         """
         @self.dp.message_handler()
         async def handler(message: aiogram.types.Message):
-            func(message)
+            await func(message)
 
-    def __add_command_handler(self, command, func):
+    def add_command_handler(self, command, func):
         """
         command - /<command> in telegram
         func(message -> aiogram.types.Message)
@@ -31,9 +30,8 @@ class Bot(object):
         async def handler(message: aiogram.types.Message):
             func(message)
 
+    def reply(self, message, text):
+        message.reply(text)
+
     def start(self):
         aiogram.utils.executor.start_polling(self.dp)
-
-
-bot = Bot(config.TOKEN)
-bot.start()
