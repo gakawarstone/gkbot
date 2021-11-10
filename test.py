@@ -11,9 +11,10 @@ class Form(StatesGroup):
     To add state use <obj>.states.append(State())
     """
     num_handle = State()
+    answ_handle = State()
 
 
-async def answer_it(message: aiogram.types.Message):
+async def answer_it(message: aiogram.types.Message, state: FSMContext):
     if message["from"]["username"] == "Gakawarstone":
         await message.answer("ответь")
         print(message)
@@ -26,6 +27,7 @@ async def log_it(message: aiogram.types.Message):
 async def sqr(message: aiogram.types.Message):
     if message["from"]["username"] == "Gakawarstone":
         await message.answer("Напиши число я возведу его в квадрат")
+        bot.add_state_handler(Form.num_handle, get_number)
         await Form.num_handle.set()
 
 
@@ -41,7 +43,6 @@ async def get_number(message: aiogram.types.Message, state: FSMContext):
 
 bot = Bot(c.TOKEN)
 bot.add_command_handler('sqr', sqr)
-bot.add_state_handler(Form.num_handle, get_number)
 
 
 bot.start()
