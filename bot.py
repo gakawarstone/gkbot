@@ -1,4 +1,13 @@
 import aiogram
+from aiogram.dispatcher.filters.state import State, StatesGroup
+from aiogram.dispatcher import FSMContext
+
+
+class Form(StatesGroup):
+    """
+    To add state use <obj>.states.append(State())
+    """
+    states = []
 
 
 class Bot(object):
@@ -29,6 +38,12 @@ class Bot(object):
         @self.dp.message_handler(commands=[command])
         async def handler(message: aiogram.types.Message):
             await func(message)
+
+    def add_state(self):
+        pass
+
+    def start_state(self):
+        pass
 
     def start(self):
         aiogram.utils.executor.start_polling(self.dp)
