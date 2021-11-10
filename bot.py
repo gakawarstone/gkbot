@@ -1,6 +1,7 @@
 import aiogram
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.dispatcher import FSMContext
+from aiogram.contrib.fsm_storage.memory import MemoryStorage
 
 
 class Form(StatesGroup):
@@ -20,7 +21,8 @@ class Bot(object):
         return aiogram.Bot(token=self.__TOKEN)
 
     def __set_dispatcher(self):
-        return aiogram.dispatcher.Dispatcher(self.__bot)
+        storage = MemoryStorage()
+        return aiogram.dispatcher.Dispatcher(self.__bot, storage=storage)
 
     def add_message_handler(self, func):
         """
@@ -38,6 +40,15 @@ class Bot(object):
         @self.dp.message_handler(commands=[command])
         async def handler(message: aiogram.types.Message):
             await func(message)
+
+    def add_state_handler(self, state, func):
+        """
+        state - aiogram finite machine
+        func(message -> aiogram.types.Message)
+        """
+        @self.dp.message_handler(state=state)
+        async def handler(message: aiogram.types.Message, state: FSMContext):
+            await func(message, state)
 
     def add_state(self):
         pass
