@@ -7,7 +7,7 @@ client = NotionClient(config.TOKEN)
 class Page(object):
     def __init__(self, URL):
         self.URL = URL
-        self.block = self.__get()
+        self.view = self.__get()
 
     def get_URL(self):
         return self.URL
@@ -17,10 +17,11 @@ class Page(object):
         return client.get_block(self.URL)
 
 
-class database(Page):
+class Database(Page):
     def __get(self, client=client):
         """get NotionClient object"""
         return client.get_collection_view(self.URL)
 
-    def add_row(self, params=[]):
-        pass
+    def add_row(self):
+        row = self.view.collection.add_row()
+        return row
