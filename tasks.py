@@ -1,5 +1,6 @@
 from bot_config import bot
 from page import Database
+import log
 import aiogram
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
@@ -27,14 +28,14 @@ async def add_row(message: aiogram.types.Message):
 
 async def get_name(message: aiogram.types.Message, state: FSMContext):
     row.name = message.text
-    print(message.text)
+    log.write(message.text)
     await message.answer('Отправьте предмет')
     await Form.next()
 
 
 async def get_subject(message: aiogram.types.Message, state: FSMContext):
     row.subject = message.text
-    print(message.text)
+    log.write(message.text)
     await message.answer('Отправьте дедлайн')
     await Form.next()
 
@@ -43,7 +44,7 @@ async def get_deadline(message: aiogram.types.Message, state: FSMContext):
     try:
         row.deadline = datetime.strptime(message.text, "%d.%m.%Y")
         row.status = 'Не начато'
-        print(message.text)
+        log.write(message.text)
         await message.answer('Спасибо')
         await state.finish()
     except(Exception):

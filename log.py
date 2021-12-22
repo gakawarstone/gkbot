@@ -1,21 +1,27 @@
-def write(str):
+from bot_config import bot
+from datetime import datetime
+
+
+def write(text):
     """
     logging {str} into log.txt
     time: {str}
     """
-    pass
+    with open('log.txt', 'a') as file:
+        file.write(str(datetime.now()) + ': ' + text + '\n')
 
 
-def clear(str):
+def clear():
     """
     clear all data from log.txt
     init title (### APP LOGS ###)
     """
-    pass
+    with open('log.txt', 'w') as file:
+        file.write('### APP LOGS ###')
 
 
-def get():
+async def get(message):
     """
     send log.txt file to telegram
     """
-    pass
+    await bot.send_file(message, 'log.txt')

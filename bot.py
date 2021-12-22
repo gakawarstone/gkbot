@@ -50,11 +50,8 @@ class Bot(object):
         async def handler(message: aiogram.types.Message, state: FSMContext):
             await func(message, state)
 
-    def add_state(self):
-        pass
-
-    def start_state(self):
-        pass
+    async def send_file(self, message, path):
+        await message.answer_document(open(path, "rb"))
 
     def start(self):
         aiogram.utils.executor.start_polling(self.dp)
