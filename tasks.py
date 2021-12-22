@@ -40,8 +40,12 @@ async def get_subject(message: aiogram.types.Message, state: FSMContext):
 
 
 async def get_deadline(message: aiogram.types.Message, state: FSMContext):
-    row.deadline = datetime.strptime(message.text, "%d.%m.%Y")
-    row.status = 'Не начато'
-    print(message.text)
-    await message.answer('Спасибо')
-    await state.finish()
+    try:
+        row.deadline = datetime.strptime(message.text, "%d.%m.%Y")
+        row.status = 'Не начато'
+        print(message.text)
+        await message.answer('Спасибо')
+        await state.finish()
+    except(Exception):
+        await message.answer('Дата некорректна [01.01.1970]')
+        await Form.deadline.set()
