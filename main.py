@@ -52,6 +52,7 @@ async def get_deadline(message: aiogram.types.Message, state: FSMContext):
     await state.finish()
 
 
-bot = Bot(c.TOKEN)
-bot.add_command_handler('add_row', add_row)
-bot.start()
+if __name__ == '__main__':
+    bot = Bot(c.TOKEN)
+    bot.add_command_handler('add_row', add_row)
+    bot.start()
