@@ -1,4 +1,6 @@
 from notion.client import NotionClient
+from notion.block import TextBlock
+from notion.block import PageBlock
 import config
 
 client = NotionClient(config.TOKEN)
@@ -15,6 +17,9 @@ class Page(object):
     def __get(self, client=client):
         """get NotionClient object"""
         return client.get_block(self.URL)
+
+    def write(self, text):
+        self.view.children.add_new(TextBlock, title=text)
 
 
 class Database(Page):

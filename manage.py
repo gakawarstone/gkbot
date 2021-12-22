@@ -1,9 +1,16 @@
 from bot_config import bot
 import tasks
 import log
+import braintrash
+
+handlers = {
+    'add_row': tasks.add_row,
+    'get_log': log.get,
+    'trash': braintrash.write
+}
 
 
 def start():
-    bot.add_command_handler('add_row', tasks.add_row)
-    bot.add_command_handler('get_log', log.get)
+    for command in handlers:
+        bot.add_command_handler(command, handlers[command])
     bot.start()
