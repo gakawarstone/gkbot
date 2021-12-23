@@ -2,6 +2,9 @@ import aiogram
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.dispatcher import FSMContext
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
+from aiogram.types import ReplyKeyboardRemove, \
+    ReplyKeyboardMarkup, KeyboardButton, \
+    InlineKeyboardMarkup, InlineKeyboardButton
 
 
 class Form(StatesGroup):
@@ -16,6 +19,7 @@ class Bot(object):
         self.__TOKEN = TOKEN
         self.__bot = self.__set_bot()
         self.dp = self.__set_dispatcher()
+        self.keyboards = {}
 
     def __set_bot(self):
         return aiogram.Bot(token=self.__TOKEN)
@@ -50,8 +54,16 @@ class Bot(object):
         async def handler(message: aiogram.types.Message, state: FSMContext):
             await func(message, state)
 
-    def add_keyboard(self):
-        pass
+    def add_keyboard(self, name, buttons, hide=True, placeholder=None):
+        """
+        add telegram keyboard with row of {buttons}
+        call by {bot_object.keyboards[name]}
+        """
+        kboard = ReplyKeyboardMarkup(resize_keyboard=True,
+                                     one_time_keyboard=hide,
+                                     input_field_placeholder=placeholder)
+        kboard.row(*(KeyboardButton(i) for i in buttons))
+        self.keyboards[name] = kboard
 
     async def send_file(self, message, path):
         await message.answer_document(open(path, "rb"))

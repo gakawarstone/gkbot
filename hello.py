@@ -6,12 +6,9 @@ from aiogram.types import ReplyKeyboardRemove, \
 
 
 async def start(message: aiogram.types.message):
-    button_tasks = KeyboardButton('/add_row')
-    button_log = KeyboardButton('/get_log')
-    button_trash = KeyboardButton('/trash')
-    greet_kb = ReplyKeyboardMarkup(resize_keyboard=True,
-                                   one_time_keyboard=True,
-                                   input_field_placeholder='Строка')
-    greet_kb.add(button_tasks, button_trash, button_log)
+    bot.add_keyboard('all_commands', ['/add_row',
+                                      '/get_log',
+                                      '/trash'])
     await message.answer('Приветствую тебя!')
-    await message.answer('Чем займемся?', reply_markup=greet_kb)
+    await message.answer('Чем займемся?',
+                         reply_markup=bot.keyboards['all_commands'])
