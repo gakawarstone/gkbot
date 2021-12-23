@@ -50,6 +50,9 @@ class Bot(object):
         async def handler(message: aiogram.types.Message, state: FSMContext):
             await func(message, state)
 
+    def add_keyboard(self):
+        pass
+
     async def send_file(self, message, path):
         await message.answer_document(open(path, "rb"))
 

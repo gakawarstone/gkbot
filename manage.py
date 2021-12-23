@@ -2,11 +2,13 @@ from bot_config import bot
 import tasks
 import log
 import braintrash
+import hello
 
 handlers = {
     'add_row': tasks.add_row,
     'get_log': log.get,
-    'trash': braintrash.write
+    'trash': braintrash.write,
+    'start': hello.start
 }
 
 

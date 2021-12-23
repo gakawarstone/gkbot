@@ -17,6 +17,7 @@ async def write(message: aiogram.types.Message):
 async def send_message(message: aiogram.types.Message, state: FSMContext):
     log.write(message.text)
     braintrash.write(message.text)
+    await state.finish()
 
 
 class Form(StatesGroup):
