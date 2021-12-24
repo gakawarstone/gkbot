@@ -14,6 +14,15 @@ async def write(message: aiogram.types.Message):
     await Form.mes_handle.set()
 
 
+async def get_all_data(message: aiogram.types.Message):
+    await message.answer('Вывод всего что находится в свалке')
+    outp = ''
+    for i, child in enumerate(braintrash.view().children):
+        if child.title:
+            outp += str(i + 1) + ': ' + child.title + ('\n' * 2)
+    await message.answer(outp)
+
+
 async def send_message(message: aiogram.types.Message, state: FSMContext):
     log.write(message.text)
     braintrash.write(message.text)
