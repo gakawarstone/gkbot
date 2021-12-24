@@ -20,6 +20,7 @@ class Bot(object):
         self.__bot = self.__set_bot()
         self.dp = self.__set_dispatcher()
         self.keyboards = {}
+        self.inline_keyboards = {}
 
     def __set_bot(self):
         return aiogram.Bot(token=self.__TOKEN)
@@ -64,6 +65,11 @@ class Bot(object):
                                      input_field_placeholder=placeholder)
         kboard.row(*(KeyboardButton(i) for i in buttons))
         self.keyboards[name] = kboard
+
+    def add_url_button(self, url, text='request'):
+        btn = InlineKeyboardButton(text, url=url)
+        self.inline_keyboards[url] = InlineKeyboardMarkup().add(btn)
+        return self.inline_keyboards[url]
 
     async def send_file(self, message, path):
         await message.answer_document(open(path, "rb"))
