@@ -19,6 +19,7 @@ class Bot(object):
         self.__TOKEN = TOKEN
         self.__bot = self.__set_bot()
         self.dp = self.__set_dispatcher()
+        self.admins = []
         self.keyboards = {}
         self.inline_keyboards = {}
 
@@ -31,25 +32,27 @@ class Bot(object):
 
     def add_message_handler(self, func):
         """
-        func(message -> aiogram.types.Message)
+        func(message: aiogram.types.Message)
         """
         @self.dp.message_handler()
         async def handler(message: aiogram.types.Message):
             await func(message)
 
-    def add_command_handler(self, command, func):
+    def add_command_handler(self, command, func, admin_only=False):
         """
         command - /<command> in telegram
-        func(message -> aiogram.types.Message)
+        func(message: aiogram.types.Message)
         """
         @self.dp.message_handler(commands=[command])
         async def handler(message: aiogram.types.Message):
-            await func(message)
+            is_admin = message['from']['id'] in self.admins
+            if not admin_only or admin_only and is_admin:
+                await func(message)
 
     def add_state_handler(self, state, func):
         """
         state - aiogram finite machine
-        func(message -> aiogram.types.Message)
+        func(message: aiogram.types.Message)
         """
         @self.dp.message_handler(state=state)
         async def handler(message: aiogram.types.Message, state: FSMContext):
