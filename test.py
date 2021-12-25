@@ -43,6 +43,7 @@ async def get_number(message: aiogram.types.Message, state: FSMContext):
 
 bot = Bot(c.TOKEN)
 bot.add_command_handler('sqr', sqr)
+bot.add_message_handler(log_it)
 
 
 bot.start()

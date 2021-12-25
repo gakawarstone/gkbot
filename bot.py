@@ -66,7 +66,8 @@ class Bot(object):
         kboard = ReplyKeyboardMarkup(resize_keyboard=True,
                                      one_time_keyboard=hide,
                                      input_field_placeholder=placeholder)
-        kboard.row(*(KeyboardButton(i) for i in buttons))
+        for rows in buttons:
+            kboard.row(*(KeyboardButton(i) for i in rows))
         self.keyboards[name] = kboard
 
     def add_url_button(self, url, text='request'):
