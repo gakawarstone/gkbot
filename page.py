@@ -1,9 +1,6 @@
-from notion.client import NotionClient
 from notion.block import TextBlock
 from notion.block import PageBlock
-import config
-
-client = NotionClient(config.TOKEN)
+from bot_config import client
 
 
 class Page(object):
