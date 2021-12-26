@@ -1,9 +1,6 @@
-from notion.client import NotionClient
 from notion.block import TextBlock
 from notion.block import PageBlock
-import config
-
-client = NotionClient(config.TOKEN)
+from bot_config import client
 
 
 class Page(object):
@@ -29,3 +26,6 @@ class Database(Page):
     def add_row(self):
         row = self.get_view().collection.add_row()
         return row
+
+    def get_data(self):
+        pass
