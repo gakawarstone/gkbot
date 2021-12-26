@@ -1,15 +1,11 @@
 /* IMPORT */
 const notion_api = require("@notionhq/client")
-const commander = require('commander'),
-  { prompt } = require('inquirer'),
-  chalk = require('chalk'),
-  fs = require('fs')
+const commander = require('commander')
 
 const NOTION_API_KEY = 'secret_ly0rxwsJPkokeDOXYZoGR5GAcKEZPC6ZVlYYnO1JfoU'
 const NOTION_DATABASE_ID = '1755f2a9e4b84d42bba313a65a40de37'
 
 const notion = new notion_api.Client({ auth: NOTION_API_KEY })
-
 const databaseId = NOTION_DATABASE_ID
 
 async function addItem(text) {
@@ -28,22 +24,22 @@ async function addItem(text) {
         }
       },
     })
-    console.log(response)
     console.log("Success! Entry added.")
   } catch (error) {
-    console.error(error.body)
+    console.error(error)
   }
 }
 
-/*--- CLI ---*/
+addItem('work')
+
+/*----- CLI -----*/
 commander
   .version('1.0.0')
-  .description('Configuration files creator.')
+  .description('Script add data to Notion')
 
 commander
   .command('add')
-  .option('row_name')
-  .action((name, data) => {
+  .action((cmd, data) => {
     name = data.parent.args[1]
     addItem(name)
   })

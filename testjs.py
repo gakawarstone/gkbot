@@ -33,3 +33,4 @@ class JavaScriptFile():
 
 if __name__ == '__main__':
     notion_api = JavaScriptFile('js/notion-api.js')
+    add_item = notion_api.run('addItem', 'new')
