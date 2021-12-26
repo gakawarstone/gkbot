@@ -4,6 +4,8 @@
   "description": "",
   "main": "js/notion-api.js",
   "dependencies": {
-    "@notionhq/client": "^0.1.9"
+    "@notionhq/client": "^0.1.9",
+    "commander": "",
+    "inquirer": ""
   }
 }

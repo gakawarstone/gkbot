@@ -1,5 +1,9 @@
 /* IMPORT */
 const notion_api = require("@notionhq/client")
+const commander = require('commander'),
+  { prompt } = require('inquirer'),
+  chalk = require('chalk'),
+  fs = require('fs')
 
 const NOTION_API_KEY = 'secret_ly0rxwsJPkokeDOXYZoGR5GAcKEZPC6ZVlYYnO1JfoU'
 const NOTION_DATABASE_ID = '1755f2a9e4b84d42bba313a65a40de37'
@@ -32,3 +36,16 @@ async function addItem(text) {
 }
 
 addItem('from JS')
+
+/*--- CLI ---*/
+commander
+  .version('1.0.0')
+  .description('Configuration files creator.')
+
+commander
+  .command('add')
+  .action((name) => {
+    addItem(name)
+  })
+
+commander.parse(process.argv)
