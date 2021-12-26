@@ -1,5 +1,3 @@
-config.py
-bot_config.py
-**/*.txt
 /__pycache__
 /node_modules
+env.py
