@@ -1,0 +1,9 @@
+{
+  "name": "notion-example",
+  "version": "1.0.0",
+  "description": "",
+  "main": "js/notion-api.js",
+  "dependencies": {
+    "@notionhq/client": "^0.1.9"
+  }
+}
