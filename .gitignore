@@ -1,5 +1,5 @@
 config.py
 bot_config.py
-**/*.txt
+log.txt
 /__pycache__
 /node_modules

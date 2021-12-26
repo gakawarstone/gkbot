@@ -29,3 +29,6 @@ class Database(Page):
     def add_row(self):
         row = self.get_view().collection.add_row()
         return row
+
+    def get_data(self):
+        pass
