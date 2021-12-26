@@ -35,8 +35,6 @@ async function addItem(text) {
   }
 }
 
-addItem('from JS')
-
 /*--- CLI ---*/
 commander
   .version('1.0.0')
@@ -44,7 +42,9 @@ commander
 
 commander
   .command('add')
-  .action((name) => {
+  .option('row_name')
+  .action((name, data) => {
+    name = data.parent.args[1]
     addItem(name)
   })
 
