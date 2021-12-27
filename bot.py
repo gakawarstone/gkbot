@@ -18,6 +18,7 @@ class Bot(object):
     def __init__(self, TOKEN):
         self.__TOKEN = TOKEN
         self.__bot = self.__set_bot()
+        self.bot = self.__set_bot()
         self.dp = self.__set_dispatcher()
         self.admins = []
         self.keyboards = {}
@@ -78,5 +79,9 @@ class Bot(object):
     async def send_file(self, message, path):
         await message.answer_document(open(path, "rb"))
 
-    def start(self):
-        aiogram.utils.executor.start_polling(self.dp)
+    def start(self, on_startup=None):
+        executor = aiogram.utils.executor
+        if on_startup:
+            executor.start_polling(self.dp, on_startup=on_startup)
+        else:
+            executor.start_polling(self.dp)
