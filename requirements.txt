@@ -2,4 +2,3 @@ asyncio
 aiogram
 notion
 psycopg2-binary
-aioschedule
