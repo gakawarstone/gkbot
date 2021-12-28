@@ -1,9 +1,5 @@
 from bot_config import bot
-import tasks
-import log
-import braintrash
-import hello
-import bomber
+from modules import tasks, braintrash, hello, bomber, log
 
 handlers = {
     'add_row': tasks.add_row,
