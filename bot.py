@@ -18,7 +18,6 @@ class Bot(object):
     def __init__(self, TOKEN):
         self.__TOKEN = TOKEN
         self.__bot = self.__set_bot()
-        self.bot = self.__set_bot()
         self.dp = self.__set_dispatcher()
         self.admins = []
         self.keyboards = {}

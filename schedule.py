@@ -7,6 +7,7 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 
 import manage
 
+
 class Schedule:
     def __init__(self):
         self.tasks = []
