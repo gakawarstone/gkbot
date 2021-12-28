@@ -28,4 +28,4 @@ def start():
         bot.add_command_handler(cmd, handlers[cmd])
     for cmd in admin_handlers:
         bot.add_command_handler(cmd, admin_handlers[cmd], admin_only=True)
-    bot.start()
+    bot.start(on_startup=bot.on_startup)
