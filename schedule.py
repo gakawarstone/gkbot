@@ -1,6 +1,4 @@
 import asyncio
-import aioschedule as schedule
-import time
 from bot_config import bot
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
