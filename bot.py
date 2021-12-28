@@ -75,6 +75,9 @@ class Bot(object):
         self.inline_keyboards[url] = InlineKeyboardMarkup().add(btn)
         return self.inline_keyboards[url]
 
+    async def send_message(self, id, text):
+        await self.__bot.send_message(id, text)
+
     async def send_file(self, message, path):
         await message.answer_document(open(path, "rb"))
 
