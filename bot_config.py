@@ -1,5 +1,5 @@
 from lib.bot import Bot
-import lib.page
+from notion.client import NotionClient
 import os
 
 # VARS
@@ -14,7 +14,4 @@ else:
 
 # main objects
 bot = Bot(BOT_TOKEN)
-
-# notion classes
-Page = lib.page.Page
-Database = lib.page.Database
+client = NotionClient(NOTION_TOKEN)
