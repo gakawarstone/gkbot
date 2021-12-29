@@ -16,19 +16,19 @@ class Form(StatesGroup):
 
 class Bot(object):
     def __init__(self, TOKEN):
-        self.__TOKEN = TOKEN
-        self.__bot = self.__set_bot()
-        self.dp = self.__set_dispatcher()
+        bot = self.__set_bot(TOKEN)
+        self.dp = self.__set_dispatcher(bot)
         self.admins = []
         self.keyboards = {}
         self.inline_keyboards = {}
+        self.tasks = []
 
-    def __set_bot(self):
-        return aiogram.Bot(token=self.__TOKEN)
+    def __set_bot(self, token):
+        return aiogram.Bot(token=token)
 
-    def __set_dispatcher(self):
+    def __set_dispatcher(self, bot):
         storage = MemoryStorage()
-        return aiogram.dispatcher.Dispatcher(self.__bot, storage=storage)
+        return aiogram.dispatcher.Dispatcher(bot, storage=storage)
 
     def add_message_handler(self, func):
         """
@@ -75,8 +75,22 @@ class Bot(object):
         self.inline_keyboards[url] = InlineKeyboardMarkup().add(btn)
         return self.inline_keyboards[url]
 
+    def add_task(self, func):
+        self.tasks.append(func)
+
+    async def send_message(self, id, text):
+        await self.__bot.send_message(id, text)
+
     async def send_file(self, message, path):
         await message.answer_document(open(path, "rb"))
 
+    async def on_startup(self, dp):
+        for func in self.tasks:
+            await func(dp)
+
     def start(self):
-        aiogram.utils.executor.start_polling(self.dp)
+        executor = aiogram.utils.executor
+        if self.tasks:
+            executor.start_polling(self.dp, on_startup=self.on_startup)
+        else:
+            executor.start_polling(self.dp)
