@@ -19,7 +19,7 @@ async def spam(message: aiogram.types.Message, state: FSMContext):
     if text.startswith('@'):
         for i in range(10):
             msg = await message.answer(text)
-            asyncio.sleep(5)
+            await asyncio.sleep(5)
             await msg.delete()
     else:
         await message.answer('Призыв должен начинатся с @ [@ivanzolo2004]')
