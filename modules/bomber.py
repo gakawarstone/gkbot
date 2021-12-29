@@ -2,7 +2,7 @@ from bot_config import bot
 import aiogram
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.dispatcher import FSMContext
-import time
+import asyncio
 
 
 async def call(message: aiogram.types.Message):
@@ -19,7 +19,7 @@ async def spam(message: aiogram.types.Message, state: FSMContext):
     if text.startswith('@'):
         for i in range(10):
             msg = await message.answer(text)
-            time.sleep(5)
+            asyncio.sleep(5)
             await msg.delete()
     else:
         await message.answer('Призыв должен начинатся с @ [@ivanzolo2004]')
