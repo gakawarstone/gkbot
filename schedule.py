@@ -5,8 +5,7 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 import aiogram
 import manage
 import datetime
-
-data = ['test1', 'test2']
+# ADD DATABASE and read data from it
 
 
 class Schedule:
@@ -17,14 +16,11 @@ class Schedule:
         self.tasks.append(func)
 
     def do_at(self, func, time):
-        '''
-        Decorator for function
-        @{Schedule}.do_at()
-        '''
         async def task():
             now = datetime.datetime.now().strftime('%d.%m.%Y_%H:%M')
             if time == now:
                 await func()
+                await asyncio.sleep(60)
         self.tasks.append(task)
 
     async def scheduler(self, delay=5):
@@ -35,6 +31,10 @@ class Schedule:
 
     async def on_startup(self, dp):
         asyncio.create_task(self.scheduler())
+
+
+# TEST
+data = ['test1', 'test2']
 
 
 # bot handlers
@@ -66,7 +66,8 @@ async def send_data():
 
 if __name__ == '__main__':
     sch = Schedule()
-    sch.do_at(send_data, '28.12.2021_17:46')
+    sch.do_at(send_data, '28.12.2021_18:17')
+    sch.do_at(print_time, '28.12.2021_18:18')
     bot.add_task(sch.on_startup)
     bot.add_command_handler('set', init)
     bot.start()

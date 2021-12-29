@@ -91,7 +91,7 @@ class Bot(object):
 
     def start(self):
         executor = aiogram.utils.executor
-        if self.on_startup:
+        if self.tasks:
             executor.start_polling(self.dp, on_startup=self.on_startup)
         else:
             executor.start_polling(self.dp)
