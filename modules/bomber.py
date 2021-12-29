@@ -5,7 +5,7 @@ from aiogram.dispatcher import FSMContext
 import asyncio
 
 
-async def call(message: aiogram.types.Message):
+async def start(message: aiogram.types.Message):
     await message.answer('Вы включили бомбер')
     await message.answer('Надеемся вы понимате что вы делаете')
     await message.answer('Итак кто будет жертвой?')

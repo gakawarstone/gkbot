@@ -5,7 +5,7 @@ handlers = {
     'add_row': tasks.add_row,
     'trash': braintrash.write,
     'start': hello.start,
-    'bomber': bomber.call
+    'bomber': bomber.start
 }
 
 admin_handlers = {
