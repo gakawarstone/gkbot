@@ -16,20 +16,19 @@ class Form(StatesGroup):
 
 class Bot(object):
     def __init__(self, TOKEN):
-        self.__TOKEN = TOKEN
-        self.__bot = self.__set_bot()
-        self.dp = self.__set_dispatcher()
+        bot = self.__set_bot(TOKEN)
+        self.dp = self.__set_dispatcher(bot)
         self.admins = []
         self.keyboards = {}
         self.inline_keyboards = {}
         self.tasks = []
 
-    def __set_bot(self):
-        return aiogram.Bot(token=self.__TOKEN)
+    def __set_bot(self, token):
+        return aiogram.Bot(token=token)
 
-    def __set_dispatcher(self):
+    def __set_dispatcher(self, bot):
         storage = MemoryStorage()
-        return aiogram.dispatcher.Dispatcher(self.__bot, storage=storage)
+        return aiogram.dispatcher.Dispatcher(bot, storage=storage)
 
     def add_message_handler(self, func):
         """
