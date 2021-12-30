@@ -16,8 +16,8 @@ class Form(StatesGroup):
 
 class Bot(object):
     def __init__(self, TOKEN):
-        bot = self.__set_bot(TOKEN)
-        self.dp = self.__set_dispatcher(bot)
+        self.__bot = self.__set_bot(TOKEN)
+        self.dp = self.__set_dispatcher(self.__bot)
         self.admins = []
         self.keyboards = {}
         self.inline_keyboards = {}

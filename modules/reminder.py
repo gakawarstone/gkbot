@@ -1,9 +1,8 @@
-from bot_config import bot
-import datetime
+from bot_config import bot, schedule
 import aiogram
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
-data = []
+data = {}
 
 
 async def init(message: aiogram.types.Message):
@@ -15,22 +14,36 @@ async def init(message: aiogram.types.Message):
 
 
 async def get_mes(message: aiogram.types.Message, state: FSMContext):
-    data.append({
-        'user': {
-            'id': message['from']['id'],
-            'name': message['from']['username']
-        },
-        'message': message.text
-    })
-    print(*data)
-    await message.answer('Добавлено')
+    await state.finish()
+    data['mes'] = message.text
+    await message.answer('Отправьте дату и время')
+    bot.add_state_handler(FSM.get_time, get_time)
+    await FSM.get_time.set()
+
+
+async def get_time(message: aiogram.types.Message, state: FSMContext):
+    await state.finish()
+    mes = data['mes']
+    time = message.text
+    task = Task(bot.send_message, [
+                message['from']['id'],
+                mes])
+    schedule.add_task_at(task.run, time)
+    await message.answer('Напоминание добавлено')
+
+
+class Task:
+    def __init__(self, func, args=None):
+        self.__func = func
+        self.__args = args
+
+    async def run(self):
+        if self.__args:
+            await self.__func(*self.__args)
+        else:
+            await self.__func()
 
 
 class FSM(StatesGroup):
     get_mes = State()
     get_time = State()
-
-
-if __name__ == '__main__':
-    bot.add_command_handler('remind', init)
-    bot.start()
