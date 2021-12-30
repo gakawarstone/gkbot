@@ -5,13 +5,13 @@ handlers = {
     'add_row': tasks.add_row,
     'trash': braintrash.write,
     'start': hello.start,
-    'bomber': bomber.start
+    'bomber': bomber.start,
+    'add_remind': reminder.init
 }
 
 admin_handlers = {
     'get_trash': braintrash.get_all_data,
     'get_log': log.get,
-    'add_remind': reminder.init
 }
 
 admins = [
