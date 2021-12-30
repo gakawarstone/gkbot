@@ -2,6 +2,7 @@ from bot_config import bot, schedule
 import aiogram
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
+import datetime
 data = {}
 
 
@@ -22,14 +23,19 @@ async def get_mes(message: aiogram.types.Message, state: FSMContext):
 
 
 async def get_time(message: aiogram.types.Message, state: FSMContext):
-    await state.finish()
-    mes = data['mes']
-    time = message.text
-    task = Task(bot.send_message, [
+    try:
+        await state.finish()
+        mes = data['mes']
+        time = message.text
+        datetime.datetime.strptime(time, '%d.%m.%Y_%H:%M')
+        task = Task(bot.send_message, [
                 message['from']['id'],
                 mes])
-    schedule.add_task_at(task.run, time)
-    await message.answer('Напоминание добавлено')
+        schedule.add_task_at(task.run, time)
+        await message.answer('Напоминание добавлено')
+    except(Exception):
+        await message.answer('Формат [30.12.2021_10:28]')
+        await FSM.get_time.set()
 
 
 class Task:
