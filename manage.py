@@ -11,7 +11,7 @@ handlers = {
 admin_handlers = {
     'get_trash': braintrash.get_all_data,
     'get_log': log.get,
-    'test': reminder.init
+    'add_remind': reminder.init
 }
 
 admins = [
