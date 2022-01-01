@@ -1,10 +1,5 @@
 import asyncio
-from aiogram.dispatcher import FSMContext
-from aiogram.dispatcher.filters.state import State, StatesGroup
-import aiogram
-import manage
 from datetime import datetime, timezone, timedelta
-# ADD DATABASE and read data from it
 
 
 class Schedule:
