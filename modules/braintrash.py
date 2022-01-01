@@ -16,11 +16,10 @@ async def write(message: aiogram.types.Message):
 
 async def get_all_data(message: aiogram.types.Message):
     await message.answer('Вывод всего что находится в свалке')
-    outp = ''
     for i, child in enumerate(braintrash.get_view().children):
         if child.title:
-            outp += str(i + 1) + ': ' + child.title + ('\n' * 2)
-    await message.answer(outp)
+            outp = str(i + 1) + ': ' + child.title + ('\n' * 2)
+            await message.answer(outp)
 
 
 async def send_message(message: aiogram.types.Message, state: FSMContext):
