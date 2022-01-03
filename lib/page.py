@@ -1,7 +1,9 @@
 from notion.block import TextBlock
-from notion.client import NotionClient
-from bot_config import NOTION_TOKEN
-client = NotionClient(NOTION_TOKEN)
+from notion_client import AsyncClient
+from typing import Optional
+
+from bot_config import NOTION_API_TOKEN
+client = AsyncClient(auth=NOTION_API_TOKEN)
 
 
 class Page(object):
@@ -28,5 +30,12 @@ class Database(Page):
         row = self.get_view().collection.add_row()
         return row
 
-    def get_data(self):
-        pass
+    async def get_data(self, client: AsyncClient = client,
+                       filter: Optional[dict] = None) -> dict:
+        id = self.URL
+        if filter:
+            response = await client.databases.query(database_id=id,
+                                                    filter=filter)
+        else:
+            response = await client.databases.query(database_id=id)
+        return response
