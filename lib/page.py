@@ -7,15 +7,15 @@ client = AsyncClient(auth=NOTION_API_TOKEN)
 
 
 class Page(object):
-    def __init__(self, URL):
-        self.URL = URL
+    def __init__(self, url):
+        self.id = url
 
-    def get_URL(self):
-        return self.URL
+    def get_url(self):
+        return self.id
 
     def get_view(self, client=client):
         """get NotionClient object"""
-        return client.get_block(self.URL)
+        return client.get_block(self.id)
 
     def write(self, text):
         self.get_view().children.add_new(TextBlock, title=text)
@@ -24,15 +24,21 @@ class Page(object):
 class Database(Page):
     def get_view(self, client=client):
         """get NotionClient object"""
-        return client.get_collection_view(self.URL)
+        return client.get_collection_view(self.id)
 
-    def add_row(self):
-        row = self.get_view().collection.add_row()
-        return row
+    async def add_row(self, title: str):
+        properties = {
+            "Name": {"title": [{"text": {"content": title}}]}
+        }
+        await self.create_page(properties)
+
+    async def create_page(self, properties):
+        await client.pages.create(parent={"database_id": self.id},
+                                  properties=properties)
 
     async def get_data(self, client: AsyncClient = client,
                        filter: Optional[dict] = None) -> dict:
-        id = self.URL
+        id = self.id
         if filter:
             response = await client.databases.query(database_id=id,
                                                     filter=filter)
