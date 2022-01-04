@@ -22,26 +22,20 @@ class Page(object):
 
 
 class Database(Page):
-    def get_view(self, client=client):
-        """get NotionClient object"""
-        return client.get_collection_view(self.id)
-
-    async def add_row(self, title: str):
+    async def add_row(self, title: str) -> Page:
         properties = {
             "Name": {"title": [{"text": {"content": title}}]}
         }
-        await self.create_page(properties)
+        return await self.create_page(properties)
 
-    async def create_page(self, properties):
-        await client.pages.create(parent={"database_id": self.id},
-                                  properties=properties)
+    async def create_page(self, properties: dict) -> Page:
+        response = await client.pages.create(parent={"database_id": self.id},
+                                             properties=properties)
+        return Page(response['id'])
 
-    async def get_data(self, client: AsyncClient = client,
-                       filter: Optional[dict] = None) -> dict:
-        id = self.id
+    async def get_data(self, filter: Optional[dict] = None) -> dict:
         if filter:
-            response = await client.databases.query(database_id=id,
-                                                    filter=filter)
+            return await client.databases.query(database_id=self.id,
+                                                filter=filter)
         else:
-            response = await client.databases.query(database_id=id)
-        return response
+            return await client.databases.query(database_id=self.id)
