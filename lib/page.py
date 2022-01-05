@@ -1,5 +1,6 @@
 from notion_client import AsyncClient
 from typing import Optional
+from datetime import datetime
 
 from bot_config import NOTION_API_TOKEN
 client = AsyncClient(auth=NOTION_API_TOKEN)
@@ -26,24 +27,17 @@ class TextBlock:
 class Page:
     def __init__(self, id: str):
         self.id = id
-        # self.data = self.__get_data()
 
     async def set_name(self, name: str):
-        properties = {
-            'Name': {'title': [{'text': {'content': name}}]}
-        }
+        properties = {'Name': {'title': [{'text': {'content': name}}]}}
         await self.set_properties(properties)
 
-    async def set_date(self, property_name: str, date: str):
-        properties = {
-            property_name: {'date': {'start': date}}
-        }
-        await self.set_properties(properties)
+    async def set_date(self, property_name: str, date: datetime):
+        date = datetime.strftime(date, '%Y-%m-%d')
+        await self.set_properties({property_name: {'date': {'start': date}}})
 
     async def set_select(self, property_name: str, select: str):
-        properties = {
-            property_name: {'select': {'name': select}}
-        }
+        properties = {property_name: {'select': {'name': select}}}
         await self.set_properties(properties)
 
     async def set_properties(self, properties: dict):
@@ -55,7 +49,17 @@ class Page:
     async def add_children(self, children: list[dict]) -> str:
         return await client.blocks.children.append(self.id, children=children)
 
-    async def get_data(self):
+    async def get_all_children_titles(self) -> list:
+        data = await client.blocks.children.list(self.id)
+        children = data['results']
+        outp = []
+        for child in children:
+            if child['paragraph']['text']:
+                title = child['paragraph']['text'][0]['plain_text']
+                outp.append(title)
+        return outp
+
+    async def get_data(self) -> dict:
         return await client.pages.retrieve(self.id)
 
 
