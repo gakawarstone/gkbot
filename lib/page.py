@@ -24,18 +24,43 @@ class TextBlock:
 
 
 class Page:
-    def __init__(self, id):
+    def __init__(self, id: str):
         self.id = id
+        # self.data = self.__get_data()
+
+    async def set_name(self, name: str):
+        properties = {
+            'Name': {'title': [{'text': {'content': name}}]}
+        }
+        await self.set_properties(properties)
+
+    async def set_date(self, property_name: str, date: str):
+        properties = {
+            property_name: {'date': {'start': date}}
+        }
+        await self.set_properties(properties)
+
+    async def set_select(self, property_name: str, select: str):
+        properties = {
+            property_name: {'select': {'name': select}}
+        }
+        await self.set_properties(properties)
+
+    async def set_properties(self, properties: dict):
+        await client.pages.update(page_id=self.id, properties=properties)
 
     async def write(self, text: str):
         await self.add_children([TextBlock(text).data])
 
-    async def add_children(self, children: list[str]) -> str:
+    async def add_children(self, children: list[dict]) -> str:
         return await client.blocks.children.append(self.id, children=children)
+
+    async def get_data(self):
+        return await client.pages.retrieve(self.id)
 
 
 class Database(Page):
-    async def add_row(self, title: str) -> Page:
+    async def add_row(self, title: str = 'Processing') -> Page:
         properties = {
             'Name': {'title': [{'text': {'content': title}}]}
         }
