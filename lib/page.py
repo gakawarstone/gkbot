@@ -28,6 +28,9 @@ class Page:
     def __init__(self, id: str):
         self.id = id
 
+    def get_url(self):
+        return self.get_data()['url']
+
     async def set_name(self, name: str):
         properties = {'Name': {'title': [{'text': {'content': name}}]}}
         await self.set_properties(properties)

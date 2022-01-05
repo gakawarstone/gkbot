@@ -5,7 +5,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from datetime import datetime
 Database = NotionDatabase
-tasks = Database("https://www.notion.so/gakawarstone/67f38400c29f4137ac285fe6569567e2?v=d7e870b67e4b4becb65132a814f8f7af")
+tasks = Database("67f38400c29f4137ac285fe6569567e2")
 
 
 class Form(StatesGroup):
@@ -27,21 +27,22 @@ async def add_row(message: aiogram.types.Message):
 
 
 async def get_name(message: aiogram.types.Message, state: FSMContext):
-    row.name = message.text
+    row.set_name(message.text)
     await message.answer('Отправьте предмет')
     await Form.next()
 
 
 async def get_subject(message: aiogram.types.Message, state: FSMContext):
-    row.subject = message.text
+    row.set_select('Subject', message.text)
     await message.answer('Отправьте дедлайн')
     await Form.next()
 
 
 async def get_deadline(message: aiogram.types.Message, state: FSMContext):
     try:
-        row.deadline = datetime.strptime(message.text, "%d.%m.%Y")
-        row.status = 'Не начато'
+        deadline = datetime.strptime(message.text, "%d.%m.%Y")
+        row.set_date('Deadline', deadline)
+        row.set_select('Status', 'Не начато')
         await message.answer('Спасибо')
         await state.finish()
     except(Exception):
