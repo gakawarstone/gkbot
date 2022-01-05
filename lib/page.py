@@ -1,4 +1,3 @@
-from notion.block import TextBlock
 from notion_client import AsyncClient
 from typing import Optional
 
@@ -6,30 +5,44 @@ from bot_config import NOTION_API_TOKEN
 client = AsyncClient(auth=NOTION_API_TOKEN)
 
 
-class Page(object):
-    def __init__(self, url):
-        self.id = url
+class TextBlock:
+    def __init__(self, text: str):
+        self.text = text
+        self.data = self.__get_data()
 
-    def get_url(self):
-        return self.id
+    def __get_data(self):
+        return {'object': 'block',
+                'type': 'paragraph',
+                'paragraph': {
+                    'text': [{
+                        'type': 'text',
+                        'text': {
+                            'content': self.text
+                        }
+                    }]
+                }}
 
-    def get_view(self, client=client):
-        """get NotionClient object"""
-        return client.get_block(self.id)
 
-    def write(self, text):
-        self.get_view().children.add_new(TextBlock, title=text)
+class Page:
+    def __init__(self, id):
+        self.id = id
+
+    async def write(self, text: str):
+        await self.add_children([TextBlock(text).data])
+
+    async def add_children(self, children: list[str]) -> str:
+        return await client.blocks.children.append(self.id, children=children)
 
 
 class Database(Page):
     async def add_row(self, title: str) -> Page:
         properties = {
-            "Name": {"title": [{"text": {"content": title}}]}
+            'Name': {'title': [{'text': {'content': title}}]}
         }
-        return await self.create_page(properties)
+        return await self.__create_page(properties)
 
-    async def create_page(self, properties: dict) -> Page:
-        response = await client.pages.create(parent={"database_id": self.id},
+    async def __create_page(self, properties: dict) -> Page:
+        response = await client.pages.create(parent={'database_id': self.id},
                                              properties=properties)
         return Page(response['id'])
 
