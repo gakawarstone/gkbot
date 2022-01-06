@@ -31,18 +31,6 @@ class Page:
     def get_url(self):
         return self.get_data()['url']
 
-    async def set_name(self, name: str):
-        properties = {'Name': {'title': [{'text': {'content': name}}]}}
-        await self.set_properties(properties)
-
-    async def set_date(self, property_name: str, date: datetime):
-        date = datetime.strftime(date, '%Y-%m-%d')
-        await self.set_properties({property_name: {'date': {'start': date}}})
-
-    async def set_select(self, property_name: str, select: str):
-        properties = {property_name: {'select': {'name': select}}}
-        await self.set_properties(properties)
-
     async def set_properties(self, properties: dict):
         await client.pages.update(page_id=self.id, properties=properties)
 
@@ -66,12 +54,27 @@ class Page:
         return await client.pages.retrieve(self.id)
 
 
+class Row(Page):
+    async def set_name(self, name: str):
+        properties = {'Name': {'title': [{'text': {'content': name}}]}}
+        await self.set_properties(properties)
+
+    async def set_date(self, property_name: str, date: datetime):
+        date = datetime.strftime(date, '%Y-%m-%d')
+        await self.set_properties({property_name: {'date': {'start': date}}})
+
+    async def set_select(self, property_name: str, select: str):
+        properties = {property_name: {'select': {'name': select}}}
+        await self.set_properties(properties)
+
+
 class Database(Page):
-    async def add_row(self, title: str = 'Processing') -> Page:
+    async def add_row(self, title: str = 'Processing') -> Row:
         properties = {
             'Name': {'title': [{'text': {'content': title}}]}
         }
-        return await self.__create_page(properties)
+        page = await self.__create_page(properties)
+        return Row(page.id)
 
     async def __create_page(self, properties: dict) -> Page:
         response = await client.pages.create(parent={'database_id': self.id},
