@@ -28,8 +28,8 @@ class Page:
     def __init__(self, id: str):
         self.id = id
 
-    def get_url(self):
-        return self.get_data()['url']
+    async def get_url(self):
+        return await self.get_data()['url']
 
     async def set_properties(self, properties: dict):
         await client.pages.update(page_id=self.id, properties=properties)
@@ -37,7 +37,7 @@ class Page:
     async def write(self, text: str):
         await self.add_children([TextBlock(text).data])
 
-    async def add_children(self, children: list[dict]) -> str:
+    async def add_children(self, children: list[dict]) -> dict:
         return await client.blocks.children.append(self.id, children=children)
 
     async def get_all_children_titles(self) -> list:
