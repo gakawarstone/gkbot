@@ -19,7 +19,7 @@ async def add_row(message: aiogram.types.Message):
     await message.answer('Вы пытаетесь добавить строчку в базу заданий')
     await message.answer('Отправьте мне название задачи')
     global row
-    row = tasks.add_row()
+    row = await tasks.add_row()
     bot.add_state_handler(Form.name, get_name)
     bot.add_state_handler(Form.subject, get_subject)
     bot.add_state_handler(Form.deadline, get_deadline)
@@ -27,13 +27,13 @@ async def add_row(message: aiogram.types.Message):
 
 
 async def get_name(message: aiogram.types.Message, state: FSMContext):
-    row.set_name(message.text)
+    await row.set_name(message.text)
     await message.answer('Отправьте предмет')
     await Form.next()
 
 
 async def get_subject(message: aiogram.types.Message, state: FSMContext):
-    row.set_select('Subject', message.text)
+    await row.set_select('Subject', message.text)
     await message.answer('Отправьте дедлайн')
     await Form.next()
 
@@ -41,8 +41,8 @@ async def get_subject(message: aiogram.types.Message, state: FSMContext):
 async def get_deadline(message: aiogram.types.Message, state: FSMContext):
     try:
         deadline = datetime.strptime(message.text, "%d.%m.%Y")
-        row.set_date('Deadline', deadline)
-        row.set_select('Status', 'Не начато')
+        await row.set_date('Deadline', deadline)
+        await row.set_select('Status', 'Не начато')
         await message.answer('Спасибо')
         await state.finish()
     except(Exception):

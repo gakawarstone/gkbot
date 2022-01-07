@@ -22,7 +22,7 @@ async def get_all_data(message: aiogram.types.Message):
 
 
 async def send_message(message: aiogram.types.Message, state: FSMContext):
-    braintrash.write(message.text)
+    await braintrash.write(message.text)
     btn = bot.add_url_button(braintrash.get_url(), text='Ссылка')
     await message.answer('Информация сохранена', reply_markup=btn)
     await state.finish()

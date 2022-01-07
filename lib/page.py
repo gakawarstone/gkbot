@@ -29,6 +29,7 @@ class Page:
         self.id = id
 
     async def get_url(self):
+        print(await self.get_data()['url'])
         return await self.get_data()['url']
 
     async def set_properties(self, properties: dict):
