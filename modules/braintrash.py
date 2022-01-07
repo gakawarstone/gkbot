@@ -4,7 +4,7 @@ from aiogram.dispatcher import FSMContext
 from bot_config import bot
 from root import NotionPage
 Page = NotionPage
-braintrash = Page('https://www.notion.so/gakawarstone/braintrash-98997f76b28d48cb946d04e32b540e64')
+braintrash = Page('98997f76b28d48cb946d04e32b540e64')
 
 
 async def write(message: aiogram.types.Message):
