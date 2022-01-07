@@ -29,7 +29,8 @@ class Page:
         self.id = id
 
     async def get_url(self) -> str:
-        return await self.get_data()['url']
+        data = await self.get_data()
+        return data['url']
 
     async def set_properties(self, properties: dict):
         await client.pages.update(page_id=self.id, properties=properties)
