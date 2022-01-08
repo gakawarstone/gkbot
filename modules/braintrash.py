@@ -16,8 +16,8 @@ async def write(message: aiogram.types.Message):
 
 async def get_all_data(message: aiogram.types.Message):
     await message.answer('Вывод всего что находится в свалке')
-    for i, child in enumerate(braintrash.get_all_children_titles()):
-        outp = str(i + 1) + ': ' + child + ('\n' * 2)
+    for i, title in enumerate(await braintrash.get_all_children_titles()):
+        outp = str(i + 1) + ': ' + title + ('\n' * 2)
         await message.answer(outp)
 
 
