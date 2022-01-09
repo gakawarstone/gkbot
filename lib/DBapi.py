@@ -6,18 +6,24 @@ DATABASE_URL = os.environ.get('DATABASE_URL')
 
 
 class PostgreSQL(object):
-    def __init__(self, url):
+    def __init__(self, url: str):
         self.connection = psycopg2.connect(url)
         self.cursor = self.connection.cursor()
 
-    def execute(self, sql_query):
+    def get_table(self, name: str):
+        return self.execute(f'SELECT * FROM {name}')
+
+    def execute(self, sql_query: str):
         with self.cursor as cursor:
             cursor.execute(sql_query)
             return list(cursor.fetchall())
 
 
 class Local(PostgreSQL):
-    def __init__(self, dbname, user, password, host='5432'):
+    def __init__(self, dbname: str,
+                 user: str,
+                 password: str,
+                 host: str = 'localhost'):
         self.connection = psycopg2.connect(dbname=dbname,
                                            user=user,
                                            password=password,
