@@ -11,17 +11,11 @@ class TextBlock:
         self.text = text
         self.data = self.__get_data()
 
-    def __get_data(self):
+    def __get_data(self) -> dict:
         return {'object': 'block',
                 'type': 'paragraph',
-                'paragraph': {
-                    'text': [{
-                        'type': 'text',
-                        'text': {
-                            'content': self.text
-                        }
-                    }]
-                }}
+                'paragraph': {'text': [{'type': 'text',
+                                        'text': {'content': self.text}}]}}
 
 
 class Page:
