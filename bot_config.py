@@ -9,6 +9,8 @@ if IN_HEROKU:
     BOT_TOKEN = os.environ.get('BOT_TOKEN')
     NOTION_TOKEN = os.environ.get('NOTION_TOKEN')
     NOTION_API_TOKEN = os.environ.get('NOTION_API_TOKEN')
+    # Heroku PostgreSQL server
+    DATABASE_URL = os.environ.get('DATABASE_URL')
 else:
     import env
     BOT_TOKEN = env.BOT_TOKEN

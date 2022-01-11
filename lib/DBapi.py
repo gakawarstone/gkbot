@@ -1,11 +1,7 @@
 import psycopg2
-import os
-
-# Heroku PostgreSQL server
-DATABASE_URL = os.environ.get('DATABASE_URL')
 
 
-class PostgreSQL(object):
+class PostgreSQL:
     def __init__(self, url: str):
         self.connection = psycopg2.connect(url)
 
