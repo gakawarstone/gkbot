@@ -8,13 +8,15 @@ DATABASE_URL = os.environ.get('DATABASE_URL')
 class PostgreSQL(object):
     def __init__(self, url: str):
         self.connection = psycopg2.connect(url)
-        self.cursor = self.connection.cursor()
+
+    def __get_cursor(self):
+        return self.connection.cursor()
 
     def get_table(self, name: str):
         return self.execute(f'SELECT * FROM {name}')
 
     def execute(self, sql_query: str):
-        with self.cursor as cursor:
+        with self.__get_cursor() as cursor:
             cursor.execute(sql_query)
             return list(cursor.fetchall())
 
