@@ -28,9 +28,7 @@ class PostgreSQL:
 class Local(PostgreSQL):
     def __init__(self, dbname: str,
                  user: str,
-                 password: str,
-                 host: str = 'localhost'):
+                 password: str):
         self.connection = psycopg2.connect(dbname=dbname,
                                            user=user,
-                                           password=password,
-                                           host=host)
+                                           password=password)
