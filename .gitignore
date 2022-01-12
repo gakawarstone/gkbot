@@ -1,10 +1,5 @@
-<<<<<<< HEAD
-/__pycache__
-/node_modules
-env.py
-=======
 **/__pycache__
 /node_modules
 env.py
 .idea
->>>>>>> dev
+venv
