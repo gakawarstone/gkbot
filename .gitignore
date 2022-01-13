@@ -4,3 +4,4 @@ env.py
 .idea
 venv
 *.ipynb
+.vscode
