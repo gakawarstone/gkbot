@@ -1,4 +1,5 @@
 import psycopg2
+from psycopg2.errors import UndefinedTable
 from typing import Optional
 
 
@@ -7,8 +8,11 @@ class PostgreSQL:
         self.connection = psycopg2.connect(url)
 
     def get_table(self, name: str) -> list:
-        query = f'SELECT * FROM {name}'
-        return self.__get(query)
+        try:
+            query = f'SELECT * FROM {name}'
+            return self.__get(query)
+        except UndefinedTable:
+            raise ValueError(f'Table {name} is undefined')
 
     def insert_in(self, table_name: str, data: list[tuple]):
         for row in data:
@@ -20,7 +24,7 @@ class PostgreSQL:
     def __get(self, sql_query: str, args: Optional[tuple] = None) -> list:
         with self.__get_cursor() as cursor:
             if args:
-                cursor.execute(sql_query, args)
+                cursor.execute(sql_query, (*args,))
             else:
                 cursor.execute(sql_query)
             data = list(cursor.fetchall())
@@ -29,7 +33,7 @@ class PostgreSQL:
 
     def __post(self, sql_query: str, args: tuple):
         with self.__get_cursor() as cursor:
-            cursor.execute(sql_query, args)
+            cursor.execute(sql_query, (*args,))
         self.connection.commit()
 
     def __get_cursor(self):
