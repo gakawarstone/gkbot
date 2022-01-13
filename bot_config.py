@@ -16,6 +16,7 @@ else:
     BOT_TOKEN = env.BOT_TOKEN
     NOTION_TOKEN = env.NOTION_TOKEN
     NOTION_API_TOKEN = env.NOTION_API_TOKEN
+    LOCAL_DB_USER_PSWD = env.LOCAL_DB_USER_PSWD
 
 # main objects
 bot = Bot(BOT_TOKEN)

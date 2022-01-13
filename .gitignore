@@ -5,3 +5,4 @@ env.py
 venv
 *.ipynb
 .vscode
+.pytest_cache
