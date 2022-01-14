@@ -21,20 +21,22 @@ class PostgreSQL:
             args = row
             self.__post(query, args)
 
+    def delete_row(self, table_name: str, data: list):
+        pass
+
     def __get(self, sql_query: str, args: Optional[tuple] = None) -> list:
-        with self.__get_cursor() as cursor:
-            if args:
-                cursor.execute(sql_query, (*args,))
-            else:
-                cursor.execute(sql_query)
-            data = list(cursor.fetchall())
-        self.connection.commit()
-        return data
+        with self.connection:
+            with self.__get_cursor() as cursor:
+                if args:
+                    cursor.execute(sql_query, (*args,))
+                else:
+                    cursor.execute(sql_query)
+                return list(cursor.fetchall())
 
     def __post(self, sql_query: str, args: tuple):
-        with self.__get_cursor() as cursor:
-            cursor.execute(sql_query, (*args,))
-        self.connection.commit()
+        with self.connection:
+            with self.__get_cursor() as cursor:
+                cursor.execute(sql_query, (*args,))
 
     def __get_cursor(self):
         return self.connection.cursor()
