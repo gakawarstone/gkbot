@@ -1,5 +1,5 @@
 from bot_config import bot, schedule
-from modules import tasks, braintrash, hello, bomber, log, reminder
+from handlers import tasks, braintrash, hello, bomber, log, reminder
 
 handlers = {
     'add_row': tasks.add_row,
