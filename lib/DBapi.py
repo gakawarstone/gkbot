@@ -1,6 +1,6 @@
 import psycopg2
 from psycopg2.errors import UndefinedTable
-from typing import Optional, Union, Iterable
+from typing import Iterable, Optional
 
 
 class PostgreSQL:
@@ -14,21 +14,48 @@ class PostgreSQL:
         except UndefinedTable:
             raise ValueError(f'Table {name} is undefined')
 
+    def append(self, table_name: str, data: list[tuple]):
+        ''' id of table you trying to insert should be serial constraint '''
+        for row in data:
+            if not row:
+                continue
+            query = f'INSERT INTO {table_name} VALUES'
+            if type(row) == tuple:
+                query += ' (DEFAULT' + (',%s' * (len(row) - 1)) + ')'
+                args = row
+            else:
+                assert type(row) != Iterable
+                query += ' (DEFAULT, %s)'
+                args = [row]
+            self.__post(query, args)
+
     def insert_in(self, table_name: str, data: list[tuple]):
         for row in data:
             if not row:
                 continue
             query = f'INSERT INTO {table_name} VALUES'
-            query += ' (%s' + (',%s' * (len(row) - 1)) + ')'
-            args = list(row)
+            if type(row) == tuple:
+                query += ' (%s' + (',%s' * (len(row) - 1)) + ')'
+                args = list(row)
+            else:
+                assert type(row) != tuple
+                query += ' (%s)'
+                args = [row]
             self.__post(query, args)
 
-    def delete_from(self, table_name: str, properties: dict):
+    def delete_from(self, table_name: str, properties: dict[str, list]):
         for column_name in properties:
-            column_value = properties[column_name]
-            query = f'DELETE FROM {table_name} WHERE {column_name} ='
-            query += ' %s'
-            self.__post(query, args=[column_value])
+            query = ''
+            column_values = properties[column_name]
+            for value in column_values:
+                query += f'DELETE FROM {table_name} WHERE {column_name}'
+                if value or value == 0:
+                    query += ' = %s;'
+                else:
+                    assert value == None
+                    query += ' IS NULL'
+                    column_values.remove(value)
+            self.__post(query, args=column_values)
 
     def __get(self, sql_query: str, args: Optional[list] = None) -> list:
         with self.connection:
