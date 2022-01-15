@@ -27,12 +27,15 @@ def test_if_table_not_exist():
             db.get_table(tb)
 
 
-def test_insert_values():
+def test_insert_delete_values():
     db = connect_db()
-    # add_row functhion
     table_name = 'test'
     data = [(0, 1)]
-    assert db.insert_in(table_name, data)
+    db.delete_from(table_name, {'number': data[0][0]})
+    db.insert_in(table_name, data)
+    db_after = connect_db()
+    assert db_after.get_table(table_name) == [(0, 1)]
+    db_after.delete_from(table_name, {'number': data[0][0]})
 
 
 def test_insert_empty_list_in_table():

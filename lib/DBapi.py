@@ -1,6 +1,6 @@
 import psycopg2
 from psycopg2.errors import UndefinedTable
-from typing import Optional
+from typing import Optional, Union
 
 
 class PostgreSQL:
@@ -21,8 +21,13 @@ class PostgreSQL:
             args = row
             self.__post(query, args)
 
-    def delete_row(self, table_name: str, data: list):
-        pass
+    def delete_from(self, table_name: str, properties: dict):
+        for column_name in properties:
+            column_value = properties[column_name]
+            query = f'DELETE FROM {table_name} WHERE  {column_name} ='
+            query += ' %(value)s'
+            self.__post(
+                query, args={'value': column_value})
 
     def __get(self, sql_query: str, args: Optional[tuple] = None) -> list:
         with self.connection:
@@ -33,10 +38,13 @@ class PostgreSQL:
                     cursor.execute(sql_query)
                 return list(cursor.fetchall())
 
-    def __post(self, sql_query: str, args: tuple):
+    def __post(self, sql_query: str, args: Union[tuple, dict]):
         with self.connection:
             with self.__get_cursor() as cursor:
-                cursor.execute(sql_query, (*args,))
+                if type(args) == tuple:
+                    cursor.execute(sql_query, (*args,))
+                elif type(args) == dict:
+                    cursor.execute(sql_query, args)
 
     def __get_cursor(self):
         return self.connection.cursor()
