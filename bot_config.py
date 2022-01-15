@@ -1,6 +1,5 @@
 from lib.bot import Bot
 from lib.schedule import Schedule
-from notion.client import NotionClient
 import os
 
 # VARS
@@ -20,5 +19,4 @@ else:
 
 # main objects
 bot = Bot(BOT_TOKEN)
-client = NotionClient(NOTION_TOKEN)
 schedule = Schedule()

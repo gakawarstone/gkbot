@@ -2,8 +2,7 @@ import aiogram
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.dispatcher import FSMContext
 from bot_config import bot
-from root import NotionPage
-Page = NotionPage
+from lib.page import Page
 braintrash = Page('98997f76b28d48cb946d04e32b540e64')
 
 

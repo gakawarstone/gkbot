@@ -1,10 +1,9 @@
 from bot_config import bot
-from root import NotionDatabase
 import aiogram
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from datetime import datetime
-Database = NotionDatabase
+from lib.page import Database
 tasks = Database("67f38400c29f4137ac285fe6569567e2")
 
 
