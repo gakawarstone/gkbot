@@ -27,28 +27,23 @@ def test_if_table_not_exist():
             db.get_table(tb)
 
 
-def test_insert_delete_values():
-    db = connect_db()
-    table_name = 'test'
-    data = [(0, 1)]
-    db.delete_from(table_name, {'number': data[0][0]})
-    db.insert_in(table_name, data)
-    db_after = connect_db()
-    assert db_after.get_table(table_name) == [(0, 1)]
-    db_after.delete_from(table_name, {'number': data[0][0]})
-
-
 def test_insert_empty_list_in_table():
     db = connect_db()
-    with pytest.raises(ValueError):
-        # add_row functhion
-        db.insert_in('test', [()])
+    db.insert_in('test', [()])
 
 
-# think how to do this test (add delete_row method)
-def test_if_values_saving():
+def test_delete():
     db = connect_db()
-    db.insert_in(value)
-    db_new_connect = connect_db()
-    assert db_new_connect.get_table('name') == [(value)]
-    db_new_connect.remove_if_exist(value)
+    db.delete_from('test', {'number': 1})
+
+
+def test_insert_delete_values():
+    for i in range(10):
+        db = connect_db()
+        table_name = 'test'
+        data = [(0, i), (1, i)]
+        db.delete_from(table_name, {'number': i})
+        db.insert_in(table_name, data)
+        db_after = connect_db()
+        assert db_after.get_table(table_name) == data
+        db_after.delete_from(table_name, {'number': i})
