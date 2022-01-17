@@ -1,5 +1,6 @@
-from bot_config import bot, schedule
-from handlers import tasks, braintrash, hello, bomber, log, reminder
+from bot_config import bot, schedule, admins
+from handlers import tasks, braintrash, hello, bomber, reminder
+from utils import log, notify
 
 handlers = {
     'add_row': tasks.add_row,
@@ -14,10 +15,6 @@ admin_handlers = {
     'get_log': log.get,
 }
 
-admins = [
-    897651738
-]
-
 
 def start():
     bot.admins = admins
@@ -26,4 +23,6 @@ def start():
         bot.add_command_handler(cmd, handlers[cmd])
     for cmd in admin_handlers:
         bot.add_command_handler(cmd, admin_handlers[cmd], admin_only=True)
+    notify.notify_admins('bot started')
     bot.start()
+    notify.notify_admins('bot stopped')

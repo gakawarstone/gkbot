@@ -19,3 +19,8 @@ else:
 # main objects
 bot = Bot(BOT_TOKEN)
 schedule = Schedule()
+
+# config
+admins = [
+    897651738
+]
