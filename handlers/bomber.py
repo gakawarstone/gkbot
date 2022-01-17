@@ -23,7 +23,7 @@ async def spam(message: aiogram.types.Message, state: FSMContext):
             await asyncio.sleep(5)
             await msg.delete()
     else:
-        await message.answer('Призыв должен начинатся с @ [@ivanzolo2004]')
+        await message.answer('Призыв должен начинаться с @ [@ivanzolo2004]')
         await Form.spam_it_state.set()
 
 
