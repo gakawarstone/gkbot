@@ -6,7 +6,7 @@ import datetime
 data = {}
 
 
-async def init(message: aiogram.types.Message):
+async def add(message: aiogram.types.Message):
     await message.answer('Вы хотите создать напоминание')
     await message.answer('Напоминание придет в этот чат в указанное время')
     await message.answer('Отправьте текст напоминания')
@@ -29,8 +29,8 @@ async def get_time(message: aiogram.types.Message, state: FSMContext):
         time = message.text
         datetime.datetime.strptime(time, '%d.%m.%Y_%H:%M')
         task = Task(bot.send_message, [
-                message['from']['id'],
-                mes])
+            message['from']['id'],
+            mes])
         schedule.add_task_at(task.run, time)
         await message.answer('Напоминание добавлено')
     except(Exception):

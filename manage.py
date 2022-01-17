@@ -3,11 +3,11 @@ from handlers import tasks, braintrash, hello, bomber, reminder
 from utils import log, notify
 
 handlers = {
-    'add_row': tasks.add_row,
+    'add_task': tasks.add,
     'trash': braintrash.write,
     'start': hello.start,
     'bomber': bomber.start,
-    'add_remind': reminder.init
+    'add_remind': reminder.add
 }
 
 admin_handlers = {

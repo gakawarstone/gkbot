@@ -1,8 +1,9 @@
-from bot_config import bot
 import aiogram
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.dispatcher import FSMContext
 import asyncio
+
+from bot_config import bot
 
 
 async def start(message: aiogram.types.Message):

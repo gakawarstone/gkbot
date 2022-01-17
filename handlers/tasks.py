@@ -1,9 +1,12 @@
-from bot_config import bot
+from datetime import datetime
+
 import aiogram
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from datetime import datetime
+
+from bot_config import bot
 from lib.page import Database
+
 tasks = Database("67f38400c29f4137ac285fe6569567e2")
 
 
@@ -14,7 +17,7 @@ class Form(StatesGroup):
     status = State()
 
 
-async def add_row(message: aiogram.types.Message):
+async def add(message: aiogram.types.Message):
     await message.answer('Вы пытаетесь добавить строчку в базу заданий')
     await message.answer('Отправьте мне название задачи')
     global row
