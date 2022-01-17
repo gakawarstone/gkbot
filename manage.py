@@ -1,5 +1,6 @@
 from bot_config import bot, schedule, admins
 from handlers import tasks, braintrash, hello, bomber, reminder
+from handlers import road_to_the_dream as road
 from utils import log, notify
 
 handlers = {
@@ -7,7 +8,8 @@ handlers = {
     'trash': braintrash.write,
     'start': hello.start,
     'bomber': bomber.start,
-    'add_remind': reminder.add
+    'add_remind': reminder.add,
+    'road': road.start
 }
 
 admin_handlers = {
