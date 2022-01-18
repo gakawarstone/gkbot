@@ -3,6 +3,7 @@ import aiogram
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.dispatcher import FSMContext
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
+from aiogram.types import Message, ParseMode
 from aiogram.types import ReplyKeyboardRemove, \
     ReplyKeyboardMarkup, KeyboardButton, \
     InlineKeyboardMarkup, InlineKeyboardButton
@@ -88,8 +89,9 @@ class Bot(object):
     def add_task(self, func):
         self.tasks.append(func)
 
-    async def send_message(self, id, text):
-        await self.__bot.send_message(id, text)
+    async def send_message(self, id, text) -> Message:
+        return await self.__bot.send_message(id, text,
+                                             parse_mode=ParseMode.MARKDOWN)
 
     async def send_file(self, message, path):
         await message.answer_document(open(path, "rb"))
