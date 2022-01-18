@@ -51,16 +51,22 @@ async def pomodoro(message: aiogram.types.Message,
                         parse_mode=ParseMode.MARKDOWN)
 
 
-async def timer(chat_id, seconds: int, text: str = 'Start'):
+async def timer(chat_id: str, seconds: int,
+                text: str = 'Start', delay: int = 1,
+                format: str = '%M:%S'):
     msg = await bot.send_message(chat_id, text)
     now = datetime.now().timestamp()
     finish_time = now + seconds
-    while now <= finish_time:
+    while True:
         now = datetime.now().timestamp()
         remain_time = finish_time - now
-        await msg.edit_text(text + ' *%s*' % datetime.fromtimestamp(remain_time).strftime('%M:%S'),
+        if now >= finish_time:
+            break
+        await msg.edit_text(text + ' *%s*' %
+                            datetime.fromtimestamp(
+                                remain_time).strftime(format),
                             parse_mode=ParseMode.MARKDOWN)
-        await asyncio.sleep(1)
+        await asyncio.sleep(delay)
     await msg.delete()
 
 
