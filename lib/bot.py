@@ -1,3 +1,4 @@
+from typing import Awaitable
 import aiogram
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.dispatcher import FSMContext
@@ -29,6 +30,14 @@ class Bot(object):
     def __set_dispatcher(self, bot):
         storage = MemoryStorage()
         return aiogram.dispatcher.Dispatcher(bot, storage=storage)
+
+    async def jump(self, func: Awaitable):
+        '''
+        register next step handler
+        '''
+        state = State()
+        self.add_state_handler(state, func)
+        await state.set()
 
     def add_message_handler(self, func):
         """
