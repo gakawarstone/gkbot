@@ -14,9 +14,9 @@ async def start(message: aiogram.types.Message):
     await message.answer('Привет _%s_ ты включил модуль 🚀*РОД ЗЕ ДРИМ*🚀' %
                          message['from']['first_name'],
                          parse_mode=ParseMode.MARKDOWN)
-    buttons = [['Помидор', 'Трекер привычек']]
+    buttons = [['Помидор 🕔', 'Трекер привычек']]
     bot.add_keyboard('road_choose', buttons)
-    await message.answer('Пожалуйста выберите *инструмент*',
+    await message.answer('Пожалуйста выберите 🛠 *инструмент*',
                          reply_markup=bot.keyboards['road_choose'],
                          parse_mode=ParseMode.MARKDOWN)
     bot.add_state_handler(FSM.choose_tool, choose_tool)
@@ -26,7 +26,7 @@ async def start(message: aiogram.types.Message):
 async def choose_tool(message: aiogram.types.Message, state: FSMContext):
     await state.finish()
     await message.delete()
-    if message.text == 'Помидор':
+    if message.text == 'Помидор 🕔':
         await pomodoro(message)
     elif message.text == 'Трекер привычек':
         await habit_tracker(message)
@@ -35,7 +35,7 @@ async def choose_tool(message: aiogram.types.Message, state: FSMContext):
 async def pomodoro(message: aiogram.types.Message,
                    time_focused: int = 15,
                    time_relax: int = 15):
-    await message.answer('Вы включили *помидор*',
+    await message.answer('Вы включили 🕔 *помидор*',
                          reply_markup=ReplyKeyboardRemove(),
                          parse_mode=ParseMode.MARKDOWN)
 
