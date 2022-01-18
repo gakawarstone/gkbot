@@ -35,9 +35,10 @@ class Bot(object):
         '''
         register next step handler
         '''
-        state = State()
-        self.add_state_handler(state, func)
-        await state.set()
+        class FSM(StatesGroup):
+            state = State()
+        self.add_state_handler(FSM.state, func)
+        await FSM.state.set()
 
     def add_message_handler(self, func):
         """
