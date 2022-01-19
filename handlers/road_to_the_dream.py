@@ -14,6 +14,7 @@ data = {'pomodoro_cnt': 0,
 
 
 async def start(message: aiogram.types.Message):
+    await message.answer_photo('AgACAgIAAxkDAALtVWHn3ZZmzpMfA3SI7usT1avw9xrWAALRtjEbe9FASzJZxPBxsVhdAQADAgADeQADIwQ')
     await message.answer('Привет _%s_ ты включил модуль 🚀*РОД ЗЕ ДРИМ*🚀' %
                          message['from']['first_name'])
     buttons = [['Помидор 🕔', 'Трекер привычек']]
@@ -57,6 +58,9 @@ async def pomodoro(message: aiogram.types.Message,
 
 async def choose_bool(message: aiogram.types.Message, state: FSMContext):
     await state.finish()
+    await message.delete()
+    assert data['msg_if_restart'] != None
+    await data['msg_if_restart'].delete()
     if message.text == 'Да':
         await pomodoro(message)
     else:
@@ -84,7 +88,7 @@ async def timer(chat_id: str, seconds: int,
 
 async def habit_tracker(message: aiogram.types.Message):
     await message.answer('Вы включили трекер привычек', reply_markup=ReplyKeyboardRemove())
-    await message.answer('Ты хули сюда залез невидишь что нет ничего')
+    await message.answer('*Поздравляю* вы получили 🦣')
 
 
 class FSM(StatesGroup):
