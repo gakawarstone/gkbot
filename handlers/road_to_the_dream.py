@@ -5,20 +5,21 @@ import asyncio
 import aiogram
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.dispatcher import FSMContext
-from aiogram.types import ReplyKeyboardRemove, ParseMode
+from aiogram.types import ReplyKeyboardRemove
 
 from bot_config import bot
+
+data = {'pomodoro_cnt': 0,
+        'msg_if_restart': None}
 
 
 async def start(message: aiogram.types.Message):
     await message.answer('Привет _%s_ ты включил модуль 🚀*РОД ЗЕ ДРИМ*🚀' %
-                         message['from']['first_name'],
-                         parse_mode=ParseMode.MARKDOWN)
+                         message['from']['first_name'])
     buttons = [['Помидор 🕔', 'Трекер привычек']]
     bot.add_keyboard('road_choose', buttons)
     await message.answer('Пожалуйста выберите 🛠 *инструмент*',
-                         reply_markup=bot.keyboards['road_choose'],
-                         parse_mode=ParseMode.MARKDOWN)
+                         reply_markup=bot.keyboards['road_choose'])
     bot.add_state_handler(FSM.choose_tool, choose_tool)
     await FSM.choose_tool.set()
 
@@ -36,19 +37,31 @@ async def pomodoro(message: aiogram.types.Message,
                    time_focused: int = 15,
                    time_relax: int = 15):
     await message.answer('Вы включили 🕔 *помидор*',
-                         reply_markup=ReplyKeyboardRemove(),
-                         parse_mode=ParseMode.MARKDOWN)
+                         reply_markup=ReplyKeyboardRemove())
 
-    msg = await message.answer('У вас _15_ минут *будьте сконцентрированы*',
-                               parse_mode=ParseMode.MARKDOWN)
-    await timer(message['from']['id'], time_focused, text='_[Вжаривай по полной]_')
+    msg = await message.answer('У вас _15_ минут *будьте сконцентрированы*')
+    await timer(message['from']['id'], time_focused, text='_Вжаривай по полной_')
 
-    await msg.edit_text('Теперь у вас есть время на отдых _[15 минут]_',
-                        parse_mode=ParseMode.MARKDOWN)
-    await timer(message['from']['id'], time_relax, text='_[На чиле]_')
+    await msg.edit_text('Теперь у вас есть время на отдых _15 минут_')
+    await timer(message['from']['id'], time_relax, text='_На чиле_')
 
-    await msg.edit_text('*Поздравляю* вы получили 🍅',
-                        parse_mode=ParseMode.MARKDOWN)
+    data['pomodoro_cnt'] += 1
+    await msg.edit_text('*Поздравляю* вы получили %s' % ('🍅' * data['pomodoro_cnt']))
+
+    bot.add_keyboard('choose_bool', [['Да', 'Нет']])
+    data['msg_if_restart'] = await message.answer('Хотите начать новый помидор?',
+                                                  reply_markup=bot.keyboards['choose_bool'])
+    bot.add_state_handler(FSM.choose_bool, choose_bool)
+    await FSM.choose_bool.set()
+
+
+async def choose_bool(message: aiogram.types.Message, state: FSMContext):
+    await state.finish()
+    if message.text == 'Да':
+        await pomodoro(message)
+    else:
+        assert message.text == 'Нет'
+        pass
 
 
 async def timer(chat_id: str, seconds: int,
@@ -64,8 +77,7 @@ async def timer(chat_id: str, seconds: int,
             break
         await msg.edit_text(text + ' *%s*' %
                             datetime.fromtimestamp(
-                                remain_time).strftime(format),
-                            parse_mode=ParseMode.MARKDOWN)
+                                remain_time).strftime(format))
         await asyncio.sleep(delay)
     await msg.delete()
 
@@ -79,4 +91,4 @@ class FSM(StatesGroup):
     init = State()
     choose_tool = State()
     pomodoro = State()
-    finish = State()
+    choose_bool = State()
