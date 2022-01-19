@@ -9,13 +9,6 @@ from aiogram.types import ReplyKeyboardRemove, \
     InlineKeyboardMarkup, InlineKeyboardButton
 
 
-class Form(StatesGroup):
-    """
-    To add state use <obj>.states.append(State())
-    """
-    states = []
-
-
 class Bot(object):
     def __init__(self, TOKEN):
         self.__bot = self.__set_bot(TOKEN)
@@ -25,8 +18,8 @@ class Bot(object):
         self.inline_keyboards = {}
         self.tasks = []
 
-    def __set_bot(self, token):
-        return aiogram.Bot(token=token)
+    def __set_bot(self, token, parse_mode=ParseMode.MARKDOWN_V2):
+        return aiogram.Bot(token=token, parse_mode=parse_mode)
 
     def __set_dispatcher(self, bot):
         storage = MemoryStorage()
@@ -90,8 +83,7 @@ class Bot(object):
         self.tasks.append(func)
 
     async def send_message(self, id, text) -> Message:
-        return await self.__bot.send_message(id, text,
-                                             parse_mode=ParseMode.MARKDOWN)
+        return await self.__bot.send_message(id, text)
 
     async def send_file(self, message, path):
         await message.answer_document(open(path, "rb"))
