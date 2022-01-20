@@ -1,11 +1,16 @@
 import psycopg2
 from psycopg2.errors import UndefinedTable
-from typing import Iterable, Optional
+from typing import Iterable, Optional, Any
 
 
 class PostgreSQL:
     def __init__(self, url: str):
         self.connection = psycopg2.connect(url)
+
+    def find_by_id(self, table_name: str, id: Any):
+        for row in self.get_table(table_name):
+            if row[0] == id:
+                return row
 
     def get_table(self, name: str) -> list:
         try:
@@ -13,6 +18,17 @@ class PostgreSQL:
             return self.__get(query)
         except UndefinedTable:
             raise ValueError(f'Table {name} is undefined')
+
+    def update_value(self, table_name: str, pr_key: list, set_value=list):
+        ''' 
+        pr_key = [name: str, val: Any]
+        set_val = [name: str, val: Any]
+        '''
+        query = f'UPDATE {table_name} '
+        query += f'SET {set_value[0]} = ' + '%s '
+        query += f'WHERE {pr_key[0]} = ' + '%s'
+        args = [set_value[1], pr_key[1]]
+        self.__post(query, args)
 
     def append(self, table_name: str, data: list[tuple]):
         ''' id of table you trying to insert should be serial constraint '''
