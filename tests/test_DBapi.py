@@ -59,3 +59,27 @@ def test_append():
         assert [i[1] for i in db.get_table(table_name)] == data
         for e in data:
             db.delete_from(table_name, {'number': [e]})
+
+
+def test_update_value():
+    db = connect_db()
+    table_name = 'test'
+    data = [(1), (2), (3)]
+    db.append(table_name, data)
+    new_num = 5
+    tb = db.get_table(table_name)
+    db.update_value(table_name, ['test_id', tb[0][0]], ['number', new_num])
+    assert new_num in [i[1] for i in db.get_table(table_name)]
+    db.delete_from(table_name, {'number': [new_num]})
+    db.delete_from(table_name, {'number': [e for e in data]})
+
+
+def test_find_from_id():
+    db = connect_db()
+    table_name = 'test'
+    data = [(1), (2), (3)]
+    db.append(table_name, data)
+    tb = db.get_table(table_name)
+    for i in range(0, len(data)):
+        assert tb[i] == db.find_by_id(table_name, tb[i][0])
+    db.delete_from(table_name, {'number': [e for e in data]})
