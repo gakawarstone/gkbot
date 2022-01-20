@@ -1,5 +1,5 @@
 from bot_config import bot, schedule, admins
-from handlers import tasks, braintrash, hello, bomber, reminder
+from handlers import tasks, braintrash, hello, bomber, reminder, wiki
 from handlers import road_to_the_dream as road
 from handlers import text_to_speach as tts
 from utils import log, notify
@@ -11,7 +11,8 @@ handlers = {
     'bomber': bomber.start,
     'add_remind': reminder.add,
     'road': road.start,
-    'tts': tts.start
+    'tts': tts.start,
+    'wiki': wiki.search
 }
 
 admin_handlers = {
