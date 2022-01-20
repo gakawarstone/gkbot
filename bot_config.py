@@ -1,7 +1,11 @@
-from lib.bot import Bot
-from lib.schedule import Schedule
 import os
+
 from dotenv import load_dotenv
+
+from lib.bot import Bot
+from lib.DBapi import Local, PostgreSQL
+from lib.schedule import Schedule
+
 load_dotenv()
 
 # VARS
@@ -13,8 +17,10 @@ NOTION_API_TOKEN = os.environ.get('NOTION_API_TOKEN')
 if IN_HEROKU:
     # Heroku PostgreSQL server
     DATABASE_URL = os.environ.get('DATABASE_URL')
+    db = PostgreSQL(DATABASE_URL)
 else:
     LOCAL_DB_USER_PSWD = os.environ.get('LOCAL_DB_USER_PSWD').split()
+    db = Local('bot', LOCAL_DB_USER_PSWD[0], LOCAL_DB_USER_PSWD[1])
 
 # main objects
 bot = Bot(BOT_TOKEN)

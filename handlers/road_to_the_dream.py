@@ -1,22 +1,22 @@
+import asyncio
 from datetime import datetime
 from pprint import pprint
 
-import asyncio
 import aiogram
-from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.dispatcher import FSMContext
+from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.types import ReplyKeyboardRemove
 
-from bot_config import bot
+from bot_config import bot, db
 
-data = {'pomodoro_cnt': 0,
-        'msg_if_restart': None}
+data = {'msg_if_restart': None}
 
 
 async def start(message: aiogram.types.Message):
-    await message.answer_photo('AgACAgIAAxkDAALtVWHn3ZZmzpMfA3SI7usT1avw9xrWAALRtjEbe9FASzJZxPBxsVhdAQADAgADeQADIwQ')
-    await message.answer('Привет <i>%s</i> ты включил модуль 🚀<b>РОД ЗЕ ДРИМ</b>🚀' %
-                         message['from']['first_name'])
+    photo_id = 'AgACAgIAAxkDAALtVWHn3ZZmzpMfA3SI7usT1avw9xrWAALRtjEbe9FASzJZxPBxsVhdAQADAgADeQADIwQ'
+    await message.answer_photo(photo_id,
+                               caption='Привет <i>%s</i> ты включил модуль 🚀<b>РОД ЗЕ ДРИМ</b>🚀' %
+                               message['from']['first_name'])
     buttons = [['Помидор 🕔', 'Трекер привычек']]
     bot.add_keyboard('road_choose', buttons)
     await message.answer('Пожалуйста выберите 🛠 <b>инструмент</b>',
@@ -46,8 +46,11 @@ async def pomodoro(message: aiogram.types.Message,
     await msg.edit_text('Теперь у вас есть время на отдых <i>15 минут</i>')
     await timer(message['from']['id'], time_relax, text='<i>На чиле</i>')
 
-    data['pomodoro_cnt'] += 1
-    await msg.edit_text('<b>Поздравляю</b> вы получили %s' % ('🍅' * data['pomodoro_cnt']))
+    cnt = db.find_by_id('pomodoro', message.from_user.id)[1] + 1
+    db.update_value('pomodoro',
+                    ['user_id', message.from_user.id],
+                    ['today_cnt', cnt])
+    await msg.edit_text('<b>Поздравляю</b> вы получили %s' % ('🍅' * cnt))
 
     bot.add_keyboard('choose_bool', [['Да', 'Нет']])
     data['msg_if_restart'] = await message.answer('Хотите начать новый помидор?',
