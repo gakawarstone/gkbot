@@ -18,7 +18,7 @@ class Bot(object):
         self.inline_keyboards = {}
         self.tasks = []
 
-    def __set_bot(self, token, parse_mode=ParseMode.MARKDOWN_V2):
+    def __set_bot(self, token, parse_mode=ParseMode.HTML):
         return aiogram.Bot(token=token, parse_mode=parse_mode)
 
     def __set_dispatcher(self, bot):
