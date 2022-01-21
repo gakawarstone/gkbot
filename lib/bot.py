@@ -1,85 +1,78 @@
 from typing import Awaitable
+
 import aiogram
-from aiogram.dispatcher.filters.state import State, StatesGroup
-from aiogram.dispatcher import FSMContext
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
-from aiogram.types import Message, ParseMode
-from aiogram.types import ReplyKeyboardRemove, \
-    ReplyKeyboardMarkup, KeyboardButton, \
-    InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.dispatcher import Dispatcher, FSMContext
+from aiogram.dispatcher.filters.state import State, StatesGroup
+from aiogram.types import (InlineKeyboardButton, InlineKeyboardMarkup,
+                           KeyboardButton, Message, ParseMode,
+                           ReplyKeyboardMarkup, ReplyKeyboardRemove)
 
 
 class Bot(object):
-    def __init__(self, TOKEN):
-        self.__bot = self.__set_bot(TOKEN)
+    def __init__(self, token: str):
+        self.__bot = self.__set_bot(token)
         self.dp = self.__set_dispatcher(self.__bot)
         self.admins = []
         self.keyboards = {}
         self.inline_keyboards = {}
         self.tasks = []
 
-    def __set_bot(self, token, parse_mode=ParseMode.HTML):
+    def __set_bot(self, token: str,
+                  parse_mode: ParseMode = ParseMode.HTML) -> aiogram.Bot:
         return aiogram.Bot(token=token, parse_mode=parse_mode)
 
-    def __set_dispatcher(self, bot):
+    def __set_dispatcher(self, bot: aiogram.Bot) -> Dispatcher:
         storage = MemoryStorage()
-        return aiogram.dispatcher.Dispatcher(bot, storage=storage)
+        return Dispatcher(bot, storage=storage)
 
-    def add_message_handler(self, func):
-        """
-        func(message: aiogram.types.Message)
-        """
+    def add_message_handler(self, func: Awaitable[Message]) -> None:
         @self.dp.message_handler()
-        async def handler(message: aiogram.types.Message):
+        async def handler(message: Message):
             await func(message)
 
-    def add_command_handler(self, command, func, admin_only=False):
-        """
-        command - /<command> in telegram
-        func(message: aiogram.types.Message)
-        """
+    def add_command_handler(self, command: str, func: Awaitable[Message],
+                            admin_only: bool = False) -> None:
+        ''' command - /<command> in telegram '''
         @self.dp.message_handler(commands=[command])
-        async def handler(message: aiogram.types.Message):
+        async def handler(message: Message):
             is_admin = message['from']['id'] in self.admins
             if not admin_only or admin_only and is_admin:
                 await func(message)
 
-    def add_state_handler(self, state, func):
-        """
-        state - aiogram finite machine
-        func(message: aiogram.types.Message)
-        """
+    def add_state_handler(self, state: FSMContext,
+                          func: Awaitable[Message]) -> None:
         @self.dp.message_handler(state=state)
-        async def handler(message: aiogram.types.Message, state: FSMContext):
+        async def handler(message: Message, state: FSMContext):
             await func(message, state)
 
-    def add_keyboard(self, name, buttons, hide=True, placeholder=None):
-        """
-        add telegram keyboard with row of {buttons}
-        call by {bot_object.keyboards[name]}
-        """
-        kboard = ReplyKeyboardMarkup(resize_keyboard=True,
-                                     one_time_keyboard=hide,
-                                     input_field_placeholder=placeholder)
+    def add_keyboard(self, name: str, buttons: list[list[str]],
+                     hide: bool = True, placeholder: str = None) -> None:
+        ''' add telegram keyboard with row of {buttons}
+            call by {bot_object.keyboards[name]} '''
+        kb = ReplyKeyboardMarkup(resize_keyboard=True,
+                                 one_time_keyboard=hide,
+                                 input_field_placeholder=placeholder)
         for rows in buttons:
-            kboard.row(*(KeyboardButton(i) for i in rows))
-        self.keyboards[name] = kboard
+            kb.row(*(KeyboardButton(i) for i in rows))
+        self.keyboards[name] = kb
 
-    def add_url_button(self, url, text='request'):
+    def add_url_button(self, url: str,
+                       text: str = 'request') -> InlineKeyboardMarkup:
         btn = InlineKeyboardButton(text, url=url)
         self.inline_keyboards[url] = InlineKeyboardMarkup().add(btn)
         return self.inline_keyboards[url]
 
-    def add_task(self, func):
+    def add_task(self, func: Awaitable) -> None:
         self.tasks.append(func)
 
-    async def send_message(self, id, text) -> Message:
+    async def send_message(self, id: int, text: str) -> Message:
         return await self.__bot.send_message(id, text)
 
-    async def send_file(self, message, path):
+    async def send_file(self, message: str, path: str) -> None:
         await message.answer_document(open(path, "rb"))
 
-    async def on_startup(self, dp):
+    async def on_startup(self, dp: Dispatcher) -> None:
         for func in self.tasks:
             await func(dp)
 
