@@ -76,7 +76,7 @@ class Bot(object):
         for func in self.tasks:
             await func(dp)
 
-    def start(self):
+    def start(self) -> None:
         executor = aiogram.utils.executor
         if self.tasks:
             executor.start_polling(self.dp, on_startup=self.on_startup)
