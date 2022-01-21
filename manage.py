@@ -1,7 +1,7 @@
 from bot_config import bot, schedule, admins
 from handlers import tasks, braintrash, hello, bomber, reminder, wiki
 from handlers import road_to_the_dream as road
-from handlers import text_to_speach as tts
+from handlers import text_to_speech as tts
 from utils import log, notify
 
 handlers = {

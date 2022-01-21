@@ -9,7 +9,7 @@ from bot_config import bot
 
 
 async def start(message: aiogram.types.Message):
-    await message.answer('Привет это новая функция сделанная потомучто *могу*')
+    await message.answer('Привет это новая функция сделанная потомучто <b>могу</b>')
     await message.answer('Отправь мне сообщение и произойдет магия')
     bot.add_state_handler(FSM.msg_to_voice, msg_to_voice)
     await FSM.msg_to_voice.set()
