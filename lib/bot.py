@@ -25,15 +25,6 @@ class Bot(object):
         storage = MemoryStorage()
         return aiogram.dispatcher.Dispatcher(bot, storage=storage)
 
-    async def jump(self, func: Awaitable):
-        '''
-        register next step handler
-        '''
-        class FSM(StatesGroup):
-            state = State()
-        self.add_state_handler(FSM.state, func)
-        await FSM.state.set()
-
     def add_message_handler(self, func):
         """
         func(message: aiogram.types.Message)
