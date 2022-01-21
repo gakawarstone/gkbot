@@ -35,8 +35,8 @@ async def choose_tool(message: aiogram.types.Message, state: FSMContext):
 
 
 async def pomodoro(message: aiogram.types.Message,
-                   time_focused: int = 15,
-                   time_relax: int = 15):
+                   time_focused: int = 15*60,
+                   time_relax: int = 15*60):
     await message.answer('Вы включили 🕔 <b>помидор</b>',
                          reply_markup=ReplyKeyboardRemove())
 
@@ -46,7 +46,8 @@ async def pomodoro(message: aiogram.types.Message,
     await msg.edit_text('Теперь у вас есть время на отдых <i>15 минут</i>')
     await timer(message['from']['id'], time_relax, text='<i>На чиле</i>')
 
-    cnt = db.find_by_id('pomodoro', message.from_user.id)[1] + 1
+    user_row = db.find_by_id('pomodoro', message.from_user.id)
+    cnt = user_row[1] + 1
     db.update_value('pomodoro',
                     ['user_id', message.from_user.id],
                     ['today_cnt', cnt])
