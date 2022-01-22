@@ -5,3 +5,4 @@ notion-client
 python-dotenv
 gtts
 wikipedia
+sqlalchemy
