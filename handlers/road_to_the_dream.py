@@ -50,10 +50,11 @@ async def pomodoro(message: aiogram.types.Message,
 
     Session = sessionmaker(bind=engine)
     with Session.begin() as session:
-        user = session.query(PomodoroStats).first()
+        user = session.query(PomodoroStats).filter_by(
+            user_id=message.from_user.id).first()
         user.today_cnt += 1
         cnt = user.today_cnt
-    await msg.edit_text('<b>Поздравляю</b> вы получили %s' % ('🍅' * cnt))
+    await msg.edit_text('<b>Поздравляю</b> вы получили <b>[<i>%s</i>🍅]</b>' % cnt)
 
     bot.add_keyboard('choose_bool', [['Да', 'Нет']])
     data['msg_if_restart'] = await message.answer('Хотите начать новый помидор?',
@@ -65,7 +66,7 @@ async def pomodoro(message: aiogram.types.Message,
 async def choose_bool(message: aiogram.types.Message, state: FSMContext):
     await state.finish()
     await message.delete()
-    assert data['msg_if_restart'] != None
+    assert data['msg_if_restart'] is not None
     await data['msg_if_restart'].delete()
     if message.text == 'Да':
         await pomodoro(message)
