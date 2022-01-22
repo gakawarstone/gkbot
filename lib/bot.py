@@ -3,10 +3,9 @@ from typing import Awaitable
 import aiogram
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import Dispatcher, FSMContext
-from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.types import (InlineKeyboardButton, InlineKeyboardMarkup,
                            KeyboardButton, Message, ParseMode,
-                           ReplyKeyboardMarkup, ReplyKeyboardRemove)
+                           ReplyKeyboardMarkup)
 
 
 class Bot(object):
