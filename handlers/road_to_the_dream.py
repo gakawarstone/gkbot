@@ -7,7 +7,9 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.types import ReplyKeyboardRemove
 
-from bot_config import bot, db
+from models.road import PomodoroStats
+from bot_config import bot, engine
+from sqlalchemy.orm import sessionmaker
 
 data = {'msg_if_restart': None}
 
@@ -35,8 +37,8 @@ async def choose_tool(message: aiogram.types.Message, state: FSMContext):
 
 
 async def pomodoro(message: aiogram.types.Message,
-                   time_focused: int = 15*60,
-                   time_relax: int = 15*60):
+                   time_focused: int = 15,
+                   time_relax: int = 15):
     await message.answer('Вы включили 🕔 <b>помидор</b>',
                          reply_markup=ReplyKeyboardRemove())
 
@@ -46,11 +48,11 @@ async def pomodoro(message: aiogram.types.Message,
     await msg.edit_text('Теперь у вас есть время на отдых <i>15 минут</i>')
     await timer(message['from']['id'], time_relax, text='<i>На чиле</i>')
 
-    user_row = db.find_by_id('pomodoro', message.from_user.id)
-    cnt = user_row[1] + 1
-    db.update_value('pomodoro',
-                    ['user_id', message.from_user.id],
-                    ['today_cnt', cnt])
+    Session = sessionmaker(bind=engine)
+    with Session.begin() as session:
+        user = session.query(PomodoroStats).first()
+        user.today_cnt += 1
+        cnt = user.today_cnt
     await msg.edit_text('<b>Поздравляю</b> вы получили %s' % ('🍅' * cnt))
 
     bot.add_keyboard('choose_bool', [['Да', 'Нет']])
