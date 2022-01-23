@@ -20,7 +20,8 @@ if IN_HEROKU:
     # Heroku PostgreSQL server
     DATABASE_URL = os.environ.get('DATABASE_URL')
     db = PostgreSQL(DATABASE_URL)
-    engine = create_engine(DATABASE_URL)
+    engine = create_engine(
+        'postgresql:' + ':'.join(DATABASE_URL.split(':')[1:]))
 else:
     LOCAL_DB_USER_PSWD = os.environ.get('LOCAL_DB_USER_PSWD').split()
     db_user = LOCAL_DB_USER_PSWD[0]
