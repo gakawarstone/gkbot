@@ -36,8 +36,8 @@ async def choose_tool(message: aiogram.types.Message, state: FSMContext):
 
 
 async def pomodoro(message: aiogram.types.Message,
-                   time_focused: int = 15,
-                   time_relax: int = 15):
+                   time_focused: int = 15*60,
+                   time_relax: int = 15*60):
     await message.answer(
         'Вы включили 🕔 <b>помидор</b>',
         reply_markup=ReplyKeyboardRemove())
