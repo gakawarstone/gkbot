@@ -31,7 +31,6 @@ class Schedule:
 
     def add_task(self, task: Task):
         self.tasks.append(task)
-        print('task added at', task.time)
 
     async def __dispatcher(self, delay=5, tz=6.0):
         while True:
