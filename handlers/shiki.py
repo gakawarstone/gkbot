@@ -15,7 +15,7 @@ async def get_updates(message: aiogram.types.Message):
 
 async def get_from_shiki(message: aiogram.types.Message, state: FSMContext):
     await state.finish()
-    user = shiki.User(message.text.lower())
+    user = shiki.User(message.text)
     try:
         for update in user.updates.load_latest(10):
             await message.answer(
