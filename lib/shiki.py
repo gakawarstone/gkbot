@@ -36,8 +36,12 @@ class UserUpdates:
     def __init__(self, user: User) -> None:
         self.user = user
 
-    def load_latest(self) -> list[Update]:
-        return self.__load(1)
+    def load_latest(self, max_updates: int) -> list[Update]:
+        updates = self.__load(1)
+        try:
+            return updates[:max_updates]
+        except(Exception):
+            return updates
 
     def __load(self, page_num: int) -> list[Update]:
         soup = Shiki.get_webpage(self.user.name, f'history/{page_num}.json')
