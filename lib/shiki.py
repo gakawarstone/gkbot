@@ -48,13 +48,16 @@ class UserUpdates:
         raw_updates = soup.find_all('p')
         updates = []
         for item in raw_updates:
-            update = Update()
-            update.name_en = item.span.a.contents[0].text
-            update.name_ru = item.span.a.contents[1].text
-            update.time = item.time['datetime']
-            update.type = ''.join(str(i)
-                                  for i in item.span.contents[1:])[1:]
-            updates.append(update)
+            try:
+                update = Update()
+                update.name_en = item.span.a.contents[0].text
+                update.name_ru = item.span.a.contents[1].text
+                update.time = item.time['datetime']
+                update.type = ''.join(str(i)
+                                      for i in item.span.contents[1:])[1:]
+                updates.append(update)
+            except(Exception):
+                continue
         return updates
 
 
