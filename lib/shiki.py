@@ -24,11 +24,11 @@ class User:
 
 
 class Update:
-    def __init__(self) -> None:
-        self.name_en = ''
-        self.name_ru = ''
-        self.time = ''
-        self.type = ''
+    def __init__(self, name_en, name_ru, time, type) -> None:
+        self.name_en = name_en
+        self.name_ru = name_ru
+        self.time = time
+        self.type = type
 
 
 class UserUpdates:
@@ -48,12 +48,13 @@ class UserUpdates:
         updates = []
         for item in raw_updates:
             try:
-                update = Update()
-                update.name_en = item.span.a.contents[0].text
-                update.name_ru = item.span.a.contents[1].text
-                update.time = item.time['datetime']
-                update.type = ''.join(str(i)
-                                      for i in item.span.contents[1:])[1:]
+                update = Update(
+                    name_en=item.span.a.contents[0].text,
+                    name_ru=item.span.a.contents[1].text,
+                    time=item.time['datetime'],
+                    type=''.join(str(i)
+                                 for i in item.span.contents[1:])[1:]
+                )
                 updates.append(update)
             except(Exception):
                 continue
