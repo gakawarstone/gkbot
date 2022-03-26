@@ -86,7 +86,7 @@ async def choose_bool(message: aiogram.types.Message, state: FSMContext):
 
 async def timer(chat_id: str, seconds: int,
                 text: str = 'Start', delay: int = 1,
-                format: str = '%M:%S'):
+                format_: str = '%M:%S'):
     msg = await bot.send_message(chat_id, text)
     now = datetime.now().timestamp()
     finish_time = now + seconds
@@ -97,7 +97,7 @@ async def timer(chat_id: str, seconds: int,
             break
         await msg.edit_text(text + ' <b>%s</b>' %
                             datetime.fromtimestamp(
-                                remain_time).strftime(format))
+                                remain_time).strftime(format_))
         await asyncio.sleep(delay)
     await msg.delete()
 
