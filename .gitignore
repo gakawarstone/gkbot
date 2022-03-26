@@ -7,3 +7,5 @@ venv
 .vscode
 .pytest_cache
 log.txt
+**/*.sqlite
+/logs
