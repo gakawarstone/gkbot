@@ -1,6 +1,12 @@
+import asyncio
 import json
 from urllib.request import Request, urlopen
+
 from bs4 import BeautifulSoup
+
+from bot_config import bot
+from lib.meta import MetaSingleton
+from lib.schedule import Dispatcher
 
 
 class Shiki:
@@ -61,6 +67,49 @@ class UserUpdates:
         return updates
 
 
-class UserUpdatesDispatcher:
+class UserUpdatesSubscription:
+    def __init__(self, chat_id: int, shiki_name: str) -> None:
+        self.chat_id = chat_id
+        self.user = User(shiki_name)
+        self.user_updates = UserUpdates(self.user)
+        self.last_update = self.__get_last_update()
+
+    def __get_last_update(self) -> list:
+        return self.user_updates.load_latest(1)
+
+    def is_updated(self) -> None:
+        new_update = self.__get_last_update()
+        if (self.last_update != new_update):
+            self.last_update = new_update
+            return True
+        else:
+            return False
+
+
+class UserUpdatesDispatcher(Dispatcher, metaclass=MetaSingleton):
     def __init__(self) -> None:
-        pass
+        self.subscriptions = []
+
+    def add_subscription(self, chat_id, shiki_name) -> None:
+        self.subscriptions.append(UserUpdatesSubscription(chat_id, shiki_name))
+
+    async def __dispatcher(self, delay=60):
+        while True:
+            print('Updating')
+            for sub in self.subscriptions:
+                if (sub.is_updated()):
+                    update = sub.last_update[0]
+                    await bot.send_message(
+                        sub.chat_id,
+                        '''
+                        <b>%s</b>\n[<i>%s</i>]\nПользователь <a href="%s">@%s</a>
+                        ''' %
+                        (update.name_ru,
+                         update.type,
+                         sub.user.url,
+                         sub.user.name,))
+                    # await bot.send_message(sub.chat_id, str(sub.last_update))
+            await asyncio.sleep(delay)
+
+    async def on_startup(self, dp):
+        asyncio.create_task(self.__dispatcher())

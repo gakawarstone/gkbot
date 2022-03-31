@@ -16,9 +16,11 @@ DB_URL = os.environ.get('DB_URL')
 
 # main objects
 bot = Bot(BOT_TOKEN)
-schedule = Schedule()
 engine = create_engine(DB_URL)
 Session = sessionmaker(bind=engine)
+
+#SINGLETON
+schedule = Schedule()
 
 # config
 admins = [

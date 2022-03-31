@@ -1,6 +1,7 @@
+from abc import abstractmethod
 import asyncio
 from datetime import datetime, timezone, timedelta
-from typing import Awaitable, Any
+from typing import Awaitable, Any, Callable
 
 
 class Task:
@@ -25,23 +26,35 @@ class Task:
         return self
 
 
-class Schedule:
+class Dispatcher:
+    async def __dispatcher(self, delay=5):
+        while True: 
+            print('hi')
+            await asyncio.sleep(delay)
+
+    async def on_startup(self, dp):
+        asyncio.create_task(self.__dispatcher())
+
+class Schedule(Dispatcher):
     def __init__(self):
         self.tasks = []
 
     def add_task(self, task: Task):
         self.tasks.append(task)
 
-    async def __dispatcher(self, delay=5, tz=6.0):
+    async def __check_if_task_now(self, tz=6.0):
+        timezone_offset = tz
+        tzinfo = timezone(timedelta(hours=timezone_offset))
+        for task in self.tasks:
+            now = datetime.strftime(datetime.now(tzinfo), '%d.%m.%Y_%H:%M')
+            time = datetime.strftime(task.time, '%d.%m.%Y_%H:%M')
+            if time == now:
+                await task.run()
+                self.tasks.remove(task)
+    
+    async def __dispatcher(self, delay=5):
         while True:
-            timezone_offset = tz
-            tzinfo = timezone(timedelta(hours=timezone_offset))
-            for task in self.tasks:
-                now = datetime.strftime(datetime.now(tzinfo), '%d.%m.%Y_%H:%M')
-                time = datetime.strftime(task.time, '%d.%m.%Y_%H:%M')
-                if time == now:
-                    await task.run()
-                    self.tasks.remove(task)
+            await self.__check_if_task_now()
             await asyncio.sleep(delay)
 
     async def on_startup(self, dp):

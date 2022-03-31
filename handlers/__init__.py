@@ -14,6 +14,7 @@ users = {
     'tts': tts.start,
     'wiki': wiki.search,
     'shiki': shiki.get_updates,
+    'sub': shiki.subscribe,
 }
 
 admins = {

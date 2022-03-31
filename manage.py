@@ -1,4 +1,5 @@
 from bot_config import admins, bot, schedule
+from lib.shiki import UserUpdatesDispatcher
 import handlers
 from handlers.help import help
 from utils.notify import notify_admins
@@ -7,6 +8,7 @@ from utils.notify import notify_admins
 def start():
     bot.admins = admins
     bot.add_task(schedule.on_startup)
+    bot.add_task(UserUpdatesDispatcher().on_startup)
     bot.add_command_handler('help', help)
     for cmd in handlers.users:
         bot.add_command_handler(cmd, handlers.users[cmd])

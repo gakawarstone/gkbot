@@ -2,7 +2,7 @@ import aiogram
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
-from bot_config import bot
+from bot_config import bot, admins
 from lib import shiki
 
 
@@ -29,6 +29,13 @@ async def get_from_shiki(message: aiogram.types.Message, state: FSMContext):
             )
     except(Exception):
         await message.answer('Пользователь не найден')
+
+
+async def subscribe(message: aiogram.types.Message):
+    dp = shiki.UserUpdatesDispatcher()
+    dp.add_subscription(admins[0], 'gakawarstone')
+    print(dp.subscriptions)
+
 
 
 class FSM(StatesGroup):
