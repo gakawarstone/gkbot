@@ -75,11 +75,13 @@ class UserUpdatesSubscription:
         self.last_update = self.__get_last_update()
 
     def __get_last_update(self) -> list:
-        return self.user_updates.load_latest(1)
+        return self.user_updates.load_latest(1)[0]
 
-    def is_updated(self) -> None:
+    def is_updated(self) -> bool:
         new_update = self.__get_last_update()
-        if (self.last_update != new_update):
+        if (self.last_update.type != new_update.type):
+            print(self.last_update.type)
+            print(new_update.type)
             self.last_update = new_update
             return True
         else:
@@ -93,12 +95,12 @@ class UserUpdatesDispatcher(Dispatcher, metaclass=MetaSingleton):
     def add_subscription(self, chat_id, shiki_name) -> None:
         self.subscriptions.append(UserUpdatesSubscription(chat_id, shiki_name))
 
-    async def __dispatcher(self, delay=60):
+    async def __dispatcher(self, delay=5):
         while True:
             print('Updating')
             for sub in self.subscriptions:
                 if (sub.is_updated()):
-                    update = sub.last_update[0]
+                    update = sub.last_update
                     await bot.send_message(
                         sub.chat_id,
                         '''

@@ -32,11 +32,19 @@ async def get_from_shiki(message: aiogram.types.Message, state: FSMContext):
 
 
 async def subscribe(message: aiogram.types.Message):
-    dp = shiki.UserUpdatesDispatcher()
-    dp.add_subscription(admins[0], 'gakawarstone')
-    print(dp.subscriptions)
+    await message.answer('ЭТО НОВЫЙ ПАТРЕ ЙОБАНЫЙ ЗОМАЙ')
+    await message.answer('Пришли мне ник человека на shikimori.one')
+    bot.add_state_handler(FSM.get_name, get_name)
+    await FSM.get_name.set()
 
+
+async def get_name(message: aiogram.types.Message, state: FSMContext):
+    await state.finish()
+    dp = shiki.UserUpdatesDispatcher()
+    dp.add_subscription(message.chat.id, message.text)
+    await message.answer('Подписка оформлена')
 
 
 class FSM(StatesGroup):
     get_from_shiki = State()
+    get_name = State()
