@@ -28,6 +28,9 @@ class User:
         self.url = Shiki.url + f'/{name}'
         self.updates = UserUpdates(self)
 
+    def __str__(self) -> str:
+        return f'Пользователь <a href="{self.url}">@{self.name}</a>\n'
+
 
 class Update:
     def __init__(self, name_en, name_ru, time, type) -> None:
@@ -35,6 +38,9 @@ class Update:
         self.name_ru = name_ru
         self.time = time
         self.type = type
+
+    def __str__(self) -> str:
+        return f'<b>{self.name_ru}</b>\n[<i>{self.type}</i>]\n'
 
 
 class UserUpdates:
@@ -95,22 +101,12 @@ class UserUpdatesDispatcher(Dispatcher, metaclass=MetaSingleton):
     def add_subscription(self, chat_id, shiki_name) -> None:
         self.subscriptions.append(UserUpdatesSubscription(chat_id, shiki_name))
 
-    async def __dispatcher(self, delay=5):
+    async def __dispatcher(self, delay=60) -> None:
         while True:
-            print('Updating')
             for sub in self.subscriptions:
                 if (sub.is_updated()):
                     update = sub.last_update
-                    await bot.send_message(
-                        sub.chat_id,
-                        '''
-                        <b>%s</b>\n[<i>%s</i>]\nПользователь <a href="%s">@%s</a>
-                        ''' %
-                        (update.name_ru,
-                         update.type,
-                         sub.user.url,
-                         sub.user.name,))
-                    # await bot.send_message(sub.chat_id, str(sub.last_update))
+                    await bot.send_message(sub.chat_id, str(update) + str(sub.user))
             await asyncio.sleep(delay)
 
     async def on_startup(self, dp):

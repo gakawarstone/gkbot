@@ -18,15 +18,7 @@ async def get_from_shiki(message: aiogram.types.Message, state: FSMContext):
     user = shiki.User(message.text)
     try:
         for update in user.updates.load_latest(10):
-            await message.answer(
-                '''
-                <b>%s</b>\n[<i>%s</i>]\nПользователь <a href="%s">@%s</a>
-                ''' %
-                (update.name_ru,
-                 update.type,
-                 user.url,
-                 message.text,)
-            )
+            await message.answer(str(update) + str(user))
     except(Exception):
         await message.answer('Пользователь не найден')
 
