@@ -1,7 +1,8 @@
-from abc import abstractmethod
 import asyncio
 from datetime import datetime, timezone, timedelta
-from typing import Awaitable, Any, Callable
+from typing import Awaitable, Any
+
+from lib.meta import MetaSingleton
 
 
 class Task:
@@ -28,14 +29,15 @@ class Task:
 
 class Dispatcher:
     async def __dispatcher(self, delay=5):
-        while True: 
+        while True:
             print('hi')
             await asyncio.sleep(delay)
 
     async def on_startup(self, dp):
         asyncio.create_task(self.__dispatcher())
 
-class Schedule(Dispatcher):
+
+class Schedule(Dispatcher, metaclass=MetaSingleton):
     def __init__(self):
         self.tasks = []
 
@@ -51,7 +53,7 @@ class Schedule(Dispatcher):
             if time == now:
                 await task.run()
                 self.tasks.remove(task)
-    
+
     async def __dispatcher(self, delay=5):
         while True:
             await self.__check_if_task_now()
