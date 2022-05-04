@@ -1,5 +1,6 @@
 import os
 import logging
+import logging.config
 
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
@@ -9,9 +10,8 @@ from lib.bot import Bot
 from lib.schedule import Schedule
 
 # logger configuration
-logging.basicConfig()
+logging.config.fileConfig('logging.conf')
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.WARNING)
 
 load_dotenv()
 

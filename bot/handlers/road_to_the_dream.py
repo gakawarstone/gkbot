@@ -1,5 +1,6 @@
 import asyncio
 from datetime import datetime
+import logging
 
 import aiogram
 from aiogram.dispatcher import FSMContext
@@ -9,11 +10,16 @@ from aiogram.types import ReplyKeyboardRemove
 from bot_config import bot, Session
 from models.road import PomodoroStats
 
+logger = logging.getLogger(__name__)
+
+logger.warning('Possible race condition')
 data = {'msg_if_restart': None}
 
 
 async def start(message: aiogram.types.Message):
+    logger.debug('Road handler started')
     photo_id = 'AgACAgIAAxkDAALtVWHn3ZZmzpMfA3SI7usT1avw9xrWAALRtjEbe9FASzJZxPBxsVhdAQADAgADeQADIwQ'
+    logger.debug('Make sure that bot can use this photo_id: ' + photo_id)
     await message.answer_photo(
         photo_id,
         caption='Привет <i>%s</i> ты включил модуль 🚀<b>РОД ЗЕ ДРИМ</b>🚀' %
