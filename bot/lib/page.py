@@ -14,8 +14,8 @@ class TextBlock:
     def __get_data(self) -> dict:
         return {'object': 'block',
                 'type': 'paragraph',
-                'paragraph': {'text': [{'type': 'text',
-                                        'text': {'content': self.text}}]}}
+                'paragraph': {'rich_text': [{'type': 'text',
+                                             'text': {'content': self.text}}]}}
 
 
 class Page:
