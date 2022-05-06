@@ -9,3 +9,5 @@ venv
 log.txt
 **/*.sqlite
 /logs
+/build
+/dist
