@@ -1,4 +1,5 @@
 from typing import Awaitable
+import logging
 
 import aiogram
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
@@ -38,6 +39,7 @@ class Bot(object):
             is_admin = message['from']['id'] in self.admins
             if not admin_only or admin_only and is_admin:
                 await func(message)
+        logging.debug('Command handler added at command /' + command)
 
     def add_state_handler(self, state: FSMContext,
                           func: Awaitable[Message]) -> None:
@@ -62,7 +64,7 @@ class Bot(object):
         self.inline_keyboards[url] = InlineKeyboardMarkup().add(btn)
         return self.inline_keyboards[url]
 
-    def add_task(self, func: Awaitable) -> None:
+    def add_on_startup(self, func: Awaitable) -> None:
         self.tasks.append(func)
 
     async def send_message(self, id: int, text: str) -> Message:
