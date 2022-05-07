@@ -1,13 +1,11 @@
 import pytest
 
-from bot_config import LOCAL_DB_USER_PSWD
+from bot_config import DB_URL
 from lib.DBapi import Local
 
 
 def connect_db():
-    return Local(dbname='unit_test',
-                 user=LOCAL_DB_USER_PSWD[0],
-                 password=LOCAL_DB_USER_PSWD[1])
+    return Local(DB_URL)
 
 
 def test_init():

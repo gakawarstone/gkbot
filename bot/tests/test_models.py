@@ -1,11 +1,7 @@
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import create_engine
 
-from bot_config import db_user, db_password
+from bot_config import engine
 from models.road import PomodoroStats
-
-engine = create_engine(
-    f'postgresql://{db_user}:{db_password}@localhost:5432/bot')
 
 
 def connect_db():
