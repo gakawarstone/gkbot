@@ -2,6 +2,6 @@ Clone repo
 
     git clone https://github.com/gakawarstone/tgnotion.git
 
-Run script 
+Run with pipenv
 
-    ./run.sh
+    pipenv run bot/main.py
