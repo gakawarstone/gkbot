@@ -1,9 +1,13 @@
+import logging
+
 import aiogram
 import wikipedia
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
 from bot_config import bot
+
+logger = logging.getLogger(__name__)
 
 
 async def search(message: aiogram.types.Message):
@@ -19,7 +23,8 @@ async def get_data(message: aiogram.types.Message, state: FSMContext):
     try:
         quote = wikipedia.summary(message.text, sentences=4)
         await message.answer(quote)
-    except:
+    except Exception as e:
+        logger.info(e)
         await message.answer('Извините но я ничего не нашел')
 
 
