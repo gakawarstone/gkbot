@@ -11,8 +11,7 @@ class DefaultCommands:
     @classmethod
     def set(cls, commands: dict[str, str]):
         for cmd in commands:
-            c = types.BotCommand(cmd, commands[cmd])
-            cls.commands.append(c)
+            cls.commands.append(types.BotCommand(cmd, commands[cmd]))
         return cls
 
     @classmethod
