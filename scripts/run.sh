@@ -20,5 +20,11 @@ if [[ $1 == --check ]]; then
     fi
 fi
 
-pipenv run python main.py &>> logs/runtime.log &
+if [[ $1 == -b ]]; then
+    pipenv run python bot/main.py &>> logs/pipenv.log &
+else
+    pipenv run python bot/main.py &>> logs/pipenv.log
+fi
+
+
 
