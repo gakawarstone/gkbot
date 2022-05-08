@@ -2,7 +2,7 @@ from cx_Freeze import setup, Executable
 
 executables = [Executable('main.py')]
 name = 'tgnotion'
-version = '0.2'
+version = input('please write version number: ')
 
 build_exe_options = {
     'build_exe': '../build/' + name + '_' + version + '_amd64',
@@ -16,8 +16,8 @@ build_exe_options = {
     ],
 }
 
-setup(name='tgnotion',
-      version='0.2',
+setup(name=name,
+      version=version,
       packages=[],
       options={"build_exe": build_exe_options},
       executables=executables)
