@@ -24,3 +24,11 @@ def test_saving_values():
     with Session.begin() as session:
         user = session.query(PomodoroStats).first()
         assert user.total_cnt == 12222
+
+
+def test_representation():
+    Session = sessionmaker(bind=engine)
+
+    with Session.begin() as session:
+        user = session.query(PomodoroStats).first()
+        print(user)
