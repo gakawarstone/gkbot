@@ -1,4 +1,3 @@
-from email.policy import default
 from bot_config import admins, bot, schedule
 from lib.shiki import UserUpdatesDispatcher
 import handlers
@@ -18,7 +17,7 @@ tasks_on_startup = [
 ]
 
 
-def start():
+def start(bot=bot):
     bot.admins = admins
 
     for task in tasks_on_startup:
@@ -29,6 +28,8 @@ def start():
         bot.add_command_handler(cmd, handlers.users[cmd])
     for cmd in handlers.admins:
         bot.add_command_handler(cmd, handlers.admins[cmd], admin_only=True)
+    for handler in handlers.channels:
+        bot.add_channel_post_handler(handler)
 
     notify_admins('bot started')
     bot.start()

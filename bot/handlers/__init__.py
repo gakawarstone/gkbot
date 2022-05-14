@@ -3,6 +3,7 @@ from . import road_to_the_dream as road
 from . import shiki, tasks
 from . import text_to_speech as tts
 from . import wiki
+from . import channel
 
 users = {
     'add_task': tasks.add,
@@ -20,3 +21,7 @@ users = {
 admins = {
     'get_trash': braintrash.get_all_data,
 }
+
+channels = [
+    channel.echo_post,
+]

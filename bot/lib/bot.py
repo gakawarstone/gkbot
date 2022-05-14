@@ -26,6 +26,9 @@ class Bot(object):
         storage = MemoryStorage()
         return Dispatcher(bot, storage=storage)
 
+    def get_bot_instance(self) -> aiogram.Bot:
+        return self.__bot
+
     def add_message_handler(self, func: Awaitable[Message]) -> None:
         @self.dp.message_handler()
         async def handler(message: Message):
@@ -46,6 +49,11 @@ class Bot(object):
         @self.dp.message_handler(state=state)
         async def handler(message: Message, state: FSMContext):
             await func(message, state)
+
+    def add_channel_post_handler(self, func: Awaitable[Message]) -> None:
+        @self.dp.channel_post_handler()
+        async def handler(message: Message):
+            await func(message)
 
     def add_keyboard(self, name: str, buttons: list[list[str]],
                      hide: bool = True, placeholder: str = None) -> None:
