@@ -10,4 +10,4 @@ Setup pipenv
     
 Run with pipenv
 
-   pipenv run bot
+    pipenv run bot
