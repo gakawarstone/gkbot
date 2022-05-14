@@ -11,3 +11,4 @@ log.txt
 /logs
 /build
 /dist
+.venv
