@@ -31,6 +31,8 @@ twisted = "*"
 python_version = "3.10"
 
 [scripts]
+init = "bash -c 'python scripts/init.py'"
+bot = "bash -c 'python bot/main.py'"
 # don't use build it have some breaks
 build = "bash -c './scripts/build.sh'"
 test = "bash -c 'pytest --cov-report=html'"
