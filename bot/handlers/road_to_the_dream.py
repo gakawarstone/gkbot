@@ -35,10 +35,11 @@ async def start(message: aiogram.types.Message):
 async def choose_tool(message: aiogram.types.Message, state: FSMContext):
     await state.finish()
     await message.delete()
-    if message.text == 'Помидор 🕔':
-        await pomodoro(message)
-    elif message.text == 'Трекер привычек':
-        await habit_tracker(message)
+    match message.text:
+        case 'Помидор 🕔' | '1':
+            await pomodoro(message)
+        case 'Трекер привычек' | '2':
+            await habit_tracker(message)
 
 
 async def pomodoro(message: aiogram.types.Message,
@@ -83,11 +84,11 @@ async def choose_bool(message: aiogram.types.Message, state: FSMContext):
     await message.delete()
     assert data['msg_if_restart'] is not None
     await data['msg_if_restart'].delete()
-    if message.text == 'Да':
-        await pomodoro(message)
-    else:
-        assert message.text == 'Нет'
-        pass
+    match message.text:
+        case 'Да' | 'y':
+            await pomodoro(message)
+        case 'нет' | 'n':
+            pass
 
 
 async def timer(chat_id: str, seconds: int,
