@@ -18,6 +18,9 @@ This text is not a task.
   - [ ] Test bot/lib coverage 100% 
   - [ ] Problem with handlers test
   - [ ] check road pomodoro data
-- [ ] Move DBapi to own repo
+- [*] Move DBapi to own repo
 - [ ] Store reminds in DB (datetime, chat_id, text)
 - [ ] FSM storage Redis
+- [ ] Add users table on db
+- [ ] Register users in db
+- [ ] Relative imports
