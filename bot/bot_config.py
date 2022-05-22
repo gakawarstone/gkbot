@@ -10,15 +10,17 @@ from lib.bot import Bot
 from lib.schedule import Schedule
 
 # logger configuration
-logging.config.fileConfig('logging.conf')
+# logging.config.fileConfig('logging.conf')
+logging.basicConfig(level=logging.WARNING,
+                    format='%(name)s::%(levelname)s::%(message)s')
 logger = logging.getLogger(__name__)
 
 load_dotenv()
 
 # VARS
-BOT_TOKEN = os.environ.get('BOT_TOKEN')
-NOTION_API_TOKEN = os.environ.get('NOTION_API_TOKEN')
-DB_URL = os.environ.get('DB_URL')
+BOT_TOKEN = os.getenv('BOT_TOKEN')
+NOTION_API_TOKEN = os.getenv('NOTION_API_TOKEN')
+DB_URL = os.getenv('DB_URL')
 
 # Log info vars
 logger.info('BOT_TOKEN = ' + BOT_TOKEN)
