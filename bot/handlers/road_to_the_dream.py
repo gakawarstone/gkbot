@@ -8,7 +8,7 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.types import ReplyKeyboardRemove
 
 from bot_config import bot, Session
-from models.road import PomodoroStats
+from models.road import Habits, PomodoroStats
 
 logger = logging.getLogger(__name__)
 
@@ -114,6 +114,31 @@ async def habit_tracker(message: aiogram.types.Message):
         'Вы включили трекер привычек',
         reply_markup=ReplyKeyboardRemove())
     await message.answer('<b>Поздравляю</b> вы получили 🦣')
+    await message.answer('Ладно заскамленное животное давай попробуем добавить привычку')
+    await message.answer('Пришли мне название привычки которую мы с тобой будем прививать')
+    bot.add_state_handler(FSM.get_habit_name, get_habit_name)
+    await FSM.get_habit_name.set()
+
+
+async def get_habit_name(message: aiogram.types.Message, state: FSMContext):
+    await state.finish()
+    data['habit_name'] = message.text
+    await message.answer('Теперь пришли время в которое я буду спрашивать тебя об успехах')
+    bot.add_state_handler(FSM.get_habit_notify_time, get_habit_notify_time)
+    await FSM.get_habit_notify_time.set()
+
+
+async def get_habit_notify_time(message: aiogram.types.Message, state: FSMContext):
+    await state.finish()
+    time = datetime.strptime(message.text, '%H:%M').time()
+    data['habit_notify_time'] = time
+    with Session.begin() as session:
+        habit = Habits(
+            user_id=message.from_user.id,
+            name=data['habit_name'],
+            notify_time=data['habit_notify_time'])
+        session.add(habit)
+    await message.answer('Привычка добавлена')
 
 
 class FSM(StatesGroup):
@@ -121,3 +146,5 @@ class FSM(StatesGroup):
     choose_tool = State()
     pomodoro = State()
     choose_bool = State()
+    get_habit_name = State()
+    get_habit_notify_time = State()
