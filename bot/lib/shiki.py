@@ -80,7 +80,7 @@ class UserUpdatesSubscription:
         self.user_updates = UserUpdates(self.user)
         self.last_update = self.__get_last_update()
 
-    def __get_last_update(self) -> list:
+    def __get_last_update(self) -> Update:
         return self.user_updates.load_latest(1)[0]
 
     def is_updated(self) -> bool:
@@ -104,7 +104,7 @@ class UserUpdatesDispatcher(Dispatcher, metaclass=MetaSingleton):
     async def __dispatcher(self, delay=60) -> None:
         while True:
             for sub in self.subscriptions:
-                if (sub.is_updated()):
+                if sub.is_updated():
                     update = sub.last_update
                     await bot.send_message(sub.chat_id, str(update) + str(sub.user))
             await asyncio.sleep(delay)
