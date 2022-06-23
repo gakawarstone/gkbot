@@ -12,6 +12,7 @@ python-dotenv = "*"
 gTTS = "*"
 wikipedia = "*"
 sqlalchemy = "*"
+beautifulsoup4 = "*"
 
 [dev-packages]
 autopep8 = "*"
@@ -22,10 +23,11 @@ pytest = "*"
 black = "*"
 pytest-cov = "*"
 pytest-asyncio = "*"
-pytest-tornasync = "*"
+pytest-tornasync = "*" 
 pytest-trio = "*"
 pytest-twisted = "*"
 twisted = "*"
+mypy = "*"
 
 [requires]
 python_version = "3.10"
