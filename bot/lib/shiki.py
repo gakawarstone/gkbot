@@ -32,7 +32,7 @@ class User:
         return f'Пользователь <a href="{self.url}">@{self.name}</a>\n'
 
 
-class Update:
+class Update:  # [ ] type hints
     def __init__(self, name_en, name_ru, time, type) -> None:
         self.name_en = name_en
         self.name_ru = name_ru
@@ -86,7 +86,7 @@ class UserUpdatesSubscription:
     def is_updated(self) -> bool:
         new_update = self.__get_last_update()
         if (self.last_update.type != new_update.type):
-            print(self.last_update.type)
+            print(self.last_update.type)  # [ ] logging?
             print(new_update.type)
             self.last_update = new_update
             return True
@@ -96,7 +96,7 @@ class UserUpdatesSubscription:
 
 class UserUpdatesDispatcher(Dispatcher, metaclass=MetaSingleton):
     def __init__(self) -> None:
-        self.subscriptions = []
+        self.subscriptions: list[UserUpdatesSubscription] = []
 
     def add_subscription(self, chat_id, shiki_name) -> None:
         self.subscriptions.append(UserUpdatesSubscription(chat_id, shiki_name))

@@ -1,6 +1,6 @@
 import logging
 
-from ..bot_config import bot
+from ..bot_config import bot  # [ ] no top level package
 
 logger = logging.getLogger(__name__)
 
