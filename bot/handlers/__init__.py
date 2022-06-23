@@ -4,6 +4,7 @@ from . import shiki, tasks
 from . import text_to_speech as tts
 from . import wiki
 from . import channel
+from . import timer
 
 users = {
     'add_task': tasks.add,
@@ -16,6 +17,8 @@ users = {
     'wiki': wiki.search,
     'shiki': shiki.get_updates,
     'sub': shiki.subscribe,
+    'start_timer': timer.start,
+    'stop_timer': timer.stop,
 }
 
 admins = {
