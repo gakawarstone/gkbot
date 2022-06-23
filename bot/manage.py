@@ -7,7 +7,10 @@ from utils.commands import DefaultCommands
 
 default_commands = {
     'list': 'list of possible bot commands',
-    'road': 'road to the dream'
+    'road': 'road to the dream',
+    'bomber': 'use it for call someone',
+    'add_remind': 'add remind',
+    'start_timer': 'start timer',
 }
 
 tasks_on_startup = [
