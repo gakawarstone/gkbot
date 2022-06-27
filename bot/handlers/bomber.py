@@ -7,11 +7,12 @@ from bot_config import bot
 
 
 async def start(message: aiogram.types.Message):
-    await message.answer('Вы включили бомбер')
-    await message.answer('Надеемся вы понимате что вы делаете')
-    await message.answer('Итак кто будет жертвой?')
-    bot.add_state_handler(Form.spam_it_state, spam)
-    await Form.spam_it_state.set()
+    text = 'Вы включили <b>💣 бомбер</b>. '
+    text += 'Надеемся вы понимаете что вы делаете. '
+    text += 'Итак кто будет <b>🧟‍♂️ жертвой</b>?'
+    await message.answer(text)
+    bot.add_state_handler(FSM.spam, spam)
+    await FSM.spam.set()
 
 
 async def spam(message: aiogram.types.Message, state: FSMContext):
@@ -24,8 +25,8 @@ async def spam(message: aiogram.types.Message, state: FSMContext):
             await msg.delete()
     else:
         await message.answer('Призыв должен начинаться с @ [@ivanzolo2004]')
-        await Form.spam_it_state.set()
+        await FSM.spam.set()
 
 
-class Form(StatesGroup):
-    spam_it_state = State()
+class FSM(StatesGroup):
+    spam = State()
