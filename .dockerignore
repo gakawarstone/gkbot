@@ -1,0 +1,12 @@
+**/__pycache__
+/node_modules
+.idea
+venv
+*.ipynb
+.vscode
+.pytest_cache
+log.txt
+/logs
+/build
+/dist
+.venv
