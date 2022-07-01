@@ -37,3 +37,11 @@ schedule = Schedule()
 ADMINS = [
     897651738
 ]
+
+DEFAULT_COMMANDS = {
+    'list': 'list of possible bot commands',
+    'road': 'road to the dream',
+    'bomber': 'use it for call someone',
+    'add_remind': 'add remind',
+    'start_timer': 'start timer',
+}

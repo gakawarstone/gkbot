@@ -1,20 +1,13 @@
-from settings import ADMINS, bot, schedule
+from settings import schedule, DEFAULT_COMMANDS, ADMINS, bot
 from lib.shiki import UserUpdatesDispatcher
 import handlers
 from handlers.help import list_of_commands
 from utils.notify import notify_admins
 from utils.commands import DefaultCommands
 
-default_commands = {
-    'list': 'list of possible bot commands',
-    'road': 'road to the dream',
-    'bomber': 'use it for call someone',
-    'add_remind': 'add remind',
-    'start_timer': 'start timer',
-}
 
 tasks_on_startup = [
-    DefaultCommands.set(default_commands).on_startup,
+    DefaultCommands.set(DEFAULT_COMMANDS).on_startup,
     schedule.on_startup,
     UserUpdatesDispatcher().on_startup,
 ]
