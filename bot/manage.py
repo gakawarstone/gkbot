@@ -6,10 +6,7 @@ from utils.notify import notify_admins
 def start(bot=bot):
     bot.admins = ADMINS
 
-    # [ ] bot.add_tasks_on_startup()
-    for task in TASKS_ON_STARTUP:
-        bot.add_on_startup(task)
-
+    bot.add_tasks_on_startup(TASKS_ON_STARTUP)
     setup_handlers(bot)
 
     notify_admins('bot started')

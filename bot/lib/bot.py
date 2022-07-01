@@ -16,7 +16,7 @@ class Bot(object):
         self.admins = []
         self.keyboards = {}
         self.inline_keyboards = {}
-        self.tasks = []
+        self.__tasks = []
 
     def __set_bot(self, token: str,
                   parse_mode: ParseMode = ParseMode.HTML) -> aiogram.Bot:
@@ -72,8 +72,8 @@ class Bot(object):
         self.inline_keyboards[url] = InlineKeyboardMarkup().add(btn)
         return self.inline_keyboards[url]
 
-    def add_on_startup(self, func: Awaitable) -> None:
-        self.tasks.append(func)
+    def add_tasks_on_startup(self, functions: list[Awaitable]) -> None:
+        self.__tasks = functions
 
     async def send_message(self, id: int, text: str) -> Message:
         return await self.__bot.send_message(id, text)
@@ -82,12 +82,12 @@ class Bot(object):
         await message.answer_document(open(path, "rb"))
 
     async def on_startup(self, dp: Dispatcher) -> None:
-        for func in self.tasks:
+        for func in self.__tasks:
             await func(dp)
 
     def start(self) -> None:
         executor = aiogram.utils.executor
-        if self.tasks:
+        if self.__tasks:
             executor.start_polling(self.dp, on_startup=self.on_startup)
         else:
             executor.start_polling(self.dp)
