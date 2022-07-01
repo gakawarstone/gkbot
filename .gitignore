@@ -4,7 +4,6 @@
 .idea
 venv
 *.ipynb
-.vscode
 .pytest_cache
 log.txt
 **/*.sqlite
@@ -12,3 +11,4 @@ log.txt
 /build
 /dist
 .venv
+**/.mypy_cache
