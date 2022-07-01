@@ -1,22 +1,13 @@
-from settings import schedule, DEFAULT_COMMANDS, ADMINS, bot
-from lib.shiki import UserUpdatesDispatcher
+from settings import ADMINS, TASKS_ON_STARTUP, bot
 import handlers
 from handlers.help import list_of_commands
 from utils.notify import notify_admins
-from utils.commands import DefaultCommands
-
-
-tasks_on_startup = [
-    DefaultCommands.set(DEFAULT_COMMANDS).on_startup,
-    schedule.on_startup,
-    UserUpdatesDispatcher().on_startup,
-]
 
 
 def start(bot=bot):
     bot.admins = ADMINS
 
-    for task in tasks_on_startup:
+    for task in TASKS_ON_STARTUP:
         bot.add_on_startup(task)
 
     bot.add_command_handler('list', list_of_commands)

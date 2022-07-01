@@ -9,6 +9,8 @@ from sqlalchemy.orm import sessionmaker
 
 from lib.bot import Bot
 from lib.schedule import Schedule
+from lib.shiki import UserUpdatesDispatcher
+from utils.commands import DefaultCommands
 
 # Logging config
 logging.basicConfig(level=logging.WARNING,
@@ -45,3 +47,9 @@ DEFAULT_COMMANDS = {
     'add_remind': 'add remind',
     'start_timer': 'start timer',
 }
+
+TASKS_ON_STARTUP = [
+    DefaultCommands.set(DEFAULT_COMMANDS).on_startup,
+    schedule.on_startup,
+    UserUpdatesDispatcher().on_startup,
+]

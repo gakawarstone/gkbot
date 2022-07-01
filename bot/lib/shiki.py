@@ -2,11 +2,10 @@ import asyncio
 import json
 from urllib.request import Request, urlopen
 
+from aiogram import Dispatcher
 from bs4 import BeautifulSoup
 
-from settings import bot
 from lib.meta import MetaSingleton
-from lib.schedule import Dispatcher
 
 
 class Shiki:
@@ -94,20 +93,20 @@ class UserUpdatesSubscription:
             return False
 
 
-class UserUpdatesDispatcher(Dispatcher, metaclass=MetaSingleton):
+class UserUpdatesDispatcher(metaclass=MetaSingleton):  # BUG
     def __init__(self) -> None:
         self.subscriptions: list[UserUpdatesSubscription] = []
 
     def add_subscription(self, chat_id, shiki_name) -> None:
         self.subscriptions.append(UserUpdatesSubscription(chat_id, shiki_name))
 
-    async def __dispatcher(self, delay=60) -> None:
+    async def __dispatcher(self, dp: Dispatcher, delay=60) -> None:
         while True:
             for sub in self.subscriptions:
                 if sub.is_updated():
                     update = sub.last_update
-                    await bot.send_message(sub.chat_id, str(update) + str(sub.user))
+                    await dp.bot.send_message(sub.chat_id, str(update) + str(sub.user))
             await asyncio.sleep(delay)
 
-    async def on_startup(self, dp):
-        asyncio.create_task(self.__dispatcher())
+    async def on_startup(self, dp: Dispatcher):
+        asyncio.create_task(self.__dispatcher(dp))
