@@ -1,4 +1,4 @@
-from settings import admins, bot, schedule
+from settings import ADMINS, bot, schedule
 from lib.shiki import UserUpdatesDispatcher
 import handlers
 from handlers.help import list_of_commands
@@ -21,7 +21,7 @@ tasks_on_startup = [
 
 
 def start(bot=bot):
-    bot.admins = admins
+    bot.admins = ADMINS
 
     for task in tasks_on_startup:
         bot.add_on_startup(task)

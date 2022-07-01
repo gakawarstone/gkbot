@@ -10,12 +10,12 @@ from sqlalchemy.orm import sessionmaker
 from lib.bot import Bot
 from lib.schedule import Schedule
 
-# logger configuration
-# logging.config.fileConfig('logging.conf')
+# Logging config
 logging.basicConfig(level=logging.WARNING,
                     format='%(name)s::%(levelname)s::%(message)s')
 logger = logging.getLogger(__name__)
 
+# Environmental variables
 load_dotenv()
 
 # VARS
@@ -28,15 +28,12 @@ logger.info('BOT_TOKEN = ' + BOT_TOKEN)
 logger.info('NOTION_API_TOKEN = ' + NOTION_API_TOKEN)
 logger.info('DB_URL = ' + DB_URL)
 
-# main objects
+# Main objects
 bot = Bot(BOT_TOKEN)
 engine = create_engine(DB_URL)
 Session = sessionmaker(bind=engine)
-
-# SINGLETON
 schedule = Schedule()
 
-# config
-admins = [
+ADMINS = [
     897651738
 ]
