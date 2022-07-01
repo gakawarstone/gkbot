@@ -3,7 +3,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
 from settings import bot
-from lib import shiki
+from services import shiki
 
 
 async def get_updates(message: aiogram.types.Message):

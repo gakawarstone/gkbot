@@ -13,7 +13,7 @@ class Shiki:
 
     @classmethod
     def get_webpage(cls, user_name: str, path: str) -> BeautifulSoup:
-        req = Request(f'{cls.url}/{user_name}/{path}',
+        req = Request(f'{cls.url}/{user_name}/{path}',  # [ ] async
                       headers={'User-Agent': 'Mozilla/5.0'})
         webpage = urlopen(req).read()
         data = json.loads(webpage)

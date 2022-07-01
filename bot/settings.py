@@ -9,7 +9,7 @@ from sqlalchemy.orm import sessionmaker
 
 from lib.bot import Bot
 from lib.schedule import Schedule
-from lib.shiki import UserUpdatesDispatcher
+from services.shiki import UserUpdatesDispatcher
 from utils.commands import DefaultCommands
 
 # Logging config
