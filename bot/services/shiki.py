@@ -47,7 +47,7 @@ class UserUpdates:
         self.user = user
 
     def load_latest(self, max_updates: int) -> list[Update]:
-        updates = self.__load(1)
+        updates = self.__load(1)  # BUG
         try:
             return updates[:max_updates]
         except(Exception):

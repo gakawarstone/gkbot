@@ -9,6 +9,7 @@ from settings import bot, schedule
 from lib.schedule import Task
 
 data = {}
+# [ ] add menu set repeatable notifications
 
 
 async def add(message: aiogram.types.Message):
