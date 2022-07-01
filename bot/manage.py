@@ -1,4 +1,4 @@
-from bot_config import admins, bot, schedule
+from settings import admins, bot, schedule
 from lib.shiki import UserUpdatesDispatcher
 import handlers
 from handlers.help import list_of_commands

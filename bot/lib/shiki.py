@@ -4,7 +4,7 @@ from urllib.request import Request, urlopen
 
 from bs4 import BeautifulSoup
 
-from bot_config import bot
+from settings import bot
 from lib.meta import MetaSingleton
 from lib.schedule import Dispatcher
 

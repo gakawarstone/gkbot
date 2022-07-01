@@ -1,6 +1,6 @@
 from sqlalchemy.orm import sessionmaker
 
-from bot_config import engine
+from settings import engine
 from models.road import PomodoroStats
 
 

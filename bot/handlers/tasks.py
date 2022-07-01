@@ -4,7 +4,7 @@ import aiogram
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
-from bot_config import bot
+from settings import bot
 from lib.page import Database
 
 tasks = Database("67f38400c29f4137ac285fe6569567e2")

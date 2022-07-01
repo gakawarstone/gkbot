@@ -5,7 +5,7 @@ import wikipedia
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
-from bot_config import bot
+from settings import bot
 
 logger = logging.getLogger(__name__)
 

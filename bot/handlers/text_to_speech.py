@@ -5,7 +5,7 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.dispatcher import FSMContext
 import gtts
 
-from bot_config import bot
+from settings import bot
 
 
 async def start(message: aiogram.types.Message):

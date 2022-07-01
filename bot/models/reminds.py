@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer
 from sqlalchemy.orm import declarative_base
 
-from bot_config import engine
+from settings import engine
 
 Base = declarative_base()
 

@@ -2,8 +2,9 @@ from notion_client import AsyncClient
 from typing import Optional
 from datetime import datetime
 
-from bot_config import NOTION_API_TOKEN
+from settings import NOTION_API_TOKEN
 client = AsyncClient(auth=NOTION_API_TOKEN)
+# [ ] rename to notion_api and move to services
 
 
 class TextBlock:

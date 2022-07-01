@@ -1,7 +1,7 @@
 from unittest import mock
 from lib.bot import Bot
-from bot_config import BOT_TOKEN
-from bot_config import bot
+from settings import BOT_TOKEN
+from settings import bot
 
 
 def get_bot() -> Bot:

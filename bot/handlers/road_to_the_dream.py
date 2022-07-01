@@ -7,7 +7,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.types import ReplyKeyboardRemove
 
-from bot_config import bot, Session
+from settings import bot, Session
 from models.road import Habits, PomodoroStats
 
 logger = logging.getLogger(__name__)

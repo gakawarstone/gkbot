@@ -5,7 +5,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.types import Message
 
-from bot_config import bot, schedule
+from settings import bot, schedule
 from lib.schedule import Task
 
 data = {}

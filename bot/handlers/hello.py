@@ -1,6 +1,6 @@
 import aiogram
 
-from bot_config import bot
+from settings import bot
 
 # [ ] delete(move to menu)
 

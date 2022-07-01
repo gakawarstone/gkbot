@@ -1,5 +1,6 @@
-from bot_config import bot
+from settings import bot
 from datetime import datetime
+# [ ] delete this file
 
 
 def write(text):

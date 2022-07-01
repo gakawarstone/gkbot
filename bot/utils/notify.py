@@ -1,6 +1,6 @@
 import asyncio
 
-from bot_config import bot, admins
+from settings import bot, admins
 
 
 def notify_admins(text: str):
