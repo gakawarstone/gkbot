@@ -1,3 +1,4 @@
+# [ ] rename to settings.py
 import os
 import logging
 import logging.config

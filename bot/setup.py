@@ -1,5 +1,5 @@
 from cx_Freeze import setup, Executable
-
+# [ ] delete this file
 executables = [Executable('main.py')]
 name = 'tgnotion'
 version = input('please write version number: ')
