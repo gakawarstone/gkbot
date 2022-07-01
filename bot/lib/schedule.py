@@ -39,7 +39,7 @@ class Dispatcher:
 
 class Schedule(Dispatcher, metaclass=MetaSingleton):
     def __init__(self):
-        self.tasks = []
+        self.tasks: list[Task] = []
 
     def add_task(self, task: Task):
         self.tasks.append(task)
