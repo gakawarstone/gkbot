@@ -35,6 +35,4 @@ python_version = "3.10"
 [scripts]
 init = "sh -c 'python scripts/init.py'"
 bot = "sh -c 'python bot/main.py'"
-# don't use build it have some breaks
-build = "sh -c './scripts/build.sh'"
 test = "sh -c 'pytest --cov-report=html'"
