@@ -60,5 +60,7 @@
         "[ ]",
         "[x]"
     ],
-    "todo-tree.general.rootFolder": "bot"
+    "todo-tree.filtering.excludeGlobs": [
+        "**/*.md"
+    ]
 }
