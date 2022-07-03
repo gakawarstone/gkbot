@@ -61,6 +61,7 @@
         "[x]"
     ],
     "todo-tree.filtering.excludeGlobs": [
-        "**/*.md"
+        "docs",
+        ".venv"
     ]
 }
