@@ -1,3 +1,4 @@
+from email import message
 from typing import Awaitable
 import logging
 
@@ -30,25 +31,22 @@ class Bot(object):
         return self.__bot
 
     def add_message_handler(self, func: Awaitable[Message]) -> None:
-        @self.dp.message_handler()
-        async def handler(message: Message):
-            await func(message)
+        self.dp.register_message_handler(func)
 
     def add_command_handler(self, command: str, func: Awaitable[Message],
                             admin_only: bool = False) -> None:
         ''' command - /<command> in telegram '''
-        @self.dp.message_handler(commands=[command])
-        async def handler(message: Message):
-            is_admin = message['from']['id'] in self.admins
-            if not admin_only or admin_only and is_admin:
-                await func(message)
+        # [ ] add filter is admin
+        # is_admin = message['from']['id'] in self.admins
+        if not admin_only:  # BUG admin only handlers doesn't register
+            self.dp.register_message_handler(func, commands=[command])
+
         logging.debug('Command handler added at command /' + command)
 
     def add_state_handler(self, state: FSMContext,
                           func: Awaitable[Message]) -> None:
-        @self.dp.message_handler(state=state)
-        async def handler(message: Message, state: FSMContext):
-            await func(message, state)
+        self.dp.register_message_handler(
+            func, state=state, content_types=['text'])
 
     def add_channel_post_handler(self, func: Awaitable[Message]) -> None:
         @self.dp.channel_post_handler()
