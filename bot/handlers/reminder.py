@@ -14,7 +14,7 @@ from components.remind_creator import RemindCreator
 
 async def add(message: aiogram.types.Message, data: dict):
     await message.delete()
-    remind_creator = RemindCreator(message.from_user.id)
+    remind_creator = RemindCreator(message.chat.id)
     data['rc'] = remind_creator
 
     await remind_creator.init()
@@ -44,7 +44,7 @@ async def get_time(message: Message, state: FSMContext, data: dict):
         remind_creator: RemindCreator = data['rc']
 
         time = datetime.strptime(message.text, '%d.%m.%Y_%H:%M')
-        Reminder.add_remind(message.from_user.id, time, remind_text)
+        Reminder.add_remind(message.chat.id, time, remind_text)
 
         await remind_creator.set_remind_time(message.text)
         await remind_creator.set_status_finished()
