@@ -47,6 +47,7 @@ DEFAULT_COMMANDS = {
     'bomber': 'use it for call someone',
     'add_remind': 'add remind',
     'start_timer': 'start timer',
+    'admins': 'tag all admins',
 }
 
 
