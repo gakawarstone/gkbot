@@ -31,7 +31,7 @@ async def subscribe(message: aiogram.types.Message):
 
 
 async def get_name(message: aiogram.types.Message, state: FSMContext):
-    await state.finish()
+    await state.finish()  # [ ] if user invalid
     dp = shiki.UserUpdatesDispatcher()
     dp.add_subscription(message.chat.id, message.text)
     await message.answer('Подписка оформлена')
