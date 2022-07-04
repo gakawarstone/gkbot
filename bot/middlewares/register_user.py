@@ -1,5 +1,5 @@
 import aiogram
-from aiogram.dispatcher.middlewares import BaseMiddleware
+from .base import BaseMiddleware
 
 from models.users import Users
 from settings import Session
