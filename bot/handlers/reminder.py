@@ -1,7 +1,7 @@
 from datetime import datetime, date, timedelta, time
 
 import aiogram
-from aiogram.dispatcher import FSMContext
+from aiogram.dispatcher.fsm.context import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.types import Message
 

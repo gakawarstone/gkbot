@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from lib.bot import Bot
+from lib.bot import BotManager
 from lib.schedule import Schedule
 from services.shiki import UserUpdatesDispatcher
 from utils.commands import DefaultCommands
@@ -30,7 +30,7 @@ logger.info('DB_URL = ' + DB_URL)
 
 
 # Main objects
-bot = Bot(BOT_TOKEN)
+bot = BotManager(BOT_TOKEN)
 engine = create_engine(DB_URL)
 Session = sessionmaker(bind=engine)
 schedule = Schedule()
@@ -52,7 +52,7 @@ DEFAULT_COMMANDS = {
 
 
 TASKS_ON_STARTUP = [
-    DefaultCommands.set(DEFAULT_COMMANDS).on_startup,
+    DefaultCommands(bot).set(DEFAULT_COMMANDS).on_startup,
     schedule.on_startup,
     UserUpdatesDispatcher().on_startup,
 ]

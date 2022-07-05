@@ -1,20 +1,28 @@
 import logging
-from aiogram import Dispatcher
+from aiogram import Dispatcher, Bot
 from aiogram import types
 
 logger = logging.getLogger(__name__)
 
 
 class DefaultCommands:
-    commands = []
+    def __init__(self, bot: Bot) -> None:
+        self.__bot = bot
+        self.__commands = {}
 
-    @classmethod
-    def set(cls, commands: dict[str, str]):
-        for cmd in commands:
-            cls.commands.append(types.BotCommand(cmd, commands[cmd]))
-        return cls
+    def set(self, commands: dict[str, str]):
+        # for cmd in commands:
+        #     self.commands.append(types.BotCommand(cmd, commands[cmd]))
+        # return self
+        self.commands = commands
+        return self
 
-    @classmethod
-    async def on_startup(cls, dp: Dispatcher):
-        logger.info('Setting bot commands\n' + str(cls.commands))
-        await dp.bot.set_my_commands(cls.commands)
+    async def on_startup(self, dp: Dispatcher):
+        logger.info('Setting bot commands\n' + str(self.commands))
+        # await dp.bot.set_my_commands(self.commands)
+        self.__bot.set_my_commands(
+            [
+                types.BotCommand(command=command, description=description)
+                for command, description in self.commands.items()
+            ]
+        )

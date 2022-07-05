@@ -4,5 +4,5 @@ from .user_data import UserDataMiddleware
 
 
 def setup():
-    bot.dp.middleware.setup(RegisterUserMiddleware())
-    bot.dp.middleware.setup(UserDataMiddleware())
+    bot.dp.message.middleware(RegisterUserMiddleware())
+    bot.dp.message.middleware(UserDataMiddleware())

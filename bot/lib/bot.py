@@ -1,37 +1,36 @@
-from email import message
+import asyncio
 from typing import Awaitable
 import logging
 
 import aiogram
-from aiogram.contrib.fsm_storage.memory import MemoryStorage
-from aiogram.dispatcher import Dispatcher, FSMContext
+from aiogram import Dispatcher
+from aiogram.dispatcher.fsm.storage.memory import MemoryStorage
+from aiogram.dispatcher.fsm.context import FSMContext
 from aiogram.types import (InlineKeyboardButton, InlineKeyboardMarkup,
-                           KeyboardButton, Message, ParseMode,
+                           KeyboardButton, Message,
                            ReplyKeyboardMarkup)
 
 
-class Bot(object):
+class BotManager:  # NOTE BotSetup
     def __init__(self, token: str):
         self.__bot = self.__set_bot(token)
-        self.dp = self.__set_dispatcher(self.__bot)
+        self.dp = self.__set_dispatcher()
         self.admins = []
         self.keyboards = {}
         self.inline_keyboards = {}
         self.__tasks = []
 
-    def __set_bot(self, token: str,
-                  parse_mode: ParseMode = ParseMode.HTML) -> aiogram.Bot:
+    def __set_bot(self, token: str, parse_mode: str = 'HTML') -> aiogram.Bot:
         return aiogram.Bot(token=token, parse_mode=parse_mode)
 
-    def __set_dispatcher(self, bot: aiogram.Bot) -> Dispatcher:
-        storage = MemoryStorage()
-        return Dispatcher(bot, storage=storage)
+    def __set_dispatcher(self) -> Dispatcher:
+        return Dispatcher(storage=MemoryStorage())
 
     def get_bot_instance(self) -> aiogram.Bot:
         return self.__bot
 
     def add_message_handler(self, func: Awaitable[Message]) -> None:
-        self.dp.register_message_handler(func)
+        self.dp.register_message(func)
 
     def add_command_handler(self, command: str, func: Awaitable[Message],
                             admin_only: bool = False) -> None:
@@ -39,13 +38,13 @@ class Bot(object):
         # [ ] add filter is admin
         # is_admin = message['from']['id'] in self.admins
         if not admin_only:  # BUG admin only handlers doesn't register
-            self.dp.register_message_handler(func, commands=[command])
+            self.dp.register_message(func, commands=[command])
 
         logging.debug('Command handler added at command /' + command)
 
     def add_state_handler(self, state: FSMContext,
                           func: Awaitable[Message]) -> None:
-        self.dp.register_message_handler(
+        self.dp.register_message(
             func, state=state, content_types=['text'])
 
     def add_channel_post_handler(self, func: Awaitable[Message]) -> None:
@@ -84,8 +83,10 @@ class Bot(object):
             await func(dp)
 
     def start(self) -> None:
-        executor = aiogram.utils.executor
+        loop = asyncio.get_event_loop()
         if self.__tasks:
-            executor.start_polling(self.dp, on_startup=self.on_startup)
+            loop.run_until_complete(
+                self.dp.start_polling(self.get_bot_instance(), on_startup=self.on_startup))
         else:
-            executor.start_polling(self.dp)
+            loop.run_forever(
+                self.dp.start_polling(self.get_bot_instance()))

@@ -1,27 +1,29 @@
 import io
 
-import aiogram
+from aiogram.types import Message
+from aiogram.types.input_file import BufferedInputFile
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from aiogram.dispatcher import FSMContext
+from aiogram.dispatcher.fsm.context import FSMContext
 import gtts
 
 from settings import bot
 
 
-async def start(message: aiogram.types.Message):
+class FSM(StatesGroup):
+    start = State()
+    msg_to_voice = State()
+
+
+@bot.dp.message(commands='tts', state=FSM.start)
+async def start(message: Message, state: FSMContext):
+    await state.set_state(FSM.msg_to_voice)
     await message.answer('Привет это новая функция сделанная потомучто <b>могу</b>')
     await message.answer('Отправь мне сообщение и произойдет магия')
-    bot.add_state_handler(FSM.msg_to_voice, msg_to_voice)
-    await FSM.msg_to_voice.set()
 
 
-async def msg_to_voice(message: aiogram.types.Message, state: FSMContext):
-    await state.finish()
+@bot.dp.message(state=FSM.msg_to_voice)
+async def msg_to_voice(message: Message, state: FSMContext):
     voice_file = io.BytesIO()
     voice = gtts.gTTS(text=message.text, lang='ru')
     voice.write_to_fp(voice_file)
-    await message.answer_audio(voice_file.getvalue(), title='Текст')
-
-
-class FSM(StatesGroup):
-    msg_to_voice = State()
+    await message.answer_audio(BufferedInputFile(voice_file.getvalue(), 'a.mp3'), title='Текст')
