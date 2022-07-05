@@ -5,7 +5,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
 from settings import bot
-from lib.page import Database
+from services.notion_api import Database
 
 tasks = Database("67f38400c29f4137ac285fe6569567e2")
 
