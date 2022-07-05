@@ -1,4 +1,5 @@
 from settings import bot
+# [ ] add base component
 
 
 class RemindCreator:
@@ -6,6 +7,7 @@ class RemindCreator:
     __rendered_text = None
     __message = None
     __text = None
+    __date = None
     __time = None
     __status_message = None
 
@@ -17,11 +19,19 @@ class RemindCreator:
         await self.__render()
 
     async def set_remind_text(self, text: str) -> None:
+        # [ ] only after init
         self.__text = text
+        self.__state = 'remind_date'
+        await self.__render()
+
+    async def set_remind_date(self, date: str) -> None:
+        # [ ] only after text
+        self.__date = date
         self.__state = 'remind_time'
         await self.__render()
 
     async def set_remind_time(self, time: str) -> None:
+        # [ ] only after date
         self.__time = time
         self.__state = 'finished'
         await self.__render()
@@ -46,10 +56,13 @@ class RemindCreator:
         else:
             text += 'Текст: ' + self.__text + '\n'
 
-        if self.__state == 'remind_time':
+        if self.__state == 'remind_date':
             text += '<b>> Время: ...</b>\n'
+        elif self.__state == 'remind_time':
+            text += '<b>>Время: ' + str(self.__date) + ' ...</b>\n'
         elif self.__time:
-            text += 'Время: ' + str(self.__time) + '\n'
+            text += 'Время: ' + str(self.__date) + ' ' + \
+                str(self.__time) + '\n'
         else:
             text += 'Время: \n'
 
