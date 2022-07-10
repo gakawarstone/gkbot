@@ -11,9 +11,9 @@ from aiogram.types import (InlineKeyboardButton, InlineKeyboardMarkup,
                            ReplyKeyboardMarkup)
 
 
-class BotManager:  # NOTE BotSetup
+class BotManager:
     def __init__(self, token: str):
-        self.__bot = self.__set_bot(token)
+        self.bot = self.__set_bot(token)
         self.dp = self.__set_dispatcher()
         self.admins = []
         self.keyboards = {}
@@ -23,11 +23,8 @@ class BotManager:  # NOTE BotSetup
     def __set_bot(self, token: str, parse_mode: str = 'HTML') -> aiogram.Bot:
         return aiogram.Bot(token=token, parse_mode=parse_mode)
 
-    def __set_dispatcher(self) -> Dispatcher:
+    def __set_dispatcher(self) -> Dispatcher:  # [ ] storage not only one
         return Dispatcher(storage=MemoryStorage())
-
-    def get_bot_instance(self) -> aiogram.Bot:
-        return self.__bot
 
     def add_message_handler(self, func: Awaitable[Message]) -> None:
         self.dp.register_message(func)
@@ -38,6 +35,7 @@ class BotManager:  # NOTE BotSetup
         # [ ] add filter is admin
         # is_admin = message['from']['id'] in self.admins
         if not admin_only:  # BUG admin only handlers doesn't register
+            # BUG not register if add state
             self.dp.register_message(func, commands=[command])
 
         logging.debug('Command handler added at command /' + command)
@@ -73,7 +71,7 @@ class BotManager:  # NOTE BotSetup
         self.__tasks = functions
 
     async def send_message(self, id: int, text: str) -> Message:
-        return await self.__bot.send_message(id, text)
+        return await self.bot.send_message(id, text)
 
     async def send_file(self, message: str, path: str) -> None:
         await message.answer_document(open(path, "rb"))
@@ -86,7 +84,7 @@ class BotManager:  # NOTE BotSetup
         loop = asyncio.get_event_loop()
         if self.__tasks:
             loop.run_until_complete(
-                self.dp.start_polling(self.get_bot_instance(), on_startup=self.on_startup))
+                self.dp.start_polling(self.bot, on_startup=self.on_startup))
         else:
             loop.run_forever(
                 self.dp.start_polling(self.get_bot_instance()))

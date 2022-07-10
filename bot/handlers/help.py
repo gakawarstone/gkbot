@@ -1,6 +1,6 @@
 import aiogram
 
-from . import users
+from .commands import users
 
 
 async def list_of_commands(message: aiogram.types.Message):

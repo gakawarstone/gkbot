@@ -1,6 +1,6 @@
 from settings import ADMINS, TASKS_ON_STARTUP, bot
 # import middlewares
-from handlers.setup import setup_handlers
+import handlers
 from utils.notify import notify_admins
 
 
@@ -9,7 +9,7 @@ def start(bot=bot):
 
     bot.add_tasks_on_startup(TASKS_ON_STARTUP)
     # middlewares.setup()
-    setup_handlers(bot)
+    handlers.setup(bot)
 
     notify_admins('bot started')
     bot.start()
