@@ -11,9 +11,6 @@ from services.reminder import Remind, Reminder
 from components.remind_creator import RemindCreator
 
 # [ ] add menu set repeatable notifications
-# [ ] data middleware refactor to aiogram 3
-
-data = {}  # FIXME middleware
 
 
 class FSM(StatesGroup):
@@ -24,7 +21,7 @@ class FSM(StatesGroup):
     finish = State()
 
 
-async def add(message: Message, state: FSMContext):
+async def add(message: Message, state: FSMContext, data: dict):
     await state.set_state(FSM.get_remind_text)
     await message.delete()
     remind_creator = RemindCreator(message.chat.id)
@@ -33,7 +30,7 @@ async def add(message: Message, state: FSMContext):
     await remind_creator.init()
 
 
-async def get_remind_text(message: Message, state: FSMContext):
+async def get_remind_text(message: Message, state: FSMContext, data: dict):
     await state.set_state(FSM.get_remind_date)
     await message.delete()
     data['text'] = message.text
@@ -47,7 +44,7 @@ async def get_remind_text(message: Message, state: FSMContext):
                                             reply_markup=mng.keyboards['date'])
 
 
-async def get_remind_date(message: Message, state: FSMContext):
+async def get_remind_date(message: Message, state: FSMContext, data: dict):
     try:
         await state.set_state(FSM.get_remind_time)
         await message.delete()
@@ -71,10 +68,10 @@ async def get_remind_date(message: Message, state: FSMContext):
         await remind_creator.set_status_message(
             '❌<b>Формат [30.12.2021]</b>❌')
         data['mes_date'] = await message.answer(
-            'Выберите дату', reply_markup=bot.keyboards['date'])
+            'Выберите дату', reply_markup=mng.keyboards['date'])
 
 
-async def get_remind_time(message: Message, state: FSMContext):
+async def get_remind_time(message: Message, state: FSMContext, data: dict):
     try:
         await state.set_state(FSM.finish)
         await message.delete()
