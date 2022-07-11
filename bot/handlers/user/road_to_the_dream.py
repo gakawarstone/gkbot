@@ -14,7 +14,7 @@ from models.road import Habits, PomodoroStats
 logger = logging.getLogger(__name__)
 
 logger.warning('Possible race condition')
-data = {'msg_if_restart': None}
+data = {'msg_if_restart': None}  # FIXME add data middleware
 
 
 class FSM(StatesGroup):
