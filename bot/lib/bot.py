@@ -10,7 +10,7 @@ from aiogram.dispatcher.fsm.context import FSMContext
 from aiogram.types import (InlineKeyboardButton, InlineKeyboardMarkup,
                            KeyboardButton, Message,
                            ReplyKeyboardMarkup)
-from aiogram.utils.keyboard import ReplyKeyboardBuilder
+from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder
 
 
 class BotManager:
@@ -66,8 +66,9 @@ class BotManager:
 
     def add_url_button(self, url: str,
                        text: str = 'request') -> InlineKeyboardMarkup:
-        btn = InlineKeyboardButton(text, url=url)
-        self.inline_keyboards[url] = InlineKeyboardMarkup().add(btn)
+        btn = InlineKeyboardButton(text=text, url=url)
+        self.inline_keyboards[url] = InlineKeyboardBuilder().add(
+            btn).as_markup()
         return self.inline_keyboards[url]
 
     def add_tasks_on_startup(self, functions: list[Awaitable]) -> None:
@@ -86,6 +87,7 @@ class BotManager:
     def start(self) -> None:
         loop = asyncio.get_event_loop()
         if self.__tasks:
+            loop.run_until_complete(self.on_startup(self.dp))
             loop.run_until_complete(
                 self.dp.start_polling(self.bot, on_startup=self.on_startup))
         else:

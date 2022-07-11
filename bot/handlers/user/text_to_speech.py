@@ -8,8 +8,6 @@ import gtts
 
 from lib.bot import BotManager
 
-from settings import bot
-
 
 class FSM(StatesGroup):
     start = State()

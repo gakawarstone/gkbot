@@ -1,6 +1,6 @@
 from aiogram.types import Message
 
-from settings import bot
+from settings import mng
 
 # [ ] delete(move to menu)
 

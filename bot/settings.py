@@ -30,7 +30,7 @@ logger.info('DB_URL = ' + DB_URL)
 
 
 # Main objects
-bot = BotManager(BOT_TOKEN)
+mng = BotManager(BOT_TOKEN)
 engine = create_engine(DB_URL)
 Session = sessionmaker(bind=engine)
 schedule = Schedule()
@@ -48,11 +48,12 @@ DEFAULT_COMMANDS = {
     'add_remind': 'add remind',
     'start_timer': 'start timer',
     'admins': 'tag all admins',
+    'test': 'test',  # [ ] delete
 }
 
 
 TASKS_ON_STARTUP = [
-    DefaultCommands(bot).set(DEFAULT_COMMANDS).on_startup,
+    DefaultCommands(mng.bot).set(DEFAULT_COMMANDS).on_startup,
     schedule.on_startup,
     UserUpdatesDispatcher().on_startup,
 ]

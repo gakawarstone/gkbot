@@ -19,8 +19,7 @@ class DefaultCommands:
 
     async def on_startup(self, dp: Dispatcher):
         logger.info('Setting bot commands\n' + str(self.commands))
-        # await dp.bot.set_my_commands(self.commands)
-        self.__bot.set_my_commands(
+        await self.__bot.set_my_commands(
             [
                 types.BotCommand(command=command, description=description)
                 for command, description in self.commands.items()

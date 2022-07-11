@@ -1,4 +1,4 @@
-from settings import bot
+from settings import mng
 # [ ] add base component
 
 
@@ -69,8 +69,8 @@ class RemindCreator:
         if self.__status_message:
             text += self.__status_message
 
-        if not self.__message:
-            self.__message = await bot.send_message(self.user_id, text)
+        if not self.__message:  # FIXME
+            self.__message = await mng.send_message(self.user_id, text)
         elif text != self.__rendered_text:
             await self.__message.edit_text(text)
 

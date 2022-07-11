@@ -1,16 +1,17 @@
-from settings import ADMINS, TASKS_ON_STARTUP, bot
+from settings import ADMINS, TASKS_ON_STARTUP, mng
+from lib.bot import BotManager
 # import middlewares
 import handlers
 from utils.notify import notify_admins
 
 
-def start(bot=bot):
-    bot.admins = ADMINS
+def start(mng: BotManager = mng):
+    mng.admins = ADMINS
 
-    bot.add_tasks_on_startup(TASKS_ON_STARTUP)
+    mng.add_tasks_on_startup(TASKS_ON_STARTUP)
     # middlewares.setup()
-    handlers.setup(bot)
+    handlers.setup(mng)
 
     notify_admins('bot started')
-    bot.start()
+    mng.start()
     notify_admins('bot stopped')

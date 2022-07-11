@@ -1,28 +1,29 @@
-from dataclasses import dataclass
 from typing import Awaitable
-from aiogram.dispatcher.filters.state import State
 
 from lib.bot import BotManager
-from .user import text_to_speech as tts
-from .user import tasks, timer
-from .user import admins as adm
-from . import start
 
+from . import start
+from .user import admins as adm
+from .user import bomber, braintrash, reminder
+from .user import road_to_the_dream as road
+from .user import shiki, tasks
+from .user import text_to_speech as tts
+from .user import timer, wiki
 
 users: dict[str, Awaitable] = {
     'add_task': tasks.add,
-    # 'trash': braintrash.write,
+    'trash': braintrash.write,
     'start': start.start,
-    # 'bomber': bomber.start,
-    # 'add_remind': reminder.add,
-    # 'road': road.start,
+    'bomber': bomber.start,
+    'add_remind': reminder.add,
+    'road': road.start,
     'tts': tts.start,
-    # 'wiki': wiki.search,
-    # 'shiki': shiki.get_updates,
-    # 'sub': shiki.subscribe,
+    'wiki': wiki.search,
+    'shiki': shiki.get_updates,
+    'sub': shiki.subscribe,
     'start_timer': timer.start,
     'stop_timer': timer.stop,
-    # 'admins': adm.tag_all_admins
+    'admins': adm.tag_all_admins
 }
 
 admins = {
