@@ -1,4 +1,5 @@
 import asyncio
+from pprint import pprint
 from typing import Awaitable
 import logging
 
@@ -9,6 +10,7 @@ from aiogram.dispatcher.fsm.context import FSMContext
 from aiogram.types import (InlineKeyboardButton, InlineKeyboardMarkup,
                            KeyboardButton, Message,
                            ReplyKeyboardMarkup)
+from aiogram.utils.keyboard import ReplyKeyboardBuilder
 
 
 class BotManager:
@@ -54,12 +56,13 @@ class BotManager:
                      hide: bool = True, placeholder: str = None) -> None:
         ''' add telegram keyboard with row of {buttons}
             call by {bot_object.keyboards[name]} '''
-        kb = ReplyKeyboardMarkup(resize_keyboard=True,
-                                 one_time_keyboard=hide,
-                                 input_field_placeholder=placeholder)
+        kb = ReplyKeyboardBuilder()
         for rows in buttons:
-            kb.row(*(KeyboardButton(i) for i in rows))
-        self.keyboards[name] = kb
+            kb.row(*(KeyboardButton(text=i) for i in rows))
+        self.keyboards[name] = kb.as_markup(
+            resize_keyboard=True,
+            one_time_keyboard=hide,
+            input_field_placeholder=placeholder)
 
     def add_url_button(self, url: str,
                        text: str = 'request') -> InlineKeyboardMarkup:

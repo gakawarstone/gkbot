@@ -4,18 +4,15 @@ from aiogram.dispatcher.filters.state import State
 
 from lib.bot import BotManager
 from .user import text_to_speech as tts
+from .user import tasks, timer
+from .user import admins as adm
+from . import start
 
 
-@dataclass
-class CommandHandler:
-    callback: Awaitable
-    context: State
-
-
-users: dict[str, CommandHandler] = {
-    # 'add_task': tasks.add,
+users: dict[str, Awaitable] = {
+    'add_task': tasks.add,
     # 'trash': braintrash.write,
-    # 'start': hello.start,
+    'start': start.start,
     # 'bomber': bomber.start,
     # 'add_remind': reminder.add,
     # 'road': road.start,
@@ -23,8 +20,8 @@ users: dict[str, CommandHandler] = {
     # 'wiki': wiki.search,
     # 'shiki': shiki.get_updates,
     # 'sub': shiki.subscribe,
-    # 'start_timer': timer.start,
-    # 'stop_timer': timer.stop,
+    'start_timer': timer.start,
+    'stop_timer': timer.stop,
     # 'admins': adm.tag_all_admins
 }
 
