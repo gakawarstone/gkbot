@@ -1,16 +1,18 @@
-import aiogram
+from typing import Callable, Dict, Awaitable, Any
 
-from .base import BaseMiddleware
+from aiogram.types import Message
+from aiogram.dispatcher.middlewares.base import BaseMiddleware
 # TODO handler(m, st, data)
 
 
 class UserDataMiddleware(BaseMiddleware):
     __data = {}
 
-    async def on_pre_process_message(self, message: aiogram.types.Message,
-                                     data: dict):
-        if message.from_user.id not in self.__data:
-            self.__data[message.from_user.id] = {}
-        print(self.__data)
+    async def __call__(
+            self, handler: Callable[[Message, Dict[str, Any]], Awaitable[Any]],
+            event: Message, data: Dict[str, Any]) -> Any:
+        if event.from_user.id not in self.__data:
+            self.__data[event.from_user.id] = {}
 
-        data['data'] = self.__data[message.from_user.id]
+        data['data'] = self.__data[event.from_user.id]
+        await handler(event, data)

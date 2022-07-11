@@ -1,11 +1,11 @@
-import aiogram
+from aiogram.types import Message
 
-from settings import bot
+from settings import mng
 
 # [ ] delete(move to menu)
 
 
-async def start(message: aiogram.types.message):
+async def start(message: Message):
     commands = [['/add_row', '/trash', '/bomber'],
                 ['/get_log', '/get_trash']]
     bot.add_keyboard('all_commands', commands, placeholder='Выберите команду')

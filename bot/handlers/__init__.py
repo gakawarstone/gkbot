@@ -1,32 +1,22 @@
-from . import bomber, braintrash, hello, reminder
-from . import road_to_the_dream as road
-from . import shiki, tasks
-from . import text_to_speech as tts
-from . import wiki
-from . import channel
-from . import timer
-from . import admins as adm
+from . import commands
+from . import user
+import logging
+from .help import list_of_commands
+from lib.bot import BotManager
 
-users = {
-    'add_task': tasks.add,
-    'trash': braintrash.write,
-    'start': hello.start,
-    'bomber': bomber.start,
-    'add_remind': reminder.add,
-    'road': road.start,
-    'tts': tts.start,
-    'wiki': wiki.search,
-    'shiki': shiki.get_updates,
-    'sub': shiki.subscribe,
-    'start_timer': timer.start,
-    'stop_timer': timer.stop,
-    'admins': adm.tag_all_admins
-}
 
-admins = {
-    'get_trash': braintrash.get_all_data,
-}
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 channels = [
-    channel.echo_post,
+    # chnnel.echo_post,
 ]
+
+
+def setup(mng: BotManager):
+    user.setup(mng)
+    commands.setup(mng)
+    mng.add_command_handler('list', list_of_commands)
+
+    for handler in channels:
+        mng.add_channel_post_handler(handler)

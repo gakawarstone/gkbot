@@ -1,37 +1,35 @@
-from email import message
+import asyncio
+from pprint import pprint
 from typing import Awaitable
 import logging
 
 import aiogram
-from aiogram.contrib.fsm_storage.memory import MemoryStorage
-from aiogram.dispatcher import Dispatcher, FSMContext
+from aiogram import Dispatcher
+from aiogram.dispatcher.fsm.storage.memory import MemoryStorage
+from aiogram.dispatcher.fsm.context import FSMContext
 from aiogram.types import (InlineKeyboardButton, InlineKeyboardMarkup,
-                           KeyboardButton, Message, ParseMode,
+                           KeyboardButton, Message,
                            ReplyKeyboardMarkup)
+from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder
 
 
-class Bot(object):
+class BotManager:
     def __init__(self, token: str):
-        self.__bot = self.__set_bot(token)
-        self.dp = self.__set_dispatcher(self.__bot)
+        self.bot = self.__set_bot(token)
+        self.dp = self.__set_dispatcher()
         self.admins = []
         self.keyboards = {}
         self.inline_keyboards = {}
         self.__tasks = []
 
-    def __set_bot(self, token: str,
-                  parse_mode: ParseMode = ParseMode.HTML) -> aiogram.Bot:
+    def __set_bot(self, token: str, parse_mode: str = 'HTML') -> aiogram.Bot:
         return aiogram.Bot(token=token, parse_mode=parse_mode)
 
-    def __set_dispatcher(self, bot: aiogram.Bot) -> Dispatcher:
-        storage = MemoryStorage()
-        return Dispatcher(bot, storage=storage)
-
-    def get_bot_instance(self) -> aiogram.Bot:
-        return self.__bot
+    def __set_dispatcher(self) -> Dispatcher:  # [ ] storage not only one
+        return Dispatcher(storage=MemoryStorage())
 
     def add_message_handler(self, func: Awaitable[Message]) -> None:
-        self.dp.register_message_handler(func)
+        self.dp.register_message(func)
 
     def add_command_handler(self, command: str, func: Awaitable[Message],
                             admin_only: bool = False) -> None:
@@ -39,13 +37,14 @@ class Bot(object):
         # [ ] add filter is admin
         # is_admin = message['from']['id'] in self.admins
         if not admin_only:  # BUG admin only handlers doesn't register
-            self.dp.register_message_handler(func, commands=[command])
+            # BUG not register if add state
+            self.dp.register_message(func, commands=[command])
 
         logging.debug('Command handler added at command /' + command)
 
     def add_state_handler(self, state: FSMContext,
                           func: Awaitable[Message]) -> None:
-        self.dp.register_message_handler(
+        self.dp.register_message(
             func, state=state, content_types=['text'])
 
     def add_channel_post_handler(self, func: Awaitable[Message]) -> None:
@@ -57,24 +56,26 @@ class Bot(object):
                      hide: bool = True, placeholder: str = None) -> None:
         ''' add telegram keyboard with row of {buttons}
             call by {bot_object.keyboards[name]} '''
-        kb = ReplyKeyboardMarkup(resize_keyboard=True,
-                                 one_time_keyboard=hide,
-                                 input_field_placeholder=placeholder)
+        kb = ReplyKeyboardBuilder()
         for rows in buttons:
-            kb.row(*(KeyboardButton(i) for i in rows))
-        self.keyboards[name] = kb
+            kb.row(*(KeyboardButton(text=i) for i in rows))
+        self.keyboards[name] = kb.as_markup(
+            resize_keyboard=True,
+            one_time_keyboard=hide,
+            input_field_placeholder=placeholder)
 
     def add_url_button(self, url: str,
                        text: str = 'request') -> InlineKeyboardMarkup:
-        btn = InlineKeyboardButton(text, url=url)
-        self.inline_keyboards[url] = InlineKeyboardMarkup().add(btn)
+        btn = InlineKeyboardButton(text=text, url=url)
+        self.inline_keyboards[url] = InlineKeyboardBuilder().add(
+            btn).as_markup()
         return self.inline_keyboards[url]
 
     def add_tasks_on_startup(self, functions: list[Awaitable]) -> None:
         self.__tasks = functions
 
     async def send_message(self, id: int, text: str) -> Message:
-        return await self.__bot.send_message(id, text)
+        return await self.bot.send_message(id, text)
 
     async def send_file(self, message: str, path: str) -> None:
         await message.answer_document(open(path, "rb"))
@@ -84,8 +85,11 @@ class Bot(object):
             await func(dp)
 
     def start(self) -> None:
-        executor = aiogram.utils.executor
+        loop = asyncio.get_event_loop()
         if self.__tasks:
-            executor.start_polling(self.dp, on_startup=self.on_startup)
+            loop.run_until_complete(self.on_startup(self.dp))
+            loop.run_until_complete(
+                self.dp.start_polling(self.bot, on_startup=self.on_startup))
         else:
-            executor.start_polling(self.dp)
+            loop.run_forever(
+                self.dp.start_polling(self.get_bot_instance()))

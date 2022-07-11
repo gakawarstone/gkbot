@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime, time
 
-from settings import schedule, bot
+from settings import schedule, mng
 from lib.schedule import Task
 
 
@@ -14,7 +14,7 @@ class Remind:
 
 class Reminder:
     __schedule = schedule
-    __bot = bot
+    __bot = mng  # FIXME
 
     @classmethod
     def add_remind(cls, user_id: int, date_time: datetime, text: str) -> None:
