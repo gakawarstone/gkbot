@@ -6,9 +6,10 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.types import Message
 from lib.bot import BotManager
 
-from settings import mng  # FIXME
 from services.reminder import Remind, Reminder
-from components.remind_creator import RemindCreator
+from ui.keyboards import RemindMarkup
+from ui.components.remind_creator import RemindCreator
+
 
 # [ ] add menu set repeatable notifications
 
@@ -24,51 +25,45 @@ class FSM(StatesGroup):
 async def add(message: Message, state: FSMContext, data: dict):
     await state.set_state(FSM.get_remind_text)
     await message.delete()
-    remind_creator = RemindCreator(message.chat.id)
-    data['rc'] = remind_creator
-
-    await remind_creator.init()
+    data['rc'] = RemindCreator(message.chat.id)
+    await data['rc'].init()
 
 
 async def get_remind_text(message: Message, state: FSMContext, data: dict):
     await state.set_state(FSM.get_remind_date)
     await message.delete()
     data['text'] = message.text
-    remind_creator: RemindCreator = data['rc']
 
-    await remind_creator.set_remind_text(message.text)
+    rc: RemindCreator = data['rc']
+    await rc.set_remind_text(message.text)
 
-    mng.add_keyboard('date', [['Сегодня', 'Завтра']],
-                     placeholder='04.07.2022')
     data['mes_date'] = await message.answer('Выберите дату',
-                                            reply_markup=mng.keyboards['date'])
+                                            reply_markup=RemindMarkup.date())
 
 
 async def get_remind_date(message: Message, state: FSMContext, data: dict):
+    await message.delete()
+    await data['mes_date'].delete()
+    rc: RemindCreator = data['rc']
     try:
         await state.set_state(FSM.get_remind_time)
-        await message.delete()
-        await data['mes_date'].delete()
-        remind_text = data['text']
-        remind_creator: RemindCreator = data['rc']
-
-        match message.text:
-            case 'Сегодня' | '1':
-                remind_date = date.today()
-            case 'Завтра' | '2':
-                remind_date = date.today() + timedelta(days=1)
-            case _:
-                remind_date = datetime.strptime(message.text, '%d.%m.%Y')
-        data['date'] = remind_date
-
-        await remind_creator.set_remind_date(remind_date.strftime('%d.%m.%Y'))
-
+        data['date'] = validate_date(message.text)
+        await rc.set_remind_date(data['date'].strftime('%d.%m.%Y'))
     except(Exception):
         await state.set_state(FSM.get_remind_date)
-        await remind_creator.set_status_message(
-            '❌<b>Формат [30.12.2021]</b>❌')
-        data['mes_date'] = await message.answer(
-            'Выберите дату', reply_markup=mng.keyboards['date'])
+        await rc.set_status_message('❌<b>Формат [30.12.2021]</b>❌')
+        data['mes_date'] = await data['mes_date'].send_copy(
+            message.chat.id, reply_markup=RemindMarkup.date())
+
+
+def validate_date(text: str) -> datetime:  # FIXME move
+    match text:
+        case 'Сегодня' | '1':
+            return date.today()
+        case 'Завтра' | '2':
+            return date.today() + timedelta(days=1)
+        case _:
+            return datetime.strptime(text, '%d.%m.%Y')
 
 
 async def get_remind_time(message: Message, state: FSMContext, data: dict):
