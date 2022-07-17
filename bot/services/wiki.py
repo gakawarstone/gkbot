@@ -1,13 +1,14 @@
+from importlib.machinery import PathFinder
 import re
 from typing import Optional
 
 import wikipedia
-from wikipedia.exceptions import DisambiguationError
+from wikipedia.exceptions import DisambiguationError, PageError
 
 
 class WikiApi:
     @classmethod
-    def __search_for_topic(cls, text: str) -> str | list[str]:
+    def __search_for_topic(cls, text: str) -> Optional[list[str]]:
         '''search primary in en wiki then in ru'''
         wikipedia.set_lang('en')
         if re.search('[а-яА-Я]', text):
@@ -21,4 +22,6 @@ class WikiApi:
             try:
                 return wikipedia.summary(topic, sentences=sentences)
             except DisambiguationError:
+                continue
+            except PageError:
                 continue
