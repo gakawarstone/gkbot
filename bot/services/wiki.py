@@ -21,7 +21,5 @@ class WikiApi:
         for topic in cls.__search_for_topic(text):
             try:
                 return wikipedia.summary(topic, sentences=sentences)
-            except DisambiguationError:
-                continue
-            except PageError:
+            except (DisambiguationError, PageError):
                 continue
