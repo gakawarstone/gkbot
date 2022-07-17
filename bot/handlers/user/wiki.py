@@ -26,7 +26,8 @@ async def get_data(message: Message, state: FSMContext):
     await state.set_state(FSM.finish)
     await message.delete()
     if quote := WikiApi.get_quote(message.text):
-        await message.answer('Нашел кое-что 👇\n\n' + quote)
+        await message.answer('Нашел кое-что по запросу <b>%s</b> 👇\n\n' %
+                             message.text + quote)
     else:
         await message.answer('Я ничего не нашел 🙂')
 
