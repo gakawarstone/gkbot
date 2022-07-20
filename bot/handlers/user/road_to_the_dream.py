@@ -13,9 +13,6 @@ from models.road import Habits, PomodoroStats
 
 logger = logging.getLogger(__name__)
 
-logger.warning('Possible race condition')
-data = {'msg_if_restart': None}  # FIXME add data middleware
-
 
 class FSM(StatesGroup):
     start = State()
@@ -27,6 +24,8 @@ class FSM(StatesGroup):
     finish = State()
 
 # [ ] if road is already running do not start another
+
+# FIXME type hint for data not simple dict
 
 
 async def start(message: Message, state: FSMContext):
@@ -44,17 +43,17 @@ async def start(message: Message, state: FSMContext):
                          reply_markup=mng.keyboards['road_choose'])
 
 
-async def choose_tool(message: Message, state: FSMContext):
+async def choose_tool(message: Message, state: FSMContext, data: dict):
     await state.set_state(FSM.finish)
     await message.delete()
     match message.text:
         case 'Помидор 🕔' | '1':
-            await pomodoro(message, state)
+            await pomodoro(message, state, data)
         case 'Трекер привычек' | '2':
             await habit_tracker(message, state)
 
 
-async def pomodoro(message: Message, state: FSMContext,
+async def pomodoro(message: Message, state: FSMContext, data: dict,
                    time_focused: int = 15*60,
                    time_relax: int = 15*60):  # [ ] component
     await message.answer(
@@ -74,7 +73,7 @@ async def pomodoro(message: Message, state: FSMContext,
         time_relax,
         text='<i>На чиле</i>')
 
-    with Session.begin() as session:
+    with Session.begin() as session:  # FIXME connect to db not in handlers
         user = session.query(
             PomodoroStats).filter_by(
             user_id=message.from_user.id).first()
@@ -83,7 +82,7 @@ async def pomodoro(message: Message, state: FSMContext,
     await msg.edit_text(
         '<b>Поздравляю</b> вы получили <b>[<i>%s</i>🍅]</b>' % cnt)
 
-    mng.add_keyboard('choose_bool', [['Да', 'Нет']])
+    mng.add_keyboard('choose_bool', [['Да', 'Нет']])  # FIXME ui.keyboards
     data['msg_if_restart'] = await message.answer(
         'Хотите начать новый помидор?',
         reply_markup=mng.keyboards['choose_bool'])
@@ -91,7 +90,7 @@ async def pomodoro(message: Message, state: FSMContext,
     await state.set_state(FSM.choose_bool)
 
 
-async def choose_bool(message: Message):  # [ ] component
+async def choose_bool(message: Message, data: dict):  # [ ] component
     await message.delete()
     assert data['msg_if_restart'] is not None
     await data['msg_if_restart'].delete()
@@ -130,13 +129,13 @@ async def habit_tracker(message: Message, state: FSMContext):
     await message.answer('Пришли мне название привычки которую мы с тобой будем прививать')
 
 
-async def get_habit_name(message: Message, state: FSMContext):
+async def get_habit_name(message: Message, state: FSMContext, data: dict):
     await state.set_state(FSM.get_habit_notify_time)
     data['habit_name'] = message.text
     await message.answer('Теперь пришли время в которое я буду спрашивать тебя об успехах')
 
 
-async def get_habit_notify_time(message: Message, state: FSMContext):
+async def get_habit_notify_time(message: Message, state: FSMContext, data: dict):
     await state.set_state(FSM.finish)
     time = datetime.strptime(message.text, '%H:%M').time()
     data['habit_notify_time'] = time
