@@ -1,9 +1,11 @@
 from aiogram.types import Message
+from aiogram.dispatcher.filters.command import Command
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.dispatcher.fsm.context import FSMContext
 
 from settings import mng  # [ ] move add url button from BotManager
 from lib.bot import BotManager
+from filters.bot_admin import BotAdmin
 from services.notion_api import Page
 # [ ] move page id to settings | env
 braintrash = Page('98997f76b28d48cb946d04e32b540e64')
@@ -41,3 +43,8 @@ def setup(mng: BotManager):
     mng.add_state_handler(FSM.write, write)
     mng.add_state_handler(FSM.get_all_data, get_all_data)
     mng.add_state_handler(FSM.get_message, get_message)
+    mng.dp.register_message(
+        get_all_data,
+        BotAdmin(),
+        Command(commands='get_trash')
+    )
