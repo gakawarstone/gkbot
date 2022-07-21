@@ -4,12 +4,10 @@ import logging
 
 import aiogram
 from aiogram import Dispatcher
-from aiogram.dispatcher.filters.command import Command
 from aiogram.dispatcher.fsm.storage.memory import MemoryStorage
 from aiogram.dispatcher.fsm.context import FSMContext
 from aiogram.types import (InlineKeyboardButton, InlineKeyboardMarkup,
-                           KeyboardButton, Message,
-                           ReplyKeyboardMarkup)
+                           KeyboardButton, Message)
 from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder
 
 
