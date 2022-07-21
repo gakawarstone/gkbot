@@ -1,10 +1,10 @@
 import asyncio
-from pprint import pprint
 from typing import Awaitable
 import logging
 
 import aiogram
 from aiogram import Dispatcher
+from aiogram.dispatcher.filters.command import Command
 from aiogram.dispatcher.fsm.storage.memory import MemoryStorage
 from aiogram.dispatcher.fsm.context import FSMContext
 from aiogram.types import (InlineKeyboardButton, InlineKeyboardMarkup,
@@ -31,14 +31,10 @@ class BotManager:
     def add_message_handler(self, func: Awaitable[Message]) -> None:
         self.dp.register_message(func)
 
-    def add_command_handler(self, command: str, func: Awaitable[Message],
-                            admin_only: bool = False) -> None:
+    def add_command_handler(self, command: str,
+                            func: Awaitable[Message]) -> None:
         ''' command - /<command> in telegram '''
-        # [ ] add filter is admin
-        # is_admin = message['from']['id'] in self.admins
-        if not admin_only:  # BUG admin only handlers doesn't register
-            # BUG not register if add state
-            self.dp.register_message(func, commands=[command])
+        self.dp.register_message(func, commands=[command])
 
         logging.debug('Command handler added at command /' + command)
 
@@ -52,6 +48,7 @@ class BotManager:
         async def handler(message: Message):
             await func(message)
 
+    # FIXME move to keyboard builder
     def add_keyboard(self, name: str, buttons: list[list[str]],
                      hide: bool = True, placeholder: str = None) -> None:
         ''' add telegram keyboard with row of {buttons}
