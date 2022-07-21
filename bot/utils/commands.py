@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 class DefaultCommands:
     def __init__(self, bot: Bot) -> None:
         self.__bot = bot
-        self.__commands = {}
+        self.__commands = {}  # FIXME
 
     def set(self, commands: dict[str, str]):
         # for cmd in commands:

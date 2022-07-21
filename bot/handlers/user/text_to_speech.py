@@ -19,7 +19,6 @@ async def start(message: Message, state: FSMContext):
     await state.set_state(FSM.msg_to_voice)
     await message.answer('Привет это новая функция сделанная потомучто <b>могу</b>')
     await message.answer('Отправь мне сообщение и произойдет магия')
-    # [ ] type State not FSMContext
 
 
 async def msg_to_voice(message: Message, state: FSMContext):

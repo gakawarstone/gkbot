@@ -1,6 +1,6 @@
 import logging
 
-from settings import bot
+from settings import bot  # FIXME
 
 logger = logging.getLogger(__name__)
 
