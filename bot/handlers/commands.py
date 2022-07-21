@@ -23,7 +23,7 @@ users: dict[str, Awaitable] = {
     'sub': shiki.subscribe,
     'start_timer': timer.start,
     'stop_timer': timer.stop,
-    'admins': adm.tag_all_admins
+    # 'admins': adm.tag_all_admins # FIXME
 }
 
 admins = {

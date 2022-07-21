@@ -11,7 +11,7 @@ from . import admins as adm
 
 
 def setup(mng: BotManager):
-    tts.setup(mng)
+    tts.setup(mng)  # NOTE dp.include_router(tts.router)?
     tasks.setup(mng)
     braintrash.setup(mng)
     bomber.setup(mng)
