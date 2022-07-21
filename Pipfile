@@ -28,6 +28,7 @@ pytest-trio = "*"
 pytest-twisted = "*"
 twisted = "*"
 mypy = "*"
+pip = "*"
 
 [requires]
 python_version = "3.10"
