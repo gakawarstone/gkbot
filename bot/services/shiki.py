@@ -104,7 +104,7 @@ class UserUpdatesDispatcher(metaclass=MetaSingleton):  # BUG
         while True:
             for sub in self.subscriptions:
                 if sub.is_updated():
-                    update = sub.last_update
+                    update = sub.last_update  # BUG db don't have bot
                     await dp.bot.send_message(sub.chat_id, str(update) + str(sub.user))
             await asyncio.sleep(delay)
 
