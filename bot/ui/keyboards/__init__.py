@@ -1,5 +1,3 @@
-from typing import Any
-
 from settings import mng  # FIXME
 
 
@@ -8,6 +6,8 @@ class StartMarkup:
     def commands():
         mng.add_keyboard('f', [['test']])
         return mng.keyboards['f']
+
+# [ ] add lib.keyboard_builder
 
 
 class RemindMarkup:
