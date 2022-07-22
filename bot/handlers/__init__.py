@@ -1,5 +1,6 @@
 from . import commands
 from . import user
+from . import text
 import logging
 from .help import list_of_commands
 from lib.bot import BotManager
@@ -16,6 +17,8 @@ channels = [
 def setup(mng: BotManager):
     user.setup(mng)
     commands.setup(mng)
+    text.setup(mng)
+
     mng.add_command_handler('list', list_of_commands)
 
     for handler in channels:

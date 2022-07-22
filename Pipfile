@@ -13,6 +13,7 @@ gTTS = "*"
 wikipedia = "*"
 sqlalchemy = "*"
 beautifulsoup4 = "*"
+tiktok-downloader = "*"
 
 [dev-packages]
 autopep8 = "*"
