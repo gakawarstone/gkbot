@@ -16,7 +16,7 @@ async def download_video(message: Message, state: FSMContext):
     await state.bot.send_chat_action(message.chat.id, 'upload_video')
     try:
         await message.answer_video(
-            TikTokDownloader.download_as_input_file(message.text),
+            TikTokDownloader.get_video_url(message.text),
             caption=message.text
         )
     except TikTokInvalidUrl:

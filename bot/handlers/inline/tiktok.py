@@ -1,24 +1,29 @@
 from aiogram import F, Router
 from aiogram.types import InlineQuery
 
-from lib.bot import BotManager
 from services.tiktok import TikTokDownloader
+from utils.serializers import url_to_video_query_result
 
 
 F: InlineQuery
-router = Router()
 
 
-@router.inline_query(
-    F.query.startswith('https://vm.tiktok.com/')
-)
 async def send_tiktok(query: InlineQuery):
     return await query.answer(
-        [TikTokDownloader.get_as_query_result(query.query)],
+        results=[
+            url_to_video_query_result(
+                video_url=TikTokDownloader.get_video_url(query.query),
+                title='TikTok',
+                description='tap to send'
+            )
+        ],
         cache_time=60,
         is_personal=True
     )
 
 
-def setup(mng: BotManager):
-    mng.dp.include_router(router)
+def setup(router: Router):
+    router.register_inline_query(
+        send_tiktok,
+        F.query.startswith('https://vm.tiktok.com/')
+    )
