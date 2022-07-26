@@ -1,6 +1,6 @@
 from lib.bot import BotManager
-from . import base
+from . import tiktok
 
 
 def setup(mng: BotManager):
-    base.setup(mng)
+    tiktok.setup(mng)

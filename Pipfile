@@ -14,6 +14,7 @@ wikipedia = "*"
 sqlalchemy = "*"
 beautifulsoup4 = "*"
 tiktok-downloader = "*"
+translate = "*"
 
 [dev-packages]
 autopep8 = "*"
