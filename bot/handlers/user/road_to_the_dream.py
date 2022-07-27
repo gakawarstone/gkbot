@@ -10,7 +10,7 @@ from lib.bot import BotManager
 
 from settings import mng, Session  # FIXME
 from models.road import Habits, PomodoroStats
-from ui.keyboards import bool_keyboard
+from ui.keyboards.road import RoadMarkup
 
 logger = logging.getLogger(__name__)
 
@@ -38,19 +38,17 @@ async def start(message: Message, state: FSMContext):
         photo_id,
         caption='Привет <i>%s</i> ты включил модуль 🚀<b>РОД ЗЕ ДРИМ</b>🚀' %
         message.from_user.first_name)
-    buttons = [['Помидор 🕔', 'Трекер привычек']]
-    mng.add_keyboard('road_choose', buttons)
     await message.answer('Пожалуйста выберите 🛠 <b>инструмент</b>',
-                         reply_markup=mng.keyboards['road_choose'])
+                         reply_markup=RoadMarkup.tools)
 
 
 async def choose_tool(message: Message, state: FSMContext, data: dict):
     await state.set_state(FSM.finish)
     await message.delete()
     match message.text:
-        case 'Помидор 🕔' | '1':
+        case RoadMarkup.buttons.pomodoro | '1':
             await pomodoro(message, state, data)
-        case 'Трекер привычек' | '2':
+        case RoadMarkup.buttons.habit_tracker | '2':
             await habit_tracker(message, state)
 
 
@@ -85,7 +83,7 @@ async def pomodoro(message: Message, state: FSMContext, data: dict,
 
     data['msg_if_restart'] = await message.answer(
         'Хотите начать новый помидор?',
-        reply_markup=bool_keyboard)
+        reply_markup=RoadMarkup.bool)
 
     await state.set_state(FSM.choose_bool)
 
@@ -95,9 +93,9 @@ async def choose_bool(message: Message, data: dict):  # [ ] component
     assert data['msg_if_restart'] is not None
     await data['msg_if_restart'].delete()
     match message.text:
-        case 'Да' | 'y':
+        case RoadMarkup.buttons.yes | 'y':
             await pomodoro(message)
-        case 'нет' | 'n':
+        case RoadMarkup.buttons.no | 'n':
             pass
 
 
