@@ -10,6 +10,7 @@ from lib.bot import BotManager
 
 from settings import mng, Session  # FIXME
 from models.road import Habits, PomodoroStats
+from ui.keyboards import bool_keyboard
 
 logger = logging.getLogger(__name__)
 
@@ -54,8 +55,8 @@ async def choose_tool(message: Message, state: FSMContext, data: dict):
 
 
 async def pomodoro(message: Message, state: FSMContext, data: dict,
-                   time_focused: int = 15*60,
-                   time_relax: int = 15*60):  # [ ] component
+                   time_focused: int = 15,  # FIXME
+                   time_relax: int = 15):  # [ ] component
     await message.answer(
         'Вы включили 🕔 <b>помидор</b>',
         reply_markup=ReplyKeyboardRemove())
@@ -82,10 +83,9 @@ async def pomodoro(message: Message, state: FSMContext, data: dict,
     await msg.edit_text(
         '<b>Поздравляю</b> вы получили <b>[<i>%s</i>🍅]</b>' % cnt)
 
-    mng.add_keyboard('choose_bool', [['Да', 'Нет']])  # FIXME ui.keyboards
     data['msg_if_restart'] = await message.answer(
         'Хотите начать новый помидор?',
-        reply_markup=mng.keyboards['choose_bool'])
+        reply_markup=bool_keyboard)
 
     await state.set_state(FSM.choose_bool)
 
