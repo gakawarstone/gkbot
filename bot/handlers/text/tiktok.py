@@ -5,6 +5,7 @@ from aiogram.types import Message
 
 from lib.bot import BotManager
 from services.tiktok import TikTokDownloader, TikTokInvalidUrl
+from filters.tiktok import TikTokVideoLink
 
 
 F: Message
@@ -27,5 +28,5 @@ async def download_video(message: Message, state: FSMContext):
 def setup(mng: BotManager):
     mng.dp.register_message(
         download_video,
-        F.text.startswith('https://vm.tiktok.com/')
+        TikTokVideoLink()
     )

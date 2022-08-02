@@ -3,7 +3,7 @@ from aiogram.types import InlineQuery
 
 from services.tiktok import TikTokDownloader
 from utils.serializers import url_to_video_query_result
-
+from filters.tiktok import TikTokVideoLink
 
 F: InlineQuery
 
@@ -25,5 +25,5 @@ async def send_tiktok(query: InlineQuery):
 def setup(router: Router):
     router.register_inline_query(
         send_tiktok,
-        F.query.startswith('https://vm.tiktok.com/')
+        TikTokVideoLink()
     )
