@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 import requests
 
+from aiogram.types import BufferedInputFile
+
 
 @dataclass
 class InfoVideoTikTok:
@@ -36,3 +38,12 @@ class TikTokDownloader:
     @classmethod
     def get_video_url(cls, url: str) -> str:
         return cls.__get_video_info(url).video_url
+
+    @classmethod
+    def get_video_as_input_file(cls, url: str) -> BufferedInputFile:
+        return BufferedInputFile(
+            file=requests.get(
+                url=cls.__get_video_info(url).video_url
+            ).content,
+            filename='video.mp4'
+        )
