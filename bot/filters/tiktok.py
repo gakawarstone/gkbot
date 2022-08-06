@@ -1,5 +1,5 @@
 from aiogram.dispatcher.filters import BaseFilter
-from aiogram.types import Message
+from aiogram.types import Message, InlineQuery
 
 
 class TikTokVideoLink(BaseFilter):
@@ -9,5 +9,7 @@ class TikTokVideoLink(BaseFilter):
         'https://www.tiktok.com/'
     )
 
-    async def __call__(self, message: Message):
-        return message.text.startswith(self.patterns)
+    async def __call__(self, telegram_object: Message | InlineQuery):
+        if type(telegram_object) == Message:
+            return telegram_object.text.startswith(self.patterns)
+        return telegram_object.query.startswith(self.patterns)
