@@ -8,7 +8,7 @@ from sqlalchemy.orm import sessionmaker
 
 from lib.bot import BotManager
 from lib.schedule import Schedule
-from services.shiki import UserUpdatesDispatcher
+from services.shiki.dispatcher import UserUpdatesDispatcher
 from utils.commands import DefaultCommands
 
 
@@ -55,5 +55,5 @@ DEFAULT_COMMANDS = {
 TASKS_ON_STARTUP = [
     DefaultCommands(mng.bot).set(DEFAULT_COMMANDS).on_startup,
     schedule.on_startup,
-    UserUpdatesDispatcher().on_startup,
+    UserUpdatesDispatcher.set_bot(mng.bot).on_startup,
 ]

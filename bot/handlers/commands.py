@@ -19,8 +19,8 @@ users: dict[str, Awaitable] = {
     'road': road.start,
     'tts': tts.start,
     'wiki': wiki.search,
-    'shiki': shiki.get_updates,
-    'sub': shiki.subscribe,
+    'shiki': shiki.updates.get_updates,
+    'sub': shiki.subs.subscribe,
     'start_timer': timer.start,
     'stop_timer': timer.stop,
     # 'admins': adm.tag_all_admins # FIXME
