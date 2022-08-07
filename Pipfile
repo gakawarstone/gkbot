@@ -13,8 +13,9 @@ gTTS = "*"
 wikipedia = "*"
 sqlalchemy = "*"
 beautifulsoup4 = "*"
-tiktok-downloader = "*"
+tiktok-downloader = "*" # FIXME unused
 translate = "*"
+youtube-search = "*"
 
 [dev-packages]
 autopep8 = "*"
