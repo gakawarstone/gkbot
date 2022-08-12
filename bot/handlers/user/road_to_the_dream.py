@@ -88,13 +88,15 @@ async def pomodoro(message: Message, state: FSMContext, data: dict,
     await state.set_state(FSM.choose_bool)
 
 
-async def choose_bool(message: Message, data: dict):  # [ ] component
+# [ ] component
+async def choose_bool(message: Message, state: FSMContext, data: dict):
+    await state.set_state(FSM.finish)
     await message.delete()
     assert data['msg_if_restart'] is not None
     await data['msg_if_restart'].delete()
     match message.text:
         case RoadMarkup.buttons.yes | 'y':
-            await pomodoro(message)
+            await pomodoro(message, state, data)
         case RoadMarkup.buttons.no | 'n':
             pass
 
