@@ -21,13 +21,10 @@ users: dict[str, Awaitable] = {
     'wiki': wiki.search,
     'shiki': shiki.updates.get_updates,
     'sub': shiki.subs.subscribe,
-    'start_timer': timer.start,
-    'stop_timer': timer.stop,
-    # 'admins': adm.tag_all_admins # FIXME
 }
 
 admins = {
-    # 'get_trash': braintrash.get_all_data,
+    # 'get_trash': braintrash.get_all_data, # FIXME
 }
 
 

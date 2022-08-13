@@ -1,32 +1,72 @@
-import aiogram
-
-from services.timer import Timer
-
-data = {}
-
-
-async def start(message: aiogram.types.Message):
-    text = '<b>Таймер запущен</b>\n'
-    text += 'Остановка таймера: /stop_timer'
-    await message.answer(text)
-    timer = Timer()
-    timer.start()
-    data['timer'] = timer
+from aiogram import F
+from aiogram.dispatcher.filters.state import StateFilter
+from aiogram.dispatcher.filters.command import Command
+from aiogram.dispatcher.fsm.context import FSMContext
+from aiogram.dispatcher.fsm.state import State, StatesGroup
+from aiogram.types import Message, CallbackQuery
 
 
-async def stop(message: aiogram.types.Message):
-    try:
-        timer: Timer = data['timer']
-    except KeyError:
-        text = '<b>Таймер не запущен</b>\n'
-        text += 'Запуск таймера: /start_timer'
-        await message.answer(text)
-        return
+from lib.bot import BotManager
+from services.timer import TimersManager
+from ui.keyboards.timer import TimerMarkup
+from ui.components.timer import TimerComponent
 
+
+F: CallbackQuery
+
+
+class FSM(StatesGroup):
+    start_timer = State()
+    get_timer_name = State()
+    finish = State()
+
+
+async def start_timer(message: Message, state: FSMContext):
+    await message.delete()
+    await message.answer('Введите название таймера')
+    await state.set_state(FSM.get_timer_name)
+
+
+async def get_timer_name(message: Message, state: FSMContext):
+    await state.set_state(FSM.finish)
+    TimersManager.get_or_create_timer(
+        f'{message.from_user.id}:{message.text}'
+    ).start()
+    await message.answer(
+        TimerComponent.serialize_start_message(
+            timer_name=message.text
+        ),
+        reply_markup=TimerMarkup.get_timer_dialog(message.text)
+    )
+
+
+async def stop_timer(callback: CallbackQuery):
+    timer_name = callback.data.split(':')[1]
+    timer_id = f'{callback.from_user.id}:{timer_name}'
+    timer = TimersManager.get_timer_by_id(timer_id)
     timer.stop()
-    text = '<b>Таймер остановлен</b>\n'
-    text += f'Начало: {timer.start_time_rfc2882}\n'
-    text += f'Конец: {timer.finish_time_rfc2882}\n'
-    text += f'Всего времени: <b>{timer.time_delta.strftime("%M:%S")}</b>'
-    await message.answer(text)
-    data.pop('timer')
+    TimersManager.delete_timer_by_id(timer_id)
+
+    await callback.message.edit_text(
+        TimerComponent.serialize_data_message(
+            timer_name=timer_name,
+            start_time_rfc2882=timer.start_time_rfc2882,
+            finish_time_rfc2882=timer.finish_time_rfc2882,
+            time_delta=timer.time_delta
+        )
+    )
+
+
+def setup(mng: BotManager):
+    mng.dp.register_message(
+        start_timer,
+        Command(commands=['start_timer'])
+    )
+    mng.dp.register_message(
+        get_timer_name,
+        StateFilter(state=FSM.get_timer_name)
+    )
+    mng.dp.register_callback_query(
+        stop_timer,
+        F.data.startswith('stop_timer')
+    )

@@ -8,6 +8,7 @@ from . import road_to_the_dream as road
 from . import wiki
 from . import shiki
 from . import admins as adm
+from . import timer
 
 
 def setup(mng: BotManager):
@@ -20,3 +21,4 @@ def setup(mng: BotManager):
     wiki.setup(mng)
     shiki.setup(mng)
     adm.setup(mng)
+    timer.setup(mng)
