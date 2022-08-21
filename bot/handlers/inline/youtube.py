@@ -30,5 +30,5 @@ async def youtube_search(query: InlineQuery):
 def setup(router: Router):
     router.register_inline_query(
         youtube_search,
-        F.query.startswith(('y ',  'ю '))
+        F.query.startswith(('y ', 'ю '))
     )

@@ -5,7 +5,6 @@ from aiogram.dispatcher.fsm.context import FSMContext
 from aiogram.dispatcher.fsm.state import State, StatesGroup
 from aiogram.types import Message, CallbackQuery
 
-
 from lib.bot import BotManager
 from services.timer import TimersManager
 from ui.keyboards.timer import TimerMarkup
