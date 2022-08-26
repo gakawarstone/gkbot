@@ -30,6 +30,12 @@ class TikTokInvalidUrl(Exception):
 
 
 class TikTokDownloader:
+    @staticmethod
+    async def __download_file_from_url(url: str) -> bytes:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as response:
+                return await response.content.read()
+
     @classmethod
     async def __get_video_info_from_snaptik(cls, url: str) -> InfoVideoTikTok:
         try:
@@ -62,8 +68,8 @@ class TikTokDownloader:
     @classmethod
     async def get_video_as_input_file(cls, url: str) -> BufferedInputFile:
         return BufferedInputFile(
-            file=requests.get(
-                url=(await cls.__get_video_info(url)).video_url
-            ).content,
+            file=await cls.__download_file_from_url(
+                url=await cls.get_video_url(url)
+            ),
             filename='video.mp4'
         )
