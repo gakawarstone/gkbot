@@ -11,6 +11,6 @@ def start(mng: BotManager = mng):
     middlewares.setup(mng)
     handlers.setup(mng)
 
-    notify_admins('bot started')
+    notify_admins(mng.bot, 'bot started')
     mng.start()
-    notify_admins('bot stopped')
+    notify_admins(mng.bot, 'bot stopped')
