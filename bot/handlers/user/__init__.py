@@ -9,6 +9,7 @@ from . import wiki
 from . import shiki
 from . import admins as adm
 from . import timer
+from . import books
 
 
 def setup(mng: BotManager):
@@ -22,3 +23,4 @@ def setup(mng: BotManager):
     shiki.setup(mng)
     adm.setup(mng)
     timer.setup(mng)
+    books.setup(mng)
