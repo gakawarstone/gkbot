@@ -11,13 +11,17 @@ class _UserUpdatesSubscription:
         self.chat_id = chat_id
         self.user = User(shiki_name)
         self.user_updates = UserUpdates(self.user)
-        self.last_update = self.__get_last_update()
 
-    def __get_last_update(self) -> Update:
-        return self.user_updates.load_latest(1)[0]
+    async def setup(self):
+        self.last_update = await self.__get_last_update()
+        return self
 
-    def is_updated(self) -> bool:
-        new_update = self.__get_last_update()
+    async def __get_last_update(self) -> Update:
+        updates = await self.user_updates.load_latest(1)
+        return updates[0]
+
+    async def is_updated(self) -> bool:
+        new_update = await self.__get_last_update()
         if (self.last_update.type != new_update.type):
             self.last_update = new_update
             return True
@@ -33,14 +37,16 @@ class UserUpdatesDispatcher:
         return cls
 
     @classmethod
-    def add_subscription(cls, chat_id, shiki_name) -> None:
-        cls.subscriptions.append(_UserUpdatesSubscription(chat_id, shiki_name))
+    async def add_subscription(cls, chat_id, shiki_name) -> None:
+        cls.subscriptions.append(
+            await _UserUpdatesSubscription(chat_id, shiki_name).setup()
+        )
 
     @classmethod
     async def __dispatcher(cls, delay=5) -> None:
         while True:
             for sub in cls.subscriptions:
-                if sub.is_updated():
+                if await sub.is_updated():
                     await cls.bot.send_message(
                         chat_id=sub.chat_id,
                         text=str(sub.last_update) + str(sub.user)

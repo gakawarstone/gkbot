@@ -23,9 +23,9 @@ async def get_from_shiki(message: Message, state: FSMContext):
     await state.set_state(FSM.finish)
     user = User(message.text)
     try:
-        for update in user.updates.load_latest(10):
+        for update in await user.updates.load_latest(10):
             await message.answer(str(update) + str(user))
-    except(Exception):  # FIXME not all exceptions
+    except KeyError:
         await message.answer('Пользователь не найден')
 
 

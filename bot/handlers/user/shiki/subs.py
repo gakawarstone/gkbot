@@ -20,7 +20,7 @@ async def subscribe(message: Message, state: FSMContext):
 
 async def get_name(message: Message, state: FSMContext):
     await state.set_state(FSM.finish)  # [ ] if user invalid
-    UserUpdatesDispatcher.add_subscription(message.chat.id, message.text)
+    await UserUpdatesDispatcher.add_subscription(message.chat.id, message.text)
     await message.answer('Подписка оформлена')
 
 
