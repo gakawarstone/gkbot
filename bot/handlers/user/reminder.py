@@ -6,8 +6,8 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.types import Message
 from lib.bot import BotManager
 
-from services.reminder import Remind, Reminder
-from ui.keyboards import RemindMarkup
+from services.reminder import Reminder
+from ui.keyboards.reminder import RemindMarkup
 from ui.components.remind_creator import RemindCreator
 
 
@@ -38,7 +38,7 @@ async def get_remind_text(message: Message, state: FSMContext, data: dict):
     await rc.set_remind_text(message.text)
 
     data['mes_date'] = await message.answer('Выберите дату',
-                                            reply_markup=RemindMarkup.date())
+                                            reply_markup=RemindMarkup.date)
 
 
 async def get_remind_date(message: Message, state: FSMContext, data: dict):
@@ -58,9 +58,9 @@ async def get_remind_date(message: Message, state: FSMContext, data: dict):
 
 def validate_date(text: str) -> datetime:  # FIXME move
     match text:
-        case 'Сегодня' | '1':
+        case RemindMarkup.buttons.today | '1':
             return date.today()
-        case 'Завтра' | '2':
+        case RemindMarkup.buttons.tomorrow | '2':
             return date.today() + timedelta(days=1)
         case _:
             return datetime.strptime(text, '%d.%m.%Y')
