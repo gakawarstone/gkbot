@@ -1,12 +1,4 @@
 from settings import mng  # FIXME
-from lib.keyboard_builder import KeyboardBuilder
-
-
-class StartMarkup:
-    @staticmethod
-    def commands():  # FIXME
-        mng.add_keyboard('f', [['test']])
-        return mng.keyboards['f']
 
 
 class RemindMarkup:
