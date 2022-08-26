@@ -8,12 +8,8 @@ logger = logging.getLogger(__name__)
 class DefaultCommands:
     def __init__(self, bot: Bot) -> None:
         self.__bot = bot
-        self.__commands = {}  # FIXME
 
     def set(self, commands: dict[str, str]):
-        # for cmd in commands:
-        #     self.commands.append(types.BotCommand(cmd, commands[cmd]))
-        # return self
         self.commands = commands
         return self
 
