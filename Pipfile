@@ -13,7 +13,7 @@ gTTS = "*"
 wikipedia = "*"
 sqlalchemy = "*"
 beautifulsoup4 = "*"
-tiktok-downloader = "*" # FIXME unused
+tiktok-downloader = {git = "https://github.com/krypton-byte/tiktok-downloader"} # FIXME unused
 translate = "*"
 youtube-search = "*"
 
