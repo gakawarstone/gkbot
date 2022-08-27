@@ -46,19 +46,6 @@ class BotManager:
         async def handler(message: Message):
             await func(message)
 
-    # FIXME move to keyboard builder
-    def add_keyboard(self, name: str, buttons: list[list[str]],
-                     hide: bool = True, placeholder: str = None) -> None:
-        ''' add telegram keyboard with row of {buttons}
-            call by {bot_object.keyboards[name]} '''
-        kb = ReplyKeyboardBuilder()
-        for rows in buttons:
-            kb.row(*(KeyboardButton(text=i) for i in rows))
-        self.keyboards[name] = kb.as_markup(
-            resize_keyboard=True,
-            one_time_keyboard=hide,
-            input_field_placeholder=placeholder)
-
     def add_url_button(self, url: str,
                        text: str = 'request') -> InlineKeyboardMarkup:
         btn = InlineKeyboardButton(text=text, url=url)
