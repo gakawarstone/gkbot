@@ -26,20 +26,11 @@ class Task:
         self.time = time
         return self
 
-# [ ] delete
+
+# [ ] classmethods
 
 
-class Dispatcher:
-    async def __dispatcher(self, delay=5):
-        while True:
-            print('hi')
-            await asyncio.sleep(delay)
-
-    async def on_startup(self, dp):
-        asyncio.create_task(self.__dispatcher())
-
-
-class Schedule(Dispatcher, metaclass=MetaSingleton):
+class Schedule(metaclass=MetaSingleton):
     def __init__(self):
         self.tasks: list[Task] = []
 
