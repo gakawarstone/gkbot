@@ -2,7 +2,6 @@ from typing import Callable, Dict, Awaitable, Any
 
 from aiogram.types import Message
 from aiogram.dispatcher.middlewares.base import BaseMiddleware
-# TODO handler(m, st, data)
 
 
 class UserDataMiddleware(BaseMiddleware):

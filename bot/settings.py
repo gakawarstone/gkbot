@@ -48,7 +48,6 @@ DEFAULT_COMMANDS = {
     'add_remind': 'add remind',
     'start_timer': 'start timer',
     'admins': 'tag all admins',
-    'test': 'test',  # [ ] delete
 }
 
 
