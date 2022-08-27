@@ -11,7 +11,7 @@ python-dotenv = "*"
 gTTS = "*"
 wikipedia = "*"
 beautifulsoup4 = "*"
-tiktok-downloader = {git = "https://github.com/krypton-byte/tiktok-downloader"} # FIXME unused
+tiktok-downloader = {git = "https://github.com/krypton-byte/tiktok-downloader"} 
 translate = "*"
 youtube-search = "*"
 tortoise-orm = "*"
