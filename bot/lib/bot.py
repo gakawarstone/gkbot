@@ -14,7 +14,6 @@ class BotManager:
     def __init__(self, token: str):
         self.bot = self.__set_bot(token)
         self.dp = self.__set_dispatcher()
-        self.admins = []
         self.inline_keyboards = {}
         self.__tasks = []
 
