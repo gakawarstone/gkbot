@@ -55,5 +55,5 @@ class UserUpdatesDispatcher:
             await asyncio.sleep(delay * 5)
 
     @classmethod
-    async def on_startup(cls, dp: Dispatcher):
+    async def on_startup(cls):
         asyncio.create_task(cls.__dispatcher())

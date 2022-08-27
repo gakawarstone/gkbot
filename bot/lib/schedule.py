@@ -52,5 +52,5 @@ class Schedule(metaclass=MetaSingleton):
             await self.__check_if_task_now()
             await asyncio.sleep(delay)
 
-    async def on_startup(self, dp):
+    async def on_startup(self):
         asyncio.create_task(self.__dispatcher())

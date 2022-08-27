@@ -1,6 +1,6 @@
 import logging
-from aiogram import Dispatcher, Bot
-from aiogram import types
+from aiogram import Bot
+from aiogram.types import BotCommand
 
 logger = logging.getLogger(__name__)
 
@@ -13,11 +13,11 @@ class DefaultCommands:
         self.commands = commands
         return self
 
-    async def on_startup(self, dp: Dispatcher):
+    async def on_startup(self):
         logger.info('Setting bot commands\n' + str(self.commands))
         await self.__bot.set_my_commands(
             [
-                types.BotCommand(command=command, description=description)
+                BotCommand(command=command, description=description)
                 for command, description in self.commands.items()
             ]
         )

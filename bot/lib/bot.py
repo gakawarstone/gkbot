@@ -15,7 +15,6 @@ class BotManager:
         self.bot = self.__set_bot(token)
         self.dp = self.__set_dispatcher()
         self.admins = []
-        self.keyboards = {}
         self.inline_keyboards = {}
         self.__tasks = []
 
@@ -58,19 +57,11 @@ class BotManager:
     async def send_message(self, id: int, text: str) -> Message:
         return await self.bot.send_message(id, text)
 
-    async def send_file(self, message: str, path: str) -> None:
-        await message.answer_document(open(path, "rb"))
-
-    async def on_startup(self, dp: Dispatcher) -> None:
+    async def on_startup(self) -> None:
         for func in self.__tasks:
-            await func(dp)
+            await func()
 
     def start(self) -> None:
         loop = asyncio.get_event_loop()
-        if self.__tasks:
-            loop.run_until_complete(self.on_startup(self.dp))
-            loop.run_until_complete(
-                self.dp.start_polling(self.bot, on_startup=self.on_startup))
-        else:
-            loop.run_forever(
-                self.dp.start_polling(self.get_bot_instance()))
+        loop.run_until_complete(self.on_startup())
+        loop.run_until_complete(self.dp.start_polling(self.bot))
