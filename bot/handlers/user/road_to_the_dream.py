@@ -8,7 +8,7 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.types import ReplyKeyboardRemove
 from lib.bot import BotManager
 
-from settings import mng, Session  # FIXME
+from settings import mng  # FIXME
 from models.road import Habits, PomodoroStats
 from ui.keyboards.road import RoadMarkup
 
@@ -53,8 +53,8 @@ async def choose_tool(message: Message, state: FSMContext, data: dict):
 
 
 async def pomodoro(message: Message, state: FSMContext, data: dict,
-                   time_focused: int = 15*60,
-                   time_relax: int = 15*60):  # [ ] component
+                   time_focused: int = 15,  # FIXME minutes
+                   time_relax: int = 15):  # [ ] component
     await message.answer(
         'Вы включили 🕔 <b>помидор</b>',
         reply_markup=ReplyKeyboardRemove())
@@ -72,12 +72,11 @@ async def pomodoro(message: Message, state: FSMContext, data: dict,
         time_relax,
         text='<i>На чиле</i>')
 
-    with Session.begin() as session:  # FIXME connect to db not in handlers
-        user = session.query(
-            PomodoroStats).filter_by(
-            user_id=message.from_user.id).first()
-        user.today_cnt += 1
-        cnt = user.today_cnt
+    # FIXME connect to db not in handlers
+    user, _ = await PomodoroStats.get_or_create(user_id=message.from_user.id)
+    cnt = user.today_cnt + 1
+    await PomodoroStats.filter(user_id=user.user_id).update(today_cnt=cnt)
+
     await msg.edit_text(
         '<b>Поздравляю</b> вы получили <b>[<i>%s</i>🍅]</b>' % cnt)
 
@@ -139,12 +138,11 @@ async def get_habit_notify_time(message: Message, state: FSMContext, data: dict)
     await state.set_state(FSM.finish)
     time = datetime.strptime(message.text, '%H:%M').time()
     data['habit_notify_time'] = time
-    with Session.begin() as session:
-        habit = Habits(
-            user_id=message.from_user.id,
-            name=data['habit_name'],
-            notify_time=data['habit_notify_time'])
-        session.add(habit)
+    await Habits.create(
+        user_id=message.from_user.id,
+        name=data['habit_name'],
+        notify_time=data['habit_notify_time']
+    )
     await message.answer('Привычка добавлена')
 
 

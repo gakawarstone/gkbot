@@ -6,16 +6,15 @@ name = "pypi"
 [packages]
 asyncio = "*"
 aiogram = "==3.0.0b3"
-psycopg2-binary = "*"
 notion-client = "==0.9.0"
 python-dotenv = "*"
 gTTS = "*"
 wikipedia = "*"
-sqlalchemy = "*"
 beautifulsoup4 = "*"
 tiktok-downloader = {git = "https://github.com/krypton-byte/tiktok-downloader"} # FIXME unused
 translate = "*"
 youtube-search = "*"
+tortoise-orm = "*"
 
 [dev-packages]
 autopep8 = "*"

@@ -3,8 +3,6 @@ import logging
 import logging.config
 
 from dotenv import load_dotenv
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
 from lib.bot import BotManager
 from lib.schedule import Schedule
@@ -31,13 +29,17 @@ logger.info('DB_URL = ' + DB_URL)
 
 # Main objects
 mng = BotManager(BOT_TOKEN)
-engine = create_engine(DB_URL)
-Session = sessionmaker(bind=engine)
 schedule = Schedule()
 
 
 ADMINS = [
     897651738
+]
+
+
+MODELS = [
+    'models.users',
+    'models.road'
 ]
 
 
