@@ -20,27 +20,27 @@ class Schedule:
     __tasks: list[Tuple[Task, datetime]] = []
 
     @classmethod
-    def add_task(cls, task: Task, time: datetime):
+    def add_task(cls, task: Task, time: datetime) -> None:
         cls.__tasks.append((task, time))
 
     @staticmethod
-    def __get_now_timestamp_with_tz(tzinfo: timezone) -> float:
+    def __get_now_timestamp_with_tz(tz: timezone) -> float:
         return datetime.strptime(
-            datetime.now(tzinfo).strftime('%d.%m.%Y_%H:%M'),
+            datetime.now(tz).strftime('%d.%m.%Y_%H:%M'),
             '%d.%m.%Y_%H:%M'
         ).timestamp()
 
     @classmethod
-    async def __check_if_task_now(cls, tz=6.0):
-        timezone_offset = tz
-        tzinfo = timezone(timedelta(hours=timezone_offset))
+    async def __check_if_task_now(
+            cls, tz: timezone = timezone(timedelta(hours=6.0))
+    ) -> None:
         for task, time in cls.__tasks:
-            if time.timestamp() <= cls.__get_now_timestamp_with_tz(tzinfo):
+            if time.timestamp() <= cls.__get_now_timestamp_with_tz(tz):
                 await task.run()
                 cls.__tasks.remove((task, time))
 
     @classmethod
-    async def __dispatcher(cls, delay=5):
+    async def __dispatcher(cls, delay=5) -> None:
         while True:
             await cls.__check_if_task_now()
             await asyncio.sleep(delay)
