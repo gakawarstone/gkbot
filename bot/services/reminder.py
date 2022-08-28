@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from datetime import datetime, time
 
-from settings import schedule, mng
-from lib.schedule import Task
+from settings import mng
+from lib.schedule import Schedule, Task
 
 
 @dataclass
@@ -13,7 +13,6 @@ class Remind:
 
 
 class Reminder:
-    __schedule = schedule
     __bot = mng  # FIXME
 
     @classmethod
@@ -23,9 +22,13 @@ class Reminder:
 
     @classmethod
     def __add_message_to_schedule(cls, remind: Remind):
-        task = Task.create(cls.__bot.send_message,
-                           [remind.user_id, remind.text]).at(remind.date_time)
-        cls.__schedule.add_task(task)
+        Schedule.add_task(
+            task=Task(
+                func=cls.__bot.send_message,
+                args=[remind.user_id, remind.text]
+            ),
+            time=remind.date_time
+        )
 
     @classmethod
     def add_remind_today(user_id: int, time: time, text: str) -> None:

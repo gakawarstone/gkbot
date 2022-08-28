@@ -3,7 +3,6 @@ from datetime import datetime, date, timedelta, time
 from aiogram.types import Message
 from aiogram.dispatcher.fsm.context import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from aiogram.types import Message
 from lib.bot import BotManager
 
 from services.reminder import Reminder
@@ -53,7 +52,7 @@ async def get_remind_date(message: Message, state: FSMContext, data: dict):
         await state.set_state(FSM.get_remind_date)
         await rc.set_status_message('❌<b>Формат [30.12.2021]</b>❌')
         data['mes_date'] = await data['mes_date'].send_copy(
-            message.chat.id, reply_markup=RemindMarkup.date())
+            message.chat.id, reply_markup=RemindMarkup.date)
 
 
 def validate_date(text: str) -> datetime:  # FIXME move
@@ -79,7 +78,7 @@ async def get_remind_time(message: Message, state: FSMContext, data: dict):
 
         await remind_creator.set_remind_time(remind_time.strftime('%H:%M'))
         await remind_creator.set_status_finished()
-    except:
+    except:  # FIXME
         await state.set_state(FSM.get_remind_time)
         await remind_creator.set_status_message('❌<b>Формат [10:14]</b>❌')
 
