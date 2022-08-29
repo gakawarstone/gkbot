@@ -29,7 +29,6 @@ logger.info('DB_URL = ' + DB_URL)
 
 # Main objects
 mng = BotManager(BOT_TOKEN)
-schedule = Schedule()
 
 
 ADMINS = [
