@@ -1,4 +1,4 @@
-from aiogram.dispatcher.fsm.context import FSMContext
+from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 from aiogram.exceptions import TelegramBadRequest
 
@@ -31,7 +31,7 @@ async def download_video(message: Message, state: FSMContext):
 
 
 def setup(mng: BotManager):
-    mng.dp.register_message(
+    mng.dp.message.register(
         download_video,
         TikTokVideoLink()
     )

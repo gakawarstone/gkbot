@@ -3,8 +3,8 @@ from datetime import datetime
 import logging
 
 from aiogram.types import Message
-from aiogram.dispatcher.fsm.context import FSMContext
-from aiogram.dispatcher.filters.state import State, StatesGroup
+from aiogram.fsm.context import FSMContext
+from aiogram.filters.state import State, StatesGroup
 from aiogram.types import ReplyKeyboardRemove
 from lib.bot import BotManager
 

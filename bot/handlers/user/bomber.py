@@ -1,6 +1,6 @@
 from aiogram.types import Message
-from aiogram.dispatcher.filters.state import State, StatesGroup
-from aiogram.dispatcher.fsm.context import FSMContext
+from aiogram.filters.state import State, StatesGroup
+from aiogram.fsm.context import FSMContext
 import asyncio
 
 from lib.bot import BotManager

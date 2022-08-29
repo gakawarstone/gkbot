@@ -5,7 +5,7 @@ name = "pypi"
 
 [packages]
 asyncio = "*"
-aiogram = "==3.0.0b3"
+aiogram = "==3.0.0b4"
 notion-client = "==0.9.0"
 python-dotenv = "*"
 gTTS = "*"

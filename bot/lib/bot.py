@@ -4,8 +4,8 @@ from typing import Awaitable
 
 import aiogram
 from aiogram import Dispatcher
-from aiogram.dispatcher.fsm.context import FSMContext
-from aiogram.dispatcher.fsm.storage.memory import MemoryStorage
+from aiogram.fsm.context import FSMContext
+from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
@@ -23,19 +23,16 @@ class BotManager:
     def __set_dispatcher(self) -> Dispatcher:  # [ ] storage not only one
         return Dispatcher(storage=MemoryStorage())
 
-    def add_message_handler(self, func: Awaitable[Message]) -> None:
-        self.dp.register_message(func)
-
     def add_command_handler(self, command: str,
                             func: Awaitable[Message]) -> None:
         ''' command - /<command> in telegram '''
-        self.dp.register_message(func, commands=[command])
+        self.dp.message.register(func, commands=[command])
 
         logging.debug('Command handler added at command /' + command)
 
     def add_state_handler(self, state: FSMContext,
                           func: Awaitable[Message]) -> None:
-        self.dp.register_message(
+        self.dp.message.register(
             func, state=state, content_types=['text'])
 
     def add_channel_post_handler(self, func: Awaitable[Message]) -> None:

@@ -2,8 +2,8 @@ from io import BytesIO
 
 from aiogram.types import Message
 from aiogram.types.input_file import BufferedInputFile
-from aiogram.dispatcher.filters.state import State, StatesGroup
-from aiogram.dispatcher.fsm.context import FSMContext
+from aiogram.filters.state import State, StatesGroup
+from aiogram.fsm.context import FSMContext
 import gtts
 
 from lib.bot import BotManager

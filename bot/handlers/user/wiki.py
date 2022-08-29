@@ -1,8 +1,8 @@
 import logging
 
 from aiogram.types import Message
-from aiogram.dispatcher.fsm.context import FSMContext
-from aiogram.dispatcher.filters.state import State, StatesGroup
+from aiogram.fsm.context import FSMContext
+from aiogram.filters.state import State, StatesGroup
 from lib.bot import BotManager
 
 from services.wiki import WikiApi

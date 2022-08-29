@@ -1,10 +1,10 @@
 from datetime import datetime, date, timedelta, time
 
 from aiogram.types import Message
-from aiogram.dispatcher.fsm.context import FSMContext
-from aiogram.dispatcher.filters.state import State, StatesGroup
-from lib.bot import BotManager
+from aiogram.fsm.context import FSMContext
+from aiogram.filters.state import State, StatesGroup
 
+from lib.bot import BotManager
 from services.reminder import Reminder
 from ui.keyboards.reminder import RemindMarkup
 from ui.components.remind_creator import RemindCreator

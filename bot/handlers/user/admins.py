@@ -1,5 +1,5 @@
-from aiogram.dispatcher.filters import Command
-from aiogram.dispatcher.fsm.context import FSMContext
+from aiogram.filters import Command
+from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
 from lib.bot import BotManager
@@ -14,7 +14,7 @@ async def tag_all_admins(message: Message, state: FSMContext):
 
 
 def setup(mng: BotManager):
-    mng.dp.register_message(
+    mng.dp.message.register(
         tag_all_admins,
         ChatTypeFilter(chat_type=[ChatType.group, ChatType.super_group]),
         Command(commands=['admins'])
