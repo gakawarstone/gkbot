@@ -9,15 +9,11 @@ class DefaultCommands:
     def __init__(self, bot: Bot) -> None:
         self.__bot = bot
 
-    def set(self, commands: dict[str, str]):
-        self.commands = commands
-        return self
-
-    async def on_startup(self):
-        logger.info('Setting bot commands\n' + str(self.commands))
+    async def set(self, commands: dict[str, str]):
+        logger.info('Setting bot commands\n' + str(commands))
         await self.__bot.set_my_commands(
             [
                 BotCommand(command=command, description=description)
-                for command, description in self.commands.items()
+                for command, description in commands.items()
             ]
         )

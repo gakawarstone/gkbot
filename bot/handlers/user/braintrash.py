@@ -1,12 +1,13 @@
+from aiogram import Router
 from aiogram.types import Message
 from aiogram.filters.command import Command
-from aiogram.filters.state import State, StatesGroup
+from aiogram.filters.state import State, StateFilter, StatesGroup
 from aiogram.fsm.context import FSMContext
 
 from settings import mng  # [ ] move add url button from BotManager
-from lib.bot import BotManager
 from filters.bot_admin import BotAdmin
 from services.notion_api import Page
+
 # [ ] move page id to settings | env
 braintrash = Page('98997f76b28d48cb946d04e32b540e64')
 
@@ -39,12 +40,11 @@ async def get_message(message: Message, state: FSMContext):
     await message.answer('Информация сохранена', reply_markup=btn)
 
 
-def setup(mng: BotManager):
-    mng.add_state_handler(FSM.write, write)
-    mng.add_state_handler(FSM.get_all_data, get_all_data)
-    mng.add_state_handler(FSM.get_message, get_message)
-    mng.dp.message.register(
+def setup(r: Router):
+    r.message.register(write, StateFilter(state=FSM.write))
+    r.message.register(get_all_data, StateFilter(state=FSM.get_all_data))
+    r.message.register(get_message, StateFilter(state=FSM.get_message))
+    r.message.register(
         get_all_data,
-        BotAdmin(),
-        Command(commands='get_trash')
+        Command(commands='get_trash') & BotAdmin()
     )

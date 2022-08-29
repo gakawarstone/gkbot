@@ -8,6 +8,8 @@ from lib.bot import BotManager
 from lib.schedule import Schedule
 from services.shiki.dispatcher import UserUpdatesDispatcher
 from utils.commands import DefaultCommands
+from utils.notify import Notifier
+import models
 
 
 # Logging config
@@ -53,7 +55,9 @@ DEFAULT_COMMANDS = {
 
 
 TASKS_ON_STARTUP = [
-    DefaultCommands(mng.bot).set(DEFAULT_COMMANDS).on_startup,
-    Schedule.on_startup,
-    UserUpdatesDispatcher.set_bot(mng.bot).on_startup,
+    models.setup(DB_URL, MODELS),
+    DefaultCommands(mng.bot).set(DEFAULT_COMMANDS),
+    Schedule.on_startup(),
+    UserUpdatesDispatcher.set_bot(mng.bot).on_startup(),
+    Notifier.setup(mng.bot, ADMINS),
 ]

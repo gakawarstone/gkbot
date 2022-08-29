@@ -1,9 +1,9 @@
+from aiogram import Router
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
-from aiogram.filters.state import State, StatesGroup
+from aiogram.filters.state import State, StateFilter, StatesGroup
 
 
-from lib.bot import BotManager
 from services.shiki.user_updates import User
 
 
@@ -29,6 +29,6 @@ async def get_from_shiki(message: Message, state: FSMContext):
         await message.answer('Пользователь не найден')
 
 
-def setup(mng: BotManager):
-    mng.add_state_handler(FSM.get_updates, get_updates)
-    mng.add_state_handler(FSM.get_from_shiki, get_from_shiki)
+def setup(r: Router):
+    r.message.register(get_updates, StateFilter(state=FSM.get_updates))
+    r.message.register(get_from_shiki, StateFilter(state=FSM.get_from_shiki))

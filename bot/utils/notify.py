@@ -1,11 +1,25 @@
-import asyncio
+from typing_extensions import Self
 
 from aiogram import Bot
 
-from settings import ADMINS
+
+class _NotifierNotInited(Exception):
+    def __str__(self) -> str:
+        return 'Please run Notifier.setup()'
 
 
-def notify_admins(bot: Bot, text: str):
-    loop = asyncio.get_event_loop()
-    for admin_id in ADMINS:
-        loop.run_until_complete(bot.send_message(admin_id, text))
+class Notifier:
+    __initialized = False
+
+    @classmethod
+    async def setup(cls, bot: Bot, admins: list[int]) -> Self:
+        cls.__bot = bot
+        cls.__admins = admins
+        cls.__initialized = True
+
+    @classmethod
+    async def notify_admins(cls, text: str) -> None:
+        if not cls.__initialized:
+            raise _NotifierNotInited
+        for admin_id in cls.__admins:
+            await cls.__bot.send_message(admin_id, text)

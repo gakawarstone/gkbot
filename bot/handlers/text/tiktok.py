@@ -1,8 +1,8 @@
+from aiogram import Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 from aiogram.exceptions import TelegramBadRequest
 
-from lib.bot import BotManager
 from services.tiktok import TikTokDownloader, TikTokInvalidUrl
 from filters.tiktok import TikTokVideoLink
 
@@ -30,8 +30,8 @@ async def download_video(message: Message, state: FSMContext):
     await status_message.delete()
 
 
-def setup(mng: BotManager):
-    mng.dp.message.register(
+def setup(r: Router):
+    r.message.register(
         download_video,
         TikTokVideoLink()
     )

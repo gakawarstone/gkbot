@@ -1,7 +1,7 @@
+from aiogram import Router
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
-from aiogram.filters.state import State, StatesGroup
-from lib.bot import BotManager
+from aiogram.filters.state import State, StateFilter, StatesGroup
 
 from services.shiki.dispatcher import UserUpdatesDispatcher
 
@@ -24,6 +24,6 @@ async def get_name(message: Message, state: FSMContext):
     await message.answer('Подписка оформлена')
 
 
-def setup(mng: BotManager):
-    mng.add_state_handler(FSM.subscribe, subscribe)
-    mng.add_state_handler(FSM.get_name, get_name)
+def setup(r: Router):
+    r.message.register(subscribe, StateFilter(state=FSM.subscribe))
+    r.message.register(get_name, StateFilter(state=FSM.get_name))

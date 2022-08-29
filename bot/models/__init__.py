@@ -1,17 +1,11 @@
-from tortoise import Tortoise, run_async
-
-from settings import MODELS, DB_URL
+from tortoise import Tortoise
 
 
-def setup():
-    run_async(_setup())
-
-
-async def _setup():
+async def setup(db_url: str, schemas: list[str]):
     await Tortoise.init(
-        db_url=DB_URL,
+        db_url=db_url,
         modules={
-            'models': MODELS
+            'models': schemas
         }
     )
     await Tortoise.generate_schemas(safe=True)

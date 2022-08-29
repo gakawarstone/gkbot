@@ -1,6 +1,7 @@
 from typing import Awaitable
 
-from lib.bot import BotManager
+from aiogram import Router
+from aiogram.filters import Command
 
 from . import start
 from .user import bomber, braintrash, reminder
@@ -23,7 +24,6 @@ users: dict[str, Awaitable] = {
 }
 
 
-def setup(mng: BotManager):
+def setup(r: Router):
     for cmd in users:
-        print(cmd, users[cmd])
-        mng.add_command_handler(cmd, users[cmd])
+        r.message.register(users[cmd], Command(commands=cmd))

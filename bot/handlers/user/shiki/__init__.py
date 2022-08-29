@@ -1,7 +1,8 @@
-from lib.bot import BotManager
+from aiogram import Router
+
 from . import updates, subs
 
 
-def setup(mng: BotManager):
-    updates.setup(mng)
-    subs.setup(mng)
+def setup(r: Router):
+    updates.setup(r)
+    subs.setup(r)

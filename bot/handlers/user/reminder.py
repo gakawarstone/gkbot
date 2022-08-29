@@ -1,16 +1,16 @@
-from datetime import datetime, date, timedelta, time
+from datetime import date, datetime, time, timedelta
 
-from aiogram.types import Message
+from aiogram import Router
+from aiogram.filters.state import State, StateFilter, StatesGroup
 from aiogram.fsm.context import FSMContext
-from aiogram.filters.state import State, StatesGroup
+from aiogram.types import Message
 
-from lib.bot import BotManager
 from services.reminder import Reminder
-from ui.keyboards.reminder import RemindMarkup
 from ui.components.remind_creator import RemindCreator
-
+from ui.keyboards.reminder import RemindMarkup
 
 # [ ] add menu set repeatable notifications
+# NOTE Class based handlers?
 
 
 class FSM(StatesGroup):
@@ -83,8 +83,8 @@ async def get_remind_time(message: Message, state: FSMContext, data: dict):
         await remind_creator.set_status_message('❌<b>Формат [10:14]</b>❌')
 
 
-def setup(mng: BotManager):
-    mng.add_state_handler(FSM.add, add)
-    mng.add_state_handler(FSM.get_remind_date, get_remind_date)
-    mng.add_state_handler(FSM.get_remind_text, get_remind_text)
-    mng.add_state_handler(FSM.get_remind_time, get_remind_time)
+def setup(r: Router):
+    r.message.register(add, StateFilter(state=FSM.add))
+    r.message.register(get_remind_date, StateFilter(state=FSM.get_remind_date))
+    r.message.register(get_remind_text, StateFilter(state=FSM.get_remind_text))
+    r.message.register(get_remind_time, StateFilter(state=FSM.get_remind_time))

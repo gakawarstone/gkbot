@@ -1,9 +1,9 @@
-from aiogram.types import Message
-from aiogram.filters.state import State, StatesGroup
-from aiogram.fsm.context import FSMContext
 import asyncio
 
-from lib.bot import BotManager
+from aiogram import Router
+from aiogram.filters.state import State, StateFilter, StatesGroup
+from aiogram.fsm.context import FSMContext
+from aiogram.types import Message
 
 
 class FSM(StatesGroup):
@@ -33,6 +33,6 @@ async def spam(message: Message, state: FSMContext):
         await message.answer('Призыв должен начинаться с @ [@ivanzolo2004]')
 
 
-def setup(mng: BotManager):
-    mng.add_state_handler(FSM.start, start)
-    mng.add_state_handler(FSM.spam, spam)
+def setup(r: Router):
+    r.message.register(start, StateFilter(state=FSM.start))
+    r.message.register(spam, StateFilter(state=FSM.spam))

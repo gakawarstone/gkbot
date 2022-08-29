@@ -1,4 +1,4 @@
-from aiogram import F
+from aiogram import F, Router
 from aiogram.filters.state import StateFilter
 from aiogram.filters.command import Command
 from aiogram.fsm.context import FSMContext
@@ -56,16 +56,16 @@ async def stop_timer(callback: CallbackQuery):
     )
 
 
-def setup(mng: BotManager):
-    mng.dp.message.register(
+def setup(r: Router):
+    r.message.register(
         start_timer,
         Command(commands=['start_timer'])
     )
-    mng.dp.message.register(
+    r.message.register(
         get_timer_name,
         StateFilter(state=FSM.get_timer_name)
     )
-    mng.dp.callback_query.register(
+    r.callback_query.register(
         stop_timer,
         F.data.startswith('stop_timer')
     )

@@ -1,4 +1,5 @@
-from lib.bot import BotManager
+from aiogram import Router
+
 from . import text_to_speech as tts
 from . import tasks
 from . import braintrash
@@ -11,14 +12,14 @@ from . import admins as adm
 from . import timer
 
 
-def setup(mng: BotManager):
-    tts.setup(mng)  # NOTE dp.include_router(tts.router)?
-    tasks.setup(mng)
-    braintrash.setup(mng)
-    bomber.setup(mng)
-    reminder.setup(mng)
-    road.setup(mng)
-    wiki.setup(mng)
-    shiki.setup(mng)
-    adm.setup(mng)
-    timer.setup(mng)
+def setup(r: Router):
+    tts.setup(r)
+    tasks.setup(r)
+    braintrash.setup(r)
+    bomber.setup(r)
+    reminder.setup(r)
+    road.setup(r)
+    wiki.setup(r)
+    shiki.setup(r)
+    adm.setup(r)
+    timer.setup(r)
