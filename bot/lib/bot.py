@@ -1,46 +1,34 @@
 import asyncio
-import logging
-from typing import Awaitable
+from typing import Coroutine, Any
 
-import aiogram
-from aiogram import Dispatcher
-from aiogram.fsm.context import FSMContext
+from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
-from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram.types import Message
 
 
 class BotManager:
+    __parse_mode = 'HTML'
+    __storage = MemoryStorage()
+    __loop = asyncio.get_event_loop()
+
     def __init__(self, token: str):
-        self.bot = self.__set_bot(token)
-        self.dp = self.__set_dispatcher()
-        self.inline_keyboards = {}
-        self.__tasks = []
+        self.bot = Bot(token=token, parse_mode=self.__parse_mode)
+        self.dp = Dispatcher(storage=self.__storage)
+        self.__tasks_on_startup = []
 
-    def __set_bot(self, token: str, parse_mode: str = 'HTML') -> aiogram.Bot:
-        return aiogram.Bot(token=token, parse_mode=parse_mode)
+    def add_tasks_on_startup(
+            self, callbacks: list[Coroutine[Any, Any, Any]]
+    ) -> None:
+        self.__tasks_on_startup = callbacks
 
-    def __set_dispatcher(self) -> Dispatcher:  # [ ] storage not only one
-        return Dispatcher(storage=MemoryStorage())
-
-    def add_url_button(self, url: str,
-                       text: str = 'request') -> InlineKeyboardMarkup:
-        btn = InlineKeyboardButton(text=text, url=url)
-        self.inline_keyboards[url] = InlineKeyboardBuilder().add(
-            btn).as_markup()
-        return self.inline_keyboards[url]
-
-    def add_tasks_on_startup(self, functions: list[Awaitable]) -> None:
-        self.__tasks = functions
-
+    # FIXME delete
     async def send_message(self, id: int, text: str) -> Message:
         return await self.bot.send_message(id, text)
 
     async def on_startup(self) -> None:
-        for callback in self.__tasks:
+        for callback in self.__tasks_on_startup:
             await callback
+        await self.dp.start_polling(self.bot)
 
     def start(self) -> None:
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(self.on_startup())
-        loop.run_until_complete(self.dp.start_polling(self.bot))
+        self.__loop.run_until_complete(self.on_startup())

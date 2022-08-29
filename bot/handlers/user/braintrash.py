@@ -4,9 +4,9 @@ from aiogram.filters.command import Command
 from aiogram.filters.state import State, StateFilter, StatesGroup
 from aiogram.fsm.context import FSMContext
 
-from settings import mng  # [ ] move add url button from BotManager
 from filters.bot_admin import BotAdmin
 from services.notion_api import Page
+from ui.keyboards.url_button import UrlButtonMarkup
 
 # [ ] move page id to settings | env
 braintrash = Page('98997f76b28d48cb946d04e32b540e64')
@@ -36,8 +36,8 @@ async def get_all_data(message: Message, state: FSMContext):
 async def get_message(message: Message, state: FSMContext):
     await state.set_state(FSM.finish)
     await braintrash.write(message.text)
-    btn = mng.add_url_button(await braintrash.get_url(), text='Ссылка')
-    await message.answer('Информация сохранена', reply_markup=btn)
+    markup = UrlButtonMarkup.get(url=await braintrash.get_url(), text='Ссылка')
+    await message.answer('Информация сохранена', reply_markup=markup)
 
 
 def setup(r: Router):
