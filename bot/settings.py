@@ -54,6 +54,6 @@ DEFAULT_COMMANDS = {
 
 TASKS_ON_STARTUP = [
     DefaultCommands(mng.bot).set(DEFAULT_COMMANDS).on_startup,
-    schedule.on_startup,
+    Schedule.on_startup,
     UserUpdatesDispatcher.set_bot(mng.bot).on_startup,
 ]
