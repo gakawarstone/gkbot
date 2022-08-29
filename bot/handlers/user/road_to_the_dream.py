@@ -53,8 +53,8 @@ async def choose_tool(message: Message, state: FSMContext, data: dict):
 
 
 async def pomodoro(message: Message, state: FSMContext, data: dict,
-                   time_focused: int = 15,  # FIXME minutes
-                   time_relax: int = 15):  # [ ] component
+                   time_focused: int = 15*60,
+                   time_relax: int = 15*60):  # [ ] component
     await message.answer(
         'Вы включили 🕔 <b>помидор</b>',
         reply_markup=ReplyKeyboardRemove())
