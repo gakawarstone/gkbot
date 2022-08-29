@@ -1,6 +1,14 @@
 from .base import Shiki
 
 
+class InvalidUserException(Exception):
+    def __init__(self, user_name: str) -> None:
+        self.user_name = user_name
+
+    def __str__(self) -> str:
+        return f"Can't find user:{self.user_name} in shikimori.one"
+
+
 class User:
     def __init__(self, name: str) -> None:
         self.name = name
@@ -34,7 +42,11 @@ class UserUpdates:
             return updates
 
     async def __load(self, page_num: int) -> list[Update]:
-        soup = await Shiki.get_webpage(self.user.name, f'history/{page_num}.json')
+        try:
+            soup = await Shiki.get_webpage(self.user.name, f'history/{page_num}.json')
+        except KeyError:
+            raise InvalidUserException(self.user.name)
+
         raw_updates = soup.find_all('p')
         updates = []
         for item in raw_updates:

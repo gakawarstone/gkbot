@@ -1,7 +1,7 @@
 import asyncio
 from typing_extensions import Self
 
-from aiogram import Dispatcher, Bot
+from aiogram import Bot
 
 from .user_updates import User, Update, UserUpdates
 

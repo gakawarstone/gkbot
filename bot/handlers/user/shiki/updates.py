@@ -4,7 +4,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.filters.state import State, StateFilter, StatesGroup
 
 
-from services.shiki.user_updates import User
+from services.shiki import User, InvalidUserException
 
 
 class FSM(StatesGroup):
@@ -25,7 +25,7 @@ async def get_from_shiki(message: Message, state: FSMContext):
     try:
         for update in await user.updates.load_latest(10):
             await message.answer(str(update) + str(user))
-    except KeyError:
+    except InvalidUserException:
         await message.answer('Пользователь не найден')
 
 
