@@ -1,9 +1,9 @@
 import logging
 
+from aiogram import Router
 from aiogram.types import Message
-from aiogram.dispatcher.fsm.context import FSMContext
-from aiogram.dispatcher.filters.state import State, StatesGroup
-from lib.bot import BotManager
+from aiogram.fsm.context import FSMContext
+from aiogram.filters.state import State, StateFilter, StatesGroup
 
 from services.wiki import WikiApi
 
@@ -32,6 +32,6 @@ async def get_data(message: Message, state: FSMContext):
         await message.answer('Я ничего не нашел 🙂')
 
 
-def setup(mng: BotManager):
-    mng.add_state_handler(FSM.search, search)
-    mng.add_state_handler(FSM.get_data, get_data)
+def setup(r: Router):
+    r.message.register(search, StateFilter(state=FSM.search))
+    r.message.register(get_data, StateFilter(state=FSM.get_data))

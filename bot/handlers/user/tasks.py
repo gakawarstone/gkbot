@@ -1,16 +1,16 @@
 from datetime import datetime
 
+from aiogram import Router
+from aiogram.filters.state import State, StateFilter, StatesGroup
+from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
-from aiogram.dispatcher.fsm.context import FSMContext
-from aiogram.dispatcher.filters.state import State, StatesGroup
-from lib.bot import BotManager
 
 from services.notion_api import Database
 
 tasks = Database("67f38400c29f4137ac285fe6569567e2")
 
 
-class FSM(StatesGroup):
+class FSM(StatesGroup):  # NOTE SG?
     start = State()
     name = State()
     subject = State()
@@ -22,7 +22,7 @@ async def add(message: Message, state: FSMContext):
     await state.set_state(FSM.name)
     await message.answer('Вы пытаетесь добавить строчку в базу заданий')
     await message.answer('Отправьте мне название задачи')
-    global row
+    global row  # FIXME
     row = await tasks.add_row()
 
 
@@ -50,8 +50,8 @@ async def get_deadline(message: Message, state: FSMContext):
         await message.answer('Дата некорректна [01.01.1970]')
 
 
-def setup(mng: BotManager):
-    mng.add_state_handler(FSM.start, add)
-    mng.add_state_handler(FSM.name, get_name)
-    mng.add_state_handler(FSM.subject, get_subject)
-    mng.add_state_handler(FSM.deadline, get_deadline)
+def setup(r: Router):
+    r.message.register(add, StateFilter(state=FSM.start))
+    r.message.register(get_name, StateFilter(state=FSM.name))
+    r.message.register(get_subject, StateFilter(state=FSM.subject))
+    r.message.register(get_deadline, StateFilter(state=FSM.deadline))

@@ -6,7 +6,7 @@ venv
 *.ipynb
 .pytest_cache
 log.txt
-**/*.sqlite
+**/*.sqlite*
 /logs
 /build
 /dist

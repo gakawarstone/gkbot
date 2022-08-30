@@ -1,11 +1,9 @@
 from aiogram import Router
-from aiogram.dispatcher.filters.command import Command
+from aiogram.filters import Command, StateFilter
 from aiogram.types import Message, CallbackQuery
-from aiogram.dispatcher.fsm.context import FSMContext
-from aiogram.dispatcher.fsm.state import State, StatesGroup
-from aiogram.dispatcher.filters.state import StateFilter
+from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import State, StatesGroup
 
-from lib.bot import BotManager
 from ui.keyboards.books import BookMarkup
 
 router = Router()
@@ -106,5 +104,5 @@ async def get_new_book_name(message: Message, state: FSMContext, data: dict):
     await state.set_state(FSM.finish)
 
 
-def setup(mng: BotManager):
-    mng.dp.include_router(router)
+def setup(r: Router):
+    r.include_router(router)

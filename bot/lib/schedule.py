@@ -1,15 +1,13 @@
 import asyncio
 from datetime import datetime, timezone, timedelta
 from typing import Awaitable, Any
-
-from lib.meta import MetaSingleton
+from typing import Tuple
 
 
 class Task:
-    def __init__(self, func, args=None) -> None:
+    def __init__(self, func: Awaitable, args: list[Any] = None) -> None:
         self.__func = func
         self.__args = args
-        self.time = None
 
     async def run(self) -> None:
         if self.__args:
@@ -17,49 +15,36 @@ class Task:
         else:
             await self.__func()
 
+
+class Schedule:
+    __tasks: list[Tuple[Task, datetime]] = []
+
+    @classmethod
+    def add_task(cls, task: Task, time: datetime) -> None:
+        cls.__tasks.append((task, time))
+
     @staticmethod
-    def create(func: Awaitable, args: list[Any] = None) -> object:
-        task = Task(func, args)
-        return task
+    def __get_now_timestamp_with_tz(tz: timezone) -> float:
+        return datetime.strptime(
+            datetime.now(tz).strftime('%d.%m.%Y_%H:%M'),
+            '%d.%m.%Y_%H:%M'
+        ).timestamp()
 
-    def at(self, time: datetime) -> object:
-        self.time = time
-        return self
-
-# [ ] delete
-
-
-class Dispatcher:
-    async def __dispatcher(self, delay=5):
-        while True:
-            print('hi')
-            await asyncio.sleep(delay)
-
-    async def on_startup(self, dp):
-        asyncio.create_task(self.__dispatcher())
-
-
-class Schedule(Dispatcher, metaclass=MetaSingleton):
-    def __init__(self):
-        self.tasks: list[Task] = []
-
-    def add_task(self, task: Task):
-        self.tasks.append(task)
-
-    async def __check_if_task_now(self, tz=6.0):
-        timezone_offset = tz
-        tzinfo = timezone(timedelta(hours=timezone_offset))
-        for task in self.tasks:
-            now = datetime.strftime(datetime.now(tzinfo), '%d.%m.%Y_%H:%M')
-            time = datetime.strftime(task.time, '%d.%m.%Y_%H:%M')
-            if time == now:
+    @classmethod
+    async def __check_if_task_now(
+            cls, tz: timezone = timezone(timedelta(hours=6.0))
+    ) -> None:
+        for task, time in cls.__tasks:
+            if time.timestamp() <= cls.__get_now_timestamp_with_tz(tz):
                 await task.run()
-                self.tasks.remove(task)
+                cls.__tasks.remove((task, time))
 
-    async def __dispatcher(self, delay=5):
+    @classmethod
+    async def __dispatcher(cls, delay=5) -> None:
         while True:
-            await self.__check_if_task_now()
+            await cls.__check_if_task_now()
             await asyncio.sleep(delay)
 
-    async def on_startup(self, dp):
-        asyncio.create_task(self.__dispatcher())
+    @classmethod
+    async def on_startup(cls):
+        asyncio.create_task(cls.__dispatcher())

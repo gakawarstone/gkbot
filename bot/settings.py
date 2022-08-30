@@ -3,13 +3,13 @@ import logging
 import logging.config
 
 from dotenv import load_dotenv
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
 from lib.bot import BotManager
 from lib.schedule import Schedule
 from services.shiki.dispatcher import UserUpdatesDispatcher
 from utils.commands import DefaultCommands
+from utils.notify import Notifier
+import models
 
 
 # Logging config
@@ -31,13 +31,16 @@ logger.info('DB_URL = ' + DB_URL)
 
 # Main objects
 mng = BotManager(BOT_TOKEN)
-engine = create_engine(DB_URL)
-Session = sessionmaker(bind=engine)
-schedule = Schedule()
 
 
 ADMINS = [
     897651738
+]
+
+
+MODELS = [
+    'models.users',
+    'models.road'
 ]
 
 
@@ -48,12 +51,13 @@ DEFAULT_COMMANDS = {
     'add_remind': 'add remind',
     'start_timer': 'start timer',
     'admins': 'tag all admins',
-    'test': 'test',  # [ ] delete
 }
 
 
 TASKS_ON_STARTUP = [
-    DefaultCommands(mng.bot).set(DEFAULT_COMMANDS).on_startup,
-    schedule.on_startup,
-    UserUpdatesDispatcher.set_bot(mng.bot).on_startup,
+    models.setup(DB_URL, MODELS),
+    DefaultCommands(mng.bot).set(DEFAULT_COMMANDS),
+    Schedule.on_startup(),
+    UserUpdatesDispatcher.set_bot(mng.bot).on_startup(),
+    Notifier.setup(mng.bot, ADMINS),
 ]

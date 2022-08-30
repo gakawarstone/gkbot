@@ -1,90 +1,34 @@
 import asyncio
-from typing import Awaitable
-import logging
+from typing import Coroutine, Any
 
-import aiogram
-from aiogram import Dispatcher
-from aiogram.dispatcher.fsm.storage.memory import MemoryStorage
-from aiogram.dispatcher.fsm.context import FSMContext
-from aiogram.types import (InlineKeyboardButton, InlineKeyboardMarkup,
-                           KeyboardButton, Message)
-from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder
+from aiogram import Bot, Dispatcher
+from aiogram.fsm.storage.memory import MemoryStorage
+from aiogram.types import Message
 
 
 class BotManager:
+    __parse_mode = 'HTML'
+    __storage = MemoryStorage()
+    __loop = asyncio.get_event_loop()
+
     def __init__(self, token: str):
-        self.bot = self.__set_bot(token)
-        self.dp = self.__set_dispatcher()
-        self.admins = []
-        self.keyboards = {}
-        self.inline_keyboards = {}
-        self.__tasks = []
+        self.bot = Bot(token=token, parse_mode=self.__parse_mode)
+        self.dp = Dispatcher(storage=self.__storage)
+        self.__tasks_on_startup = []
 
-    def __set_bot(self, token: str, parse_mode: str = 'HTML') -> aiogram.Bot:
-        return aiogram.Bot(token=token, parse_mode=parse_mode)
+    def add_tasks_on_startup(
+            self, callbacks: list[Coroutine[Any, Any, Any]]
+    ) -> None:
+        self.__tasks_on_startup = callbacks
 
-    def __set_dispatcher(self) -> Dispatcher:  # [ ] storage not only one
-        return Dispatcher(storage=MemoryStorage())
-
-    def add_message_handler(self, func: Awaitable[Message]) -> None:
-        self.dp.register_message(func)
-
-    def add_command_handler(self, command: str,
-                            func: Awaitable[Message]) -> None:
-        ''' command - /<command> in telegram '''
-        self.dp.register_message(func, commands=[command])
-
-        logging.debug('Command handler added at command /' + command)
-
-    def add_state_handler(self, state: FSMContext,
-                          func: Awaitable[Message]) -> None:
-        self.dp.register_message(
-            func, state=state, content_types=['text'])
-
-    def add_channel_post_handler(self, func: Awaitable[Message]) -> None:
-        @self.dp.channel_post_handler()
-        async def handler(message: Message):
-            await func(message)
-
-    # FIXME move to keyboard builder
-    def add_keyboard(self, name: str, buttons: list[list[str]],
-                     hide: bool = True, placeholder: str = None) -> None:
-        ''' add telegram keyboard with row of {buttons}
-            call by {bot_object.keyboards[name]} '''
-        kb = ReplyKeyboardBuilder()
-        for rows in buttons:
-            kb.row(*(KeyboardButton(text=i) for i in rows))
-        self.keyboards[name] = kb.as_markup(
-            resize_keyboard=True,
-            one_time_keyboard=hide,
-            input_field_placeholder=placeholder)
-
-    def add_url_button(self, url: str,
-                       text: str = 'request') -> InlineKeyboardMarkup:
-        btn = InlineKeyboardButton(text=text, url=url)
-        self.inline_keyboards[url] = InlineKeyboardBuilder().add(
-            btn).as_markup()
-        return self.inline_keyboards[url]
-
-    def add_tasks_on_startup(self, functions: list[Awaitable]) -> None:
-        self.__tasks = functions
-
+    # FIXME delete
     async def send_message(self, id: int, text: str) -> Message:
         return await self.bot.send_message(id, text)
 
-    async def send_file(self, message: str, path: str) -> None:
-        await message.answer_document(open(path, "rb"))
-
-    async def on_startup(self, dp: Dispatcher) -> None:
-        for func in self.__tasks:
-            await func(dp)
+    async def on_startup(self) -> None:
+        for callback in self.__tasks_on_startup:
+            await callback
+        await self.dp.start_polling(self.bot)
 
     def start(self) -> None:
-        loop = asyncio.get_event_loop()
-        if self.__tasks:
-            loop.run_until_complete(self.on_startup(self.dp))
-            loop.run_until_complete(
-                self.dp.start_polling(self.bot, on_startup=self.on_startup))
-        else:
-            loop.run_forever(
-                self.dp.start_polling(self.get_bot_instance()))
+        self.__loop.run_until_complete(self.on_startup())

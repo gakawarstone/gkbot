@@ -1,9 +1,9 @@
+from aiogram import Router
 from aiogram.types import Message
-from aiogram.dispatcher.fsm.context import FSMContext
-from aiogram.dispatcher.filters.state import State, StatesGroup
-from lib.bot import BotManager
+from aiogram.fsm.context import FSMContext
+from aiogram.filters.state import State, StateFilter, StatesGroup
 
-from services.shiki.dispatcher import UserUpdatesDispatcher
+from services.shiki import UserUpdatesDispatcher, InvalidUserException
 
 
 class FSM(StatesGroup):
@@ -19,11 +19,17 @@ async def subscribe(message: Message, state: FSMContext):
 
 
 async def get_name(message: Message, state: FSMContext):
-    await state.set_state(FSM.finish)  # [ ] if user invalid
-    UserUpdatesDispatcher.add_subscription(message.chat.id, message.text)
-    await message.answer('Подписка оформлена')
+    await state.set_state(FSM.finish)
+    try:
+        await UserUpdatesDispatcher.add_subscription(
+            chat_id=message.chat.id,
+            shiki_name=message.text
+        )
+        await message.answer('Подписка оформлена')
+    except InvalidUserException:
+        await message.answer('Пользователь не найден')
 
 
-def setup(mng: BotManager):
-    mng.add_state_handler(FSM.subscribe, subscribe)
-    mng.add_state_handler(FSM.get_name, get_name)
+def setup(r: Router):
+    r.message.register(subscribe, StateFilter(state=FSM.subscribe))
+    r.message.register(get_name, StateFilter(state=FSM.get_name))

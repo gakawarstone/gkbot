@@ -1,10 +1,10 @@
+from aiogram import Router
 from aiogram.types import Message
-from aiogram.dispatcher.fsm.context import FSMContext
-from aiogram.dispatcher.filters.state import State, StatesGroup
+from aiogram.fsm.context import FSMContext
+from aiogram.filters.state import State, StateFilter, StatesGroup
 
 
-from lib.bot import BotManager
-from services.shiki.user_updates import User
+from services.shiki import User, InvalidUserException
 
 
 class FSM(StatesGroup):
@@ -23,12 +23,12 @@ async def get_from_shiki(message: Message, state: FSMContext):
     await state.set_state(FSM.finish)
     user = User(message.text)
     try:
-        for update in user.updates.load_latest(10):
+        for update in await user.updates.load_latest(10):
             await message.answer(str(update) + str(user))
-    except(Exception):  # FIXME not all exceptions
+    except InvalidUserException:
         await message.answer('Пользователь не найден')
 
 
-def setup(mng: BotManager):
-    mng.add_state_handler(FSM.get_updates, get_updates)
-    mng.add_state_handler(FSM.get_from_shiki, get_from_shiki)
+def setup(r: Router):
+    r.message.register(get_updates, StateFilter(state=FSM.get_updates))
+    r.message.register(get_from_shiki, StateFilter(state=FSM.get_from_shiki))

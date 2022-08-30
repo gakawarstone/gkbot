@@ -1,14 +1,13 @@
 import asyncio
-from datetime import datetime
 import logging
+from datetime import datetime
 
-from aiogram.types import Message
-from aiogram.dispatcher.fsm.context import FSMContext
-from aiogram.dispatcher.filters.state import State, StatesGroup
-from aiogram.types import ReplyKeyboardRemove
-from lib.bot import BotManager
+from aiogram import Router
+from aiogram.filters.state import State, StateFilter, StatesGroup
+from aiogram.fsm.context import FSMContext
+from aiogram.types import Message, ReplyKeyboardRemove
 
-from settings import mng, Session  # FIXME
+from settings import mng  # FIXME
 from models.road import Habits, PomodoroStats
 from ui.keyboards.road import RoadMarkup
 
@@ -72,12 +71,11 @@ async def pomodoro(message: Message, state: FSMContext, data: dict,
         time_relax,
         text='<i>На чиле</i>')
 
-    with Session.begin() as session:  # FIXME connect to db not in handlers
-        user = session.query(
-            PomodoroStats).filter_by(
-            user_id=message.from_user.id).first()
-        user.today_cnt += 1
-        cnt = user.today_cnt
+    # FIXME connect to db not in handlers
+    user, _ = await PomodoroStats.get_or_create(user_id=message.from_user.id)
+    cnt = user.today_cnt + 1
+    await PomodoroStats.filter(user_id=user.user_id).update(today_cnt=cnt)
+
     await msg.edit_text(
         '<b>Поздравляю</b> вы получили <b>[<i>%s</i>🍅]</b>' % cnt)
 
@@ -139,19 +137,20 @@ async def get_habit_notify_time(message: Message, state: FSMContext, data: dict)
     await state.set_state(FSM.finish)
     time = datetime.strptime(message.text, '%H:%M').time()
     data['habit_notify_time'] = time
-    with Session.begin() as session:
-        habit = Habits(
-            user_id=message.from_user.id,
-            name=data['habit_name'],
-            notify_time=data['habit_notify_time'])
-        session.add(habit)
+    await Habits.create(
+        user_id=message.from_user.id,
+        name=data['habit_name'],
+        notify_time=data['habit_notify_time']
+    )
     await message.answer('Привычка добавлена')
 
 
-def setup(mng: BotManager):
-    mng.add_state_handler(FSM.start, start)
-    mng.add_state_handler(FSM.choose_tool, choose_tool)
-    mng.add_state_handler(FSM.choose_bool, choose_bool)
-    mng.add_state_handler(FSM.pomodoro, pomodoro)
-    mng.add_state_handler(FSM.get_habit_name, get_habit_name)
-    mng.add_state_handler(FSM.get_habit_notify_time, get_habit_notify_time)
+def setup(r: Router):
+    r.message.register(start, StateFilter(state=FSM.start))
+    r.message.register(choose_tool, StateFilter(state=FSM.choose_tool))
+    r.message.register(choose_bool, StateFilter(state=FSM.choose_bool))
+    r.message.register(pomodoro, StateFilter(state=FSM.pomodoro))
+    r.message.register(get_habit_name, StateFilter(state=FSM.get_habit_name))
+    r.message.register(
+        get_habit_notify_time, StateFilter(state=FSM.get_habit_notify_time)
+    )

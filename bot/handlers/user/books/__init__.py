@@ -1,6 +1,7 @@
-from lib.bot import BotManager
+from aiogram import Router
+
 from . import menu
 
 
-def setup(mng: BotManager):
-    menu.setup(mng)
+def setup(r: Router):
+    menu.setup(r)

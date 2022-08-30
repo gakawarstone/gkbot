@@ -1,6 +1,4 @@
-import json
-from urllib.request import Request, urlopen
-
+import aiohttp
 from bs4 import BeautifulSoup
 
 
@@ -8,10 +6,15 @@ class Shiki:
     url = 'https://shikimori.one'
 
     @classmethod
-    def get_webpage(cls, user_name: str, path: str) -> BeautifulSoup:
-        req = Request(f'{cls.url}/{user_name}/{path}',  # [ ] async
-                      headers={'User-Agent': 'Mozilla/5.0'})
-        webpage = urlopen(req).read()
-        data = json.loads(webpage)
-        text = ''.join(line for line in data['content'])
-        return BeautifulSoup(text, 'html.parser')
+    async def get_webpage(cls, user_name: str, path: str) -> BeautifulSoup:
+        async with aiohttp.ClientSession(
+            headers={'User-Agent': 'Mozilla/5.0'}
+        ) as session:
+            async with session.get(
+                url=f'{cls.url}/{user_name}/{path}',
+            ) as response:
+                data = await response.json()
+        return BeautifulSoup(
+            markup=''.join(line for line in data['content']),
+            features='html.parser'
+        )
