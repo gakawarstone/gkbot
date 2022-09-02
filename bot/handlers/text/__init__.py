@@ -1,6 +1,9 @@
-from lib.bot import BotManager
+from aiogram import Router
+
 from . import tiktok
+from . import youtube
 
 
-def setup(mng: BotManager):
-    tiktok.setup(mng)
+def setup(r: Router):
+    tiktok.setup(r)
+    youtube.setup(r)
