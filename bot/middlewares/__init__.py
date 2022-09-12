@@ -7,3 +7,4 @@ from .user_data import UserDataMiddleware
 def setup(dp: Dispatcher):
     dp.message.middleware(RegisterUserMiddleware())
     dp.message.middleware(UserDataMiddleware())
+    dp.callback_query.middleware(UserDataMiddleware())

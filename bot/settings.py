@@ -40,7 +40,8 @@ ADMINS = [
 
 MODELS = [
     'models.users',
-    'models.road'
+    'models.road',
+    'models.books',
 ]
 
 

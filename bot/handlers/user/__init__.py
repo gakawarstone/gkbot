@@ -10,6 +10,7 @@ from . import wiki
 from . import shiki
 from . import admins as adm
 from . import timer
+from . import books
 
 
 def setup(r: Router):
@@ -23,3 +24,4 @@ def setup(r: Router):
     shiki.setup(r)
     adm.setup(r)
     timer.setup(r)
+    books.setup(r)
