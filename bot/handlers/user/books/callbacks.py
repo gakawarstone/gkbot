@@ -1,17 +1,14 @@
 from aiogram import Router, F
 from aiogram.types import CallbackQuery
-from aiogram.fsm.context import FSMContext
 
 from ui.keyboards.books import BookMarkup
 from ui.components.books import BookComponent
 from models.books import Book
-from .states import FSM
 
 F: CallbackQuery
 
 
-async def handle_book_events(callback: CallbackQuery, state: FSMContext):
-    await state.set_state(FSM.check_menu_command)
+async def handle_book_events(callback: CallbackQuery):
     _, event, book_id = callback.data.split(':')
     book = await Book.filter(id=book_id).first()
 
