@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from aiogram.types import InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+from models.books import Book
 from lib.keyboard_builder import KeyboardBuilder
 
 
@@ -10,25 +11,36 @@ from lib.keyboard_builder import KeyboardBuilder
 class _Buttons:
     add_new_book = '📘 Добавить книгу'
     my_books = '📚 Мои книги'
+    exit = '🚪 Выйти'
+
+
+@dataclass
+class _Events:
+    show = 'show'
+    increment = 'inc'
+    decrement = 'dec'
 
 
 class BookMarkup:
     buttons = _Buttons
+    events = _Events
 
     menu = KeyboardBuilder.add_keyboard(
         buttons=[
-            [_Buttons.my_books, _Buttons.add_new_book]
+            [_Buttons.my_books, _Buttons.add_new_book],
+            [_Buttons.exit]
         ]
     )
+    # FIXME markup instead of builder
 
     @classmethod
-    def get_books_dialog(cls, books: list[str]):
+    def get_show_books_dialog(cls, books: list[Book]):  # FIXME return
         return InlineKeyboardBuilder(
             [
                 [
                     InlineKeyboardButton(
-                        text=book,
-                        callback_data='show_test_book'  # FIXME
+                        text=book.name,
+                        callback_data=f'book:{cls.events.show}:{book.id}'
                     )
                 ]
                 for book in books
@@ -36,28 +48,22 @@ class BookMarkup:
         ).as_markup()
 
     @classmethod
-    def get_test_book_dialog(cls):
+    def get_book_dialog(cls, book: Book):  # FIXME inkmarkup
         return InlineKeyboardBuilder(
             [
 
                 [
                     InlineKeyboardButton(
                         text='Прогресс:',
-                        callback_data='book'
+                        callback_data='void'
                     ),
                     InlineKeyboardButton(
                         text='-',
-                        callback_data='book_progress-'
+                        callback_data=f'book:{cls.events.decrement}:{book.id}'
                     ),
                     InlineKeyboardButton(
                         text='+',
-                        callback_data='book_progress+',
-                    )
-                ],
-                [
-                    InlineKeyboardButton(
-                        text='Мои книги <<< Pipka',
-                        callback_data='book_menu'
+                        callback_data=f'book:{cls.events.increment}:{book.id}',
                     )
                 ],
             ]
