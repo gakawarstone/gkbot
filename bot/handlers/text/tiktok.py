@@ -14,7 +14,7 @@ async def download_video(message: Message, state: FSMContext):
     try:
         await message.answer_video(
             await TikTokDownloader.get_video_url(message.text),
-            caption=message.text
+            caption=f'<b>{message.from_user.username}</b> {message.text}'
         )
     except TelegramBadRequest:
         await status_message.edit_text(
@@ -23,7 +23,7 @@ async def download_video(message: Message, state: FSMContext):
         )
         await message.answer_video(
             await TikTokDownloader.get_video_as_input_file(message.text),
-            caption=message.text
+            caption=f'<b>{message.from_user.username}</b> {message.text}'
         )
     except TikTokInvalidUrl:
         await message.answer('Не получилось скачать %s' % message.text)
