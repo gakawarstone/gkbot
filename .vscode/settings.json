@@ -63,5 +63,8 @@
     "todo-tree.filtering.excludeGlobs": [
         "docs",
         ".venv"
+    ],
+    "cSpell.words": [
+        "aiogram"
     ]
 }
