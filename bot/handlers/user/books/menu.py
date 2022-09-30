@@ -1,12 +1,13 @@
 from aiogram import Router
 from aiogram.filters import Command, StateFilter
-from aiogram.types import Message
+from aiogram.types import Message, ReplyKeyboardRemove
 from aiogram.fsm.context import FSMContext
 
-from models.books import Book
 from ui.keyboards.books import BookMarkup
+from services.books import BookService
 from .states import FSM
 from . import add_book
+from . import edit_book
 
 
 async def show_menu(message: Message, state: FSMContext):
@@ -22,20 +23,25 @@ async def check_menu_command(message: Message, state: FSMContext):
         case BookMarkup.buttons.add_new_book:
             await add_book.init(message, state)
         case BookMarkup.buttons.my_books:
-            await show_my_books(message, state)
+            await show_user_books(message, state)
+        case BookMarkup.buttons.update_book:
+            await edit_book.choose_book(message)
         case BookMarkup.buttons.exit | 'q':
             await state.set_state(FSM.finish)
-            await message.answer('Пока')
+            await message.answer('Пока', reply_markup=ReplyKeyboardRemove())
         case _:
             await state.set_state(FSM.check_menu_command)
 
 
-async def show_my_books(message: Message, state: FSMContext):
-    await state.set_state(FSM.check_menu_command)  # FIXME
-    books = await Book.filter(user_id=message.from_user.id).all()
+# FIXME move
+async def show_user_books(message: Message, state: FSMContext):
+    await state.set_state(FSM.check_menu_command)
     await message.answer(
         'Ваши книги: ',
-        reply_markup=BookMarkup.get_show_books_dialog(books)
+        reply_markup=BookMarkup.get_books_dialog(
+            event=BookMarkup.events.show,
+            books=await BookService.get_all_user_books(message.from_user.id)
+        )
     )
 
 
@@ -49,6 +55,6 @@ def setup(r: Router):
         StateFilter(state=FSM.check_menu_command)
     )
     r.message.register(
-        show_my_books,
+        show_user_books,
         StateFilter(state=FSM.show_my_books)
     )
