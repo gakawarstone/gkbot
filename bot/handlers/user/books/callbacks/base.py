@@ -10,6 +10,11 @@ class BaseHandler(_BaseHandler[CallbackQuery]):
     def state(self):
         return self.data['state']
 
+    # NOTE add book_context flag that allows middleware to send typed books context
+    @property
+    def ctx(self) -> dict:  # FIXME type dict
+        return self.data['data']
+
     async def _parse_callback(self) -> tuple[str, Book]:
         _, event, book_id = self.event.data.split(':')
         book = await BookService.get_book_by_id(book_id)

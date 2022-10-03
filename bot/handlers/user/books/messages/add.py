@@ -4,7 +4,7 @@ from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 
 from models.books import Book
-from .states import FSM
+from ..states import FSM
 
 
 async def init(message: Message, state: FSMContext):

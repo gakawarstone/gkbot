@@ -5,8 +5,8 @@ from aiogram.types import InlineKeyboardMarkup
 from models.books import Book
 from services.books import BookService
 from ui.components.books import BookComponent
-from ui.keyboards.books import BookMarkup  # FIXME EventsMarkup
-from .. import edit_book
+from ui.keyboards.books import EventsMarkup, WidgetMarkup
+from ..messages import edit_property
 from .base import BaseHandler
 
 
@@ -15,18 +15,18 @@ class EventsHandler(BaseHandler):
         event, book = await self._parse_callback()
 
         match event:
-            case BookMarkup.events.show:
+            case EventsMarkup.events.show:
                 await self.__show_book_widget(book)
-            case BookMarkup.events.increment:
+            case EventsMarkup.events.increment:
                 await self.__update_book_widget(
-                    book=BookService.increment_book_current_chapter(book)
+                    book=await BookService.increment_book_current_chapter(book)
                 )
-            case BookMarkup.events.decrement:
+            case EventsMarkup.events.decrement:
                 await self.__update_book_widget(
-                    book=BookService.decrement_book_current_chapter(book)
+                    book=await BookService.decrement_book_current_chapter(book)
                 )
-            case BookMarkup.events.edit:
-                await edit_book.choose_property_to_edit(
+            case EventsMarkup.events.edit:
+                await edit_property.choose_property_to_edit(
                     self.event.message, book)
 
     async def __show_book_widget(self, book: Book) -> None:
@@ -39,4 +39,4 @@ class EventsHandler(BaseHandler):
 
     def __get_widget_data(self,
                           book: Book) -> tuple[str, InlineKeyboardMarkup]:
-        return BookComponent.render(book), BookMarkup.get_book_dialog(book)
+        return BookComponent.render(book), WidgetMarkup.get_book_widget(book)
