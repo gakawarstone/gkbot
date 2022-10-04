@@ -25,6 +25,11 @@ class _BookProperties(Enum):
         spell_ru='Прогресс',
         event_code='prg'
     )
+    TOTAL_CHAPTERS = _BookProperty(
+        name_in_db='chapters_cnt',
+        spell_ru='Всего глав',
+        event_code='tlc'
+    )
 
 
 # NOTE enum instead of dataclass
