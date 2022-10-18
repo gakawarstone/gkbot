@@ -5,7 +5,7 @@ from aiogram.filters import Command
 
 from . import start
 from .user import bomber, braintrash, reminder
-from .user import road_to_the_dream as road
+# from .user.road import road_to_the_dream as road # FIXME
 from .user import shiki, tasks
 from .user import text_to_speech as tts
 from .user import wiki
@@ -16,7 +16,7 @@ users: dict[str, Awaitable] = {
     'start': start.start,
     'bomber': bomber.start,
     'add_remind': reminder.add,
-    'road': road.start,
+    # 'road': road.start, # FIXME
     'tts': tts.start,
     'wiki': wiki.search,
     'shiki': shiki.updates.get_updates,

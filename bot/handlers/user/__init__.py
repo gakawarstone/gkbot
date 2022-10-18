@@ -5,7 +5,7 @@ from . import tasks
 from . import braintrash
 from . import bomber
 from . import reminder
-from . import road_to_the_dream as road
+from . import road
 from . import wiki
 from . import shiki
 from . import admins as adm

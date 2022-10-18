@@ -7,8 +7,6 @@ from lib.keyboard_builder import KeyboardBuilder
 class _Buttons:
     pomodoro = 'Помидор 🕔'
     habit_tracker = 'Трекер привычек'
-    yes = 'Да'
-    no = 'Нет'
 
 
 class RoadMarkup:
@@ -17,11 +15,5 @@ class RoadMarkup:
     tools = KeyboardBuilder.add_keyboard(
         buttons=[
             [_Buttons.pomodoro, _Buttons.habit_tracker]
-        ]
-    )
-
-    bool = KeyboardBuilder.add_keyboard(
-        buttons=[
-            [_Buttons.yes, _Buttons.no]
         ]
     )
