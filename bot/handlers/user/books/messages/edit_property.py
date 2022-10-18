@@ -8,8 +8,6 @@ from services.books import BookService
 from ui.keyboards.books import EventsMarkup, PropertiesMarkup
 from ..states import FSM
 
-# [ ] add message folder
-
 
 async def choose_book(message: Message):
     books = await BookService.get_all_user_books(message.from_user.id)
