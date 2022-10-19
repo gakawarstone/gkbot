@@ -8,6 +8,6 @@ class MenuMarkup:
     menu = KeyboardBuilder.add_keyboard(
         buttons=[
             [buttons.my_books, buttons.add_new_book, buttons.update_book],
-            [buttons.exit]
+            [buttons.delete_book, buttons.exit]
         ]
     )

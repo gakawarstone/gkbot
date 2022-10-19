@@ -6,8 +6,8 @@ from models.books import Book
 from services.books import BookService
 from ui.components.books import BookComponent
 from ui.keyboards.books import EventsMarkup, WidgetMarkup
-from ..messages import edit_property
 from .base import BaseHandler
+from ..messages import edit_property
 
 
 class EventsHandler(BaseHandler):
@@ -28,6 +28,9 @@ class EventsHandler(BaseHandler):
             case EventsMarkup.events.edit:
                 await edit_property.choose_property_to_edit(
                     self.event.message, book)
+            case EventsMarkup.events.delete:
+                await BookService.delete_book(book)
+                await self.event.message.answer('Удалено')
 
     async def __show_book_widget(self, book: Book) -> None:
         text, markup = self.__get_widget_data(book)
@@ -37,6 +40,6 @@ class EventsHandler(BaseHandler):
         text, markup = self.__get_widget_data(book)
         await self.event.message.edit_text(text, reply_markup=markup)
 
-    def __get_widget_data(self,
-                          book: Book) -> tuple[str, InlineKeyboardMarkup]:
+    @staticmethod
+    def __get_widget_data(book: Book) -> tuple[str, InlineKeyboardMarkup]:
         return BookComponent.render(book), WidgetMarkup.get_book_widget(book)

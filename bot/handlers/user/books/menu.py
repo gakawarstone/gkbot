@@ -1,10 +1,10 @@
 from aiogram import Router
 from aiogram.filters import Command, StateFilter
-from aiogram.types import Message, ReplyKeyboardRemove
 from aiogram.fsm.context import FSMContext
+from aiogram.types import Message, ReplyKeyboardRemove
 
 from ui.keyboards.books import MenuMarkup
-from .messages import add, edit_property, show
+from .messages import add, edit_property, show, delete
 from .states import FSM
 
 
@@ -27,6 +27,8 @@ async def check_menu_command(message: Message, state: FSMContext):
         case MenuMarkup.buttons.exit | 'q':
             await state.set_state(FSM.finish)
             await message.answer('Пока', reply_markup=ReplyKeyboardRemove())
+        case MenuMarkup.buttons.delete_book:
+            await delete.show_list_to_delete(message)
         case _:
             await state.set_state(FSM.check_menu_command)
 

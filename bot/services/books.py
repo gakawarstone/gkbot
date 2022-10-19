@@ -1,4 +1,5 @@
 from typing import Any
+
 from models.books import Book
 
 
@@ -16,6 +17,10 @@ class BookService:
     async def edit_book_property(cls, book_id: int, property_name: str, new_property_value: Any):
         kwargs = {property_name: new_property_value}
         await Book.filter(id=book_id).update(**kwargs)
+
+    @classmethod
+    async def delete_book(cls, book: Book) -> None:
+        await Book.filter(id=book.id).delete()
 
     @classmethod
     async def increment_book_current_chapter(cls, book: Book) -> Book:

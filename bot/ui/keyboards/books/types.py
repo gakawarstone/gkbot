@@ -38,6 +38,7 @@ class _Buttons:
     add_new_book = '📘 Добавить книгу'
     my_books = '📚 Мои книги'
     update_book = '✏️ Изменить книгу'
+    delete_book = '❌ Удалить книгу'
     exit = '🚪 Выйти'
 
 
@@ -47,3 +48,4 @@ class _Events:
     increment = 'inc'
     decrement = 'dec'
     edit = 'edt'
+    delete = 'del'
