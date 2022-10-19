@@ -11,11 +11,11 @@ python-dotenv = "*"
 gTTS = "*"
 wikipedia = "*"
 beautifulsoup4 = "*"
-tiktok-downloader = {git = "https://github.com/krypton-byte/tiktok-downloader"} 
+tiktok-downloader = { git = "https://github.com/krypton-byte/tiktok-downloader" }
 translate = "*"
 youtube-search = "*"
 tortoise-orm = "*"
-pytube = {git = "https://github.com/msemple1111/pytube"}
+pytube = { git = "https://github.com/msemple1111/pytube" }
 
 [dev-packages]
 autopep8 = "*"
@@ -26,7 +26,7 @@ pytest = "*"
 black = "*"
 pytest-cov = "*"
 pytest-asyncio = "*"
-pytest-tornasync = "*" 
+pytest-tornasync = "*"
 pytest-trio = "*"
 pytest-twisted = "*"
 twisted = "*"
@@ -41,3 +41,4 @@ init = "sh -c 'python scripts/init.py'"
 bot = "sh -c 'python bot/main.py'"
 test = "sh -c 'pytest --cov-report=html'"
 lock = "sh -c 'pipenv lock --requirements > requirements.txt'"
+prod = "sh -c 'nohup pipenv run bot &'"
