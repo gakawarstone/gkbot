@@ -9,8 +9,8 @@ from .restart import ask_to_restart
 
 
 class PomodoroHandler(BaseHandler):
-    __time_focused = 15
-    __time_relax = 15
+    __time_focused = 15 * 60
+    __time_relax = 15 * 60
 
     async def handle(self) -> Any:
         await self.event.answer(
