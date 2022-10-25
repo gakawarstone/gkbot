@@ -45,7 +45,7 @@ async def get_deadline(message: Message, state: FSMContext):
         await row.set_date('Deadline', deadline)
         await row.set_select('Status', 'Не начато')
         await message.answer('Спасибо')
-    except(Exception):
+    except (Exception):
         await state.set_state(FSM.deadline)
         await message.answer('Дата некорректна [01.01.1970]')
 

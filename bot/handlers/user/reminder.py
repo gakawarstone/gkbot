@@ -48,7 +48,7 @@ async def get_remind_date(message: Message, state: FSMContext, data: dict):
         await state.set_state(FSM.get_remind_time)
         data['date'] = validate_date(message.text)
         await rc.set_remind_date(data['date'].strftime('%d.%m.%Y'))
-    except(Exception):
+    except (Exception):
         await state.set_state(FSM.get_remind_date)
         await rc.set_status_message('❌<b>Формат [30.12.2021]</b>❌')
         data['mes_date'] = await data['mes_date'].send_copy(
