@@ -15,7 +15,7 @@ tiktok-downloader = { git = "https://github.com/krypton-byte/tiktok-downloader" 
 translate = "*"
 youtube-search = "*"
 tortoise-orm = "*"
-pytube = { git = "https://github.com/msemple1111/pytube" }
+pytube = "==12.1.0"
 
 [dev-packages]
 autopep8 = "*"
