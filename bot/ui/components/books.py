@@ -6,6 +6,6 @@ class BookComponent:
     def render(cls, book: Book) -> str:
         text = f'✍ Название :: {book.name}\n\n'
         text += f'🗿 Автор :: {book.author}\n\n'
-        text += '📈 Прогресс(главы) :: '
+        text += '📈 Прогресс :: '
         text += f'<b>{book.current_chapter}</b> из {book.chapters_cnt}'
         return text
