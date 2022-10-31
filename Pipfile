@@ -19,17 +19,11 @@ pytube = "==12.1.0"
 
 [dev-packages]
 autopep8 = "*"
-cx-freeze = "*"
 ipykernel = "*"
 flake8 = "*"
 pytest = "*"
-black = "*"
 pytest-cov = "*"
 pytest-asyncio = "*"
-pytest-tornasync = "*"
-pytest-trio = "*"
-pytest-twisted = "*"
-twisted = "*"
 mypy = "*"
 pip = "*"
 
