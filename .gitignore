@@ -13,3 +13,4 @@ log.txt
 .venv
 **/.mypy_cache
 *.db*
+.coverage
