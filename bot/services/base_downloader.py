@@ -1,3 +1,5 @@
+import asyncio
+from time import time
 import aiohttp
 import requests
 from bs4 import BeautifulSoup
@@ -19,6 +21,6 @@ class BaseDownloader:
 
     @staticmethod  # FIXME tt dl used func like this
     async def _download_file_from_url(url: str) -> bytes:
-        async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession(conn_timeout=None) as session:
             async with session.get(url, headers=_headers) as response:
                 return await response.content.read()
