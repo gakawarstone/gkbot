@@ -22,7 +22,7 @@ async def add(message: Message, state: FSMContext):
     await state.set_state(FSM.name)
     await message.answer('Вы пытаетесь добавить строчку в базу заданий')
     await message.answer('Отправьте мне название задачи')
-    global row  # FIXME
+    global row  # FIXME use user data middleware
     row = await tasks.add_row()
 
 
