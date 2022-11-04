@@ -1,9 +1,12 @@
-from importlib.machinery import PathFinder
 import re
 from typing import Optional
 
-import wikipedia
-from wikipedia.exceptions import DisambiguationError, PageError
+import wikipedia  # type: ignore
+from wikipedia import DisambiguationError, PageError  # type: ignore
+
+
+class QuoteNotFound(Exception):
+    'Couldn\'t find quote in wikipedia'
 
 
 class WikiApi:
@@ -17,9 +20,14 @@ class WikiApi:
         return wikipedia.search(text)
 
     @classmethod
-    def get_quote(cls, text: str, sentences: int = 4) -> Optional[str]:
-        for topic in cls.__search_for_topic(text):
+    def get_quote(cls, text: str, sentences: int = 4) -> str:
+        if not (topics := cls.__search_for_topic(text)):
+            raise QuoteNotFound
+
+        for topic in topics:
             try:
                 return wikipedia.summary(topic, sentences=sentences)
             except (DisambiguationError, PageError):
                 continue
+
+        raise QuoteNotFound
