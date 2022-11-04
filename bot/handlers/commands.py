@@ -1,4 +1,4 @@
-from typing import Awaitable
+from typing import Awaitable, Callable
 
 from aiogram import Router
 from aiogram.filters import Command
@@ -10,7 +10,9 @@ from .user import shiki, tasks
 from .user import text_to_speech as tts
 from .user import wiki
 
-users: dict[str, Awaitable] = {
+# FIXME Deprecated move to settings structure like commands.start
+
+users: dict[str, Callable[..., Awaitable]] = {
     'add_task': tasks.add,
     'trash': braintrash.write,
     'start': start.start,
