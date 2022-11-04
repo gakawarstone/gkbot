@@ -26,6 +26,7 @@ pytest-cov = "*"
 pytest-asyncio = "*"
 mypy = "*"
 pip = "*"
+pytest-tornasync = "*"
 
 [requires]
 python_version = "3.10"
@@ -33,6 +34,7 @@ python_version = "3.10"
 [scripts]
 init = "sh -c 'python scripts/init.py'"
 bot = "sh -c 'python bot/main.py'"
-test = "sh -c 'pytest --cov-report=html'"
+test_legacy = "sh -c 'pytest --cov-report=html'"
+test = "cd bot && pytest"
 lock = "sh -c 'pipenv lock --requirements > requirements.txt'"
 prod = "sh -c 'nohup pipenv run bot &'"

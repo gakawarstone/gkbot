@@ -42,6 +42,7 @@ MODELS = [
     'models.users',
     'models.road',
     'models.books',
+    'models.timezone',
 ]
 
 

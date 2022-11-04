@@ -4,12 +4,12 @@
 
 	// List of extensions which should be recommended for users of this workspace.
 	"recommendations": [
-        "SanaAjani.taskrunnercode",
-        "FedericoVarela.pipenv-scripts",
-        "ms-python.python",
-        "rangav.vscode-thunder-client",
-        "streetsidesoftware.code-spell-checker",
-        "EditorConfig.EditorConfig",
-        "Gruntfuggly.todo-tree"
-	],
+                "sanaajani.taskrunnercode",
+                "federicovarela.pipenv-scripts",
+                "ms-python.python",
+                "rangav.vscode-thunder-client",
+                "streetsidesoftware.code-spell-checker",
+                "editorconfig.editorconfig",
+                "gruntfuggly.todo-tree"
+        ],
 }

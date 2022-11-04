@@ -11,6 +11,7 @@ from . import shiki
 from . import admins as adm
 from . import timer
 from . import books
+from . import timezone
 
 
 def setup(r: Router):
@@ -25,3 +26,4 @@ def setup(r: Router):
     adm.setup(r)
     timer.setup(r)
     books.setup(r)
+    timezone.setup(r)
