@@ -55,8 +55,10 @@ class Row(Page):
         await self.set_properties(properties)
 
     async def set_date(self, property_name: str, date: datetime):
-        date = datetime.strftime(date, '%Y-%m-%d')
-        await self.set_properties({property_name: {'date': {'start': date}}})
+        date_as_string = datetime.strftime(date, '%Y-%m-%d')
+        await self.set_properties({
+            property_name: {'date': {'start': date_as_string}}
+        })
 
     async def set_select(self, property_name: str, select: str):
         properties = {property_name: {'select': {'name': select}}}

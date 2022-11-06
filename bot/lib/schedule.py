@@ -1,11 +1,11 @@
 import asyncio
 from datetime import datetime, timezone, timedelta
-from typing import Awaitable, Any
+from typing import Awaitable, Any, Callable
 from typing import Tuple
 
 
 class Task:
-    def __init__(self, func: Awaitable, args: list[Any] = None) -> None:
+    def __init__(self, func: Callable[..., Awaitable], args: list[Any] = None) -> None:
         self.__func = func
         self.__args = args
 

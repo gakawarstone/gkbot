@@ -31,7 +31,7 @@ class Reminder:
         )
 
     @classmethod
-    def add_remind_today(user_id: int, time: time, text: str) -> None:
+    def add_remind_today(cls, user_id: int, time: time, text: str) -> None:
         # TODO
         pass
 
