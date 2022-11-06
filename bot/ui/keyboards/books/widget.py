@@ -17,7 +17,7 @@ class WidgetMarkup(BaseMarkup):
             [
                 [
                     InlineKeyboardButton(
-                        text='Прогресс:',  # [ ] edit progress
+                        text='Прогресс:',
                         callback_data=(
                             f'{PropertiesMarkup.prefix}:'
                             f'{_BookProperties.PROGRESS.value.name_in_db}:'
