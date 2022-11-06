@@ -1,9 +1,12 @@
 import asyncio
 
 from aiogram import Router
+from aiogram.filters import Command
 from aiogram.filters.state import State, StateFilter, StatesGroup
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
+
+from settings import USER_COMMANDS
 
 
 class FSM(StatesGroup):
@@ -36,3 +39,4 @@ async def spam(message: Message, state: FSMContext):
 def setup(r: Router):
     r.message.register(start, StateFilter(state=FSM.start))
     r.message.register(spam, StateFilter(state=FSM.spam))
+    r.message.register(start, Command(commands=USER_COMMANDS.bomber))

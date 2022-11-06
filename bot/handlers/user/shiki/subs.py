@@ -1,9 +1,11 @@
 from aiogram import Router
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
+from aiogram.filters import Command
 from aiogram.filters.state import State, StateFilter, StatesGroup
 
 from services.shiki import UserUpdatesDispatcher, InvalidUserException
+from settings import USER_COMMANDS
 
 
 class FSM(StatesGroup):
@@ -33,3 +35,4 @@ async def get_name(message: Message, state: FSMContext):
 def setup(r: Router):
     r.message.register(subscribe, StateFilter(state=FSM.subscribe))
     r.message.register(get_name, StateFilter(state=FSM.get_name))
+    r.message.register(subscribe, Command(commands=USER_COMMANDS.sub))

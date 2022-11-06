@@ -2,19 +2,15 @@ from aiogram import Router
 from aiogram.types import Message
 from aiogram.filters import Command
 
-from .commands import users
+from settings import USER_COMMANDS
 
 
 async def list_of_commands(message: Message):
-    # NOTE r.message.handlers
     text = 'Привет вот список команд которые есть в боте:\n\n'
-    for cmd in users:
+    for cmd in USER_COMMANDS.as_list():
         text += '/%s\n' % cmd
     await message.answer(text)
 
 
 def setup(r: Router):
-    r.message.register(
-        list_of_commands,
-        Command(commands='list')
-    )
+    r.message.register(list_of_commands, Command(commands=USER_COMMANDS.list))

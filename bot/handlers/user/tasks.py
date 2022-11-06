@@ -4,8 +4,10 @@ from aiogram import Router
 from aiogram.filters.state import State, StateFilter, StatesGroup
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
+from aiogram.filters import Command
 
 from services.notion_api import Database
+from settings import USER_COMMANDS
 
 tasks = Database("67f38400c29f4137ac285fe6569567e2")
 
@@ -55,3 +57,4 @@ def setup(r: Router):
     r.message.register(get_name, StateFilter(state=FSM.name))
     r.message.register(get_subject, StateFilter(state=FSM.subject))
     r.message.register(get_deadline, StateFilter(state=FSM.deadline))
+    r.message.register(add, Command(commands=USER_COMMANDS.add_tasks))

@@ -1,6 +1,7 @@
 from datetime import date, datetime, time, timedelta
 
 from aiogram import Router
+from aiogram.filters import Command
 from aiogram.filters.state import State, StateFilter, StatesGroup
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
@@ -8,6 +9,8 @@ from aiogram.types import Message
 from services.reminder import Reminder
 from ui.components.remind_creator import RemindCreator
 from ui.keyboards.reminder import RemindMarkup
+
+from settings import USER_COMMANDS
 
 # [ ] add menu set repeatable notifications
 # NOTE Class based handlers?
@@ -88,3 +91,4 @@ def setup(r: Router):
     r.message.register(get_remind_date, StateFilter(state=FSM.get_remind_date))
     r.message.register(get_remind_text, StateFilter(state=FSM.get_remind_text))
     r.message.register(get_remind_time, StateFilter(state=FSM.get_remind_time))
+    r.message.register(add, Command(commands=USER_COMMANDS.add_remind))

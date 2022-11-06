@@ -4,6 +4,7 @@ import logging.config
 
 from dotenv import load_dotenv
 
+from lib.commands import Commands
 from lib.bot import BotManager
 from lib.schedule import Schedule
 from services.shiki.dispatcher import UserUpdatesDispatcher
@@ -63,3 +64,19 @@ TASKS_ON_STARTUP = [
     UserUpdatesDispatcher.set_bot(mng.bot).on_startup(),
     Notifier.setup(mng.bot, ADMINS),
 ]
+
+
+class _UserCommands(Commands):
+    add_tasks = 'add_tasks'
+    trash = 'trash'
+    start = 'start'
+    bomber = 'bomber'
+    add_remind = 'add_remind'
+    tts = 'tts'
+    wiki = 'wiki'
+    shiki = 'shiki'
+    sub = 'sub'
+    list = 'list'
+
+
+USER_COMMANDS = _UserCommands()

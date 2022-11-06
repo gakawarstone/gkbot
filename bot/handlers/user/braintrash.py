@@ -7,6 +7,7 @@ from aiogram.fsm.context import FSMContext
 from filters.bot_admin import BotAdmin
 from services.notion_api import Page
 from ui.keyboards.url_button import UrlButtonMarkup
+from settings import USER_COMMANDS
 
 # [ ] move page id to settings | env
 braintrash = Page('98997f76b28d48cb946d04e32b540e64')
@@ -46,5 +47,6 @@ def setup(r: Router):
     r.message.register(get_message, StateFilter(state=FSM.get_message))
     r.message.register(
         get_all_data,
-        Command(commands='get_trash') & BotAdmin()
+        Command(commands='get_trash') & BotAdmin()  # [ ] admin command
     )
+    r.message.register(write, Command(commands=USER_COMMANDS.trash))

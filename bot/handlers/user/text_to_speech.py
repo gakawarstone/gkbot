@@ -2,10 +2,13 @@ from io import BytesIO
 
 import gtts
 from aiogram import Router
+from aiogram.filters import Command
 from aiogram.filters.state import State, StateFilter, StatesGroup
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 from aiogram.types.input_file import BufferedInputFile
+
+from settings import USER_COMMANDS
 
 
 class FSM(StatesGroup):
@@ -31,3 +34,4 @@ async def msg_to_voice(message: Message, state: FSMContext):
 def setup(r: Router):
     r.message.register(start, StateFilter(state=FSM.start))
     r.message.register(msg_to_voice, StateFilter(state=FSM.msg_to_voice))
+    r.message.register(start, Command(commands=USER_COMMANDS.tts))
