@@ -27,6 +27,7 @@ pytest-asyncio = "*"
 mypy = "*"
 pip = "*"
 pytest-tornasync = "*"
+types-requests = "*"
 
 [requires]
 python_version = "3.10"
