@@ -25,7 +25,6 @@ async def choose_property_to_edit(message: Message, book: Book):
 
 
 async def init(message: Message, state: FSMContext, data: dict):
-    await message.delete()
     text = f'Введите новое значение для {data["book_property_name"]}'
     await message.answer(text)
     await state.set_state(FSM.change_book_property)

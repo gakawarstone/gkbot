@@ -3,7 +3,8 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from models.books import Book
 from .base import BaseMarkup
-from .types import _Events
+from .types import _Events, _BookProperties
+from .edit_properties import PropertiesMarkup
 
 
 class WidgetMarkup(BaseMarkup):
@@ -17,7 +18,11 @@ class WidgetMarkup(BaseMarkup):
                 [
                     InlineKeyboardButton(
                         text='Прогресс:',  # [ ] edit progress
-                        callback_data='void'
+                        callback_data=(
+                            f'{PropertiesMarkup.prefix}:'
+                            f'{_BookProperties.PROGRESS.value.name_in_db}:'
+                            f'{book.id}'
+                        )
                     ),
                     InlineKeyboardButton(
                         text='-',
