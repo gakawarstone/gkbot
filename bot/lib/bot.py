@@ -1,6 +1,8 @@
 import asyncio
 from typing import Coroutine, Any
 
+from aiogram.client.session.aiohttp import AiohttpSession
+from aiogram.client.telegram import TelegramAPIServer
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.types import Message
@@ -12,7 +14,11 @@ class BotManager:
     __loop = asyncio.get_event_loop()
 
     def __init__(self, token: str):
-        self.bot = Bot(token=token, parse_mode=self.__parse_mode)
+        session = AiohttpSession(
+            api=TelegramAPIServer.from_base('http://localhost:8081')
+        )
+        self.bot = Bot(
+            token=token, parse_mode=self.__parse_mode, session=session)
         self.dp = Dispatcher(storage=self.__storage)
         self.__tasks_on_startup = []
 
