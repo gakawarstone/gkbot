@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from settings import mng
+
+from aiogram import Bot
 
 
 class BaseComponent(ABC):
@@ -9,6 +10,10 @@ class BaseComponent(ABC):
         self._state = None
         self.__rendered_text = None
 
+    @classmethod
+    async def setup(cls, bot: Bot) -> None:
+        cls.__bot = bot
+
     @property
     @abstractmethod
     async def content(self):
@@ -16,7 +21,7 @@ class BaseComponent(ABC):
 
     async def _render(self):
         if not self.__message:
-            self.__message = await mng.send_message(
+            self.__message = await self.__bot.send_message(
                 self.user_id, await self.content)
         elif await self.content != self.__rendered_text:
             await self.__message.edit_text(await self.content)

@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 from datetime import datetime, time
 
-from settings import mng
+from aiogram import Bot
+
 from lib.schedule import Schedule, Task
 
 
@@ -13,7 +14,9 @@ class Remind:
 
 
 class Reminder:
-    __bot = mng  # FIXME
+    @classmethod
+    async def setup(cls, bot: Bot) -> None:
+        cls.__bot = bot
 
     @classmethod
     def add_remind(cls, user_id: int, date_time: datetime, text: str) -> None:

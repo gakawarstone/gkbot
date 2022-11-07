@@ -4,14 +4,6 @@ import logging.config
 
 from dotenv import load_dotenv
 
-from lib.commands import Commands
-from lib.bot import BotManager
-from lib.schedule import Schedule
-from services.shiki.dispatcher import UserUpdatesDispatcher
-from utils.commands import DefaultCommands
-from utils.notify import Notifier
-import models
-
 
 # Logging config
 logging.basicConfig(level=logging.WARNING,
@@ -21,13 +13,11 @@ logger = logging.getLogger(__name__)
 
 # Environmental variables
 load_dotenv()
+
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 NOTION_API_TOKEN = os.getenv('NOTION_API_TOKEN')
 DB_URL = os.getenv('DB_URL')
-
-
-# Main objects
-mng = BotManager(BOT_TOKEN)
+API_SERVER_URL = os.getenv('API_SERVER_URL')
 
 
 ADMINS = [
@@ -50,13 +40,5 @@ DEFAULT_COMMANDS = {
     'add_remind': 'add remind',
     'start_timer': 'start timer',
     'admins': 'tag all admins',
+    'books': 'personal book shelf',
 }
-
-
-TASKS_ON_STARTUP = [
-    models.setup(DB_URL, MODELS),
-    DefaultCommands(mng.bot).set(DEFAULT_COMMANDS),
-    Schedule.on_startup(),
-    UserUpdatesDispatcher.set_bot(mng.bot).on_startup(),
-    Notifier.setup(mng.bot, ADMINS),
-]
