@@ -1,5 +1,3 @@
-from typing_extensions import Self
-
 from aiogram import Bot
 
 
@@ -12,7 +10,7 @@ class Notifier:
     __initialized = False
 
     @classmethod
-    async def setup(cls, bot: Bot, admins: list[int]) -> Self:
+    async def setup(cls, bot: Bot, admins: list[int]) -> None:
         cls.__bot = bot
         cls.__admins = admins
         cls.__initialized = True
