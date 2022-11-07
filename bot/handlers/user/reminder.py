@@ -10,7 +10,7 @@ from services.reminder import Reminder
 from ui.components.remind_creator import RemindCreator
 from ui.keyboards.reminder import RemindMarkup
 
-from settings import USER_COMMANDS
+from ._commands import USER_COMMANDS
 
 # [ ] add menu set repeatable notifications
 # NOTE Class based handlers?

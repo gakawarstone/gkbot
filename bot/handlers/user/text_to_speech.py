@@ -8,7 +8,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 from aiogram.types.input_file import BufferedInputFile
 
-from settings import USER_COMMANDS
+from ._commands import USER_COMMANDS
 
 
 class FSM(StatesGroup):

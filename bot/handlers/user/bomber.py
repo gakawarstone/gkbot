@@ -6,7 +6,7 @@ from aiogram.filters.state import State, StateFilter, StatesGroup
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
-from settings import USER_COMMANDS
+from ._commands import USER_COMMANDS
 
 
 class FSM(StatesGroup):

@@ -5,7 +5,7 @@ from aiogram.filters import Command
 from aiogram.filters.state import State, StateFilter, StatesGroup
 
 from services.shiki import UserUpdatesDispatcher, InvalidUserException
-from settings import USER_COMMANDS
+from .._commands import USER_COMMANDS
 
 
 class FSM(StatesGroup):

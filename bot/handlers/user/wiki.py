@@ -8,7 +8,7 @@ from aiogram.filters.state import State, StateFilter, StatesGroup
 
 from services.wiki import WikiApi, QuoteNotFound
 
-from settings import USER_COMMANDS
+from ._commands import USER_COMMANDS
 
 logger = logging.getLogger(__name__)
 

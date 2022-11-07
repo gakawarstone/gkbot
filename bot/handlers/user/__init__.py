@@ -12,6 +12,7 @@ from . import admins as adm
 from . import timer
 from . import books
 from . import timezone
+from . import list
 
 
 def setup(r: Router):
@@ -27,3 +28,4 @@ def setup(r: Router):
     timer.setup(r)
     books.setup(r)
     timezone.setup(r)
+    list.setup(r)

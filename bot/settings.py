@@ -25,10 +25,6 @@ BOT_TOKEN = os.getenv('BOT_TOKEN')
 NOTION_API_TOKEN = os.getenv('NOTION_API_TOKEN')
 DB_URL = os.getenv('DB_URL')
 
-logger.info('BOT_TOKEN = ' + BOT_TOKEN)
-logger.info('NOTION_API_TOKEN = ' + NOTION_API_TOKEN)
-logger.info('DB_URL = ' + DB_URL)
-
 
 # Main objects
 mng = BotManager(BOT_TOKEN)
@@ -64,19 +60,3 @@ TASKS_ON_STARTUP = [
     UserUpdatesDispatcher.set_bot(mng.bot).on_startup(),
     Notifier.setup(mng.bot, ADMINS),
 ]
-
-
-class _UserCommands(Commands):
-    add_tasks = 'add_tasks'
-    trash = 'trash'
-    start = 'start'
-    bomber = 'bomber'
-    add_remind = 'add_remind'
-    tts = 'tts'
-    wiki = 'wiki'
-    shiki = 'shiki'
-    sub = 'sub'
-    list = 'list'
-
-
-USER_COMMANDS = _UserCommands()

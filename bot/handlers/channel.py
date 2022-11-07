@@ -4,6 +4,8 @@ import aiogram
 
 logger = logging.getLogger(__name__)
 
+# FIXME deprecated move to channel dir as echo
+
 
 async def echo_post(message: aiogram.types.Message):
     logger.info(
