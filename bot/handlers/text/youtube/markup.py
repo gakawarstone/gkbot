@@ -1,7 +1,8 @@
-from aiogram import Router, F
+from aiogram import Router
 from aiogram.types import Message
 
 from ui.keyboards.youtube import YouTubeMarkup
+from filters.youtube import YouTubeVideoLink
 
 F: Message
 
@@ -17,7 +18,4 @@ async def add_download_markup(message: Message):
 
 
 def setup(r: Router):
-    r.message.register(
-        add_download_markup,
-        F.text.startswith('https://www.youtube.com')
-    )
+    r.message.register(add_download_markup, YouTubeVideoLink())
