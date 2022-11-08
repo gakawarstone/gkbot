@@ -5,11 +5,11 @@ from lib.bot import BotManager
 from lib.schedule import Schedule
 from services.reminder import Reminder
 from services.shiki.dispatcher import UserUpdatesDispatcher
-from settings import ADMINS, BOT_TOKEN, DB_URL, DEFAULT_COMMANDS, MODELS
-from settings import API_SERVER_URL
+from settings import (ADMINS, API_SERVER_URL, BOT_TOKEN, DB_URL,
+                      DEFAULT_COMMANDS, MODELS)
+from ui.components.base import BaseComponent
 from utils.commands import DefaultCommands
 from utils.notify import Notifier
-from ui.components.base import BaseComponent
 
 mng = BotManager(BOT_TOKEN, API_SERVER_URL)
 
