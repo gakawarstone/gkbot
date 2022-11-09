@@ -14,11 +14,18 @@ class InfoVideoTikTok:
     music_url: str
 
 
+class SerializationError(Exception):
+    'failed to serialize'
+
+
 def info_video_tiktok_serializer(data: dict) -> InfoVideoTikTok:
-    return InfoVideoTikTok(
-        video_url=data['nwm_video_url'],
-        music_url=data['video_music_url']
-    )
+    try:
+        return InfoVideoTikTok(
+            video_url=data['nwm_video_url'],
+            music_url=data['video_music_url']
+        )
+    except KeyError:
+        raise SerializationError
 
 
 class TikTokInvalidUrl(Exception):
@@ -56,7 +63,7 @@ class TikTokDownloader:
                     return info_video_tiktok_serializer(
                         await response.json()
                     )
-        except ContentTypeError:
+        except (ContentTypeError, SerializationError):
             return await cls.__get_video_info_from_snaptik(url)
         except KeyError:
             raise TikTokInvalidUrl(url)
