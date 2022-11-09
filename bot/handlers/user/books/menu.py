@@ -31,6 +31,7 @@ async def check_menu_command(message: Message, state: FSMContext):
             await delete.show_list_to_delete(message)
         case _:
             await state.set_state(FSM.check_menu_command)
+            await message.answer('Для выхода введите q')
 
 
 def setup(r: Router):
