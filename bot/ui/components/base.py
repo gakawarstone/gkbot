@@ -1,29 +1,16 @@
-from abc import ABC, abstractmethod
-
-from aiogram import Bot
+from typing import Any
 
 
-class BaseComponent(ABC):
-    def __init__(self, user_id: int) -> None:
-        self.user_id = user_id
-        self.__message = None
-        self._state = None
-        self.__rendered_text = None
+class BaseComponent:
+    def _highlight_if(self, statement: bool, text: str) -> bool:
+        if not statement:
+            return text
+        return '<b>> ' + text + '</b>'
 
-    @classmethod
-    async def setup(cls, bot: Bot) -> None:
-        cls.__bot = bot
+    def _is_property_not_exist(self, prop: Any) -> bool:
+        return prop is None
 
-    @property
-    @abstractmethod
-    async def content(self):
-        pass
-
-    async def _render(self):
-        if not self.__message:
-            self.__message = await self.__bot.send_message(
-                self.user_id, await self.content)
-        elif await self.content != self.__rendered_text:
-            await self.__message.edit_text(await self.content)
-
-        self.__rendered_text = self.content
+    def _render_if_exist(self, prop: Any, text_else: str = '') -> str:
+        if prop is not None:
+            return prop + ' '
+        return text_else

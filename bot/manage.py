@@ -7,7 +7,6 @@ from services.reminder import Reminder
 from services.shiki.dispatcher import UserUpdatesDispatcher
 from settings import (ADMINS, API_SERVER_URL, BOT_TOKEN, DB_URL,
                       DEFAULT_COMMANDS, MODELS)
-from ui.components.base import BaseComponent
 from utils.commands import DefaultCommands
 from utils.notify import Notifier
 
@@ -20,7 +19,6 @@ TASKS_ON_STARTUP = [
     UserUpdatesDispatcher.set_bot(mng.bot).on_startup(),
     Notifier.setup(mng.bot, ADMINS),
     Reminder.setup(mng.bot),
-    BaseComponent.setup(mng.bot),
 ]
 
 
