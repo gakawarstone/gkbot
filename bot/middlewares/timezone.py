@@ -17,7 +17,7 @@ class TimeZoneMiddleware(BaseMiddleware):
             return await handler(event, data)
 
         try:
-            data['tz'] = await TimeZone.get_user_timezone(event.from_user.id)
+            data['data']['tz'] = await TimeZone.get_user_timezone(event.from_user.id)
             await handler(event, data)
         except UserDontHaveTimeZone:
             await event.answer('Необходима таймзона /set_tz')
