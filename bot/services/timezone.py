@@ -40,6 +40,8 @@ class TimeZone:
         seconds = tz.total_seconds()
         return _MIN_TZ <= seconds and seconds <= _MAX_TZ
 
-    @classmethod
+    @classmethod  # FIXME update or create didnt work
     async def _set_tz_by_user_id(cls, user_id: int, tz: timedelta) -> None:
-        await _TimeZone.update_or_create(user_id=user_id, tz=tz)
+        if await cls._get_tz_by_user_id(user_id):
+            await _TimeZone.filter(user_id=user_id).delete()
+        await _TimeZone.create(user_id=user_id, tz=tz)
