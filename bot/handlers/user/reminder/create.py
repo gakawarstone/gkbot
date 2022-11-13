@@ -1,5 +1,5 @@
 from typing import Any
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 from services.reminder import Reminder
@@ -15,5 +15,5 @@ class CreateRemindHandler(BaseHandler):
 
     @property
     def datetime(self) -> datetime:
-        # [ ] add timezone to combine
-        return datetime.combine(self.ctx.date, self.ctx.time)
+        tz = timezone(self.ctx.tz)
+        return datetime.combine(self.ctx.date, self.ctx.time, tz)

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime, time
+from datetime import datetime, timezone, timedelta
 
 from aiogram import Bot
 
@@ -20,8 +20,15 @@ class Reminder:
 
     @classmethod
     def add_remind(cls, user_id: int, date_time: datetime, text: str) -> None:
-        remind = Remind(user_id, date_time, text)
+        date_time_in_local = cls.__get_datetime_in_local_tz(date_time)
+        remind = Remind(user_id, date_time_in_local, text)
         cls.__add_message_to_schedule(remind)
+
+    @classmethod
+    def __get_datetime_in_local_tz(cls, date_time: datetime) -> datetime:
+        local_timezone = datetime.now(
+            timezone(timedelta(0))).astimezone().tzinfo
+        return date_time.astimezone(local_timezone)
 
     @classmethod
     def __add_message_to_schedule(cls, remind: Remind):
@@ -32,11 +39,6 @@ class Reminder:
             ),
             time=remind.date_time
         )
-
-    @classmethod
-    def add_remind_today(cls, user_id: int, time: time, text: str) -> None:
-        # TODO
-        pass
 
     @classmethod
     def __add_to_db(cls):

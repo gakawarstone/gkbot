@@ -1,4 +1,4 @@
-from datetime import date, time
+from datetime import date, time, timedelta
 from dataclasses import dataclass
 from typing import Optional, Any
 
@@ -15,6 +15,7 @@ class _Property:
 
 class _Properties:
     text = _Property('text', str)
+    tz = _Property('tz', timedelta)
     date = _Property('date', date)
     time = _Property('time', time)
     message = _Property('mes', Message)
@@ -23,6 +24,7 @@ class _Properties:
 @dataclass
 class _ReminderContext:
     text: Optional[_Properties.text.type]
+    tz: Optional[_Properties.tz.type]
     date: Optional[_Properties.date.type]
     time: Optional[_Properties.time.type]
     message: Optional[_Properties.message.type]
@@ -35,6 +37,7 @@ class ReminderContextManager(_BaseHandler):
     def ctx(self) -> _ReminderContext:
         return _ReminderContext(
             text=self._try_get_prop(self.props.text),
+            tz=self._try_get_prop(self.props.tz),
             date=self._try_get_prop(self.props.date),
             time=self._try_get_prop(self.props.time),
             message=self._try_get_prop(self.props.message)
@@ -46,9 +49,12 @@ class ReminderContextManager(_BaseHandler):
 
         self.user_data[prop.name] = value
 
-    def clean_context(self):
+    def clean_context(self, exclude: list[_Property] = []):
         for prop_name in dir(self.props):
             if prop_name.startswith('__'):
+                continue
+
+            if prop_name in [p.name for p in exclude]:
                 continue
 
             prop = getattr(self.props, prop_name)
