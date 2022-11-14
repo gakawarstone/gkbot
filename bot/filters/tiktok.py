@@ -10,6 +10,6 @@ class TikTokVideoLink(BaseFilter):
     )
 
     async def __call__(self, telegram_object: Message | InlineQuery):
-        if type(telegram_object) == Message:
-            return telegram_object.text.startswith(self.patterns)  # BUG
+        if isinstance(telegram_object, Message):
+            return telegram_object.text.startswith(self.patterns)
         return telegram_object.query.startswith(self.patterns)
