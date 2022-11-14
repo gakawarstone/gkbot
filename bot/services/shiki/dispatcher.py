@@ -1,7 +1,6 @@
 import asyncio
-from typing_extensions import Self
 
-from aiogram import Bot
+from lib.notifier import Notifier
 
 from .user_updates import User, Update, UserUpdates
 
@@ -32,11 +31,6 @@ class UserUpdatesDispatcher:
     subscriptions: list[_UserUpdatesSubscription] = []
 
     @classmethod
-    def set_bot(cls, bot: Bot) -> Self:
-        cls.bot = bot
-        return cls
-
-    @classmethod
     async def add_subscription(cls, chat_id, shiki_name) -> None:
         cls.subscriptions.append(
             await _UserUpdatesSubscription(chat_id, shiki_name).setup()
@@ -47,7 +41,7 @@ class UserUpdatesDispatcher:
         while True:
             for sub in cls.subscriptions:
                 if await sub.is_updated():
-                    await cls.bot.send_message(
+                    await Notifier.notify(
                         chat_id=sub.chat_id,
                         text=str(sub.last_update) + str(sub.user)
                     )

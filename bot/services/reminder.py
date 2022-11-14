@@ -1,8 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime, timezone, timedelta
 
-from aiogram import Bot
-
+from lib.notifier import Notifier
 from lib.schedule import Schedule, Task
 
 
@@ -14,10 +13,6 @@ class Remind:
 
 
 class Reminder:
-    @classmethod
-    async def setup(cls, bot: Bot) -> None:
-        cls.__bot = bot
-
     @classmethod
     def add_remind(cls, user_id: int, date_time: datetime, text: str) -> None:
         date_time_in_local = cls.__get_datetime_in_local_tz(date_time)
@@ -34,7 +29,7 @@ class Reminder:
     def __add_message_to_schedule(cls, remind: Remind):
         Schedule.add_task(
             task=Task(
-                func=cls.__bot.send_message,
+                func=Notifier.notify,
                 args=[remind.user_id, remind.text]
             ),
             time=remind.date_time

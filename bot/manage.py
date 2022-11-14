@@ -2,13 +2,11 @@ import handlers
 import middlewares
 import models
 from lib.bot import BotManager
+from lib.notifier import Notifier
 from lib.schedule import Schedule
-from services.reminder import Reminder
-from services.shiki.dispatcher import UserUpdatesDispatcher
-from settings import (ADMINS, API_SERVER_URL, BOT_TOKEN, DB_URL,
+from settings import (API_SERVER_URL, BOT_TOKEN, DB_URL,
                       DEFAULT_COMMANDS, MODELS)
 from utils.commands import DefaultCommands
-from utils.notify import Notifier
 
 mng = BotManager(BOT_TOKEN, API_SERVER_URL)
 
@@ -16,9 +14,7 @@ TASKS_ON_STARTUP = [
     models.setup(DB_URL, MODELS),
     DefaultCommands(mng.bot).set(DEFAULT_COMMANDS),
     Schedule.on_startup(),
-    UserUpdatesDispatcher.set_bot(mng.bot).on_startup(),
-    Notifier.setup(mng.bot, ADMINS),
-    Reminder.setup(mng.bot),
+    Notifier.setup(mng.bot),
 ]
 
 
