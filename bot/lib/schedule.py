@@ -24,18 +24,18 @@ class Schedule:
         cls.__tasks.append((task, time))
 
     @staticmethod
-    def __get_now_timestamp_with_tz(tz: timezone) -> float:
+    def __get_now_timestamp() -> float:
         return datetime.strptime(
-            datetime.now(tz).strftime('%d.%m.%Y_%H:%M'),
+            datetime.now().strftime('%d.%m.%Y_%H:%M'),
             '%d.%m.%Y_%H:%M'
         ).timestamp()
 
     @classmethod
     async def __check_if_task_now(
-            cls, tz: timezone = timezone(timedelta(hours=6.0))
+            cls
     ) -> None:
         for task, time in cls.__tasks:
-            if time.timestamp() <= cls.__get_now_timestamp_with_tz(tz):
+            if time.timestamp() <= cls.__get_now_timestamp():
                 await task.run()
                 cls.__tasks.remove((task, time))
 
