@@ -1,5 +1,5 @@
-from datetime import date, time, timedelta
 from dataclasses import dataclass
+from datetime import date, time, timedelta
 from typing import Optional
 
 from aiogram.types import Message
@@ -27,3 +27,7 @@ class _ReminderContext:
 class ReminderContextManager(BaseContextManager):
     props = _Properties
     _context_type = _ReminderContext
+
+    @property
+    def ctx(self) -> _ReminderContext:
+        return super().ctx
