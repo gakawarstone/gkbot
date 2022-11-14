@@ -2,17 +2,17 @@ import handlers
 import middlewares
 import models
 from lib.bot import BotManager
+from lib.default_commands import DefaultCommands
 from lib.notifier import Notifier
 from lib.schedule import Schedule
-from settings import (API_SERVER_URL, BOT_TOKEN, DB_URL,
-                      DEFAULT_COMMANDS, MODELS)
-from utils.commands import DefaultCommands
+from settings import (API_SERVER_URL, BOT_TOKEN, DB_URL, DEFAULT_COMMANDS,
+                      MODELS)
 
 mng = BotManager(BOT_TOKEN, API_SERVER_URL)
 
 TASKS_ON_STARTUP = [
     models.setup(DB_URL, MODELS),
-    DefaultCommands(mng.bot).set(DEFAULT_COMMANDS),
+    DefaultCommands(DEFAULT_COMMANDS).set(mng.bot),
     Schedule.on_startup(),
     Notifier.setup(mng.bot),
 ]
