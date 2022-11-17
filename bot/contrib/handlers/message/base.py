@@ -1,3 +1,4 @@
+from abc import ABC
 from typing import Any, Optional
 
 from aiogram.handlers import BaseHandler as _BaseHandler
@@ -5,7 +6,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
 
-class BaseHandler(_BaseHandler[Message]):
+class BaseHandler(_BaseHandler[Message], ABC):
     @property
     def user_data(self) -> dict:
         return self.data['data']
