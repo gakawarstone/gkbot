@@ -4,8 +4,9 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, ReplyKeyboardRemove
 
 from ui.keyboards.books import MenuMarkup
-from .messages import edit_property, show, delete
+from .messages import delete, show
 from .messages.add.start import InitAddBookHandler
+from .messages.edit_property.choose_book import choose_book
 from .states import FSM
 
 
@@ -24,7 +25,7 @@ async def check_menu_command(message: Message, state: FSMContext, data: dict):
         case MenuMarkup.buttons.my_books:
             await show.show_user_books(message, state)
         case MenuMarkup.buttons.update_book:
-            await edit_property.choose_book(message)
+            await choose_book(message)
         case MenuMarkup.buttons.exit | 'q':
             await state.set_state(FSM.finish)
             await message.answer('Пока', reply_markup=ReplyKeyboardRemove())

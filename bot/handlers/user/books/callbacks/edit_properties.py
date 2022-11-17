@@ -1,6 +1,6 @@
 from typing import Any
 
-from ..messages import edit_property
+from ..messages.edit_property.start import InitEditBookPropertyHandler
 from .base import BaseHandler
 
 
@@ -11,5 +11,6 @@ class EditHandler(BaseHandler):
         self.ctx['book_id'] = book.id
         self.ctx['book_property_name'] = event
 
-        await edit_property.init(self.event.message,
-                                 self.state, self.data['data'])
+        await InitEditBookPropertyHandler(
+            self.event.message, state=self.state, data=self.data['data']
+        ).handle()

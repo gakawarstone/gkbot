@@ -7,7 +7,7 @@ from services.books import BookService
 from ui.components.books import BookComponent
 from ui.keyboards.books import EventsMarkup, WidgetMarkup
 from .base import BaseHandler
-from ..messages import edit_property
+from ..messages.edit_property.choose_property import choose_property_to_edit
 
 
 class EventsHandler(BaseHandler):
@@ -26,8 +26,7 @@ class EventsHandler(BaseHandler):
                     book=await BookService.decrement_book_current_chapter(book)
                 )
             case EventsMarkup.events.edit:
-                await edit_property.choose_property_to_edit(
-                    self.event.message, book)
+                await choose_property_to_edit(self.event.message, book)
             case EventsMarkup.events.delete:
                 await BookService.delete_book(book)
                 await self.event.message.answer('Удалено')
