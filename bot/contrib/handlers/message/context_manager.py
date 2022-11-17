@@ -1,3 +1,4 @@
+from abc import ABC
 from typing import Any, Optional
 from dataclasses import dataclass
 
@@ -10,7 +11,7 @@ class Property:
     type: type
 
 
-class BaseContextManager(_BaseHandler):
+class BaseContextManager(_BaseHandler, ABC):
     props: Any
     _context_type = type
 
@@ -40,10 +41,11 @@ class BaseContextManager(_BaseHandler):
             if prop_name.startswith('__'):
                 continue
 
-            if prop_name in [p.name for p in exclude]:
+            prop: Property = getattr(self.props, prop_name)
+
+            if prop in exclude:
                 continue
 
-            prop = getattr(self.props, prop_name)
             self._reset_prop(prop)
 
     def _reset_prop(self, prop: Property) -> None:
