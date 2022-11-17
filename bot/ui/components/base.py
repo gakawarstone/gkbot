@@ -2,7 +2,7 @@ from typing import Any
 
 
 class BaseComponent:
-    def _highlight_if(self, statement: bool, text: str) -> bool:
+    def _highlight_if(self, statement: bool, text: str) -> str:
         if not statement:
             return text
         return '<b>> ' + text + '</b>'
