@@ -31,6 +31,6 @@ async def get_from_shiki(message: Message, state: FSMContext):
 
 
 def setup(r: Router):
-    r.message.register(get_updates, StateFilter(state=FSM.get_updates))
-    r.message.register(get_from_shiki, StateFilter(state=FSM.get_from_shiki))
+    r.message.register(get_updates, StateFilter(FSM.get_updates))
+    r.message.register(get_from_shiki, StateFilter(FSM.get_from_shiki))
     r.message.register(get_updates, Command(commands=USER_COMMANDS.shiki))

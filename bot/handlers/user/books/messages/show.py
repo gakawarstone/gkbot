@@ -22,5 +22,5 @@ async def show_user_books(message: Message, state: FSMContext):
 def setup(r: Router):
     r.message.register(
         show_user_books,
-        StateFilter(state=FSM.show_my_books)
+        StateFilter(FSM.show_my_books)
     )

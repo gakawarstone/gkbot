@@ -8,6 +8,6 @@ from .get_name import GetNameHandler
 
 
 def setup(r: Router):
-    r.message.register(GetNameHandler, StateFilter(state=FSM.get_name))
-    r.message.register(GetAuthorHandler, StateFilter(state=FSM.get_author))
-    r.message.register(GetChaptersCnt, StateFilter(state=FSM.get_chapters_cnt))
+    r.message.register(GetNameHandler, StateFilter(FSM.get_name))
+    r.message.register(GetAuthorHandler, StateFilter(FSM.get_author))
+    r.message.register(GetChaptersCnt, StateFilter(FSM.get_chapters_cnt))

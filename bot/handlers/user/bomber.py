@@ -37,6 +37,6 @@ async def spam(message: Message, state: FSMContext):
 
 
 def setup(r: Router):
-    r.message.register(start, StateFilter(state=FSM.start))
-    r.message.register(spam, StateFilter(state=FSM.spam))
+    r.message.register(start, StateFilter(FSM.start))
+    r.message.register(spam, StateFilter(FSM.spam))
     r.message.register(start, Command(commands=USER_COMMANDS.bomber))

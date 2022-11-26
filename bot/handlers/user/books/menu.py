@@ -4,6 +4,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, ReplyKeyboardRemove
 
 from ui.keyboards.books import MenuMarkup
+from .._commands import USER_COMMANDS
 from .messages import delete, show
 from .messages.add.start import InitAddBookHandler
 from .messages.edit_property.choose_book import choose_book
@@ -39,9 +40,9 @@ async def check_menu_command(message: Message, state: FSMContext, data: dict):
 def setup(r: Router):
     r.message.register(
         show_menu,
-        StateFilter(state=FSM.show_menu) | Command(commands=['books'])
+        StateFilter(FSM.show_menu) or Command(commands=USER_COMMANDS.books)
     )
     r.message.register(
         check_menu_command,
-        StateFilter(state=FSM.check_menu_command)
+        StateFilter(FSM.check_menu_command)
     )

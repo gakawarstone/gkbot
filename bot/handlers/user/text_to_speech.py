@@ -32,6 +32,6 @@ async def msg_to_voice(message: Message, state: FSMContext):
 
 
 def setup(r: Router):
-    r.message.register(start, StateFilter(state=FSM.start))
-    r.message.register(msg_to_voice, StateFilter(state=FSM.msg_to_voice))
+    r.message.register(start, StateFilter(FSM.start))
+    r.message.register(msg_to_voice, StateFilter(FSM.msg_to_voice))
     r.message.register(start, Command(commands=USER_COMMANDS.tts))

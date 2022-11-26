@@ -7,4 +7,4 @@ from ._states import FSM
 
 def setup(r: Router):
     r.message.register(GetNewPropertyValueHandler,
-                       StateFilter(state=FSM.get_new_value))
+                       StateFilter(FSM.get_new_value))

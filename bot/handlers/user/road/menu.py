@@ -22,4 +22,4 @@ async def choose_tool(message: Message, state: FSMContext, data: dict[str, Any])
 
 
 def setup(r: Router):
-    r.message.register(choose_tool, StateFilter(state=FSM.choose_tool))
+    r.message.register(choose_tool, StateFilter(FSM.choose_tool))

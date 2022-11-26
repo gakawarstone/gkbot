@@ -12,6 +12,10 @@ class _UserCommands(_Commands):
     shiki = 'shiki'
     sub = 'sub'
     list = 'list'
+    road = 'road'
+    get_trash = 'get_trash'
+    books = 'books'
+    start_timer = 'start_timer'
 
 
 USER_COMMANDS = _UserCommands()

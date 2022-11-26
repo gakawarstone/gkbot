@@ -1,5 +1,5 @@
 from aiogram import Router
-from aiogram.filters import Command
+from aiogram.filters import Command, and_f
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
@@ -14,8 +14,7 @@ async def tag_all_admins(message: Message, state: FSMContext):
 
 
 def setup(r: Router):
-    r.message.register(
-        tag_all_admins,
-        Command(commands=['admins']) &
+    r.message.register(tag_all_admins, and_f(
+        Command(commands=['admins']),
         ChatTypeFilter(chat_type=[ChatType.group, ChatType.super_group])
-    )
+    ))

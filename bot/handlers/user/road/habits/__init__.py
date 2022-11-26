@@ -38,7 +38,7 @@ async def get_habit_notify_time(message: Message, state: FSMContext, data: dict)
 
 
 def setup(r: Router):
-    r.message.register(get_habit_name, StateFilter(state=FSM.get_habit_name))
+    r.message.register(get_habit_name, StateFilter(FSM.get_habit_name))
     r.message.register(
-        get_habit_notify_time, StateFilter(state=FSM.get_habit_notify_time)
+        get_habit_notify_time, StateFilter(FSM.get_habit_notify_time)
     )

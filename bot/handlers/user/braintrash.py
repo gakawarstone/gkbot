@@ -1,5 +1,6 @@
 from aiogram import Router
 from aiogram.types import Message
+from aiogram.filters import and_f
 from aiogram.filters.command import Command
 from aiogram.filters.state import State, StateFilter, StatesGroup
 from aiogram.fsm.context import FSMContext
@@ -42,11 +43,11 @@ async def get_message(message: Message, state: FSMContext):
 
 
 def setup(r: Router):
-    r.message.register(write, StateFilter(state=FSM.write))
-    r.message.register(get_all_data, StateFilter(state=FSM.get_all_data))
-    r.message.register(get_message, StateFilter(state=FSM.get_message))
-    r.message.register(
-        get_all_data,
-        Command(commands='get_trash') & BotAdmin()  # [ ] admin command
-    )
+    r.message.register(write, StateFilter(FSM.write))
+    r.message.register(get_all_data, StateFilter(FSM.get_all_data))
+    r.message.register(get_message, StateFilter(FSM.get_message))
+    r.message.register(get_all_data, and_f(
+        Command(commands=USER_COMMANDS.get_trash),
+        BotAdmin()
+    ))  # [ ] admin command
     r.message.register(write, Command(commands=USER_COMMANDS.trash))

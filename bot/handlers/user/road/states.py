@@ -1,7 +1,7 @@
 from aiogram.filters.state import State, StatesGroup
 
 
-class FSM(StatesGroup):
+class _RoadFSM(StatesGroup):
     start = State()
     choose_tool = State()
     pomodoro = State()
@@ -9,3 +9,6 @@ class FSM(StatesGroup):
     get_habit_name = State()
     get_habit_notify_time = State()
     finish = State()
+
+
+FSM = _RoadFSM

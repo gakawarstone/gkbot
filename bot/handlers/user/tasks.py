@@ -53,8 +53,8 @@ async def get_deadline(message: Message, state: FSMContext):
 
 
 def setup(r: Router):
-    r.message.register(add, StateFilter(state=FSM.start))
-    r.message.register(get_name, StateFilter(state=FSM.name))
-    r.message.register(get_subject, StateFilter(state=FSM.subject))
-    r.message.register(get_deadline, StateFilter(state=FSM.deadline))
+    r.message.register(add, StateFilter(FSM.start))
+    r.message.register(get_name, StateFilter(FSM.name))
+    r.message.register(get_subject, StateFilter(FSM.subject))
+    r.message.register(get_deadline, StateFilter(FSM.deadline))
     r.message.register(add, Command(commands=USER_COMMANDS.add_tasks))

@@ -31,4 +31,4 @@ async def _set_timezone(message: Message, state: FSMContext):
 
 def setup(r: Router):
     r.message.register(init_timezone_set, Command(commands='set_tz'))
-    r.message.register(_set_timezone, StateFilter(state=FSM.set_timezone))
+    r.message.register(_set_timezone, StateFilter(FSM.set_timezone))

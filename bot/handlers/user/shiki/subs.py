@@ -33,6 +33,6 @@ async def get_name(message: Message, state: FSMContext):
 
 
 def setup(r: Router):
-    r.message.register(subscribe, StateFilter(state=FSM.subscribe))
-    r.message.register(get_name, StateFilter(state=FSM.get_name))
+    r.message.register(subscribe, StateFilter(FSM.subscribe))
+    r.message.register(get_name, StateFilter(FSM.get_name))
     r.message.register(subscribe, Command(commands=USER_COMMANDS.sub))

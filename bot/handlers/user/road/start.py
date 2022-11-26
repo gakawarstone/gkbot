@@ -1,10 +1,11 @@
 from aiogram import Router
-from aiogram.filters import StateFilter, Command
+from aiogram.filters import StateFilter, Command, or_f
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
 from settings import logger
 from ui.keyboards.road import RoadMarkup
+from .._commands import USER_COMMANDS
 from .states import FSM
 
 
@@ -26,5 +27,7 @@ async def start(message: Message, state: FSMContext):
 
 
 def setup(r: Router):
-    r.message.register(start,
-                       StateFilter(state=FSM.start) | Command(commands='road'))
+    r.message.register(start, or_f(
+        StateFilter(FSM.start),
+        Command(commands=USER_COMMANDS.road)
+    ))

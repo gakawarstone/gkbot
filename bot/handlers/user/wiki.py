@@ -37,6 +37,6 @@ async def get_data(message: Message, state: FSMContext):
 
 
 def setup(r: Router):
-    r.message.register(search, StateFilter(state=FSM.search))
-    r.message.register(get_data, StateFilter(state=FSM.get_data))
+    r.message.register(search, StateFilter(FSM.search))
+    r.message.register(get_data, StateFilter(FSM.get_data))
     r.message.register(search, Command(commands=USER_COMMANDS.wiki))

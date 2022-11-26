@@ -5,10 +5,10 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import Message, CallbackQuery
 
-from lib.bot import BotManager
 from services.timer import TimersManager
 from ui.keyboards.timer import TimerMarkup
 from ui.components.timer import TimerComponent
+from ._commands import USER_COMMANDS
 
 
 F: CallbackQuery
@@ -59,11 +59,11 @@ async def stop_timer(callback: CallbackQuery):
 def setup(r: Router):
     r.message.register(
         start_timer,
-        Command(commands=['start_timer'])
+        Command(commands=USER_COMMANDS.start_timer)
     )
     r.message.register(
         get_timer_name,
-        StateFilter(state=FSM.get_timer_name)
+        StateFilter(FSM.get_timer_name)
     )
     r.callback_query.register(
         stop_timer,
