@@ -30,7 +30,7 @@ pytest-tornasync = "*"
 types-requests = "*"
 
 [requires]
-python_version = "3.10"
+python_version = "3.11"
 
 [scripts]
 init = "sh -c 'python scripts/init.py'"
