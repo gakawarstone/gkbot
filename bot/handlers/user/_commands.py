@@ -16,6 +16,7 @@ class _UserCommands(_Commands):
     get_trash = 'get_trash'
     books = 'books'
     start_timer = 'start_timer'
+    platonus2indigo = 'platonus2indigo'
 
 
 USER_COMMANDS = _UserCommands()

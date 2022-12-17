@@ -13,6 +13,7 @@ from . import timer
 from . import books
 from . import timezone
 from . import list
+from . import platonus2indigo
 
 
 def setup(r: Router):
@@ -29,3 +30,4 @@ def setup(r: Router):
     books.setup(r)
     timezone.setup(r)
     list.setup(r)
+    platonus2indigo.setup(r)

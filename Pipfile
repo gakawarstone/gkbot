@@ -16,6 +16,7 @@ translate = "*"
 youtube-search = "*"
 tortoise-orm = "*"
 pytube = "==12.1.0"
+docx2txt = "*"
 
 [dev-packages]
 autopep8 = "*"
