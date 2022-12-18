@@ -41,4 +41,5 @@ DEFAULT_COMMANDS = {
     'start_timer': 'start timer',
     'admins': 'tag all admins',
     'books': 'personal book shelf',
+    'platonus2indigo': 'convert test',
 }
