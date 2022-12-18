@@ -14,13 +14,13 @@ class ConvertFileHandler(FileHandlerExtension):
         await self.state.set_state(FSM.finish)
 
         try:
-            bytes_list = (await self.document_io).readlines()
-            str_list = [l.decode('utf-8') for l in bytes_list]
-            text = ''.join(str_list)
-
+            text = DocxConverter.convert_to_str(await self.document_io)
         except NoFileException:
             await self.state.set_state(FSM.convert)
             await self.event.answer('Отправьте файл')
+        except ValueError:
+            await self.state.set_state(FSM.convert)
+            await self.event.answer('Формат <b>.docx</b>')
 
         chunks = Platonus2Indigo.get_lines_with_max_questions(
             text.splitlines(), 25)  # FIXME hardcore
