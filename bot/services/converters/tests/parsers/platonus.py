@@ -5,7 +5,7 @@ class PlatonusParser:
     __question_tag = '<question>'
     __choise_tag = '<variant>'
 
-    # FIXME if end ofl line is not empty last question isn't append
+    # FIXME: if end ofl line is not empty last question isn't append
     @classmethod
     def parse_lines(cls, lines: list[str]) -> list[Question]:
         questions = []
@@ -32,12 +32,12 @@ class PlatonusParser:
     @classmethod
     def _validate_question_buffer(cls, question_buffer) -> bool:
         if not question_buffer[0].strip().startswith(cls.__question_tag):
-            print(question_buffer[0])  # FIXME
+            print(question_buffer[0])  # FIXME:
             return False
 
         for line in question_buffer[1:]:
             if not line.strip().startswith(cls.__choise_tag):
-                print(line)  # FIXME
+                print(line)  # FIXME:
                 return False
 
         return True
