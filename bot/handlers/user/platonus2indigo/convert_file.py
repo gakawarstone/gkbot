@@ -25,7 +25,7 @@ class ConvertFileHandler(FileHandlerExtension):
         chunks = Platonus2Indigo.get_lines_with_max_questions(
             text.splitlines(), 25)  # FIXME hardcore
         for n, part in enumerate(chunks):
-            await self._send_lines_file(part, f'quest_{n}')
+            await self._send_lines_file(part, f'quest_{n}.txt')
 
     async def _send_lines_file(self, lines: list[str], file_name: str) -> None:
         output_file = BytesIO()
