@@ -4,6 +4,7 @@ from ..types import Question, Choise
 class PlatonusParser:
     __question_tag = '<question>'
     __choise_tag = '<variant>'
+    __tags = (__question_tag, __choise_tag)
 
     # FIXME: if end ofl line is not empty last question isn't append
     @classmethod
@@ -11,11 +12,13 @@ class PlatonusParser:
         questions = []
         question_buffer = []
         for line in lines:
-            if line.strip():
-                question_buffer.append(line)
-            elif len(question_buffer) > 2:
+            if line.strip().startswith(cls.__question_tag) and len(question_buffer) > 2:
                 questions.append(cls._process_question_buffer(question_buffer))
                 question_buffer = []
+            if line.strip().startswith(cls.__tags):
+                question_buffer.append(line.strip())
+        if len(question_buffer) > 2:
+            questions.append(cls._process_question_buffer(question_buffer))
         return questions
 
     @classmethod
@@ -33,11 +36,13 @@ class PlatonusParser:
     def _validate_question_buffer(cls, question_buffer) -> bool:
         if not question_buffer[0].strip().startswith(cls.__question_tag):
             print(question_buffer[0])  # FIXME:
+            print(question_buffer, 'FIRST')
             return False
 
         for line in question_buffer[1:]:
             if not line.strip().startswith(cls.__choise_tag):
                 print(line)  # FIXME:
+                print(question_buffer)
                 return False
 
         return True
@@ -53,4 +58,5 @@ class PlatonusParser:
             if line.startswith(tag):
                 return line.split(tag)[1]
         else:
+            print(line)
             return line
