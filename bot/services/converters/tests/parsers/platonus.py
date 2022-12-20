@@ -35,14 +35,10 @@ class PlatonusParser:
     @classmethod
     def _validate_question_buffer(cls, question_buffer) -> bool:
         if not question_buffer[0].strip().startswith(cls.__question_tag):
-            print(question_buffer[0])  # FIXME:
-            print(question_buffer, 'FIRST')
             return False
 
         for line in question_buffer[1:]:
             if not line.strip().startswith(cls.__choise_tag):
-                print(line)  # FIXME:
-                print(question_buffer)
                 return False
 
         return True
@@ -58,5 +54,4 @@ class PlatonusParser:
             if line.startswith(tag):
                 return line.split(tag)[1]
         else:
-            print(line)
             return line
