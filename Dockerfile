@@ -1,12 +1,16 @@
-FROM gakawarstone/pipenv
+FROM python:3.11-alpine
 
+# Add git
+RUN apk update
+RUN apk add git
 
-# Copy files
-COPY . ./app
-
+# Install requirments
+COPY ./requirements.txt ./app/requirements.txt
 WORKDIR /app
+RUN pip install -r requirements.txt
 
-# [ ] Database
-# Add dependencies and run bot
-RUN pipenv sync
-RUN pipenv run bot 
+# Copy project files
+COPY . .
+
+# Run
+CMD python bot/main.py
