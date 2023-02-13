@@ -1,16 +1,10 @@
 FROM python:3.11-alpine
 
-# Add git
-RUN apk update
-RUN apk add git
+RUN apk update && apk add git
 
-# Install requirments
-COPY ./requirements.txt ./app/requirements.txt
-WORKDIR /app
+COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 
-# Copy project files
-COPY . .
+COPY bot bot
 
-# Run
 CMD python bot/main.py

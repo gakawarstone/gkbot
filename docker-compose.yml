@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  gkbot:
+    build: .
+    image: gkbot
+    volumes:
+      - gkbot_data:/data
+    env_file: .env
+    container_name: gkbot
+volumes:
+  gkbot_data:

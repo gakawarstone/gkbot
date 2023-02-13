@@ -11,12 +11,12 @@ python-dotenv = "*"
 gTTS = "*"
 wikipedia = "*"
 beautifulsoup4 = "*"
-tiktok-downloader = { git = "https://github.com/krypton-byte/tiktok-downloader" }
 translate = "*"
 youtube-search = "*"
 tortoise-orm = "*"
 pytube = "==12.1.0"
 docx2txt = "*"
+tiktok-downloader = {git = "https://github.com/krypton-byte/tiktok-downloader"}
 
 [dev-packages]
 autopep8 = "*"
@@ -34,9 +34,12 @@ types-requests = "*"
 python_version = "3.11"
 
 [scripts]
-init = "sh -c 'python scripts/init.py'"
 bot = "sh -c 'python bot/main.py'"
-test_legacy = "sh -c 'pytest --cov-report=html'"
-test = "cd bot && pytest"
-lock = "sh -c 'pipenv lock --requirements > requirements.txt'"
+test = "pytest"
+lock = "sh -c 'pipenv requirements > requirements.txt'"
 prod = "sh -c 'nohup pipenv run bot &'"
+gitup = "git fetch && git pull"
+dbuild = "docker compose build"
+drun = "docker compose up -d"
+drestart = "docker compose restart"
+dstop = "docker compose stop"
