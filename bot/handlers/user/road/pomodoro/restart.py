@@ -3,12 +3,15 @@ from typing import Type, Union
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
+from contrib.handlers.message.base import BaseHandler
 from ui.keyboards.bool import BoolMarkup
 from utils.message import delete_previous_message
-from .base import BaseHandler
+# from .base import BaseHandler
 from ..states import FSM
 
 _Handler = Union[BaseHandler, Type[BaseHandler]]
+
+# TODO: move to contrib
 
 
 async def ask_to_restart(callback: _Handler, text: str):

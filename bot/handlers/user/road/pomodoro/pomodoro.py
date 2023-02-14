@@ -3,8 +3,8 @@ from typing import Any
 from aiogram.types import ReplyKeyboardRemove
 
 from services.pomodoro import Pomodoro as PomodoroService
+from contrib.handlers.message.base import BaseHandler
 from ui.widgets.timer import Timer
-from .base import BaseHandler
 from .restart import ask_to_restart
 
 
