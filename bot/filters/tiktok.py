@@ -1,15 +1,13 @@
+import re
+
 from aiogram.filters import BaseFilter
 from aiogram.types import Message, InlineQuery
 
 
 class TikTokVideoLink(BaseFilter):
-    patterns = (
-        'https://vm.tiktok.com/',
-        'https://vr.tiktok.com/',
-        'https://www.tiktok.com/'
-    )
+    pattern = re.compile(r'https://(www|vm|vr).tiktok.com/')
 
     async def __call__(self, telegram_object: Message | InlineQuery):
         if isinstance(telegram_object, Message):
-            return telegram_object.text.startswith(self.patterns)
-        return telegram_object.query.startswith(self.patterns)
+            return self.pattern.match(telegram_object.text)
+        return self.pattern.match(telegram_object.query)
