@@ -1,0 +1,23 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy with SSH
+        uses: fifsky/ssh-action@master
+        with:
+          command: |
+            cd github/gkbot
+            pipenv run gitup && pipenv run dbuild
+            pipenv run drestart || pipenv run drun
+          host: ${{ secrets.HOST }}
+          user: ${{ secrets.USER_NAME }}
+          key: ${{ secrets.PRIVATE_KEY }}
