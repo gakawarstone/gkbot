@@ -1,16 +1,17 @@
 Clone repo
 
-    git clone https://github.com/gakawarstone/tgnotion.git
+    git clone https://github.com/gakawarstone/gkbot.git
 
-Setup pipenv
+Init project environment (set your credentials in .env)
 
-    mkdir .venv
-    pipenv sync
-
-Init project environment
-
-    pipenv run init
+    cp .env.dist > .env
 
 Run with pipenv
 
+    mkdir .venv
+    pipenv sync
     pipenv run bot
+
+Or with docker-compose
+
+    docker compose up
