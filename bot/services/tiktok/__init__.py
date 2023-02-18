@@ -10,7 +10,7 @@ from .downloaders.snaptik import SnaptikDownloader, SnaptikDownloadFailed
 class TikTokDownloader:
     @classmethod
     async def get_video_url(cls, url: str) -> str:
-        return (await ProxyTok.get_video_info(url)).video_url
+        return (await ApiDownloader.get_video_info(url)).video_url
 
     @classmethod
     async def get_video_as_input_file(cls, url: str) -> BufferedInputFile:
