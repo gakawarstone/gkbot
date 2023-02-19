@@ -16,8 +16,8 @@ jobs:
         with:
           command: |
             cd github/gkbot
-            pipenv run gitup && pipenv run dbuild
-            pipenv run dstop && pipenv run drun
+            pipenv run gitup
+            pipenv run drestart
           host: ${{ secrets.HOST }}
           user: ${{ secrets.USER_NAME }}
           key: ${{ secrets.PRIVATE_KEY }}
