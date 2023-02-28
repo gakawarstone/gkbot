@@ -10,7 +10,13 @@ from .downloaders.snaptik import SnaptikDownloader, SnaptikDownloadFailed
 class TikTokDownloader:
     @classmethod
     async def get_video_url(cls, url: str) -> str:
-        return (await ApiDownloader.get_video_info(url)).video_url
+        # FIXME: raise cant get url in cdn
+        try:
+            return (await ApiDownloader.get_video_info(url)).video_url
+        except ApiDownloadFailed:
+            return (await SnaptikDownloader.get_video_info(url)).video_url
+        except SnaptikDownloadFailed:
+            raise TikTokDownloadFailed(url)
 
     @classmethod
     async def get_video_as_input_file(cls, url: str) -> BufferedInputFile:
@@ -32,6 +38,6 @@ class TikTokDownloader:
         except ApiDownloadFailed:
             video_url = (await SnaptikDownloader.get_video_info(url)).video_url
         except SnaptikDownloadFailed:
-            raise TikTokDownloadFailed
+            raise TikTokDownloadFailed(url)
 
         return await cls.__download_file_from_url(video_url)
