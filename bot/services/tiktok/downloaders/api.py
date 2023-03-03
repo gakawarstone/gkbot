@@ -5,15 +5,11 @@ from ..types import InfoVideoTikTok
 from ..serializers import info_video_tiktok_serializer
 from ..exceptions import SerializationError
 from ._base import BaseDownloader
-
-
-class ApiDownloadFailed(Exception):
-    pass
+from .exceptions import SourceDownloadFailed
 
 
 class ApiDownloader(BaseDownloader):
-    @classmethod
-    async def get_video_info(cls, url: str) -> InfoVideoTikTok:
+    async def get_video_info(self, url: str) -> InfoVideoTikTok:
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.get(
@@ -23,4 +19,4 @@ class ApiDownloader(BaseDownloader):
                         await response.json()
                     )
         except (ContentTypeError, SerializationError):
-            raise ApiDownloadFailed
+            raise SourceDownloadFailed(self)
