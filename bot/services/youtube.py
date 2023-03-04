@@ -1,16 +1,31 @@
 import asyncio
 from dataclasses import dataclass
 from io import BytesIO
+import os
 
-from aiogram.types import BufferedInputFile
-from pytube import YouTube as PyTube
+import yt_dlp
+from aiogram.types import BufferedInputFile, FSInputFile
+from pytube import YouTube as PyTube  # FIXME: theris ytinfo dependenci
+
+from pprint import pprint
 
 
 @dataclass
 class YouTubeAudio:
-    input_file: BufferedInputFile
+    input_file: BufferedInputFile | FSInputFile
     duration: int
     title: str
+
+
+ydl_opts = {
+    'format': 'm4a/bestaudio/best',
+    'outtmpl': 'video',
+    # ℹ️ See help(yt_dlp.postprocessor) for a list of available Postprocessors and their arguments
+    'postprocessors': [{  # Extract audio using ffmpeg
+        'key': 'FFmpegExtractAudio',
+        'preferredcodec': 'm4a',
+    }]
+}
 
 
 class YouTubeDownloader:
@@ -23,10 +38,12 @@ class YouTubeDownloader:
             title=info.title
         )
 
-    @classmethod
-    async def __get_input_file(cls, info: PyTube) -> BufferedInputFile:
-        audio = info.streams.get_audio_only()
-        loop = asyncio.get_event_loop()
-        await loop.run_in_executor(
-            None, audio.stream_to_buffer, buffer := BytesIO())
-        return BufferedInputFile(buffer.getvalue(), 'audio.mp3')
+    @classmethod  # FIXME: isnt async (!threadpoll because of race)
+    async def __get_input_file(cls, info: PyTube) -> FSInputFile:
+        if os.path.isfile('video.m4a'):
+            os.remove('video.m4a')
+
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            ydl.download(info.watch_url)
+
+        return FSInputFile('video.m4a', 'audio.mp3')
