@@ -14,9 +14,11 @@ beautifulsoup4 = "*"
 translate = "*"
 youtube-search = "*"
 tortoise-orm = "*"
-pytube = "==12.1.0"
 docx2txt = "*"
+varname = "*"
 tiktok-downloader = {git = "https://github.com/krypton-byte/tiktok-downloader"}
+yt-dlp = "*"
+pytube = "*"
 
 [dev-packages]
 autopep8 = "*"
