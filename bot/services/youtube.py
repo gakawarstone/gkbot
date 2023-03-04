@@ -1,13 +1,9 @@
-import asyncio
 from dataclasses import dataclass
-from io import BytesIO
 import os
 
 import yt_dlp
 from aiogram.types import BufferedInputFile, FSInputFile
 from pytube import YouTube as PyTube  # FIXME: theris ytinfo dependenci
-
-from pprint import pprint
 
 
 @dataclass
@@ -32,9 +28,14 @@ class YouTubeDownloader:
     @classmethod
     async def download_audio(cls, url: str) -> YouTubeAudio:
         info = PyTube(url)
+
+        duration = 0
+        if info.length:
+            duration = info.length
+
         return YouTubeAudio(
             input_file=await cls.__get_input_file(info),
-            duration=info.length,
+            duration=duration,
             title=info.title
         )
 
