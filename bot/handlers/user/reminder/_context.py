@@ -1,33 +1,20 @@
 from dataclasses import dataclass
 from datetime import date, time, timedelta
-from typing import Optional
+from typing import Optional, Type
 
 from aiogram.types import Message
 
-from contrib.handlers.message.context_manager import BaseContextManager, Property
-
-
-class _Properties:
-    text = Property('text', str)
-    tz = Property('tz', timedelta)
-    date = Property('date', date)
-    time = Property('time', time)
-    message = Property('mes', Message)
+from contrib.handlers.message.context_manager import BaseContextManager, BaseContext
 
 
 @dataclass
-class _ReminderContext:
-    text: Optional[_Properties.text.type]
-    tz: Optional[_Properties.tz.type]
-    date: Optional[_Properties.date.type]
-    time: Optional[_Properties.time.type]
-    message: Optional[_Properties.message.type]
+class _ReminderContext(BaseContext):
+    text: Optional[str] = None
+    tz: Optional[timedelta] = None
+    date: Optional[date] = None
+    time: Optional[time] = None
+    message: Optional[Message] = None
 
 
-class ReminderContextManager(BaseContextManager):
-    props = _Properties
-    _context_type = _ReminderContext
-
-    @property
-    def ctx(self) -> _ReminderContext:
-        return super().ctx
+class ReminderContextManager(BaseContextManager[_ReminderContext]):
+    props = _ReminderContext
