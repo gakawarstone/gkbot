@@ -1,44 +1,15 @@
 from abc import ABC
-from typing import Any, Optional, TypeVar, Generic, Type, get_type_hints
-from dataclasses import dataclass
+from typing import TypeVar, Type, Generic, Any, Optional
 
-from varname import nameof
+from ..base import BaseHandler as _BaseHandler
+from ._types import Property, BaseContext
+from ._utils import get_hint, make_prop
 
-from .base import BaseHandler as _BaseHandler
-
-_T = TypeVar('_T')
-
-
-@dataclass
-class _Property:
-    name: str
-    type: type
+_T = TypeVar('_T', bound=BaseContext)
 
 
-def uncast_opt(obj: Type) -> Type:
-    return obj.__args__[0]
-
-
-def get_hint(obj_parent: Any, obj_name: str) -> Type:
-    return uncast_opt(get_type_hints(obj_parent)[obj_name])
-
-
-def make_prop(obj: Any, obj_parent: Any, frame=3) -> _Property:
-    """Obj must have type hint"""
-    obj_name = nameof(obj, frame=frame)  # NOTE: in max frame?
-    return _Property(
-        name=obj_name,
-        type=get_hint(obj_parent, obj_name)
-    )
-
-
-# NOTE: is it required?
-class _ContextManagerMixin(Generic[_T]):
-    props: _T
-
-
-class BaseContextManager(_BaseHandler, _ContextManagerMixin[_T], ABC):
-    props: Any
+class BaseContextManager(_BaseHandler, Generic[_T], ABC):
+    props: Type[_T]
 
     @property
     def ctx(self) -> _T:
@@ -50,7 +21,7 @@ class BaseContextManager(_BaseHandler, _ContextManagerMixin[_T], ABC):
 
         context_args = {}
         for prop_name in props_name_list:
-            prop = _Property(prop_name, get_hint(self.props, prop_name))
+            prop = Property(prop_name, get_hint(self.props, prop_name))
             context_args[prop_name] = self._try_get_prop(prop)
 
         return self.props(**context_args)
@@ -70,7 +41,7 @@ class BaseContextManager(_BaseHandler, _ContextManagerMixin[_T], ABC):
             if prop_name.startswith('__'):
                 continue
 
-            prop = _Property(prop_name, get_hint(self.props, prop_name))
+            prop = Property(prop_name, get_hint(self.props, prop_name))
 
             exclude = []
             for arg in args:
@@ -81,10 +52,10 @@ class BaseContextManager(_BaseHandler, _ContextManagerMixin[_T], ABC):
 
             self._reset_prop(prop)
 
-    def _reset_prop(self, prop: _Property) -> None:
+    def _reset_prop(self, prop: Property) -> None:
         self.user_data[prop.name] = None
 
-    def _try_get_prop(self, prop: _Property) -> Optional[Any]:
+    def _try_get_prop(self, prop: Property) -> Optional[Any]:
         value = self._try_get_from_user_data(prop.name)
 
         if value is not None and type(value) is not prop.type:

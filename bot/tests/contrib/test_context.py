@@ -1,12 +1,12 @@
 from dataclasses import dataclass
 from typing import Optional, Any
 
-from contrib.handlers.message.new_context_manager import BaseContextManager
+from contrib.handlers.message.context_manager import BaseContextManager, BaseContext
 from tests.mocks.message import fake_message
 
 
 @dataclass
-class FakeContext:
+class FakeContext(BaseContext):
     str_data: Optional[str] = None
     integer: Optional[int] = None
 
