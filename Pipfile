@@ -22,7 +22,6 @@ pytube = "*"
 
 [dev-packages]
 autopep8 = "*"
-ipykernel = "*"
 flake8 = "*"
 pytest = "*"
 pytest-cov = "*"
