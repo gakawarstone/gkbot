@@ -13,7 +13,7 @@ from .states import FSM
 
 
 async def start(message: Message, state: FSMContext):
-    await state.set_state(FSM.choose_tool)
+    await state.set_state(FSM.menu)
     logger.debug('Road handler started')
     photo_id = 'AgACAgIAAxkDAALtVWHn3ZZmzpMfA3SI7usT1avw9xrWAALRtjEbe9FASzJZxPBxsVhdAQADAgADeQADIwQ'
     logger.warning(

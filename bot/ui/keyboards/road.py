@@ -1,12 +1,15 @@
 from dataclasses import dataclass
 
+# from aiogram.utils
+
 from lib.keyboard_builder import KeyboardBuilder
 
 
 @dataclass
 class _Buttons:
-    pomodoro = 'Помидор 🕔'
+    pomodoro = '🕔 Помидор'
     habit_tracker = 'Трекер привычек'
+    settings = '⚙️  Настройки'
 
 
 class RoadMarkup:
@@ -14,6 +17,13 @@ class RoadMarkup:
 
     tools = KeyboardBuilder.add_keyboard(
         buttons=[
-            [_Buttons.pomodoro, _Buttons.habit_tracker]
+            [_Buttons.pomodoro, _Buttons.habit_tracker],
+            [_Buttons.settings]
+        ]
+    )
+
+    settings_dialog = KeyboardBuilder.add_keyboard(
+        buttons=[
+                []
         ]
     )

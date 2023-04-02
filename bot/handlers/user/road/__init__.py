@@ -4,6 +4,7 @@ from . import habits
 from . import menu
 from . import pomodoro
 from . import start
+from . import settings
 
 
 def setup(r: Router):
@@ -11,3 +12,4 @@ def setup(r: Router):
     pomodoro.setup(r)
     habits.setup(r)
     menu.setup(r)
+    settings.setup(r)
