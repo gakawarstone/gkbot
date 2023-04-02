@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import timedelta
 from datetime import date as date_type
 from datetime import time as time_type
-from typing import Optional, Type
+from typing import Optional
 
 from aiogram.types import Message
 
