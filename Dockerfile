@@ -6,6 +6,6 @@ COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 
 COPY bot bot
-# COPY static static
+COPY static static
 
 CMD python bot/main.py

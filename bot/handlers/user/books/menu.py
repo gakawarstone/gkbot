@@ -3,6 +3,7 @@ from aiogram.filters import Command, StateFilter, or_f
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, ReplyKeyboardRemove
 
+from services.static import Images
 from ui.keyboards.books import MenuMarkup
 from .._commands import USER_COMMANDS
 from .messages import delete, show
@@ -12,8 +13,9 @@ from .states import FSM
 
 
 async def show_menu(message: Message, state: FSMContext):
-    await message.answer(
-        'Вас приветсвует новейшая и наполненная фактами книжная полка',
+    await message.answer_photo(
+        Images.book_shelf,
+        caption='Вас приветсвует новейшая и наполненная фактами книжная полка',
         reply_markup=MenuMarkup.menu
     )
     await state.set_state(FSM.check_menu_command)
