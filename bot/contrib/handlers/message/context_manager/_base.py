@@ -30,13 +30,16 @@ class BaseContextManager(_BaseHandler, Generic[_T], ABC):
         """Example: self.ctx.set(self.props.string, str())"""
         prop = make_prop(prop, self.props)
 
-        if type(value) is not prop.type:
+        if type(value) is not prop.type and prop.type is not Any:
             raise ValueError
 
         self.user_data[prop.name] = value
 
     def clean_context(self, *args):
-        """Example: self.clean_context(exclude=[self.props.string])"""
+        """
+            Example: self.clean_context(self.props.string)
+            where self.props.string not cleaning
+        """
         for prop_name in dir(self.props):
             if prop_name.startswith('__'):
                 continue
@@ -58,7 +61,8 @@ class BaseContextManager(_BaseHandler, Generic[_T], ABC):
     def _try_get_prop(self, prop: Property) -> Optional[Any]:
         value = self._try_get_from_user_data(prop.name)
 
-        if value is not None and type(value) is not prop.type:
+        if value is not None and type(value) is not prop.type \
+                and prop.type is not Any:
             raise ValueError
 
         return value
