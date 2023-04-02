@@ -7,10 +7,10 @@ from typing import AsyncGenerator
 
 
 _DOWNLOADERS: list[BaseDownloader] = [
+    ApiDownloader(),
     ProxyTok('https://tt.vern.cc'),
     ProxyTok('https://tok.adminforge.de'),
     ProxyTok('https://proxitok.pabloferreiro.es'),
-    ApiDownloader(),
     SnaptikDownloader(),
     ProxyTok('https://proxitok.pussthecat.org'),
     ProxyTok('https://cringe.whatever.social'),
