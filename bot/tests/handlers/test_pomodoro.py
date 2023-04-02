@@ -1,6 +1,3 @@
-import datetime
-from datetime import time
-
 import pytest
 
 from tests.mocks.db import use_db
@@ -8,6 +5,7 @@ from tests.mocks.message import fake_event, make_fake_callback, make_fake_messag
 from tests.mocks.state import fake_state
 from tests.mocks.user_data import MockedUserDataExtension
 from services.entities.road_settings import RoadSettings
+from services.repositories.road_settings import DEFAULT_SETTINGS
 from handlers.user.road.pomodoro.pomodoro import PomodoroHandler
 from handlers.user.road.settings.start import InitSettingsHandler
 from handlers.user.road.settings.callback import EditSettingsHandler
@@ -22,7 +20,8 @@ class MockedEditSettingsHandler(MockedUserDataExtension, EditSettingsHandler):
 
 @pytest.fixture()
 def buttons() -> list[dict]:
-    settings_markup = PomodoroSettingsMarkup.get_settings_dialog()
+    settings_markup = PomodoroSettingsMarkup.get_settings_dialog(
+        DEFAULT_SETTINGS)
     return [b[0] for b in settings_markup.dict()['inline_keyboard']]
 
 
@@ -36,6 +35,7 @@ async def test_undefined_settings_in_markup(buttons):
                 f'Setting name {setting_name} defined only in markup')
 
 
+@use_db
 async def test_staying_in_menu_after_settings_markup_sendet():
     handler = InitSettingsHandler(event=fake_event, state=fake_state)
     await handler.handle()
@@ -48,7 +48,8 @@ def test_selection_setting_to_edit():
 
 @use_db
 async def test_edit_settings():
-    settings_markup = PomodoroSettingsMarkup.get_settings_dialog()
+    settings_markup = PomodoroSettingsMarkup.get_settings_dialog(
+        DEFAULT_SETTINGS)
     # TODO: buttons iterator
     settings = settings_markup.dict()['inline_keyboard']
 
