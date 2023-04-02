@@ -10,7 +10,6 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: test
-    if: ${{ job.status == 'success' }}
 
     steps:
       - name: Deploy with SSH
