@@ -1,6 +1,6 @@
 -i https://pypi.python.org/simple
-aiofiles==22.1.0 ; python_version >= '3.7' and python_version < '4.0'
-aiogram==3.0.0b6
+aiofiles==23.1.0 ; python_version >= '3.7' and python_version < '4.0'
+aiogram==3.0.0b7
 aiohttp==3.8.4 ; python_version >= '3.6'
 aiosignal==1.3.1 ; python_version >= '3.7'
 aiosqlite==0.17.0 ; python_version >= '3.6'
