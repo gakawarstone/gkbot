@@ -5,7 +5,7 @@ services:
     image: aiogram/telegram-bot-api:latest
     env_file: .env
     volumes:
-      - bot_api_data:/var/lib/telegram-bot-api
+      - ./data:/var/lib/telegram-bot-api
     ports:
       - 8081:8081
 

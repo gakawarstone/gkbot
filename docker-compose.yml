@@ -6,7 +6,7 @@ services:
     image: gkbot
     volumes:
       - gkbot_data:/data
-      - bot_api_data:/var/lib/telegram-bot-api
+      - ./services/bot-api/data:/var/lib/telegram-bot-api
     env_file: .env
     container_name: gkbot
 
