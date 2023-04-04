@@ -1,8 +1,7 @@
 from io import BytesIO
 
+from settings import API_SERVER_URL, BOT_API_DIR
 from .base import BaseHandler
-
-from settings import API_SERVER_URL
 
 
 class NoFileException(Exception):
@@ -22,6 +21,8 @@ class FileHandlerExtension(BaseHandler):
             file_io = BytesIO()
             await self.state.bot.download_file(file_path, file_io)
         else:
+            bot_token = self.state.bot.token
+            file_path = f'{BOT_API_DIR}/{bot_token}/{file_path}'
             file_io = BytesIO(open(file_path, 'rb').read())
 
         return file_io

@@ -20,6 +20,9 @@ DB_URL = os.getenv('DB_URL')
 API_SERVER_URL = os.getenv('API_SERVER_URL')
 
 
+BOT_API_DIR = '/var/lib/telegram-bot-api'
+
+
 ADMINS = [
     897651738
 ]
