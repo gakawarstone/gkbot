@@ -22,9 +22,9 @@ async def test_set_settings():
         time_relax=time(minute=10, tzinfo=datetime.timezone.utc)
     )
     await RoadSettingsRepository.set_user_settings(1, settings)
-    recieved_settings = await RoadSettingsRepository.get_user_settings(1)
-    assert recieved_settings.time_focused == settings.time_focused
-    assert recieved_settings == settings
+    received_settings = await RoadSettingsRepository.get_user_settings(1)
+    assert received_settings.time_focused == settings.time_focused
+    assert received_settings == settings
 
 
 @use_db
