@@ -4,6 +4,7 @@ services:
   telegram-bot-api:
     image: aiogram/telegram-bot-api:latest
     env_file: .env
+    network_mode: bridge
     volumes:
       - ./data:/var/lib/telegram-bot-api
     ports:

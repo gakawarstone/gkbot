@@ -8,6 +8,7 @@ services:
       - gkbot_data:/data
       - ./services/bot-api/data:/var/lib/telegram-bot-api
     env_file: .env
+    network_mode: bridge
     container_name: gkbot
 
 volumes:
