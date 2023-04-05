@@ -7,8 +7,7 @@ services:
     network_mode: bridge
     volumes:
       - ./data:/var/lib/telegram-bot-api
-    ports:
-      - 8081:8081
+    container_name: gkbot-api
 
 volumes:
   bot_api_data:
