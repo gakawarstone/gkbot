@@ -3,7 +3,7 @@ from typing import TypeVar, Type, Generic, Any, Optional
 
 from ..base import BaseHandler as _BaseHandler
 from ._types import Property, BaseContext
-from ._utils import get_hint, make_prop
+from ._utils import get_hint, make_prop, make_args_names_list
 
 _T = TypeVar('_T', bound=BaseContext)
 
@@ -44,14 +44,11 @@ class BaseContextManager(_BaseHandler, Generic[_T], ABC):
             if prop_name.startswith('__'):
                 continue
 
-            prop = Property(prop_name, get_hint(self.props, prop_name))
-
-            exclude = []
-            for arg in args:
-                exclude.append(make_prop(arg, self.props))
-
-            if prop in exclude:
+            exclude = make_args_names_list(*args)
+            if prop_name in exclude:
                 continue
+
+            prop = Property(prop_name, get_hint(self.props, prop_name))
 
             self._reset_prop(prop)
 
