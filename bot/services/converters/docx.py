@@ -4,6 +4,7 @@ import docx2txt
 from zipfile import BadZipfile
 
 
+# NOTE: reader
 class DocxConverter:
     @classmethod
     def convert_to_str(cls, file: BytesIO) -> str:

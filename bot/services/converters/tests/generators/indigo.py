@@ -13,9 +13,9 @@ class IndigoGenerator:
     def _question_to_lines(question: Question) -> list[str]:
         lines = []
         lines.append(question.title + '\n')
-        for choise in question.choises:
-            line = choise.text
-            if choise.is_correct:
+        for choice in question.choices:
+            line = choice.text
+            if choice.is_correct:
                 line = '*' + line
             lines.append(line + '\n')
         lines.append('\n')

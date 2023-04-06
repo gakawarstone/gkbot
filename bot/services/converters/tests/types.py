@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 
 @dataclass
-class Choise:
+class Choice:
     text: str
     is_correct: bool
 
@@ -10,4 +10,4 @@ class Choise:
 @dataclass
 class Question:
     title: str
-    choises: list[Choise]
+    choices: list[Choice]
