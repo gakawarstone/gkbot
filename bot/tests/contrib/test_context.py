@@ -82,3 +82,19 @@ async def test_clean_context_with_exclude():
         'integer': 10,
         'any': None
     }
+#
+#
+# async def test_clean_context_with_multiple_exclude():
+#     ctx_manager = FakeContextManager(event=fake_event)
+#     ctx_manager.set(ctx_manager.props.integer, 10)
+#     ctx_manager.set(ctx_manager.props.str_data, '10')
+#     ctx_manager.set(ctx_manager.props.any, '10')
+#     ctx_manager.clean_context(ctx_manager.props.integer, ctx_manager.props.any)
+#
+#     assert ctx_manager.ctx.integer == 10
+#     assert ctx_manager.ctx.str_data == None
+#     assert ctx_manager.user_data == {
+#         'str_data': None,
+#         'integer': 10,
+#         'any': '10'
+#     }
