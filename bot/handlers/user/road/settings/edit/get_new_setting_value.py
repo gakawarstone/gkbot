@@ -15,7 +15,6 @@ class GetNewSettingValueHandler(RoadSettingsContextManager):
     async def handle(self) -> Any:
         await self.state.set_state(FSM.finish)
         await self.event.delete()
-        print(self.event.text)
         value = self._validate_time(self.event.text)
         user_id = self.event.from_user.id
         self.set(self.props.setting_new_value, value)
