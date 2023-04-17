@@ -29,15 +29,18 @@ class YouTubeDownloader:
     async def download_audio(cls, url: str) -> YouTubeAudio:
         info = PyTube(url)
 
-        duration = 0
-        if info.length:
-            duration = info.length
-
         return YouTubeAudio(
             input_file=await cls.__get_input_file(info),
-            duration=duration,
+            duration=cls.__get_duration(info),
             title=info.title
         )
+
+    @classmethod
+    def __get_duration(cls, info: PyTube) -> int:
+        try:
+            return info.length
+        except:
+            return 0
 
     @classmethod  # FIXME: isnt async (!threadpoll because of race)
     async def __get_input_file(cls, info: PyTube) -> FSInputFile:
