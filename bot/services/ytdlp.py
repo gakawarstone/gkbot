@@ -37,11 +37,7 @@ vkdl_opts = {
 class YtdlpDownloader:
     @classmethod
     async def download_audio(cls, url: str) -> AudioFileInfo:
-        opts = ydl_opts
-        if url.startswith('https://vk.com'):
-            opts = vkdl_opts
-
-        with yt_dlp.YoutubeDL(opts) as ydl:
+        with yt_dlp.YoutubeDL(cls.__get_opts(url)) as ydl:
             info = ydl.extract_info(url, download=False)
 
         return AudioFileInfo(
@@ -50,12 +46,18 @@ class YtdlpDownloader:
             title=info['title']
         )
 
+    @staticmethod
+    def __get_opts(url: str) -> dict:
+        if url.startswith('https://vk.com'):
+            return vkdl_opts
+        return ydl_opts
+
     @classmethod  # FIXME: isnt async (!threadpoll because of race)
     async def __get_input_file(cls, url: str) -> FSInputFile:
         if os.path.isfile('video.m4a'):
             os.remove('video.m4a')
 
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        with yt_dlp.YoutubeDL(cls.__get_opts(url)) as ydl:
             loop = asyncio.get_event_loop()
             await loop.run_in_executor(None, ydl.download, url)
 
