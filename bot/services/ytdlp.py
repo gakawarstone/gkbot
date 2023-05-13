@@ -1,3 +1,4 @@
+import asyncio
 from dataclasses import dataclass
 import os
 
@@ -55,6 +56,7 @@ class YtdlpDownloader:
             os.remove('video.m4a')
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download(url)
+            loop = asyncio.get_event_loop()
+            await loop.run_in_executor(None, ydl.download, url)
 
         return FSInputFile('video.m4a', 'audio.mp3')
