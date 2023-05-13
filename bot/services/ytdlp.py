@@ -22,11 +22,25 @@ ydl_opts = {
     }]
 }
 
+vkdl_opts = {
+    'format': 'url240',
+    'outtmpl': 'video',
+    # ℹ️ See help(yt_dlp.postprocessor) for a list of available Postprocessors and their arguments
+    'postprocessors': [{  # Extract audio using ffmpeg
+        'key': 'FFmpegExtractAudio',
+        'preferredcodec': 'm4a',
+    }]
+}
+
 
 class YtdlpDownloader:
     @classmethod
     async def download_audio(cls, url: str) -> AudioFileInfo:
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        opts = ydl_opts
+        if url.startswith('https://vk.com'):
+            opts = vkdl_opts
+
+        with yt_dlp.YoutubeDL(opts) as ydl:
             info = ydl.extract_info(url, download=False)
 
         return AudioFileInfo(
