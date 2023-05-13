@@ -1,11 +1,11 @@
 from aiogram import Router
 
 from . import tiktok
-from . import youtube
+from . import ytdlp
 from . import jutsu
 
 
 def setup(r: Router):
     tiktok.setup(r)
-    youtube.setup(r)
+    ytdlp.setup(r)
     jutsu.setup(r)
