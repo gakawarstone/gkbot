@@ -6,14 +6,14 @@ from aiogram.types import BufferedInputFile, FSInputFile
 
 
 @dataclass
-class YouTubeAudio:
+class AudioFileInfo:
     input_file: BufferedInputFile | FSInputFile
     duration: int
     title: str
 
 
 ydl_opts = {
-    'format': 'm4a/bestaudio/best',
+    'format': 'bestvideo[height<=360]+bestaudio/best[height<=360]',
     'outtmpl': 'video',
     # ℹ️ See help(yt_dlp.postprocessor) for a list of available Postprocessors and their arguments
     'postprocessors': [{  # Extract audio using ffmpeg
@@ -23,13 +23,13 @@ ydl_opts = {
 }
 
 
-class YouTubeDownloader:
+class YtdlpDownloader:
     @classmethod
-    async def download_audio(cls, url: str) -> YouTubeAudio:
+    async def download_audio(cls, url: str) -> AudioFileInfo:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
 
-        return YouTubeAudio(
+        return AudioFileInfo(
             input_file=await cls.__get_input_file(url),
             duration=info['duration'],
             title=info['title']

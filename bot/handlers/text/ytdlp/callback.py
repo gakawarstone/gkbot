@@ -2,8 +2,8 @@ from aiogram import F, Router
 from aiogram.types import CallbackQuery
 from aiogram.fsm.context import FSMContext
 
-from services.youtube import YouTubeDownloader
-from ui.keyboards.youtube import YouTubeMarkup
+from services.ytdlp import YtdlpDownloader
+from ui.keyboards.ytdlp import YtdlpMarkup
 
 F: CallbackQuery
 
@@ -24,7 +24,7 @@ async def download_audio(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_reply_markup()
     await callback.message.edit_text('Cкачиваю ' +
                                      (url := callback.message.text))
-    audio = await YouTubeDownloader.download_audio(url)
+    audio = await YtdlpDownloader.download_audio(url)
     await callback.message.answer_audio(
         audio=audio.input_file,
         title=audio.title,
@@ -37,9 +37,9 @@ async def download_audio(callback: CallbackQuery, state: FSMContext):
 def setup(r: Router):
     r.callback_query.register(
         delete_download_markup,
-        F.data.startswith(YouTubeMarkup.data.delete)
+        F.data.startswith(YtdlpMarkup.data.delete)
     )
     r.callback_query.register(
         download_audio,
-        F.data.startswith(YouTubeMarkup.data.mp3)
+        F.data.startswith(YtdlpMarkup.data.mp3)
     )

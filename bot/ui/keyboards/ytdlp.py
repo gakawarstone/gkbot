@@ -12,7 +12,7 @@ class _Data:
     mp3 = 'ytdlmp3'
 
 
-class YouTubeMarkup:
+class YtdlpMarkup:
     buttons = _Buttons
     data = _Data
 
