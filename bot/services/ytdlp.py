@@ -26,7 +26,7 @@ ydl_opts = {
 vkdl_opts = {
     'format': 'url240',
     'outtmpl': 'video',
-    'downloader': 'aria2c',
+    'external_downloader': 'aria2c',
     # ℹ️ See help(yt_dlp.postprocessor) for a list of available Postprocessors and their arguments
     'postprocessors': [{  # Extract audio using ffmpeg
         'key': 'FFmpegExtractAudio',
