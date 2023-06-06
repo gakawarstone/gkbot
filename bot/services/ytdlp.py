@@ -14,13 +14,8 @@ class AudioFileInfo:
 
 
 ydl_opts = {
-    'format': 'bestvideo[height<=360]+bestaudio/best[height<=360]',
-    'outtmpl': 'video',
-    # ℹ️ See help(yt_dlp.postprocessor) for a list of available Postprocessors and their arguments
-    'postprocessors': [{  # Extract audio using ffmpeg
-        'key': 'FFmpegExtractAudio',
-        'preferredcodec': 'm4a',
-    }]
+    'format': 'ba',
+    'outtmpl': 'video.m4a',
 }
 
 vkdl_opts = {
