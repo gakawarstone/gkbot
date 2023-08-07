@@ -1,16 +1,17 @@
-import aiohttp
 from aiogram.types import BufferedInputFile
 
-from .exceptions import TikTokDownloadFailed
-from .downloaders import DownloadersManager
+from services.http import HttpService
+from services.ffmpeg import FfmpegService
+from .exceptions import TikTokDownloadFailed, TikTokVideoUrlExtractionFailed
+from .extractor import TikTokInfoExtractor
 
 
-class TikTokDownloader:
+class TikTokService:
     @classmethod
     async def get_video_url(cls, url: str) -> str:
-        async for video_url in DownloadersManager.get_video_url_in_sources(url):
+        if video_url := await TikTokInfoExtractor.get_video_url(url):
             return video_url
-        raise TikTokDownloadFailed(url)
+        raise TikTokVideoUrlExtractionFailed(url)
 
     @classmethod
     async def get_video_as_input_file(cls, url: str) -> BufferedInputFile:
@@ -21,12 +22,10 @@ class TikTokDownloader:
 
     @classmethod
     async def __get_video_file(cls, url: str) -> bytes:
-        async for video_url in DownloadersManager.get_video_url_in_sources(url):
-            return await cls.__download_file_from_url(video_url)
+        if not (info := await TikTokInfoExtractor.get_video_info(url)):
+            raise TikTokDownloadFailed(url)
+        if video_url := info.video_url:
+            return await HttpService.get(video_url)
+        if info.images_urls:
+            return await FfmpegService.make_slideshow_from_web(info.images_urls, info.music_url)
         raise TikTokDownloadFailed(url)
-
-    @staticmethod
-    async def __download_file_from_url(url: str) -> bytes:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url) as response:
-                return await response.content.read()

@@ -3,8 +3,9 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 from aiogram.exceptions import TelegramBadRequest
 
-from services.tiktok import TikTokDownloader
-from services.tiktok.exceptions import TikTokInvalidUrl, TikTokDownloadFailed
+from services.tiktok import TikTokService
+from services.tiktok.exceptions import \
+    TikTokInvalidUrl, TikTokDownloadFailed, TikTokVideoUrlExtractionFailed
 from filters.tiktok import TikTokVideoLink
 
 
@@ -14,16 +15,17 @@ async def download_video(message: Message, state: FSMContext):
     await state.bot.send_chat_action(message.chat.id, 'upload_video')
     try:
         await message.answer_video(
-            await TikTokDownloader.get_video_url(message.text),
+            await TikTokService.get_video_url(message.text),
             caption=f'<b>{message.from_user.username}</b> {message.text}'
         )
-    except TelegramBadRequest:
+    except (TelegramBadRequest, TikTokVideoUrlExtractionFailed):
         await status_message.edit_text(
             'Не получилось скачать быстро пробую другой способ %s'
             % message.text
         )
+    try:
         await message.answer_video(
-            await TikTokDownloader.get_video_as_input_file(message.text),
+            await TikTokService.get_video_as_input_file(message.text),
             caption=f'<b>{message.from_user.username}</b> {message.text}'
         )
     except TikTokInvalidUrl:

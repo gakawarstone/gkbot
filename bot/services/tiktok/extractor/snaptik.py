@@ -3,11 +3,11 @@ from tiktok_downloader.Except import InvalidUrl
 
 from ..exceptions import TikTokInvalidUrl
 from ..types import InfoVideoTikTok
-from ._base import BaseDownloader
-from .exceptions import SourceDownloadFailed
+from ._base import BaseExtractor
+from .exceptions import SourceInfoExtractFailed
 
 
-class SnaptikDownloader(BaseDownloader):
+class Snaptik(BaseExtractor):
     async def get_video_info(self, url: str) -> InfoVideoTikTok:
         try:
             response = InfoVideoTikTok(
@@ -18,4 +18,4 @@ class SnaptikDownloader(BaseDownloader):
         except InvalidUrl:
             raise TikTokInvalidUrl(url)
         except IndexError:
-            raise SourceDownloadFailed(self)
+            raise SourceInfoExtractFailed(self)

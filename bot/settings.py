@@ -1,6 +1,6 @@
 import os
 import logging
-import logging.config
+# import logging.config
 
 from dotenv import load_dotenv
 
@@ -21,6 +21,7 @@ API_SERVER_URL = os.getenv('API_SERVER_URL')
 
 
 BOT_API_DIR = '/var/lib/telegram-bot-api'
+CACHE_DIR = '~/.cache/gkbot'
 
 
 ADMINS = [
@@ -33,6 +34,7 @@ MODELS = [
     'models.road',
     'models.books',
     'models.timezone',
+    'models.reminds',
 ]
 
 
