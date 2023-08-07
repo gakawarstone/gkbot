@@ -1,3 +1,5 @@
+import shutil
+
 import subprocess
 
 from services.cache_dir import CacheDir
@@ -48,6 +50,8 @@ class FfmpegService:
                 props=cls.__resize_image_options
             )
             subprocess.run(command, check=True)
+        if len(images_url) == 2:
+            shutil.copy(f'{work_dir_path}/2.jpg', f'{work_dir_path}/3.jpg')
 
     @classmethod
     def _build_command(
