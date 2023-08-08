@@ -1,6 +1,6 @@
 from aiogram import Router
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message
+from aiogram.types import Message, BufferedInputFile
 from aiogram.exceptions import TelegramBadRequest
 
 from services.tiktok import TikTokService
@@ -23,6 +23,11 @@ async def download_video(message: Message, state: FSMContext):
             'Не получилось скачать быстро пробую другой способ %s'
             % message.text
         )
+        await _send_as_input_file(message)
+    await status_message.delete()
+
+
+async def _send_as_input_file(message: Message) -> BufferedInputFile:
     try:
         await message.answer_video(
             await TikTokService.get_video_as_input_file(message.text),
@@ -32,7 +37,6 @@ async def download_video(message: Message, state: FSMContext):
         await message.answer('Неправильная ссылка %s' % message.text)
     except TikTokDownloadFailed:
         await message.answer('Не получилось скачать %s' % message.text)
-    await status_message.delete()
 
 
 def setup(r: Router):
