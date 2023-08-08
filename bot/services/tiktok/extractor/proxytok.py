@@ -41,8 +41,8 @@ class ProxyTok(BaseExtractor):
     async def _find_images_urls(self, url: str) -> list[str]:
         url_in_proxytok = self._get_url_in_proxytok(url)
         soup = await self._get_soup(url_in_proxytok)
-        return [unquote(i['src'].split('?')[1][4:])
-                for i in soup.find_all('img')[:-3]]
+        return [unquote(i.img['src'].split('?')[1][4:])
+                for i in soup.find_all(class_='slides-item')]
 
     def _get_url_in_proxytok(self, url: str) -> str:
         if not self._is_short_link(url):
