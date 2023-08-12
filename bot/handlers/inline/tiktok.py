@@ -21,7 +21,7 @@ async def send_tiktok(query: InlineQuery):
 
 
 def setup(router: Router):
-    router.inline_query(
+    router.inline_query.register(
         send_tiktok,
         TikTokVideoLink()
     )
