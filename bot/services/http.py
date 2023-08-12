@@ -32,7 +32,7 @@ class HttpService:
             try:
                 async with session.get(url, headers=cls.headers) as response:
                     return await response.json()
-            except ClientConnectorError:
+            except (ClientConnectorError, ContentTypeError):
                 raise HttpRequestError
 
     @classmethod
