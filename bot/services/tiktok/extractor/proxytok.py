@@ -34,12 +34,12 @@ class ProxyTok(BaseExtractor):
         soup = await self._get_soup(url_in_proxytok)
         if not (audio := soup.find('audio')):
             raise ValueError
-        return self._normolize_link(audio['src'])
+        return self._extract_sublink(audio['src'])
 
     async def _find_images_urls(self, url: str) -> list[str]:
         url_in_proxytok = self._get_url_in_proxytok(url)
         soup = await self._get_soup(url_in_proxytok)
-        return [unquote(i.img['src'].split('?')[1][4:])
+        return [self._extract_sublink(i.img['src'])
                 for i in soup.find_all(class_='slides-item')]
 
     def _get_url_in_proxytok(self, url: str) -> str:
@@ -67,6 +67,9 @@ class ProxyTok(BaseExtractor):
 
     def _is_link_valid(self, url: str) -> bool:
         return url.startswith((self.__instance_url, '/download'))
+
+    def _extract_sublink(self, url: str) -> str:
+        return unquote(url.split('?')[1][4:])
 
     def _normolize_link(self, url: str) -> str:
         if not self._is_link_relative(url):
