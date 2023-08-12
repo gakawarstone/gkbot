@@ -1,6 +1,4 @@
-import aiohttp
-from aiohttp.client_exceptions import ContentTypeError
-
+from services.http import HttpService, HttpRequestError
 from ..types import InfoVideoTikTok
 from ..exceptions import SerializationError
 from ._base import BaseExtractor
@@ -10,14 +8,10 @@ from .exceptions import SourceInfoExtractFailed
 class ApiExtractor(BaseExtractor):
     async def get_video_info(self, url: str) -> InfoVideoTikTok:
         try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(
-                    f'https://api.douyin.wtf/api?url={url}'
-                ) as response:
-                    return self._serialize_api_data(
-                        await response.json()
-                    )
-        except (ContentTypeError, SerializationError):
+            request_url = f'https://api.douyin.wtf/api?url={url}'
+            data = await HttpService.get_json(request_url)
+            return self._serialize_api_data(data)
+        except (HttpRequestError, SerializationError):
             raise SourceInfoExtractFailed(self)
 
     @staticmethod

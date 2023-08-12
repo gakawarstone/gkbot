@@ -1,5 +1,5 @@
 import aiohttp
-from aiohttp.client_exceptions import ClientConnectorError
+from aiohttp.client_exceptions import ClientConnectorError, ContentTypeError
 
 _headers = {
     "User-Agent": (
@@ -23,6 +23,15 @@ class HttpService:
             try:
                 async with session.get(url, headers=cls.headers) as response:
                     return await response.content.read()
+            except ClientConnectorError:
+                raise HttpRequestError
+
+    @classmethod
+    async def get_json(cls, url: str) -> dict:
+        async with aiohttp.ClientSession(conn_timeout=None) as session:
+            try:
+                async with session.get(url, headers=cls.headers) as response:
+                    return await response.json()
             except ClientConnectorError:
                 raise HttpRequestError
 
