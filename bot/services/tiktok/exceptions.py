@@ -18,7 +18,7 @@ class TikTokInvalidUrl(Exception):
         return f'Invalid TikTok video url {self.url}'
 
 
-class TikTokDownloadFailed(Exception):
+class TikTokInfoExtractionFailed(Exception):
     def __init__(self, url: str) -> None:
         self.url = url
 

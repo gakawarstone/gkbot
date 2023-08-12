@@ -1,4 +1,5 @@
 from ..types import InfoVideoTikTok
+from ..exceptions import TikTokInfoExtractionFailed
 from .exceptions import SourceInfoExtractFailed
 from .proxytok import ProxyTok
 # from .snaptik import SnaptikDownloader
@@ -10,7 +11,6 @@ _EXTRACTORS: list[BaseExtractor] = [
     ProxyTok('https://proxitok.pabloferreiro.es'),
     ApiExtractor(),
     ProxyTok('https://tok.adminforge.de'),
-    ProxyTok('https://tt.vern.cc'),
     # SnaptikDownloader(),  # NOTE: not working
     ProxyTok('https://proxitok.pussthecat.org'),
     ProxyTok('https://cringe.whatever.social'),
@@ -18,8 +18,9 @@ _EXTRACTORS: list[BaseExtractor] = [
     ProxyTok('https://proxitok.esmailelbob.xyz'),
     ProxyTok('https://tok.artemislena.eu'),
     ProxyTok('https://tik.hostux.net'),
-    ProxyTok('https://proxitok.pufe.org'),
-    ProxyTok('https://proxitok.lunar.icu'),
+    # ProxyTok('https://proxitok.pufe.org'),
+    # ProxyTok('https://proxitok.lunar.icu'),
+    # ProxyTok('https://tt.vern.cc'),
 ]
 
 
@@ -35,3 +36,4 @@ class TikTokInfoExtractor:
                 return await source.get_video_info(url)
             except SourceInfoExtractFailed:
                 continue
+        raise TikTokInfoExtractionFailed(url)

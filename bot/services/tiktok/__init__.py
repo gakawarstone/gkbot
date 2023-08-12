@@ -2,7 +2,7 @@ from aiogram.types import BufferedInputFile
 
 from services.http import HttpService
 from services.ffmpeg import FfmpegService
-from .exceptions import TikTokDownloadFailed, TikTokVideoUrlExtractionFailed
+from .exceptions import TikTokInfoExtractionFailed, TikTokVideoUrlExtractionFailed
 from .extractor import TikTokInfoExtractor
 
 
@@ -23,9 +23,9 @@ class TikTokService:
     @classmethod
     async def __get_video_file(cls, url: str) -> bytes:
         if not (info := await TikTokInfoExtractor.get_video_info(url)):
-            raise TikTokDownloadFailed(url)
+            raise TikTokInfoExtractionFailed(url)
         if video_url := info.video_url:
             return await HttpService.get(video_url)
         if info.images_urls:
             return await FfmpegService.make_slideshow_from_web(info.images_urls, info.music_url)
-        raise TikTokDownloadFailed(url)
+        raise TikTokInfoExtractionFailed(url)
