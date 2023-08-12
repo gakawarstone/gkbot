@@ -7,10 +7,10 @@ from ._base import BaseExtractor
 
 
 _EXTRACTORS: list[BaseExtractor] = [
-    ProxyTok('https://tok.adminforge.de'),
-    ApiExtractor(),
-    ProxyTok('https://tt.vern.cc'),
     ProxyTok('https://proxitok.pabloferreiro.es'),
+    ApiExtractor(),
+    ProxyTok('https://tok.adminforge.de'),
+    ProxyTok('https://tt.vern.cc'),
     # SnaptikDownloader(),  # NOTE: not working
     ProxyTok('https://proxitok.pussthecat.org'),
     ProxyTok('https://cringe.whatever.social'),
@@ -26,11 +26,7 @@ _EXTRACTORS: list[BaseExtractor] = [
 class TikTokInfoExtractor:
     @classmethod
     async def get_video_url(cls, url: str) -> str:
-        for source in _EXTRACTORS:
-            try:
-                return (await source.get_video_info(url)).video_url
-            except SourceInfoExtractFailed:
-                continue
+        return (await cls.get_video_info(url)).video_url
 
     @classmethod
     async def get_video_info(cls, url: str) -> InfoVideoTikTok:
