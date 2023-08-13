@@ -1,15 +1,8 @@
 from typing import Any
 
-from aiogram.handlers import BaseHandler as _BaseHandler
-from aiogram.types import CallbackQuery
-
+from contrib.handlers.callback.base import BaseHandler
 from ._context import RoadSettingsContextManager
 from ..states import FSM
-
-
-# FIXME: use base contrib handler from contrib
-class BaseHandler(_BaseHandler[CallbackQuery]):
-    pass
 
 
 class EditSettingsHandler(BaseHandler, RoadSettingsContextManager):
