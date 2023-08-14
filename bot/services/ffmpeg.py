@@ -27,10 +27,11 @@ class FfmpegService:
         cache_dir = CacheDir()
 
         await cls.download_and_prepare_images(images_urls, cache_dir.path)
+        await cls.download_and_prepare_audio(audio_url, cache_dir.path)
 
         command = cls._build_slideshow_command(
             images_input=f'{cache_dir.path}/*.jpg',
-            audio_input=audio_url,
+            audio_input=f'{cache_dir.path}/audio.m4a',
             output_path=f'{cache_dir.path}/slideshow.mp4',
         )
 
@@ -52,6 +53,17 @@ class FfmpegService:
             subprocess.run(command, check=True)
         if len(images_url) == 2:
             shutil.copy(f'{work_dir_path}/2.jpg', f'{work_dir_path}/3.jpg')
+
+    @classmethod
+    async def download_and_prepare_audio(
+            cls, audio_url: str, work_dir_path: str
+    ) -> None:
+        command = cls._build_command(
+            inputs=[audio_url],
+            output=f'{work_dir_path}/audio.m4a',
+            props=[]
+        )
+        subprocess.run(command, check=True)
 
     @classmethod
     def _build_command(
