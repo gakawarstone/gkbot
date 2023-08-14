@@ -1,7 +1,6 @@
 from urllib.parse import unquote
 
-from aiohttp import ClientConnectionError
-
+from services.http import HttpRequestError
 from ..types import InfoVideoTikTok
 from ._base import BaseExtractor
 from .exceptions import SourceInfoExtractFailed
@@ -18,7 +17,7 @@ class ProxyTok(BaseExtractor):
                 music_url=await self._get_music_url(url),
                 images_urls=await self._find_images_urls(url)
             )
-        except (KeyError, IndexError, ValueError, ClientConnectionError):
+        except (KeyError, IndexError, ValueError, HttpRequestError):
             raise SourceInfoExtractFailed(self)
 
     async def _get_video_file_url(self, url: str) -> str:
