@@ -51,7 +51,7 @@ class ProxyTok(BaseExtractor):
         return not '@' in url
 
     def _get_video_code(self, url: str) -> str:
-        return url.split('/')[-2]
+        return url.split('/')[3]
 
     async def _find_video_file_url(self, url_in_proxytok: str) -> str:
         soup = await self._get_soup(url_in_proxytok)
