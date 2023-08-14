@@ -1,6 +1,5 @@
-from aiogram import F, Router
+from aiogram import F, Router, Bot
 from aiogram.types import CallbackQuery
-from aiogram.fsm.context import FSMContext
 
 from services.ytdlp import YtdlpDownloader
 from ui.keyboards.ytdlp import YtdlpMarkup
@@ -12,12 +11,12 @@ async def delete_download_markup(callback: CallbackQuery):
     await callback.message.delete()
 
 
-async def download_audio(callback: CallbackQuery, state: FSMContext):
+async def download_audio(callback: CallbackQuery, bot: Bot):
     request_from_user_id = int(callback.data.split(':')[1])
     if callback.from_user.id != request_from_user_id:
         return
 
-    await state.bot.delete_message(
+    await bot.delete_message(
         chat_id=callback.message.chat.id,
         message_id=callback.data.split(':')[2]
     )

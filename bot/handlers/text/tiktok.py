@@ -15,8 +15,7 @@ class TikTokVideoHandler(BaseHandler):
         await self.event.delete()
         status_message = await self.event.answer(
             'Скачиваю ' + self._tiktok_link)
-        await self.state.bot.send_chat_action(
-            self.event.chat.id, 'upload_video')
+        await self.bot.send_chat_action(self.event.chat.id, 'upload_video')
         try:
             await self._send_tiktok_video(self._tiktok_link)
             await status_message.delete()
