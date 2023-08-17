@@ -1,4 +1,4 @@
-from aiogram.types import InlineQueryResultVideo, InputMediaVideo
+from aiogram.types import InlineQueryResultVideo
 
 
 def url_to_video_query_result(
@@ -11,9 +11,6 @@ def url_to_video_query_result(
         description=description,
         video_url=video_url,
         mime_type='video/mp4',
+        thumbnail_url=video_url,
         thumb_url=video_url,
-        input_message_content=InputMediaVideo(
-            type='video',
-            media=video_url,
-        )
     )
