@@ -2,6 +2,7 @@ import shutil
 
 import subprocess
 
+from utils.async_wrapper import async_wrap
 from services.cache_dir import CacheDir
 
 
@@ -21,13 +22,14 @@ class FfmpegService:
     ]
 
     @classmethod
-    async def make_slideshow_from_web(
+    @async_wrap
+    def make_slideshow_from_web(
             cls, images_urls: list[str], audio_url: str
     ) -> bytes:
         cache_dir = CacheDir()
 
-        await cls.download_and_prepare_images(images_urls, cache_dir.path)
-        await cls.download_and_prepare_audio(audio_url, cache_dir.path)
+        cls.download_and_prepare_images(images_urls, cache_dir.path)
+        cls.download_and_prepare_audio(audio_url, cache_dir.path)
 
         command = cls._build_slideshow_command(
             images_input=f'{cache_dir.path}/*.jpg',
@@ -41,7 +43,7 @@ class FfmpegService:
         return content
 
     @classmethod
-    async def download_and_prepare_images(
+    def download_and_prepare_images(
             cls, images_url: list[str], work_dir_path: str
     ) -> None:
         for n, url in enumerate(images_url):
@@ -55,7 +57,7 @@ class FfmpegService:
             shutil.copy(f'{work_dir_path}/2.jpg', f'{work_dir_path}/3.jpg')
 
     @classmethod
-    async def download_and_prepare_audio(
+    def download_and_prepare_audio(
             cls, audio_url: str, work_dir_path: str
     ) -> None:
         command = cls._build_command(
