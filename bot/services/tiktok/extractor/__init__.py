@@ -8,6 +8,7 @@ from ._base import BaseExtractor
 
 
 _EXTRACTORS: list[BaseExtractor] = [
+    ProxyTok('https://proxitok.esmailelbob.xyz'),
     ProxyTok('https://proxitok.pabloferreiro.es'),
     ApiExtractor(),
     ProxyTok('https://tok.adminforge.de'),
@@ -15,7 +16,6 @@ _EXTRACTORS: list[BaseExtractor] = [
     ProxyTok('https://proxitok.pussthecat.org'),
     ProxyTok('https://cringe.whatever.social'),
     ProxyTok('https://tok.habedieeh.re'),
-    ProxyTok('https://proxitok.esmailelbob.xyz'),
     ProxyTok('https://tok.artemislena.eu'),
     ProxyTok('https://tik.hostux.net'),
     # ProxyTok('https://proxitok.pufe.org'),
