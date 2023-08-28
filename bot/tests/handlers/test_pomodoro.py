@@ -22,7 +22,7 @@ class MockedEditSettingsHandler(MockedUserDataExtension, EditSettingsHandler):
 def buttons() -> list[dict]:
     settings_markup = PomodoroSettingsMarkup.get_settings_dialog(
         DEFAULT_SETTINGS)
-    return [b[0] for b in settings_markup.dict()['inline_keyboard']]
+    return [b[0] for b in settings_markup.model_dump()['inline_keyboard']]
 
 
 async def test_undefined_settings_in_markup(buttons):
@@ -51,7 +51,7 @@ async def test_edit_settings():
     settings_markup = PomodoroSettingsMarkup.get_settings_dialog(
         DEFAULT_SETTINGS)
     # TODO: buttons iterator
-    settings = settings_markup.dict()['inline_keyboard']
+    settings = settings_markup.model_dump()['inline_keyboard']
 
     for setting in settings:
         data = setting[0]['callback_data']
