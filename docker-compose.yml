@@ -1,5 +1,4 @@
 version: '3'
-
 services:
   gkbot:
     build: .
@@ -10,7 +9,6 @@ services:
     env_file: .env
     network_mode: bridge
     container_name: gkbot
-
 volumes:
   gkbot_data:
   bot_api_data:
