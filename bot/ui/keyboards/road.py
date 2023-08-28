@@ -21,9 +21,3 @@ class RoadMarkup:
             [_Buttons.settings]
         ]
     )
-
-    settings_dialog = KeyboardBuilder.add_keyboard(
-        buttons=[
-                []
-        ]
-    )
