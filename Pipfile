@@ -19,6 +19,7 @@ varname = "*"
 tiktok-downloader = {git = "https://github.com/krypton-byte/tiktok-downloader"}
 yt-dlp = "*"
 pytube = "*"
+pure-eval = "*"
 
 [dev-packages]
 autopep8 = "*"
