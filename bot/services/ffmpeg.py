@@ -10,7 +10,7 @@ class FfmpegService:
     __resize_image_options = [
         '-vf', (
             'scale=trunc(oh*a/2)*2:720,'
-            'pad=max(iw\,ih*9/16):max(ih\,iw*16/9):(ow-iw)/2:(oh-ih)/2:black'
+            'pad=max(iw\\,ih*9/16):max(ih\\,iw*16/9):(ow-iw)/2:(oh-ih)/2:black'
         ),
     ]
     __make_slideshow_options = [
