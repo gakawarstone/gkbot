@@ -17,6 +17,7 @@ class _UserCommands(_Commands):
     books = 'books'
     start_timer = 'start_timer'
     platonus2indigo = 'platonus2indigo'
+    dl = 'dl'
 
 
 USER_COMMANDS = _UserCommands()

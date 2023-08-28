@@ -47,4 +47,5 @@ DEFAULT_COMMANDS = {
     'admins': 'tag all admins',
     'books': 'personal book shelf',
     'platonus2indigo': 'convert test',
+    'dl': 'download file',
 }

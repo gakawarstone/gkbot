@@ -14,6 +14,7 @@ from . import books
 from . import timezone
 from . import list
 from . import platonus2indigo
+from . import download
 
 
 def setup(r: Router):
@@ -31,3 +32,4 @@ def setup(r: Router):
     timezone.setup(r)
     list.setup(r)
     platonus2indigo.setup(r)
+    download.setup(r)
