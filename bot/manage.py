@@ -4,7 +4,7 @@ import models
 from lib.bot import BotManager
 from lib.default_commands import DefaultCommands
 from lib.notifier import Notifier
-from lib.schedule import Schedule
+from services.schedule import Schedule
 from settings import (API_SERVER_URL, BOT_TOKEN, DB_URL, DEFAULT_COMMANDS,
                       MODELS)
 

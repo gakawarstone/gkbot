@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone, timedelta
 
 from lib.notifier import Notifier
-from lib.schedule import Schedule, Task
+from services.schedule import Schedule, Task
 
 
 @dataclass
@@ -14,10 +14,10 @@ class Remind:
 
 class Reminder:
     @classmethod
-    def add_remind(cls, user_id: int, date_time: datetime, text: str) -> None:
+    async def add_remind(cls, user_id: int, date_time: datetime, text: str):
         date_time_in_local = cls.__get_datetime_in_local_tz(date_time)
         remind = Remind(user_id, date_time_in_local, text)
-        cls.__add_message_to_schedule(remind)
+        await cls.__add_message_to_schedule(remind)
 
     @classmethod
     def __get_datetime_in_local_tz(cls, date_time: datetime) -> datetime:
@@ -26,16 +26,11 @@ class Reminder:
         return date_time.astimezone(local_timezone)
 
     @classmethod
-    def __add_message_to_schedule(cls, remind: Remind):
-        Schedule.add_task(
+    async def __add_message_to_schedule(cls, remind: Remind):
+        await Schedule.add_task(
             task=Task(
                 func=Notifier.notify,
                 args=[remind.user_id, remind.text]
             ),
             time=remind.date_time
         )
-
-    @classmethod
-    def __add_to_db(cls):
-        # TODO
-        pass

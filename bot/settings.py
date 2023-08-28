@@ -34,7 +34,7 @@ MODELS = [
     'models.road',
     'models.books',
     'models.timezone',
-    'models.reminds',
+    'models.tasks',
 ]
 
 
