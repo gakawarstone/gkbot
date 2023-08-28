@@ -1,9 +1,10 @@
-import asyncio
 from dataclasses import dataclass
-import os
 
 import yt_dlp
 from aiogram.types import BufferedInputFile, FSInputFile
+
+from utils.async_wrapper import async_wrap
+from services.cache_dir import CacheDir
 
 
 @dataclass
@@ -15,15 +16,17 @@ class AudioFileInfo:
 
 ydl_opts = {
     'format': 'ba',
-    'outtmpl': 'video.m4a',
+    'external_downloader': 'aria2c',
+    'postprocessors': [{
+        'key': 'FFmpegExtractAudio',
+        'preferredcodec': 'm4a',
+    }]
 }
 
 vkdl_opts = {
     'format': 'url240',
-    'outtmpl': 'video',
     'external_downloader': 'aria2c',
-    # ℹ️ See help(yt_dlp.postprocessor) for a list of available Postprocessors and their arguments
-    'postprocessors': [{  # Extract audio using ffmpeg
+    'postprocessors': [{
         'key': 'FFmpegExtractAudio',
         'preferredcodec': 'm4a',
     }]
@@ -33,7 +36,7 @@ vkdl_opts = {
 class YtdlpDownloader:
     @classmethod
     async def download_audio(cls, url: str) -> AudioFileInfo:
-        with yt_dlp.YoutubeDL(cls.__get_opts(url)) as ydl:
+        with yt_dlp.YoutubeDL() as ydl:
             info = ydl.extract_info(url, download=False)
 
         return AudioFileInfo(
@@ -43,18 +46,21 @@ class YtdlpDownloader:
         )
 
     @staticmethod
-    def __get_opts(url: str) -> dict:
+    def __get_opts(url: str, output_path: str) -> dict:
+        opts = ydl_opts
         if url.startswith('https://vk.com'):
-            return vkdl_opts
-        return ydl_opts
+            opts = vkdl_opts
+        opts['outtmpl'] = output_path
+        return opts
 
-    @classmethod  # FIXME: isnt async (!threadpoll because of race)
-    async def __get_input_file(cls, url: str) -> FSInputFile:
-        if os.path.isfile('video.m4a'):
-            os.remove('video.m4a')
+    @classmethod
+    @async_wrap
+    def __get_input_file(cls, url: str) -> FSInputFile:
+        cache_dir = CacheDir()
+        output_path = f'{cache_dir.path}/video'
+        opts = cls.__get_opts(url, output_path)
 
-        with yt_dlp.YoutubeDL(cls.__get_opts(url)) as ydl:
-            loop = asyncio.get_event_loop()
-            await loop.run_in_executor(None, ydl.download, url)
+        with yt_dlp.YoutubeDL(opts) as ydl:
+            ydl.download(url)
 
-        return FSInputFile('video.m4a', 'audio.mp3')
+        return FSInputFile(output_path + '.m4a', 'audio.mp3')
