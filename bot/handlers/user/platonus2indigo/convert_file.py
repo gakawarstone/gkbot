@@ -4,7 +4,7 @@ from io import BytesIO
 from aiogram.types import BufferedInputFile
 
 from contrib.handlers.message.file_extension import FileHandlerExtension, NoFileException
-from services.converters.docx import DocxConverter
+from services.docx import DocxReader
 from services.converters.tests.platonus2indigo import Platonus2Indigo
 from ._states import FSM
 
@@ -14,7 +14,7 @@ class ConvertFileHandler(FileHandlerExtension):
         await self.state.set_state(FSM.finish)
 
         try:
-            text = DocxConverter.convert_to_str(await self.document_io)
+            text = DocxReader.read_str(await self.document_io)
         except NoFileException:
             await self.state.set_state(FSM.convert)
             await self.event.answer('Отправьте файл')

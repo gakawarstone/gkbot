@@ -4,10 +4,9 @@ import docx2txt
 from zipfile import BadZipfile
 
 
-# NOTE: reader
-class DocxConverter:
+class DocxReader:
     @classmethod
-    def convert_to_str(cls, file: BytesIO) -> str:
+    def read_str(cls, file: BytesIO) -> str:
         try:
             lines = docx2txt.process(file).splitlines()
         except BadZipfile:
