@@ -21,8 +21,8 @@ async def send_tiktok(query: InlineQuery):
                 caption=query.query,
             ),
         ],
-        cache_time=60,
-        is_personal=True
+        cache_time=24*60*60,
+        is_personal=False
     )
 
 
