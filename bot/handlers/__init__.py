@@ -4,6 +4,7 @@ from . import user
 from . import text
 from . import inline
 from . import on_startup
+from . import error
 
 
 def setup(dp: Dispatcher):
@@ -12,3 +13,4 @@ def setup(dp: Dispatcher):
     text.setup(r)
     inline.setup(r)
     on_startup.setup(r)
+    error.setup(r)
