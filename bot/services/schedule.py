@@ -25,12 +25,12 @@ class TasksStorage:
 
     async def get_all(self) -> list[Tuple[Task, datetime]]:
         return [
-            (pickle.loads(i.callback), i.datetime)
+            (pickle.loads(i.callback), i.datetime, i.id)
             for i in await _Model.all()
         ]
 
-    async def remove(self, task: Task, time: datetime) -> None:
-        await _Model.filter(datetime=time).first().delete()
+    async def remove_by_id(self, id: int) -> None:
+        await _Model.filter(id=id).first().delete()
 
 
 class Schedule:
@@ -50,10 +50,10 @@ class Schedule:
     @classmethod
     async def __dispatcher(cls, delay=5) -> None:
         while True:
-            for task, time in await cls.__tasks.get_all():
+            for task, time, id in await cls.__tasks.get_all():
                 if time.timestamp() <= cls.__get_now_timestamp():
                     await task.run()
-                    await cls.__tasks.remove(task, time)
+                    await cls.__tasks.remove_by_id(id)
             await asyncio.sleep(delay)
 
     @classmethod
