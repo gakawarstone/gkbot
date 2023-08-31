@@ -30,7 +30,7 @@ class TasksStorage:
         ]
 
     async def remove_by_id(self, id: int) -> None:
-        await _Model.filter(id=id).first().delete()
+        [await i.delete() for i in await _Model.filter(id=id).all()]
 
 
 class Schedule:
