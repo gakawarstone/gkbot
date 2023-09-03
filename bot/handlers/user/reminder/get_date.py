@@ -38,6 +38,6 @@ class DateInputHandler(BaseHandler, OneTimeMessageHandlerExtension):
 
     def _validate_date(self, text: str, __format: str = '%d.%m.%Y') -> datetime:
         try:
-            return datetime.strptime(text, __format)
+            return datetime.strptime(text, __format).date()
         except ValueError:
             raise InvalidDateInput
