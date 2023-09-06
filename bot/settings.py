@@ -14,10 +14,13 @@ logger = logging.getLogger(__name__)
 # Environmental variables
 load_dotenv()
 
-BOT_TOKEN = os.getenv('BOT_TOKEN')
-NOTION_API_TOKEN = os.getenv('NOTION_API_TOKEN')
-DB_URL = os.getenv('DB_URL')
-API_SERVER_URL = os.getenv('API_SERVER_URL')
+try:
+    BOT_TOKEN = os.environ['BOT_TOKEN']
+    NOTION_API_TOKEN = os.environ['NOTION_API_TOKEN']
+    DB_URL = os.environ['DB_URL']
+    API_SERVER_URL = os.environ['API_SERVER_URL']
+except KeyError:
+    raise ValueError('Please set env variables')
 
 
 BOT_API_DIR = '/var/lib/telegram-bot-api'
