@@ -10,7 +10,7 @@ class PlatonusParser:
     @classmethod
     def parse_lines(cls, lines: list[str]) -> list[Question]:
         questions = []
-        question_buffer = []
+        question_buffer: list[str] = []
         for line in lines:
             if line.strip().startswith(cls.__question_tag) and len(question_buffer) > 2:
                 questions.append(cls._process_question_buffer(question_buffer))

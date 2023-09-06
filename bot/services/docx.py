@@ -1,6 +1,6 @@
 from io import BytesIO
 
-import docx2txt
+import docx2txt  # type: ignore
 from zipfile import BadZipfile
 
 
