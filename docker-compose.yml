@@ -3,6 +3,7 @@ services:
   gkbot:
     build: .
     image: gkbot
+    tty: True
     volumes:
       - gkbot_data:/data
       - ./services/bot-api/data:/var/lib/telegram-bot-api
