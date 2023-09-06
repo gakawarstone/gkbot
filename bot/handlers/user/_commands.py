@@ -18,6 +18,7 @@ class _UserCommands(_Commands):
     start_timer = 'start_timer'
     platonus2indigo = 'platonus2indigo'
     dl = 'dl'
+    get_asura = 'get_asura'
 
 
 USER_COMMANDS = _UserCommands()

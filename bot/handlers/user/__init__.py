@@ -15,6 +15,7 @@ from . import timezone
 from . import list
 from . import platonus2indigo
 from . import download
+from . import asura
 
 
 def setup(r: Router):
@@ -33,3 +34,4 @@ def setup(r: Router):
     list.setup(r)
     platonus2indigo.setup(r)
     download.setup(r)
+    asura.setup(r)
