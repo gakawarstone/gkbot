@@ -15,10 +15,10 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 
 # NOTE: try reverted because of tests
-BOT_TOKEN = os.environ['BOT_TOKEN']
-NOTION_API_TOKEN = os.environ['NOTION_API_TOKEN']
-DB_URL = os.environ['DB_URL']
-API_SERVER_URL = os.environ['API_SERVER_URL']
+BOT_TOKEN = os.getenv('BOT_TOKEN')
+NOTION_API_TOKEN = os.getenv('NOTION_API_TOKEN')
+DB_URL = os.getenv('DB_URL')
+API_SERVER_URL = os.getenv('API_SERVER_URL')
 
 
 BOT_API_DIR = '/var/lib/telegram-bot-api'
