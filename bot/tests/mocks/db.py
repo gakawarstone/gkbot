@@ -1,7 +1,15 @@
 from tortoise import Tortoise
 
-from settings import MODELS
 from models import setup
+
+
+MODELS = [
+    'models.users',
+    'models.road',
+    'models.books',
+    'models.timezone',
+    'models.tasks',
+]
 
 
 def use_db(func):
