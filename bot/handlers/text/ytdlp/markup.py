@@ -12,7 +12,7 @@ F: Message
 async def add_download_markup(message: Message):
     await message.answer(
         message.text,
-        reply_markup=YtdlpMarkup.get_download_mp3_dialog(
+        reply_markup=YtdlpMarkup.get_download_dialog(
             user_id=message.from_user.id,
             message_id=message.message_id
         )
