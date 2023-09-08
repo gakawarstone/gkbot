@@ -2,6 +2,7 @@ from typing import Any
 
 from aiogram import Router, F
 from aiogram.types import Message
+from aiogram.filters import or_f
 
 from services.ytdlp import YtdlpDownloader
 from contrib.handlers.message.base import BaseHandler
@@ -9,7 +10,7 @@ from contrib.handlers.message.base import BaseHandler
 F: Message
 
 
-class YouTubeShortsVideoHandler(BaseHandler):
+class YtdlpShortVideoHandler(BaseHandler):
     async def handle(self) -> Any:
         await self.event.delete()
         status_message = await self.event.answer('Скачиваю ' + self.event.text)
@@ -21,6 +22,9 @@ class YouTubeShortsVideoHandler(BaseHandler):
 
 def setup(r: Router):
     r.message.register(
-        YouTubeShortsVideoHandler,
-        F.text.startswith('https://youtube.com/shorts')
+        YtdlpShortVideoHandler,
+        or_f(
+            F.text.startswith('https://youtube.com/shorts'),
+            F.text.startswith('https://www.instagram.com/reel')
+        )
     )
