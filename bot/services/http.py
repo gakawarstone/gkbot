@@ -1,7 +1,7 @@
 from typing import Optional
 
 import aiohttp
-from aiohttp.client_exceptions import ClientConnectorError, ContentTypeError
+from aiohttp.client_exceptions import ClientConnectorError, ContentTypeError, InvalidURL
 
 _headers = {
     "User-Agent": (
@@ -25,13 +25,11 @@ class HttpService:
             try:
                 async with session.get(url, headers=headers) as response:
                     return await response.content.read()
-            except ClientConnectorError:
+            except (ClientConnectorError, InvalidURL):
                 raise HttpRequestError
 
     @classmethod
-    async def extract_cookies(
-            cls, url: str, headers: Optional[dict] = headers
-    ) -> str:
+    async def extract_cookies(cls, url: str, headers: Optional[dict] = headers) -> str:
         async with aiohttp.ClientSession(conn_timeout=None) as session:
             try:
                 async with session.get(url, headers=headers) as response:
@@ -50,13 +48,11 @@ class HttpService:
 
     @classmethod
     async def post(
-            cls, url: str, body: dict, headers: Optional[dict] = headers
+        cls, url: str, body: dict, headers: Optional[dict] = headers
     ) -> bytes:
         async with aiohttp.ClientSession(conn_timeout=None) as session:
             try:
-                async with session.post(
-                        url, data=body, headers=headers
-                ) as response:
+                async with session.post(url, data=body, headers=headers) as response:
                     return await response.content.read()
             except ClientConnectorError:
                 raise HttpRequestError
@@ -67,9 +63,7 @@ class HttpService:
     ) -> dict:
         async with aiohttp.ClientSession(conn_timeout=None) as session:
             try:
-                async with session.post(
-                        url, data=body, headers=headers
-                ) as response:
+                async with session.post(url, data=body, headers=headers) as response:
                     return await response.json()
             except ClientConnectorError:
                 raise HttpRequestError
