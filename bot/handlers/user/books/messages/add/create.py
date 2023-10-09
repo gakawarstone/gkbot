@@ -12,9 +12,9 @@ class CreateBookHandler(BaseHandler):
             name=self.ctx.name,
             author=self.ctx.author,
             chapters_cnt=self.ctx.chapter_cnt,
-            user_id=self.event.from_user.id
+            user_id=self.event.from_user.id,
         )
         if not is_created:
-            await self.event.answer('Такая уже есть')
+            await self.render_widget(self.status.error)
         else:
-            await self.event.answer('Книга добавлена')
+            await self.render_widget(self.status.success)
