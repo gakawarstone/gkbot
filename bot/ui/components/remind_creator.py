@@ -1,10 +1,10 @@
 from typing import Optional
 from datetime import date, time
 
-from .base import BaseComponent
+from .base_creator import BaseCreatorComponent
 
 
-class RemindCreator(BaseComponent):
+class RemindCreator(BaseCreatorComponent):
     def __init__(
         self,
         text: Optional[str] = None,
