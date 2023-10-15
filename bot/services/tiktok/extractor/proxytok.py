@@ -15,7 +15,7 @@ class ProxyTok(BaseExtractor):
             return InfoVideoTikTok(
                 video_url=await self._get_video_file_url(url),
                 music_url=await self._get_music_url(url),
-                images_urls=await self._find_images_urls(url)
+                images_urls=await self._find_images_urls(url),
             )
         except (KeyError, IndexError, ValueError, HttpRequestError):
             raise SourceInfoExtractFailed(self)
@@ -25,50 +25,52 @@ class ProxyTok(BaseExtractor):
         video_file_url = await self._find_video_file_url(url_in_proxytok)
 
         if not video_file_url:
-            return ''
+            return ""
         return self._normolize_link(video_file_url)
 
     async def _get_music_url(self, url: str) -> str:
         url_in_proxytok = self._get_url_in_proxytok(url)
         soup = await self._get_soup(url_in_proxytok)
-        if not (audio := soup.find('audio')):
+        if not (audio := soup.find("audio")):
             raise ValueError
-        return self._extract_sublink(audio['src'])
+        return self._normolize_link(audio["src"])
 
     async def _find_images_urls(self, url: str) -> list[str]:
         url_in_proxytok = self._get_url_in_proxytok(url)
         soup = await self._get_soup(url_in_proxytok)
-        return [self._extract_sublink(i.img['src'])
-                for i in soup.find_all(class_='slides-item')]
+        return [
+            self._extract_sublink(i.img["src"])
+            for i in soup.find_all(class_="slides-item")
+        ]
 
     def _get_url_in_proxytok(self, url: str) -> str:
         if not self._is_short_link(url):
-            return self.__instance_url + '/@' + url.split('@')[-1]
-        return self.__instance_url + '/t/' + self._get_video_code(url)
+            return self.__instance_url + "/@" + url.split("@")[-1]
+        return self.__instance_url + "/t/" + self._get_video_code(url)
 
     def _is_short_link(self, url: str) -> bool:
-        return not '@' in url
+        return not "@" in url
 
     def _get_video_code(self, url: str) -> str:
-        return url.split('/')[3]
+        return url.split("/")[3]
 
     async def _find_video_file_url(self, url_in_proxytok: str) -> str:
         soup = await self._get_soup(url_in_proxytok)
 
-        buttons = soup.find_all(class_='is-success')
+        buttons = soup.find_all(class_="is-success")
         if len(buttons) < 2:
-            return ''
+            return ""
 
-        href = buttons[-1]['href']
+        href = buttons[-1]["href"]
         if not self._is_link_valid(href):
-            return ''
+            return ""
         return href
 
     def _is_link_valid(self, url: str) -> bool:
-        return url.startswith((self.__instance_url, '/download'))
+        return url.startswith((self.__instance_url, "/download"))
 
     def _extract_sublink(self, url: str) -> str:
-        return unquote(url.split('?')[1][4:])
+        return unquote(url.split("?")[1][4:])
 
     def _normolize_link(self, url: str) -> str:
         if not self._is_link_relative(url):
@@ -76,4 +78,4 @@ class ProxyTok(BaseExtractor):
         return self.__instance_url + url
 
     def _is_link_relative(self, url: str) -> bool:
-        return not url.startswith('http')
+        return not url.startswith("http")
