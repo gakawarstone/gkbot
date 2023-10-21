@@ -1,16 +1,16 @@
 -i https://pypi.python.org/simple
 aiofiles==23.1.0; python_version >= '3.7' and python_version < '4.0'
 aiogram==3.1.1; python_version >= '3.8'
-aiohttp==3.8.5; python_version >= '3.6'
+aiohttp==3.8.6; python_version >= '3.6'
 aiosignal==1.3.1; python_version >= '3.7'
 aiosqlite==0.17.0; python_version >= '3.6'
-annotated-types==0.5.0; python_version >= '3.7'
+annotated-types==0.6.0; python_version >= '3.8'
 anyio==4.0.0; python_version >= '3.8'
 async-timeout==4.0.3; python_version >= '3.7'
 asyncio==3.4.3
 attrs==23.1.0; python_version >= '3.7'
 beautifulsoup4==4.12.2; python_full_version >= '3.6.0'
-blinker==1.6.2; python_version >= '3.7'
+blinker==1.6.3; python_version >= '3.7'
 brotli==1.1.0; platform_python_implementation == 'CPython'
 bs4==0.0.1
 certifi==2023.7.22; python_version >= '3.6'
@@ -18,7 +18,7 @@ charset-normalizer==3.3.0; python_full_version >= '3.7.0'
 click==8.1.7; python_version >= '3.7'
 cloudscraper==1.2.71
 docx2txt==0.8
-executing==1.2.0
+executing==2.0.0
 flask==3.0.0; python_version >= '3.8'
 frozenlist==1.4.0; python_version >= '3.8'
 gtts==2.4.0; python_version >= '3.7'
@@ -58,11 +58,11 @@ tortoise-orm==0.20.0; python_version >= '3.8' and python_version < '4.0'
 tqdm==4.66.1; python_version >= '3.7'
 translate==3.6.1
 typing-extensions==4.7.1; python_version >= '3.7'
-urllib3==2.0.6; python_version >= '3.7'
-varname==0.11.2; python_version >= '3.8' and python_version < '4.0'
+urllib3==2.0.7; python_version >= '3.7'
+varname==0.12.0; python_version >= '3.8' and python_version < '4.0'
 websockets==11.0.3; python_version >= '3.7'
 werkzeug==3.0.0; python_version >= '3.8'
 wikipedia==1.4.0
 yarl==1.9.2; python_version >= '3.7'
 youtube-search==2.1.2
-yt-dlp==2023.9.24; python_version >= '3.7'
+yt-dlp==2023.10.13; python_version >= '3.7'
