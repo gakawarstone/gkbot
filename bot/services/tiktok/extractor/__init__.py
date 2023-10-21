@@ -1,39 +1,40 @@
+from utils.async_for_first_success import async_for_first_success
 from ..types import InfoVideoTikTok
 from ..exceptions import TikTokInfoExtractionFailed
 from .exceptions import SourceInfoExtractFailed
 from .proxytok import ProxyTok
-# from .snaptik import SnaptikDownloader
 from .api import ApiExtractor
 from ._base import BaseExtractor
 
 
 _EXTRACTORS: list[BaseExtractor] = [
-    ProxyTok('https://proxitok.esmailelbob.xyz'),
-    ProxyTok('https://proxitok.pabloferreiro.es'),
+    ProxyTok("https://proxitok.esmailelbob.xyz"),
+    ProxyTok("https://proxitok.pabloferreiro.es"),
+    ProxyTok("https://tok.adminforge.de"),
     ApiExtractor(),
-    ProxyTok('https://tok.adminforge.de'),
-    # SnaptikDownloader(),  # NOTE: not working
-    ProxyTok('https://proxitok.pussthecat.org'),
-    ProxyTok('https://cringe.whatever.social'),
-    ProxyTok('https://tok.habedieeh.re'),
-    ProxyTok('https://tok.artemislena.eu'),
-    ProxyTok('https://tik.hostux.net'),
-    # ProxyTok('https://proxitok.pufe.org'),
-    # ProxyTok('https://proxitok.lunar.icu'),
-    # ProxyTok('https://tt.vern.cc'),
+    ProxyTok("https://proxitok.pussthecat.org"),
+    ProxyTok("https://cringe.whatever.social"),
+    ProxyTok("https://tok.habedieeh.re"),
+    ProxyTok("https://tok.artemislena.eu"),
+    ProxyTok("https://tik.hostux.net"),
 ]
 
 
 class TikTokInfoExtractor:
-    @classmethod
-    async def get_video_url(cls, url: str) -> str:
-        return (await cls.get_video_info(url)).video_url
+    async_for_first_success_extractor = async_for_first_success(
+        sources=_EXTRACTORS,
+        inject_as="source",
+        exception_to_continue=SourceInfoExtractFailed,
+        exception_if_all_failed=TikTokInfoExtractionFailed,
+        exception_if_all_failed_inject_args=[1],
+    )
 
     @classmethod
-    async def get_video_info(cls, url: str) -> InfoVideoTikTok:
-        for source in _EXTRACTORS:
-            try:
-                return await source.get_video_info(url)
-            except SourceInfoExtractFailed:
-                continue
-        raise TikTokInfoExtractionFailed(url)
+    @async_for_first_success_extractor
+    async def get_video_url(cls, url: str, source: BaseExtractor) -> str:
+        return await source.get_video_file_url(url)
+
+    @classmethod
+    @async_for_first_success_extractor
+    async def get_video_info(cls, url: str, source: BaseExtractor) -> InfoVideoTikTok:
+        return await source.get_video_info(url)

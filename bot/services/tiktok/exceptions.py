@@ -1,5 +1,5 @@
 class SerializationError(Exception):
-    'failed to serialize'
+    "failed to serialize"
 
 
 class TikTokVideoUrlExtractionFailed(Exception):
@@ -7,7 +7,7 @@ class TikTokVideoUrlExtractionFailed(Exception):
         self.url = url
 
     def __str__(self) -> str:
-        return f'TikTok video url extraction failed {self.url}'
+        return f"TikTok video url extraction failed {self.url}"
 
 
 class TikTokInvalidUrl(Exception):
@@ -15,7 +15,7 @@ class TikTokInvalidUrl(Exception):
         self.url = url
 
     def __str__(self) -> str:
-        return f'Invalid TikTok video url {self.url}'
+        return f"Invalid TikTok video url {self.url}"
 
 
 class TikTokInfoExtractionFailed(Exception):
@@ -23,4 +23,4 @@ class TikTokInfoExtractionFailed(Exception):
         self.url = url
 
     def __str__(self) -> str:
-        return f'Download failed from url {self.url}'
+        return f"Download failed from url {self.url}"

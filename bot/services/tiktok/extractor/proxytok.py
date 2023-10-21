@@ -13,14 +13,14 @@ class ProxyTok(BaseExtractor):
     async def get_video_info(self, url: str) -> InfoVideoTikTok:
         try:
             return InfoVideoTikTok(
-                video_url=await self._get_video_file_url(url),
+                video_url=await self.get_video_file_url(url),
                 music_url=await self._get_music_url(url),
                 images_urls=await self._find_images_urls(url),
             )
         except (KeyError, IndexError, ValueError, HttpRequestError):
             raise SourceInfoExtractFailed(self)
 
-    async def _get_video_file_url(self, url: str) -> str:
+    async def get_video_file_url(self, url: str) -> str:
         url_in_proxytok = self._get_url_in_proxytok(url)
         video_file_url = await self._find_video_file_url(url_in_proxytok)
 
