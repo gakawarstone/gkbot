@@ -1,15 +1,12 @@
 name: Deploy
-
 on:
   push:
     branches:
       - master
   workflow_dispatch:
-
 jobs:
   test:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python
@@ -21,19 +18,16 @@ jobs:
           pip install -r requirements-dev.txt
       - name: Run tests
         run: pytest
-
   deploy:
     runs-on: ubuntu-latest
     needs: test
-
     steps:
       - name: Deploy with SSH
         uses: fifsky/ssh-action@master
         with:
           command: |
             cd github/gkbot
-            pipenv run gitup
-            pipenv run drestart
+            make docker-update
           host: ${{ secrets.HOST }}
           user: ${{ secrets.USER_NAME }}
           key: ${{ secrets.PRIVATE_KEY }}
