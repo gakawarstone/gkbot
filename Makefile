@@ -11,3 +11,9 @@ docker-update:
 	docker compose stop && docker compose rm -f
 	docker compose build
 	docker compose up -d
+
+merge-to-master:
+	git checkout master
+	git merge dev-3.0
+	git push
+	git checkout dev-3.0
