@@ -59,6 +59,11 @@ class FfmpegService:
                 props=cls.__resize_image_options,
             )
             subprocess.run(command, check=True)
+
+        if len(images_url) == 1:
+            shutil.copy(f"{work_dir_path}/001.jpg", f"{work_dir_path}/002.jpg")
+            shutil.copy(f"{work_dir_path}/002.jpg", f"{work_dir_path}/003.jpg")
+
         if len(images_url) == 2:
             shutil.copy(f"{work_dir_path}/002.jpg", f"{work_dir_path}/003.jpg")
 
