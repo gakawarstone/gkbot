@@ -1,6 +1,6 @@
 from datetime import time
 
-from contrib.handlers.message.base import BaseHandler as _BaseHandler
+from extensions.handlers.message.base import BaseHandler as _BaseHandler
 from services.repositories.road_settings import RoadSettingsRepository, RoadSettings
 from ui.widgets.timer import Timer
 

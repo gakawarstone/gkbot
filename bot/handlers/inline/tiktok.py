@@ -2,7 +2,7 @@ from aiogram import Router
 from aiogram.types import InlineQuery, InlineQueryResultVideo
 
 from services.tiktok import TikTokService, TikTokVideoUrlExtractionFailed
-from contrib.handlers.query.failed import get_failed_result
+from extensions.handlers.query.failed import get_failed_result
 from filters.tiktok import TikTokVideoLink
 
 

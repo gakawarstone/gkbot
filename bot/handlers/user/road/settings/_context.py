@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Optional, Any
 
 
-from contrib.handlers.message.context_manager import BaseContextManager, BaseContext
+from extensions.handlers.message.context_manager import BaseContextManager, BaseContext
 
 
 @dataclass

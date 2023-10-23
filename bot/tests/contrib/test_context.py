@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional, Any
 
-from contrib.handlers.message.context_manager import BaseContextManager, BaseContext
+from extensions.handlers.message.context_manager import BaseContextManager, BaseContext
 from tests.mocks.message import fake_event
 
 
@@ -42,59 +42,43 @@ async def test_props_type():
 async def test_set_cache():
     ctx_manager = FakeContextManager(event=fake_event)
     ctx_manager.set(ctx_manager.props.integer, 10)
-    ctx_manager.set(ctx_manager.props.str_data, '10')
-    ctx_manager.set(ctx_manager.props.any, '10')
+    ctx_manager.set(ctx_manager.props.str_data, "10")
+    ctx_manager.set(ctx_manager.props.any, "10")
 
     assert ctx_manager.ctx.integer == 10
-    assert ctx_manager.ctx.str_data == '10'
-    assert ctx_manager.user_data == {
-        'str_data': '10',
-        'integer': 10,
-        'any': '10'
-    }
+    assert ctx_manager.ctx.str_data == "10"
+    assert ctx_manager.user_data == {"str_data": "10", "integer": 10, "any": "10"}
 
 
 async def test_clean_context():
     ctx_manager = FakeContextManager(event=fake_event)
     ctx_manager.set(ctx_manager.props.integer, 10)
-    ctx_manager.set(ctx_manager.props.str_data, '10')
+    ctx_manager.set(ctx_manager.props.str_data, "10")
     ctx_manager.clean_context()
 
     assert ctx_manager.ctx.integer == None
     assert ctx_manager.ctx.str_data == None
-    assert ctx_manager.user_data == {
-        'str_data': None,
-        'integer': None,
-        'any': None
-    }
+    assert ctx_manager.user_data == {"str_data": None, "integer": None, "any": None}
 
 
 async def test_clean_context_with_exclude():
     ctx_manager = FakeContextManager(event=fake_event)
     ctx_manager.set(ctx_manager.props.integer, 10)
-    ctx_manager.set(ctx_manager.props.str_data, '10')
+    ctx_manager.set(ctx_manager.props.str_data, "10")
     ctx_manager.clean_context(ctx_manager.props.integer)
 
     assert ctx_manager.ctx.integer == 10
     assert ctx_manager.ctx.str_data == None
-    assert ctx_manager.user_data == {
-        'str_data': None,
-        'integer': 10,
-        'any': None
-    }
+    assert ctx_manager.user_data == {"str_data": None, "integer": 10, "any": None}
 
 
 async def test_clean_context_with_multiple_exclude():
     ctx_manager = FakeContextManager(event=fake_event)
     ctx_manager.set(ctx_manager.props.integer, 10)
-    ctx_manager.set(ctx_manager.props.str_data, '10')
-    ctx_manager.set(ctx_manager.props.any, '10')
+    ctx_manager.set(ctx_manager.props.str_data, "10")
+    ctx_manager.set(ctx_manager.props.any, "10")
     ctx_manager.clean_context(ctx_manager.ctx.integer, ctx_manager.ctx.any)
 
     assert ctx_manager.ctx.integer == 10
     assert ctx_manager.ctx.str_data == None
-    assert ctx_manager.user_data == {
-        'str_data': None,
-        'integer': 10,
-        'any': '10'
-    }
+    assert ctx_manager.user_data == {"str_data": None, "integer": 10, "any": "10"}

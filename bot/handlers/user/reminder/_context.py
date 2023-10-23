@@ -6,7 +6,7 @@ from typing import Optional
 
 from aiogram.types import Message
 
-from contrib.handlers.message.context_manager import BaseContextManager, BaseContext
+from extensions.handlers.message.context_manager import BaseContextManager, BaseContext
 
 
 @dataclass

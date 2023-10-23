@@ -1,7 +1,8 @@
 from typing import Any
 
-from contrib.handlers.message.one_time_extension import \
-    OneTimeMessageHandlerExtension
+from extensions.handlers.message.one_time_extension import (
+    OneTimeMessageHandlerExtension,
+)
 from ._base import BaseHandler
 from ._states import FSM
 
@@ -12,6 +13,6 @@ class GetNameHandler(BaseHandler, OneTimeMessageHandlerExtension):
         await self.event.delete()
         self.set(self.props.file_name, self.event.text)
         self._set_one_time_message(
-            await self.event.answer('Пришли ссылку на файл который хочешь скачать')
+            await self.event.answer("Пришли ссылку на файл который хочешь скачать")
         )
         await self.state.set_state(FSM.get_link)
