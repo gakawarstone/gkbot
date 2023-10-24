@@ -1,4 +1,4 @@
-from lib.keyboard_builder import KeyboardBuilder
+from core.keyboard_builder import KeyboardBuilder
 from .types import _Buttons
 
 
@@ -8,6 +8,6 @@ class MenuMarkup:
     menu = KeyboardBuilder.add_keyboard(
         buttons=[
             [buttons.my_books, buttons.add_new_book, buttons.update_book],
-            [buttons.delete_book, buttons.exit]
+            [buttons.delete_book, buttons.exit],
         ]
     )

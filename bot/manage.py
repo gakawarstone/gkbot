@@ -1,12 +1,11 @@
 import handlers
 import middlewares
 import models
-from lib.bot import BotManager
-from lib.default_commands import DefaultCommands
-from lib.notifier import Notifier
+from core.bot import BotManager
+from core.default_commands import DefaultCommands
+from core.notifier import Notifier
 from services.schedule import Schedule
-from settings import (API_SERVER_URL, BOT_TOKEN, DB_URL, DEFAULT_COMMANDS,
-                      MODELS)
+from settings import API_SERVER_URL, BOT_TOKEN, DB_URL, DEFAULT_COMMANDS, MODELS
 
 mng = BotManager(BOT_TOKEN, API_SERVER_URL)
 

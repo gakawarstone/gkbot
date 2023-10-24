@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 
-from lib.keyboard_builder import KeyboardBuilder
+from core.keyboard_builder import KeyboardBuilder
 
 
 @dataclass

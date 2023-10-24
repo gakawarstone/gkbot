@@ -1,7 +1,7 @@
 from aiogram.filters import BaseFilter
 from aiogram.types import Message
 
-from lib.types import ChatType
+from core.types import ChatType
 
 
 class ChatTypeFilter(BaseFilter):

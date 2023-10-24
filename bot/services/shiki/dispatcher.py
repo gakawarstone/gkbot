@@ -1,6 +1,6 @@
 import asyncio
 
-from lib.notifier import Notifier
+from core.notifier import Notifier
 
 from .user_updates import User, Update, UserUpdates
 
@@ -21,7 +21,7 @@ class _UserUpdatesSubscription:
 
     async def is_updated(self) -> bool:
         new_update = await self.__get_last_update()
-        if (self.last_update.type != new_update.type):
+        if self.last_update.type != new_update.type:
             self.last_update = new_update
             return True
         return False
@@ -42,8 +42,7 @@ class UserUpdatesDispatcher:
             for sub in cls.subscriptions:
                 if await sub.is_updated():
                     await Notifier.notify(
-                        chat_id=sub.chat_id,
-                        text=str(sub.last_update) + str(sub.user)
+                        chat_id=sub.chat_id, text=str(sub.last_update) + str(sub.user)
                     )
                 await asyncio.sleep(delay)
             await asyncio.sleep(delay * 5)
