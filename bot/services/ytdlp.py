@@ -15,27 +15,31 @@ class AudioFileInfo:
 
 
 ydl_opts = {
-    'format': 'ba',
-    'external_downloader': 'aria2c',
-    'postprocessors': [{
-        'key': 'FFmpegExtractAudio',
-        'preferredcodec': 'm4a',
-    }]
+    "format": "ba",
+    # "external_downloader": "aria2c",
+    "postprocessors": [
+        {
+            "key": "FFmpegExtractAudio",
+            "preferredcodec": "m4a",
+        }
+    ],
 }
 
 vkdl_opts = {
-    'format': 'url240',
-    'external_downloader': 'aria2c',
-    'postprocessors': [{
-        'key': 'FFmpegExtractAudio',
-        'preferredcodec': 'm4a',
-    }]
+    "format": "url240",
+    "external_downloader": "aria2c",
+    "postprocessors": [
+        {
+            "key": "FFmpegExtractAudio",
+            "preferredcodec": "m4a",
+        }
+    ],
 }
 
 
 video_opts = {
-    'format': 'worst[ext=mp4]',
-    'external_downloader': 'aria2c',
+    "format": "worst[ext=mp4]",
+    "external_downloader": "aria2c",
 }
 
 
@@ -47,41 +51,39 @@ class YtdlpDownloader:
 
         return AudioFileInfo(
             input_file=await cls.__download_audio_file(url),
-            duration=info['duration'],
-            title=info['title']
+            duration=info["duration"],
+            title=info["title"],
         )
 
     @classmethod
     async def download_video(cls, url: str) -> FSInputFile:
-        return await cls.__download_file(url, video_opts, 'video.mp4')
+        return await cls.__download_file(url, video_opts, "video.mp4")
 
     @classmethod
     async def __download_audio_file(cls, url: str) -> FSInputFile:
         opts = cls.__choose_opts(url)
-        file = await cls.__download_file(url, opts, 'audio.m4a')
-        file.path += '.m4a'
+        file = await cls.__download_file(url, opts, "audio.m4a")
+        file.path += ".m4a"
         return file
 
     @classmethod
     @async_wrap
-    def __download_file(
-            cls, url: str, opts: dict, file_name: str
-    ) -> FSInputFile:
+    def __download_file(cls, url: str, opts: dict, file_name: str) -> FSInputFile:
         output_path = cls.__prepare_path()
-        opts['outtmpl'] = output_path
+        opts["outtmpl"] = output_path
 
         with yt_dlp.YoutubeDL(opts) as ydl:
             ydl.download(url)
 
-        return FSInputFile(output_path, 'video.mp4')
+        return FSInputFile(output_path, "video.mp4")
 
     @staticmethod
     def __choose_opts(url: str) -> dict:
-        if url.startswith('https://vk.com'):
+        if url.startswith("https://vk.com"):
             return vkdl_opts
         return ydl_opts
 
     @staticmethod
     def __prepare_path() -> str:
         cache_dir = CacheDir()
-        return f'{cache_dir.path}/file'
+        return f"{cache_dir.path}/file"
