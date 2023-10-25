@@ -2,7 +2,8 @@ from notion_client import AsyncClient
 from typing import Optional
 from datetime import datetime
 
-from settings import NOTION_API_TOKEN
+from configs.env import NOTION_API_TOKEN
+
 client = AsyncClient(auth=NOTION_API_TOKEN)
 
 
@@ -12,10 +13,13 @@ class TextBlock:
         self.data = self.__get_data()
 
     def __get_data(self) -> dict:
-        return {'object': 'block',
-                'type': 'paragraph',
-                'paragraph': {'rich_text': [{'type': 'text',
-                                             'text': {'content': self.text}}]}}
+        return {
+            "object": "block",
+            "type": "paragraph",
+            "paragraph": {
+                "rich_text": [{"type": "text", "text": {"content": self.text}}]
+            },
+        }
 
 
 class Page:
@@ -24,7 +28,7 @@ class Page:
 
     async def get_url(self) -> str:
         data = await self.get_data()
-        return data['url']
+        return data["url"]
 
     async def set_properties(self, properties: dict):
         await client.pages.update(page_id=self.id, properties=properties)
@@ -37,11 +41,11 @@ class Page:
 
     async def get_all_children_titles(self) -> list:
         data = await client.blocks.children.list(self.id)
-        children = data['results']
+        children = data["results"]
         outp = []
         for child in children:
-            if child['paragraph']['text']:
-                title = child['paragraph']['text'][0]['plain_text']
+            if child["paragraph"]["text"]:
+                title = child["paragraph"]["text"][0]["plain_text"]
                 outp.append(title)
         return outp
 
@@ -51,36 +55,32 @@ class Page:
 
 class Row(Page):
     async def set_name(self, name: str):
-        properties = {'Name': {'title': [{'text': {'content': name}}]}}
+        properties = {"Name": {"title": [{"text": {"content": name}}]}}
         await self.set_properties(properties)
 
     async def set_date(self, property_name: str, date: datetime):
-        date_as_string = datetime.strftime(date, '%Y-%m-%d')
-        await self.set_properties({
-            property_name: {'date': {'start': date_as_string}}
-        })
+        date_as_string = datetime.strftime(date, "%Y-%m-%d")
+        await self.set_properties({property_name: {"date": {"start": date_as_string}}})
 
     async def set_select(self, property_name: str, select: str):
-        properties = {property_name: {'select': {'name': select}}}
+        properties = {property_name: {"select": {"name": select}}}
         await self.set_properties(properties)
 
 
 class Database(Page):
-    async def add_row(self, title: str = 'Processing') -> Row:
-        properties = {
-            'Name': {'title': [{'text': {'content': title}}]}
-        }
+    async def add_row(self, title: str = "Processing") -> Row:
+        properties = {"Name": {"title": [{"text": {"content": title}}]}}
         page = await self.__create_page(properties)
         return Row(page.id)
 
     async def __create_page(self, properties: dict) -> Page:
-        response = await client.pages.create(parent={'database_id': self.id},
-                                             properties=properties)
-        return Page(response['id'])
+        response = await client.pages.create(
+            parent={"database_id": self.id}, properties=properties
+        )
+        return Page(response["id"])
 
     async def get_data(self, filter: Optional[dict] = None) -> dict:
         if filter:
-            return await client.databases.query(database_id=self.id,
-                                                filter=filter)
+            return await client.databases.query(database_id=self.id, filter=filter)
         else:
             return await client.databases.query(database_id=self.id)

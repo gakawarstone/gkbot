@@ -1,7 +1,7 @@
 from aiogram import Router
 
 from core.notifier import Notifier
-from settings import ADMINS
+from configs.admins import ADMINS
 
 
 async def on_startup():

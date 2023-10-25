@@ -1,34 +1,45 @@
 import asyncio
-from typing import Coroutine, Any
 
 from aiogram.client.session.aiohttp import AiohttpSession
 from aiogram.client.telegram import TelegramAPIServer
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
 
+import middlewares
+import handlers
+from .types import BotConfig
+from .notifier import Notifier
+from .default_commands import DefaultCommands
 
-class BotManager:
-    __parse_mode = 'HTML'
+
+class BotStarter:
     __storage = MemoryStorage()
     __loop = asyncio.get_event_loop()
 
-    def __init__(self, token: str, api_url: str = 'https://api.telegram.org'):
+    def __init__(self, config: BotConfig):
         session = AiohttpSession(  # NOTE timeout
-            api=TelegramAPIServer.from_base(api_url)
+            api=TelegramAPIServer.from_base(config.api_url)
         )
         self.bot = Bot(
-            token=token, parse_mode=self.__parse_mode, session=session)
+            token=config.token, parse_mode=config.parse_mode, session=session
+        )
         self.dp = Dispatcher(storage=self.__storage)
-        self.__tasks_on_startup = []
-
-    def add_tasks_on_startup(
-            self, callbacks: list[Coroutine[Any, Any, Any]]
-    ) -> None:
-        self.__tasks_on_startup = callbacks
+        self.default_commands = config.default_commands
+        self.tasks_on_startup_async = config.tasks_on_startup_async
+        self.tasks_on_startup_sync = config.tasks_on_startup_sync
 
     async def __on_startup(self) -> None:
-        for callback in self.__tasks_on_startup:
+        await Notifier.setup(self.bot)
+        await DefaultCommands(self.default_commands).set(self.bot)
+
+        for callback in self.tasks_on_startup_async:
             await callback
+
+        for callback in self.tasks_on_startup_sync:
+            callback()
+
+        middlewares.setup(self.dp)
+        handlers.setup(self.dp)
         await self.dp.start_polling(self.bot)
 
     def start(self) -> None:
