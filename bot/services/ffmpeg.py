@@ -26,6 +26,27 @@ class FfmpegService:
         "yuv420p",
     ]
 
+    __convert_to_voice_options = ["-acodec", "libopus"]
+
+    @classmethod
+    @async_wrap
+    def convert_music_to_voice(cls, music: bytes) -> bytes:
+        cache_dir = CacheDir()
+
+        cache_dir.save_file("music.mp3", music)
+
+        command = cls._build_command(
+            inputs=[f"{cache_dir.path}/music.mp3"],
+            output=f"{cache_dir.path}/voice.ogg",
+            props=cls.__convert_to_voice_options,
+        )
+
+        subprocess.run(command, check=True)
+
+        content = open(f"{cache_dir.path}/voice.ogg", "rb").read()
+        cache_dir.delete()
+        return content
+
     @classmethod
     @async_wrap
     def make_slideshow_from_web(cls, images_urls: list[str], audio_url: str) -> bytes:

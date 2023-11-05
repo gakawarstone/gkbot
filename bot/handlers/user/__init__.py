@@ -1,6 +1,6 @@
 from aiogram import Router
 
-from . import text_to_speech as tts
+from . import tts
 from . import tasks
 from . import braintrash
 from . import bomber
