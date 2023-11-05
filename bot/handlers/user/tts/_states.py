@@ -2,7 +2,7 @@ from aiogram.filters.state import StatesGroup, State
 
 
 class _TTSFSM(StatesGroup):
-    send_speach = State()
+    send_speech = State()
     finish = State()
 
 

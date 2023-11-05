@@ -16,4 +16,4 @@ class InitHandler(OneTimeMessageHandlerExtension, BaseHandler):
             "Отправь мне сообщение и произойдет магия"
         )
         self._set_one_time_message(await self.event.answer(text))
-        await self.state.set_state(FSM.send_speach)
+        await self.state.set_state(FSM.send_speech)

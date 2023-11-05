@@ -8,5 +8,5 @@ DEFAULT_COMMANDS = {
     "books": "personal book shelf",
     "platonus2indigo": "convert test",
     "dl": "download file",
-    "tts": "text to speach",
+    "tts": "text to speech",
 }

@@ -26,14 +26,14 @@ class ProxyTok(BaseExtractor):
 
         if not video_file_url:
             return ""
-        return self._normolize_link(video_file_url)
+        return self._normalize_link(video_file_url)
 
     async def _get_music_url(self, url: str) -> str:
         url_in_proxytok = self._get_url_in_proxytok(url)
         soup = await self._get_soup(url_in_proxytok)
         if not (audio := soup.find("audio")):
             raise ValueError
-        return self._normolize_link(audio["src"])
+        return self._normalize_link(audio["src"])
 
     async def _find_images_urls(self, url: str) -> list[str]:
         url_in_proxytok = self._get_url_in_proxytok(url)
@@ -72,7 +72,7 @@ class ProxyTok(BaseExtractor):
     def _extract_sublink(self, url: str) -> str:
         return unquote(url.split("?")[1][4:])
 
-    def _normolize_link(self, url: str) -> str:
+    def _normalize_link(self, url: str) -> str:
         if not self._is_link_relative(url):
             return url
         return self.__instance_url + url

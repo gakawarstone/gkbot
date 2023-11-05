@@ -6,9 +6,8 @@ from ._base import BaseHandler
 
 
 class CreateRemindHandler(BaseHandler):
-    async def handle(self) -> Any:  # [ ] if unsuccess
-        await Reminder.add_remind(self.event.from_user.id,
-                                  self.datetime, self.ctx.text)
+    async def handle(self) -> Any:  # [ ] if unsuccessful
+        await Reminder.add_remind(self.event.from_user.id, self.datetime, self.ctx.text)
 
         await self.render_widget(status_message=self.status.success)
 
