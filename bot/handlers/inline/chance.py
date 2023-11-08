@@ -1,10 +1,8 @@
 import random
+import hashlib
 
 from aiogram import Router, F
 from aiogram.types import InlineQuery, InlineQueryResultArticle, InputTextMessageContent
-from aiogram.exceptions import TelegramBadRequest
-
-from extensions.handlers.query.failed import get_failed_result
 
 
 async def send_chance(query: InlineQuery):
@@ -12,26 +10,16 @@ async def send_chance(query: InlineQuery):
     chance = random.randint(0, 100)
     description = "tap to send your chance"
 
-    results = []
-    try:
-        results += [
-            InlineQueryResultArticle(
-                id=query.query,
-                title=message,
-                input_message_content=InputTextMessageContent(
-                    message_text=message + str(chance) + "%"
-                ),
-                description=description,
-            )
-        ]
-    except TelegramBadRequest:
-        results += [
-            get_failed_result(
-                query=query,
-                message=f"query message is too long",
-                description="try to send link direct to bot",
+    results = [
+        InlineQueryResultArticle(
+            id=hashlib.md5(query.query.encode()).hexdigest(),
+            title=message,
+            input_message_content=InputTextMessageContent(
+                message_text=message + str(chance) + "%"
             ),
-        ]
+            description=description,
+        )
+    ]
 
     return await query.answer(
         results=results,
