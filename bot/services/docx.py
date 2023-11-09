@@ -12,4 +12,4 @@ class DocxReader:
         except BadZipfile:
             raise ValueError
         stripped_lines = [l for n, l in enumerate(lines) if n % 2 == 0]
-        return '\n'.join(stripped_lines)
+        return "\n".join(stripped_lines)
