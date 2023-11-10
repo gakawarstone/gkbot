@@ -1,7 +1,11 @@
 from typing import Optional
+import subprocess
 
 import aiohttp
 from aiohttp.client_exceptions import ClientConnectorError, ContentTypeError, InvalidURL
+
+from utils.async_wrapper import async_wrap
+from services.cache_dir import CacheDir
 
 _headers = {
     "User-Agent": (
@@ -67,3 +71,16 @@ class HttpService:
                     return await response.json()
             except ClientConnectorError:
                 raise HttpRequestError
+
+    @classmethod
+    async def download_file(cls, url: str) -> str:
+        cache_dir = CacheDir()
+        file_path = cache_dir.path + "/file"
+        await cls.download_file_to_path(url, file_path)
+        return file_path
+
+    @classmethod
+    @async_wrap
+    def download_file_to_path(cls, url: str, output_path: str):
+        command = ["aria2c", "-x16", "-s16", "-k1M", url, "-o", output_path]
+        subprocess.call(command)
