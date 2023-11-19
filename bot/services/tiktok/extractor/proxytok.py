@@ -1,6 +1,8 @@
 from urllib.parse import unquote
 
-from services.http import HttpRequestError
+from bs4 import BeautifulSoup
+
+from services.http import HttpService, HttpRequestError
 from ..types import InfoVideoTikTok
 from ._base import BaseExtractor
 from .exceptions import SourceInfoExtractFailed
@@ -49,7 +51,7 @@ class ProxyTok(BaseExtractor):
         return self.__instance_url + "/t/" + self._get_video_code(url)
 
     def _is_short_link(self, url: str) -> bool:
-        return not "@" in url
+        return "@" not in url
 
     def _get_video_code(self, url: str) -> str:
         return url.split("/")[3]
@@ -65,6 +67,12 @@ class ProxyTok(BaseExtractor):
         if not self._is_link_valid(href):
             return ""
         return href
+
+    async def _get_soup(self, url: str) -> BeautifulSoup:
+        try:
+            return BeautifulSoup(await HttpService.get(url), "html.parser")
+        except HttpRequestError:
+            raise SourceInfoExtractFailed(self)
 
     def _is_link_valid(self, url: str) -> bool:
         return url.startswith((self.__instance_url, "/download"))
