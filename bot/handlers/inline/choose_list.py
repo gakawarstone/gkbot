@@ -8,6 +8,10 @@ from aiogram.types import InlineQuery, InlineQueryResultArticle, InputTextMessag
 async def send_choice(query: InlineQuery):
     message = f"Из {', '.join(query.query.split(' ')[1:])} я выбираю: "
     choices = query.query.split(" ")[1:]
+
+    if not choices:
+        return
+
     choice = random.choice(choices)
     description = "tap to send your choice"
 
