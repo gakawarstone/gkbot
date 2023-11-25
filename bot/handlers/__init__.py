@@ -5,6 +5,7 @@ from . import text
 from . import inline
 from . import on_startup
 from . import error
+from . import prompt
 
 
 def setup(dp: Dispatcher):
@@ -14,3 +15,4 @@ def setup(dp: Dispatcher):
     inline.setup(r)
     on_startup.setup(r)
     error.setup(r)
+    prompt.setup(r)

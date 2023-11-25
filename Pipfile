@@ -20,6 +20,11 @@ tiktok-downloader = {git = "https://github.com/krypton-byte/tiktok-downloader"}
 yt-dlp = "*"
 pytube = "*"
 pure-eval = "*"
+browser-cookie3 = "*"
+numpy = "*"
+pillow = "*"
+pyexecjs = "*"
+platformdirs = "*"
 
 [dev-packages]
 autopep8 = "*"
