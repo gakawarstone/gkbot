@@ -1,6 +1,8 @@
-from aiogram import Router, F
+from aiogram import Router
 from aiogram.types import Message
 from g4f import ChatCompletion
+
+from filters.command import CommandWithPrompt
 
 
 async def send_llm_answer(m: Message):
@@ -21,4 +23,4 @@ async def send_llm_answer(m: Message):
 
 
 def setup(r: Router):
-    r.message.register(send_llm_answer, F.text.startswith("/gpt "))
+    r.message.register(send_llm_answer, CommandWithPrompt("gpt"))
