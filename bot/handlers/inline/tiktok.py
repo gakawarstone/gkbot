@@ -18,7 +18,6 @@ async def _get_results(query: InlineQuery) -> list[InlineQueryResultVideo]:
     return [
         InlineQueryResultVideo(
             id=query.query,
-            type="video",
             title="Tiktok video",
             description="tap to send",
             video_url=video_url,
