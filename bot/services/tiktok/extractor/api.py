@@ -6,9 +6,12 @@ from .exceptions import SourceInfoExtractFailed
 
 
 class ApiExtractor(BaseExtractor):
+    def __init__(self, api_root: str) -> None:
+        self.api_root = api_root
+
     async def get_video_info(self, url: str) -> InfoVideoTikTok:
         try:
-            request_url = f"https://api.douyin.wtf/api?url={url}"
+            request_url = f"{self.api_root}/api?url={url}"
             data = await HttpService.get_json(request_url)
             return self._serialize_api_data(data)
         except (HttpRequestError, SerializationError):

@@ -8,9 +8,10 @@ from ._base import BaseExtractor
 
 
 _EXTRACTORS: list[BaseExtractor] = [
+    ApiExtractor("http://0.0.0.0:8143"),
     ProxyTok("https://proxitok.pabloferreiro.es"),
     ProxyTok("https://tok.adminforge.de"),
-    ApiExtractor(),
+    ApiExtractor("https://api.douyin.wtf"),
     ProxyTok("https://proxitok.esmailelbob.xyz"),
     ProxyTok("https://proxitok.pussthecat.org"),
     ProxyTok("https://cringe.whatever.social"),
