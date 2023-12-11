@@ -7,4 +7,6 @@ class CommandWithPrompt(BaseFilter):
         self.command = command
 
     async def __call__(self, message: Message) -> bool:
+        if not message.text:
+            return False
         return message.text.startswith(f"/{self.command} ")
