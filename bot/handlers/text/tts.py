@@ -19,5 +19,6 @@ class TextToSpeachHandler(SendVoiceHandlerExtension, BaseHandler):
 
 def setup(r: Router):
     r.message.register(
-        LongMessageHandler, and_f(LongMessageFilter(), ChatTypeFilter(ChatType.private))
+        TextToSpeachHandler,
+        and_f(LongMessageFilter(), ChatTypeFilter(ChatType.private)),
     )
