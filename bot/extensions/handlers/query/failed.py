@@ -1,3 +1,4 @@
+import hashlib
 from typing import Type, Callable
 from functools import wraps
 
@@ -6,7 +7,7 @@ from aiogram.types import InputTextMessageContent, InlineQueryResultArticle, Inl
 
 def get_failed_result(query: InlineQuery, message_to_send: str, description: str):
     return InlineQueryResultArticle(
-        id=query.query,
+        id=hashlib.md5(query.query.encode()).hexdigest(),
         title="Failed",
         input_message_content=InputTextMessageContent(message_text=message_to_send),
         description=description,
@@ -26,7 +27,8 @@ def async_return_failed_result_if(
             try:
                 return await func(query, *args, **kwargs)
             except tuple(exceptions_to_handle):
-                return [get_failed_result(query, message_to_send, description)]
+                formatted_message = message_to_send.format(query.query)
+                return [get_failed_result(query, formatted_message, description)]
 
         return wrapper
 

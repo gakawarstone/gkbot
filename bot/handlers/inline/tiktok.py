@@ -1,3 +1,5 @@
+import hashlib
+
 from aiogram import Router
 from aiogram.types import InlineQuery, InlineQueryResultVideo
 
@@ -10,14 +12,14 @@ from filters.tiktok import TikTokVideoLink
     exceptions_to_handle=[
         TikTokVideoUrlExtractionFailed,
     ],
-    message_to_send="download failed: {query} try to send this link direct to bot",
+    message_to_send="download failed: {} try to send this link direct to bot",
     description="try to send link direct to bot",
 )
 async def _get_results(query: InlineQuery) -> list[InlineQueryResultVideo]:
     video_url = await TikTokService.get_video_url(query.query)
     return [
         InlineQueryResultVideo(
-            id=query.query,
+            id=hashlib.md5(query.query.encode()).hexdigest(),
             title="Tiktok video",
             description="tap to send",
             video_url=video_url,
