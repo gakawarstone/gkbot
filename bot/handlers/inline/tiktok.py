@@ -3,15 +3,17 @@ import hashlib
 from aiogram import Router
 from aiogram.types import InlineQuery, InlineQueryResultVideo
 
-from services.tiktok import TikTokService, TikTokVideoUrlExtractionFailed
+from services.tiktok import (
+    TikTokService,
+    TikTokVideoUrlExtractionFailed,
+    TikTokInfoExtractionFailed,
+)
 from extensions.handlers.query.failed import async_return_failed_result_if
 from filters.tiktok import TikTokVideoLink
 
 
 @async_return_failed_result_if(
-    exceptions_to_handle=[
-        TikTokVideoUrlExtractionFailed,
-    ],
+    exceptions_to_handle=[TikTokVideoUrlExtractionFailed, TikTokInfoExtractionFailed],
     message_to_send="download failed: {} try to send this link direct to bot",
     description="try to send link direct to bot",
 )
