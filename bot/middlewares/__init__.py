@@ -10,7 +10,10 @@ from .not_enough_rights import NotEnoughRightsMiddleware
 def setup(dp: Dispatcher):
     dp.message.middleware(RegisterUserMiddleware())
     dp.message.middleware(UserDataMiddleware())
-    dp.callback_query.middleware(UserDataMiddleware())
     dp.message.middleware(TimeZoneMiddleware())
     dp.message.middleware(DeleteQueueMiddleware())
     dp.message.middleware(NotEnoughRightsMiddleware())
+
+    dp.inline_query.middleware(RegisterUserMiddleware())
+
+    dp.callback_query.middleware(UserDataMiddleware())
