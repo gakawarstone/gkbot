@@ -18,7 +18,7 @@ from filters.tiktok import TikTokVideoLink
     description="try to send link direct to bot",
 )
 async def _get_results(query: InlineQuery) -> list[InlineQueryResultVideo]:
-    video_url = await TikTokService.get_video_url(query.query)
+    video_url = await TikTokService.get_video_url(query.query.split(" ")[0])
     return [
         InlineQueryResultVideo(
             id=hashlib.md5(query.query.encode()).hexdigest(),
