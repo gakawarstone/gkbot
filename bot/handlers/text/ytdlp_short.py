@@ -16,7 +16,8 @@ class YtdlpShortVideoHandler(BaseHandler):
         status_message = await self.event.answer("Скачиваю " + self.event.text)
         await self.bot.send_chat_action(self.event.chat.id, "upload_video")
         video_file = await YtdlpDownloader.download_video(self.event.text)
-        await self.event.answer_video(video_file, caption=self.event.text)
+        caption = f"<b>{self.event.from_user.username}</b> {self.event.text}"
+        await self.event.answer_video(video_file, caption=caption)
         await status_message.delete()
 
 
