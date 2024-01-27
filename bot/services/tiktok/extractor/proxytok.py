@@ -23,7 +23,7 @@ class ProxyTok(BaseExtractor):
             raise SourceInfoExtractFailed(self)
 
     async def get_video_file_url(self, url: str) -> str:
-        url_in_proxytok = self._get_url_in_proxytok(url)
+        url_in_proxytok = await self._get_url_in_proxytok(url)
         video_file_url = await self._find_video_file_url(url_in_proxytok)
 
         if not video_file_url:
@@ -31,24 +31,24 @@ class ProxyTok(BaseExtractor):
         return self._normalize_link(video_file_url)
 
     async def _get_music_url(self, url: str) -> str:
-        url_in_proxytok = self._get_url_in_proxytok(url)
+        url_in_proxytok = await self._get_url_in_proxytok(url)
         soup = await self._get_soup(url_in_proxytok)
         if not (audio := soup.find("audio")):
             raise ValueError
         return self._normalize_link(audio["src"])
 
     async def _find_images_urls(self, url: str) -> list[str]:
-        url_in_proxytok = self._get_url_in_proxytok(url)
+        url_in_proxytok = await self._get_url_in_proxytok(url)
         soup = await self._get_soup(url_in_proxytok)
         return [
             self._extract_sublink(i.img["src"])
             for i in soup.find_all(class_="slides-item")
         ]
 
-    def _get_url_in_proxytok(self, url: str) -> str:
-        if not self._is_short_link(url):
-            return self.__instance_url + "/@" + url.split("@")[-1]
-        return self.__instance_url + "/t/" + self._get_video_code(url)
+    async def _get_url_in_proxytok(self, url: str) -> str:
+        if self._is_short_link(url):
+            url = await self._extract_full_url(url)
+        return self.__instance_url + "/@" + url.split("@")[-1]
 
     def _is_short_link(self, url: str) -> bool:
         return "@" not in url

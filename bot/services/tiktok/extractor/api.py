@@ -11,7 +11,8 @@ class ApiExtractor(BaseExtractor):
 
     async def get_video_info(self, url: str) -> InfoVideoTikTok:
         try:
-            request_url = f"{self.api_root}/api?url={url}"
+            _url = await self._extract_full_url(url)
+            request_url = f"{self.api_root}/api?url={_url}"
             data = await HttpService.get_json(request_url)
             return self._serialize_api_data(data)
         except (HttpRequestError, SerializationError):

@@ -33,6 +33,17 @@ class HttpService:
                 raise HttpRequestError
 
     @classmethod
+    async def get_redirected_url(
+        cls, url: str, headers: Optional[dict] = headers
+    ) -> str:
+        async with aiohttp.ClientSession(conn_timeout=None) as session:
+            try:
+                async with session.get(url, headers=headers) as response:
+                    return response.url.human_repr()
+            except (ClientConnectorError, InvalidURL):
+                raise HttpRequestError
+
+    @classmethod
     async def extract_cookies(cls, url: str, headers: Optional[dict] = headers) -> str:
         async with aiohttp.ClientSession(conn_timeout=None) as session:
             try:
