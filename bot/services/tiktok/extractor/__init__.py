@@ -4,12 +4,14 @@ from ..exceptions import TikTokInfoExtractionFailed
 from .exceptions import SourceInfoExtractFailed
 from .proxytok import ProxyTok
 from .api import ApiExtractor
+from .snaptik import Snaptik
 from ._base import BaseExtractor
 
 
 _EXTRACTORS: list[BaseExtractor] = [
     ProxyTok("https://proxitok.belloworld.it"),
     ApiExtractor("http://ttapi.gws.freemyip.com"),
+    Snaptik(),
     ProxyTok("https://proxitok.pabloferreiro.es"),
     ProxyTok("https://tok.adminforge.de"),
     ApiExtractor("https://api.douyin.wtf"),
