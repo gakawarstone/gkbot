@@ -9,6 +9,7 @@ from ._base import BaseExtractor
 
 
 _EXTRACTORS: list[BaseExtractor] = [
+    ProxyTok("http://tt.gws.freemyip.com"),
     ProxyTok("https://proxitok.belloworld.it"),
     ApiExtractor("http://ttapi.gws.freemyip.com"),
     Snaptik(),
