@@ -54,3 +54,7 @@ class _StaticFile:
 class Images:
     book_shelf = _StaticFile("./static/book_shelf.png")
     road_greet = _StaticFile("./static/road_greet.png")
+
+
+class TextFiles:
+    anecdots = _StaticFile("./static/anecdots.txt", cache=False)
