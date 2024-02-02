@@ -12,15 +12,16 @@ from .states import FSM
 async def start(message: Message, state: FSMContext):
     await state.set_state(FSM.menu)
     await message.answer_photo(
-        Images.road_greet,
-        caption='Привет <i>%s</i> ты включил модуль 🚀<b>РОД ЗЕ ДРИМ</b>🚀' %
-                message.from_user.first_name)
-    await message.answer('Пожалуйста выберите 🛠 <b>инструмент</b>',
-                         reply_markup=RoadMarkup.tools)
+        await Images.road_greet.as_input_file(),
+        caption="Привет <i>%s</i> ты включил модуль 🚀<b>РОД ЗЕ ДРИМ</b>🚀"
+        % message.from_user.first_name,
+    )
+    await message.answer(
+        "Пожалуйста выберите 🛠 <b>инструмент</b>", reply_markup=RoadMarkup.tools
+    )
 
 
 def setup(r: Router):
-    r.message.register(start, or_f(
-        StateFilter(FSM.start),
-        Command(commands=USER_COMMANDS.road)
-    ))
+    r.message.register(
+        start, or_f(StateFilter(FSM.start), Command(commands=USER_COMMANDS.road))
+    )
