@@ -1,13 +1,14 @@
 from utils.async_for_first_success import async_for_first_success
 from ..types import InfoVideoTikTok
 from ..exceptions import TikTokInfoExtractionFailed
+from ._base import BaseExtractor
 from .exceptions import SourceInfoExtractFailed
 from .proxytok import ProxyTok
 from .api import ApiExtractor
 from .snaptik import Snaptik
 from .mdown import Mdown
 from .tikdown import Tikdown
-from ._base import BaseExtractor
+from .ttdownloader import TTDownloader
 
 
 _EXTRACTORS: list[BaseExtractor] = [
@@ -16,6 +17,7 @@ _EXTRACTORS: list[BaseExtractor] = [
     ApiExtractor("http://ttapi.gws.freemyip.com"),
     Snaptik(),
     Mdown(),
+    TTDownloader(),
     Tikdown(),
     ProxyTok("https://proxitok.pabloferreiro.es"),
     ProxyTok("https://tok.adminforge.de"),
