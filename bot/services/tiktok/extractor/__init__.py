@@ -6,6 +6,7 @@ from .proxytok import ProxyTok
 from .api import ApiExtractor
 from .snaptik import Snaptik
 from .mdown import Mdown
+from .tikdown import Tikdown
 from ._base import BaseExtractor
 
 
@@ -15,6 +16,7 @@ _EXTRACTORS: list[BaseExtractor] = [
     ApiExtractor("http://ttapi.gws.freemyip.com"),
     Snaptik(),
     Mdown(),
+    Tikdown(),
     ProxyTok("https://proxitok.pabloferreiro.es"),
     ProxyTok("https://tok.adminforge.de"),
     ApiExtractor("https://api.douyin.wtf"),
