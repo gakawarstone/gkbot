@@ -6,4 +6,4 @@ class LongMessageFilter(BaseFilter):
     async def __call__(self, message: Message) -> bool:
         if not message.text:
             return False
-        return len(message.text) > 100
+        return len(message.text) > 200
