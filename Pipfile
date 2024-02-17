@@ -16,7 +16,6 @@ youtube-search = "*"
 tortoise-orm = "*"
 docx2txt = "*"
 varname = "*"
-tiktok-downloader = {git = "https://github.com/krypton-byte/tiktok-downloader"}
 yt-dlp = "*"
 pytube = "*"
 pure-eval = "*"
