@@ -19,7 +19,6 @@ varname = "*"
 yt-dlp = "*"
 pytube = "*"
 pure-eval = "*"
-g4f = {extras = ["all"], version = "*"}
 
 [dev-packages]
 autopep8 = "*"
