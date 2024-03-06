@@ -59,11 +59,7 @@ class ProxyTok(BaseExtractor):
     async def _find_video_file_url(self, url_in_proxytok: str) -> str:
         soup = await self._get_soup(url_in_proxytok)
 
-        buttons = soup.find_all(class_="is-success")
-        if len(buttons) < 2:
-            return ""
-
-        href = buttons[-1]["href"]
+        href = soup.find_all("source")[0]["src"]
         if not self._is_link_valid(href):
             return ""
         return href
@@ -75,7 +71,7 @@ class ProxyTok(BaseExtractor):
             raise SourceInfoExtractFailed(self)
 
     def _is_link_valid(self, url: str) -> bool:
-        return url.startswith((self.__instance_url, "/download"))
+        return url.startswith((self.__instance_url, "/stream"))
 
     def _extract_sublink(self, url: str) -> str:
         return unquote(url.split("?")[1][4:])
