@@ -1,11 +1,12 @@
 from aiogram import Router
 from aiogram.types import Message
-from g4f import ChatCompletion
 
 from filters.command import CommandWithPrompt
 
 
 async def send_llm_answer(m: Message):
+    from g4f import ChatCompletion
+
     await m.delete()
     command_args = m.text.split(" ")[1:]
     text = " ".join(command_args)
@@ -22,5 +23,10 @@ async def send_llm_answer(m: Message):
     await m.answer(response)
 
 
+async def send_unavailable_message(m: Message):
+    await m.delete()
+    await m.answer("this function is unavailable")
+
+
 def setup(r: Router):
-    r.message.register(send_llm_answer, CommandWithPrompt("gpt"))
+    r.message.register(send_unavailable_message, CommandWithPrompt("gpt"))
