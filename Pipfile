@@ -19,11 +19,7 @@ varname = "*"
 yt-dlp = "*"
 pytube = "*"
 pure-eval = "*"
-browser-cookie3 = "*"
-numpy = "*"
-pillow = "*"
-pyexecjs = "*"
-platformdirs = "*"
+g4f = "*"
 
 [dev-packages]
 autopep8 = "*"
