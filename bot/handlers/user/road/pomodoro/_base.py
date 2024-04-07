@@ -15,7 +15,7 @@ class BaseHandler(_BaseHandler):
     async def run_timer(self, time: time, greet_text: str, timer_text: str):
         msg = await self.event.answer(greet_text)
         seconds = self._convert_time_to_seconds(time)
-        await Timer(self.event, seconds, timer_text).run()
+        await Timer(self.event, seconds, timer_text, 2).run()
         await msg.delete()
 
     @staticmethod
