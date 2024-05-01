@@ -26,6 +26,7 @@ def setup(r: Router):
         YtdlpShortVideoHandler,
         or_f(
             F.text.startswith("https://youtube.com/shorts"),
+            F.text.startswith("https://www.youtube.com/shorts"),
             F.text.startswith("https://www.instagram.com/reel"),
         ),
     )
