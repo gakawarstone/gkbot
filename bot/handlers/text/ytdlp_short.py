@@ -28,5 +28,6 @@ def setup(r: Router):
             F.text.startswith("https://youtube.com/shorts"),
             F.text.startswith("https://www.youtube.com/shorts"),
             F.text.startswith("https://www.instagram.com/reel"),
+            F.text.startswith("https://x.com/i/status/"),
         ),
     )
