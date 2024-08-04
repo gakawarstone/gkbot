@@ -16,7 +16,7 @@ from .states import FSM
 async def show_menu(message: Message, state: FSMContext):
     await message.answer_photo(
         await Images.book_shelf.as_input_file(),
-        caption="Вас приветсвует новейшая и наполненная фактами книжная полка",
+        caption="Вас приветствует новейшая и наполненная фактами книжная полка",
         reply_markup=MenuMarkup.menu,
     )
     await state.set_state(FSM.check_menu_command)
