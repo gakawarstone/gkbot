@@ -11,8 +11,7 @@ class ApiExtractor(BaseExtractor):
 
     async def get_video_info(self, url: str) -> InfoVideoTikTok:
         try:
-            _url = await self._extract_full_url(url)
-            request_url = f"{self.api_root}/api?url={_url}"
+            request_url = f"{self.api_root}/api/hybrid/video_data?url={url}"
             data = await HttpService.get_json(request_url)
             return self._serialize_api_data(data)
         except (HttpRequestError, SerializationError):
@@ -27,16 +26,19 @@ class ApiExtractor(BaseExtractor):
             video_url = ""
             images_urls = []
 
-            if "video_data" in data:
-                video_url = data["video_data"]["nwm_video_url"]
-            elif "image_data" in data:
-                images_urls = data["image_data"]["no_watermark_image_list"]
-            else:
-                raise ValueError
+            if "imagePost" in data["data"]:
+                for img in data["data"]["imagePost"]["images"]:
+                    images_urls.append(img["imageURL"]["urlList"][0])
+            if "downloadAddr" in data["data"]["video"]:
+                video_url = ""
+                # FIXME: not works
+                # video_url = data["data"]["video"]["downloadAddr"]
+
+            music_url = data["data"]["music"]["playUrl"]
 
             return InfoVideoTikTok(
                 video_url=video_url,
-                music_url=data["music"]["play_url"]["uri"],
+                music_url=music_url,
                 images_urls=images_urls,
             )
         except (KeyError, ValueError):
