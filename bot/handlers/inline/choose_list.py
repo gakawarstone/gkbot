@@ -20,7 +20,7 @@ async def send_choice(query: InlineQuery):
             id=hashlib.md5(query.query.encode()).hexdigest(),
             title=message,
             input_message_content=InputTextMessageContent(
-                message_text=message + str(choice)
+                message_text=message + "\n\n👉 <b>" + str(choice) + "</b>"
             ),
             description=description,
         )
