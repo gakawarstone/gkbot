@@ -19,6 +19,7 @@ varname = "*"
 yt-dlp = "*"
 pytube = "*"
 pure-eval = "*"
+edge-tts = "*"
 
 [dev-packages]
 autopep8 = "*"
