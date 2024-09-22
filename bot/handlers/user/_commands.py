@@ -19,6 +19,7 @@ class _UserCommands(_Commands):
     platonus2indigo = "platonus2indigo"
     dl = "dl"
     get_asura = "get_asura"
+    feed = "feed"
 
 
 USER_COMMANDS = _UserCommands()
