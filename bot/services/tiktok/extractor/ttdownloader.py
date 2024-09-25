@@ -13,8 +13,9 @@ class TTDownloader(BaseExtractor, requests.Session):
 
     async def get_video_info(self, url: str) -> InfoVideoTikTok:
         try:
+            full_url = await self._extract_full_url(url)
             response = InfoVideoTikTok(
-                video_url=await self.get_video_file_url(url),
+                video_url=await self.get_video_file_url(full_url),
                 music_url="",
                 images_urls=[],
             )
