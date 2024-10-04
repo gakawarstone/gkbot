@@ -11,8 +11,8 @@ from ._base import BaseExtractor
 
 class YtDlp(BaseExtractor):
     async def get_video_info(self, url: str) -> InfoVideoTikTok:
-        video_url = await self.get_video_file_url(url)
         try:
+            video_url = await self.get_video_file_url(url)
             return InfoVideoTikTok(
                 video_url=video_url,
                 music_url="",
@@ -28,5 +28,5 @@ class YtDlp(BaseExtractor):
             url_path = os.path.expanduser(CACHE_DIR_PATH + "/serveo_url")
             serveo_url = open(url_path).read()
             return serveo_url + "/" + video_path
-        except (IndexError, ValueError):
+        except (IndexError, ValueError, DownloadError):
             raise SourceInfoExtractFailed(self)
