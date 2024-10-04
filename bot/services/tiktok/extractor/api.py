@@ -26,15 +26,15 @@ class ApiExtractor(BaseExtractor):
             video_url = ""
             images_urls = []
 
-            if "imagePost" in data["data"]:
-                for img in data["data"]["imagePost"]["images"]:
-                    images_urls.append(img["imageURL"]["urlList"][0])
+            if "image_post_info" in data["data"]:
+                for img in data["data"]["image_post_info"]["images"]:
+                    images_urls.append(img["display_image"]["url_list"][0])
             if "downloadAddr" in data["data"]["video"]:
                 video_url = ""
                 # FIXME: not works
                 # video_url = data["data"]["video"]["downloadAddr"]
 
-            music_url = data["data"]["music"]["playUrl"]
+            music_url = data["data"]["music"]["play_url"]["url_list"][0]
 
             return InfoVideoTikTok(
                 video_url=video_url,
