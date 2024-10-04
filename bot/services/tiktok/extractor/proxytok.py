@@ -38,6 +38,8 @@ class ProxyTok(BaseExtractor):
         return self._normalize_link(audio["src"])
 
     async def _find_images_urls(self, url: str) -> list[str]:
+        # FIXME: didnt work
+        return []
         url_in_proxytok = await self._get_url_in_proxytok(url)
         soup = await self._get_soup(url_in_proxytok)
         return [
