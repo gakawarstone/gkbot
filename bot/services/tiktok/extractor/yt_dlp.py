@@ -1,5 +1,7 @@
 import os
 
+from yt_dlp import DownloadError
+
 from configs.services.cache_dir import CACHE_DIR_PATH
 from services.ytdlp import YtdlpDownloader
 from ..types import InfoVideoTikTok
@@ -16,7 +18,7 @@ class YtDlp(BaseExtractor):
                 music_url="",
                 images_urls=[],
             )
-        except (IndexError, ValueError):
+        except (IndexError, ValueError, DownloadError):
             raise SourceInfoExtractFailed(self)
 
     async def get_video_file_url(self, url: str) -> str:
