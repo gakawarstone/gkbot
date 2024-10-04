@@ -46,8 +46,12 @@ class VideoDownloadOptions(DownloadOptions):
     }
 
     youtube = {
-        "format": "worst[ext=mp4]",
+        "format": "wv+ba",
         "external_downloader": "aria2c",
+    }
+
+    tiktok = {
+        # "external_downloader": "aria2c",
     }
 
 
@@ -104,6 +108,8 @@ class YtdlpDownloader:
     def __choose_video_opts(url: str) -> DownloadOptions:
         if re.match(r"^https://(www\.)?youtube\.com/shorts", url):
             return VideoDownloadOptions.youtube_shorts
+        if re.match(r"https://(www|vm|vr|vt).tiktok.com/", url):
+            return VideoDownloadOptions.tiktok
         return VideoDownloadOptions.youtube
 
     @staticmethod
