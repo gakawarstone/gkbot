@@ -13,7 +13,7 @@ from .yt_dlp import YtDlp
 
 
 _EXTRACTORS: list[BaseExtractor] = [
-    # YtDlp(),
+    YtDlp(),
     ApiExtractor("https://api.douyin.wtf"),
     ProxyTok("https://proxitok.pabloferreiro.es"),
     TTDownloader(),
