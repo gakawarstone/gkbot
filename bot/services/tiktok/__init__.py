@@ -15,17 +15,23 @@ class TikTokService:
 
     @classmethod
     async def get_video_as_input_file(cls, url: str) -> BufferedInputFile:
-        return BufferedInputFile(
-            file=await cls.__get_video_file(url),
-            filename='video.mp4'
-        )
+        if not (info := await TikTokInfoExtractor.get_video_info(url)):
+            raise TikTokInfoExtractionFailed(url)
+        if not info.video_input_file:
+            return BufferedInputFile(
+                file=await cls.__get_video_file(url), filename="video.mp4"
+            )
+        return info.video_input_file
 
     @classmethod
     async def __get_video_file(cls, url: str) -> bytes:
         if not (info := await TikTokInfoExtractor.get_video_info(url)):
             raise TikTokInfoExtractionFailed(url)
         if video_url := info.video_url:
+            print(video_url)
             return await HttpService.get(video_url)
         if info.images_urls:
-            return await FfmpegService.make_slideshow_from_web(info.images_urls, info.music_url)
+            return await FfmpegService.make_slideshow_from_web(
+                info.images_urls, info.music_url
+            )
         raise TikTokInfoExtractionFailed(url)
