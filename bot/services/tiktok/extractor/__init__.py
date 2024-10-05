@@ -14,6 +14,7 @@ from .yt_dlp import YtDlp
 
 _EXTRACTORS: list[BaseExtractor] = [
     # YtDlp(),
+    ApiExtractor("https://api.douyin.wtf"),
     ProxyTok("https://proxitok.pabloferreiro.es"),
     TTDownloader(),
     ProxyTok("https://tok.habedieeh.re"),
@@ -25,7 +26,6 @@ _EXTRACTORS: list[BaseExtractor] = [
     Mdown(),
     Tikdown(),
     ProxyTok("https://tok.adminforge.de"),
-    ApiExtractor("https://api.douyin.wtf"),
     ProxyTok("https://proxitok.esmailelbob.xyz"),
     ProxyTok("https://proxitok.pussthecat.org"),
     ProxyTok("https://cringe.whatever.social"),
