@@ -38,6 +38,7 @@ class ApiExtractor(BaseExtractor):
 
             return InfoVideoTikTok(
                 video_url=video_url,
+                video_input_file=None,
                 music_url=music_url,
                 images_urls=images_urls,
             )

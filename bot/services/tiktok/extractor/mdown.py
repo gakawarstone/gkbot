@@ -31,6 +31,7 @@ class Mdown(BaseExtractor, requests.Session):
         try:
             response = InfoVideoTikTok(
                 video_url=await self.get_video_file_url(url),
+                video_input_file=None,
                 music_url="",
                 images_urls=[],
             )

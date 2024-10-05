@@ -16,6 +16,7 @@ class ProxyTok(BaseExtractor):
         try:
             return InfoVideoTikTok(
                 video_url=await self.get_video_file_url(url),
+                video_input_file=None,
                 music_url=await self._get_music_url(url),
                 images_urls=await self._find_images_urls(url),
             )
@@ -23,12 +24,17 @@ class ProxyTok(BaseExtractor):
             raise SourceInfoExtractFailed(self)
 
     async def get_video_file_url(self, url: str) -> str:
+        # return "https://955baff6cca70dc5effd971347c5fad6.serveo.net/TikTok%20video%20%237398864154213256454%20%5B7398864154213256454%5D.mp4"
         url_in_proxytok = await self._get_url_in_proxytok(url)
+        print("proxy: ", url_in_proxytok)
         video_file_url = await self._find_video_file_url(url_in_proxytok)
+        print("url: ", video_file_url)
 
         if not video_file_url:
             return ""
-        return self._normalize_link(video_file_url)
+        norm = self._normalize_link(video_file_url)
+        print(unquote(norm))
+        return unquote(norm)
 
     async def _get_music_url(self, url: str) -> str:
         url_in_proxytok = await self._get_url_in_proxytok(url)

@@ -1,5 +1,7 @@
 import os
 
+from aiogram.types import FSInputFile
+
 from configs.services.cache_dir import CACHE_DIR_PATH
 from services.ytdlp import YtdlpDownloader
 from ..types import InfoVideoTikTok
@@ -9,15 +11,20 @@ from ._base import BaseExtractor
 
 class YtDlp(BaseExtractor):
     async def get_video_info(self, url: str) -> InfoVideoTikTok:
-        video_url = await self.get_video_file_url(url)
         try:
+            video_url = await self.get_video_file_url(url)
+            video_input_file = await self._get_video_input_file(url)
             return InfoVideoTikTok(
                 video_url=video_url,
+                video_input_file=video_input_file,
                 music_url="",
                 images_urls=[],
             )
         except (IndexError, ValueError):
             raise SourceInfoExtractFailed(self)
+
+    async def _get_video_input_file(self, url: str) -> FSInputFile:
+        return await YtdlpDownloader.download_video(url)
 
     async def get_video_file_url(self, url: str) -> str:
         try:
