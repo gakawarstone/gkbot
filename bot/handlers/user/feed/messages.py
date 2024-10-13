@@ -28,9 +28,12 @@ class GetFeedItemHandler(BaseHandler):
             items.remove(item)
             line = "".join(str(item).strip().split("\n"))
 
-            await self.event.answer(
-                _get_tag_content(line, "link"),
-                reply_markup=FeedMarkup.get_item_markup(
-                    int(_get_tag_content(line, "id"))
-                ),
-            )
+            try:
+                await self.event.answer(
+                    _get_tag_content(line, "link"),
+                    reply_markup=FeedMarkup.get_item_markup(
+                        int(_get_tag_content(line, "id"))
+                    ),
+                )
+            except IndexError:
+                continue
