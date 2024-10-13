@@ -9,7 +9,9 @@ from .callbacks import ItemEventHandler
 
 
 def setup(r: Router):
-    r.message.register(GetFeedItemHandler, Command(USER_COMMANDS.feed))
+    r.message.register(
+        GetFeedItemHandler, and_f(Command(USER_COMMANDS.feed), BotAdmin())
+    )
     r.callback_query.register(
         ItemEventHandler, and_f(F.data.startswith(FeedMarkup.prefix), BotAdmin())
     )
