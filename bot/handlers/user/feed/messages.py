@@ -1,39 +1,63 @@
-from typing import Any
-import random
-
-import requests
 from bs4 import BeautifulSoup
 
+from typing import Any
+
+from aiogram.types import URLInputFile
+
 from configs.env import GKFEED_USER, GKFEED_PASSWORD
+from services.http import HttpService
+from services.gkfeed import GkfeedService
 from extensions.handlers.message.base import BaseHandler
 from ui.keyboards.feed import FeedMarkup
-
-
-def _get_tag_content(item: str, tag_name: str) -> str:
-    return item.split(f"<{tag_name}>")[1].split(f"</{tag_name}>")[0]
 
 
 class GetFeedItemHandler(BaseHandler):
     async def handle(self) -> Any:
         await self.event.delete()
-        html = requests.get(
-            "http://feed.gws.freemyip.com/api/v1/feed",
-            auth=(GKFEED_USER, GKFEED_PASSWORD),
-        ).content
-        soup = BeautifulSoup(html, "xml")
-        items = soup.find_all("item")
+        gkfeed = GkfeedService(GKFEED_USER, GKFEED_PASSWORD)
 
-        for _ in range(10):
-            item = random.choice(items)
-            items.remove(item)
-            line = "".join(str(item).strip().split("\n"))
+        items_cnt = 0
+        async for item in gkfeed.get_all_user_items():
+            if items_cnt > 10:
+                break
 
-            try:
-                await self.event.answer(
-                    _get_tag_content(line, "link"),
-                    reply_markup=FeedMarkup.get_item_markup(
-                        int(_get_tag_content(line, "id"))
-                    ),
-                )
-            except IndexError:
-                continue
+            if item.link.startswith("https://www.piokok"):
+                html = await HttpService.get(item.link)
+                soup = BeautifulSoup(html, "html.parser")
+                pics = soup.find_all(class_="pic")
+                vids = soup.find_all(class_="video_img")
+
+                photos = []
+                for pic in pics:
+                    photos.append(pic.a["href"])
+
+                videos = []
+                for vid in vids:
+                    videos.append(vid.a["href"])
+
+                if photos:
+                    await self.event.answer_photo(
+                        URLInputFile(photos[0]),
+                        caption=f'<a href="{item.link}">Link</a>',
+                        reply_markup=FeedMarkup.get_item_markup(item.id, item.feed_id),
+                    )
+
+                    items_cnt += 1
+                    continue
+
+                if videos:
+                    await self.event.answer_video(
+                        URLInputFile(videos[0]),
+                        caption=f'<a href="{item.link}">Link</a>',
+                        reply_markup=FeedMarkup.get_item_markup(item.id, item.feed_id),
+                    )
+
+                    items_cnt += 1
+                    continue
+
+            await self.event.answer(
+                f'<a href="{item.link}">Link</a>',
+                reply_markup=FeedMarkup.get_item_markup(item.id, item.feed_id),
+            )
+
+            items_cnt += 1
