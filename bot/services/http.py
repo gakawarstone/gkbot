@@ -1,4 +1,5 @@
 from typing import Optional
+from yarl import URL
 import subprocess
 
 import aiohttp
@@ -27,7 +28,9 @@ class HttpService:
     async def get(cls, url: str, headers: Optional[dict] = headers) -> bytes:
         async with aiohttp.ClientSession(conn_timeout=None) as session:
             try:
-                async with session.get(url, headers=headers) as response:
+                async with session.get(
+                    URL(url, encoded=True), headers=headers
+                ) as response:
                     return await response.content.read()
             except (ClientConnectorError, InvalidURL):
                 raise HttpRequestError
