@@ -61,6 +61,16 @@ class GkfeedService:
             if item.feed_id == feed_id:
                 yield item
 
+    async def get_item_by_item_id(self, item_id: int) -> FeedItem:
+        resp = await self._get_html(self._api_root + f"item?id={item_id}")
+        data = json.loads(resp)
+        item = data["item"]
+        return FeedItem(
+            id=item["id"],
+            feed_id=data["feed"]["id"],
+            link=item["link"],
+        )
+
     async def _get_soup(self, url: str) -> BeautifulSoup:
         html = await self._get_html(url)
         return BeautifulSoup(html, "xml")

@@ -1,0 +1,2 @@
+class UnavailableMediaException(Exception):
+    pass
