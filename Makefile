@@ -17,3 +17,7 @@ merge-to-master:
 	git merge dev-3.0
 	git push
 	git checkout dev-3.0
+
+dev:
+	pipenv run api
+	pipenv run dev
