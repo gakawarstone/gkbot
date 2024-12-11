@@ -32,12 +32,14 @@ class PiokokFeedItemRepresentationExtention(
 
         try:
             photos = [pic.a["href"] for pic in soup.find_all(class_="pic")]
+            videos = [vid.a["href"] for vid in soup.find_all(class_="video_img")]
+
             if photos:
                 await self._send_piokok_item_as_corousel(item, photos[0], len(photos))
-
-            videos = [vid.a["href"] for vid in soup.find_all(class_="video_img")]
-            if videos:
+            elif videos:
                 await self._send_video(item, videos[0])
+            else:
+                await self._send_item(item)
         except UnavailableMediaException:
             await self._send_item(item)
 
