@@ -1,5 +1,4 @@
 from aiogram.types import URLInputFile, BufferedInputFile
-from bs4 import BeautifulSoup
 
 from services.http import HttpService
 from services.gkfeed import FeedItem
@@ -27,8 +26,7 @@ class PiokokFeedItemRepresentationExtention(
     _PiokokCorouselWidgetExtention, BaseHandler
 ):
     async def _process_piokok_item(self, item: FeedItem):
-        html = await HttpService.get(item.link)
-        soup = BeautifulSoup(html, "html.parser")
+        soup = await self._get_soup(item.link)
 
         try:
             photos = [pic.a["href"] for pic in soup.find_all(class_="pic")]
