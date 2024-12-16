@@ -43,6 +43,7 @@ class VideoDownloadOptions(DownloadOptions):
     youtube_shorts = {
         "format": "bv+ba",
         "external_downloader": "aria2c",
+        "postprocessors": [{"key": "FFmpegVideoConvertor", "preferedformat": "mp4"}],
     }
 
     youtube = {
@@ -93,7 +94,11 @@ class YtdlpDownloader:
             ydl.download(url)
 
         if "postprocessors" in opts:
-            output_path += "." + opts["postprocessors"][0]["preferredcodec"]
+            postprocessor = opts["postprocessors"][0]
+            if "preferedformat" in postprocessor:
+                output_path += "." + postprocessor["preferedformat"]
+            if "preferredcodec" in postprocessor:
+                output_path += "." + postprocessor["preferredcodec"]
 
         return FSInputFile(output_path, file_name)
 
