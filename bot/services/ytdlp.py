@@ -52,6 +52,7 @@ class VideoDownloadOptions(DownloadOptions):
     }
 
     tiktok = {
+        "format": "mp4",
         # "external_downloader": "aria2c",
     }
 
