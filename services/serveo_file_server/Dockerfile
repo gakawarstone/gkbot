@@ -2,11 +2,9 @@ FROM golang:1.23.1-alpine as builder
 
 WORKDIR /app
 
-COPY go.mod ./
-
 COPY . .
 
-RUN go build -o file-server .
+RUN go build -o file-server main.go
 
 
 FROM alpine:latest
