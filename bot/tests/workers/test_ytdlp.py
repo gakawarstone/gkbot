@@ -1,7 +1,5 @@
 import pytest
 import os
-import uuid
-from unittest.mock import patch
 
 from workers.yt_dlp import Task
 
@@ -9,7 +7,7 @@ from workers.yt_dlp import Task
 @pytest.fixture
 def temp_cache_dir(tmpdir, monkeypatch):
     """Fixture to create a temporary cache directory and update Task paths."""
-    temp_dir = str(tmpdir)
+    temp_dir = str(tmpdir) + "/"
     # Mock the CACHE_DIR_PATH in the original module
     monkeypatch.setattr("workers.yt_dlp.CACHE_DIR_PATH", temp_dir)
     # Update the Task class variables to use the temp directory
@@ -22,20 +20,12 @@ def test_task_initialization(temp_cache_dir):
     url = "http://example.com"
     task = Task(url)
 
-    # Check URL and ID
+    # # Check URL
     assert task.url == url
     assert isinstance(task.id, str)
-    uuid.UUID(task.id)  # Raises ValueError if ID is not a UUID
 
     # Check directory creation
-    expected_dir = os.path.join(temp_cache_dir, task.id)
-    assert os.path.isdir(expected_dir)
-
-    # Test directory conflict with the same UUID
-    with patch("workers.yt_dlp.uuid4") as mock_uuid:
-        mock_uuid.return_value = uuid.UUID(task.id)
-        with pytest.raises(FileExistsError):
-            Task(url)
+    assert os.path.isdir(task._dir.path)
 
 
 def test_create_entry(temp_cache_dir):
@@ -78,15 +68,15 @@ def test_delete_entry_nonexistent_file(temp_cache_dir):
 def test_check_video_exists(temp_cache_dir):
     """Test check_video_exists correctly identifies video presence."""
     task = Task("http://example.com")
-    video_path = os.path.join(task.path, "video.webm")
+    video_path = os.path.join(task._dir.path, "video.mp4")
 
     # Video does not exist initially
-    assert not task.check_video_exists()
+    assert not task.is_success
 
     # Create video and check existence
     open(video_path, "a").close()
-    assert task.check_video_exists()
+    assert task.is_success
 
     # Remove video and check again
     os.remove(video_path)
-    assert not task.check_video_exists()
+    assert not task.is_success
