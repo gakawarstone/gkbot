@@ -5,6 +5,7 @@ from enum import Enum
 import yt_dlp
 from aiogram.types import BufferedInputFile, FSInputFile
 
+from workers.yt_dlp import YtdlpWorker
 from utils.async_wrapper import async_wrap
 from services.cache_dir import CacheDir
 
@@ -72,6 +73,9 @@ class YtdlpDownloader:
     # FIXME: api must be same with download audio
     @classmethod
     async def download_video(cls, url: str) -> FSInputFile:
+        if url.startswith("https://youtube.com/shorts"):
+            path = await YtdlpWorker().download(url)  # FIXME: classmethod
+            return FSInputFile(path, "video.mp4")
         opts = cls.__choose_video_opts(url)
         return await cls.__download_file(url, opts, "video.mp4")
 
