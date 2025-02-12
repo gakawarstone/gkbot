@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "bc610de8ae33d6c1efe48cab73038d9ec0b9abb843b1af84c6c6d38f08c88e3e"
+            "sha256": "d474a4adc59cdd53e9b9e4d395d5af96adf0177500dfbd9c43aaf84831b61640"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -1276,12 +1276,12 @@
         },
         "yt-dlp": {
             "hashes": [
-                "sha256:2717468dd697fcfcf9a89f493ba30a3830cdfb276c09750e5b561b08b9ef5f69",
-                "sha256:86605542e17e2e23ad23145b637ec308133762a15a5dedac4ae50b7973237026"
+                "sha256:1c9738266921ad43c568ad01ac3362fb7c7af549276fbec92bd72f140da16240",
+                "sha256:3e76bd896b9f96601021ca192ca0fbdd195e3c3dcc28302a3a34c9bc4979da7b"
             ],
             "index": "pypi",
-            "markers": "python_version >= '3.8'",
-            "version": "==2024.9.27"
+            "markers": "python_version >= '3.9'",
+            "version": "==2025.1.26"
         }
     },
     "develop": {
