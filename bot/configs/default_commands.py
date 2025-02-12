@@ -9,4 +9,5 @@ DEFAULT_COMMANDS = {
     "platonus2indigo": "convert test",
     "dl": "download file",
     "tts": "text to speech",
+    "feed": "read gkfeed",
 }
