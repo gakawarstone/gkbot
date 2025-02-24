@@ -2,6 +2,7 @@ import asyncio
 
 from aiogram.client.session.aiohttp import AiohttpSession
 from aiogram.client.telegram import TelegramAPIServer
+from aiogram.client.default import DefaultBotProperties
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
 
@@ -21,7 +22,9 @@ class BotStarter:
             api=TelegramAPIServer.from_base(config.api_url)
         )
         self.bot = Bot(
-            token=config.token, parse_mode=config.parse_mode, session=session
+            token=config.token,
+            default=DefaultBotProperties(parse_mode=config.parse_mode),
+            session=session,
         )
         self.dp = Dispatcher(storage=self.__storage)
         self.default_commands = config.default_commands
