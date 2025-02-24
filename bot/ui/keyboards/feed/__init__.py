@@ -3,6 +3,8 @@ from typing import Type
 from aiogram.types import InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+_PREFIX = "fd"
+
 
 class FeedMarkupButtons:
     delete = "Убрать"
@@ -17,26 +19,28 @@ class FeedMarkupData:
 
 
 class BaseFeedMarkup[T: FeedMarkupButtons, S: FeedMarkupData]:
-    prefix = str
+    prefix: str
     buttons: Type[T]
     data: Type[S]
 
+    # NOTE: do not support custom handler for feed row
+    #       it would be handled with handler ossosiated with FeedMarkup
     @classmethod
     def _get_feed_buttons_row(cls, item_id: int) -> list[InlineKeyboardButton]:
         return [
             InlineKeyboardButton(
                 text=cls.buttons.keep,
-                callback_data=f"{cls.prefix}:{cls.data.keep}:{item_id}",
+                callback_data=f"{_PREFIX}:{cls.data.keep}:{item_id}",
             ),
             InlineKeyboardButton(
                 text=cls.buttons.delete,
-                callback_data=f"{cls.prefix}:{cls.data.delete}:{item_id}",
+                callback_data=f"{_PREFIX}:{cls.data.delete}:{item_id}",
             ),
         ]
 
 
 class FeedMarkup(BaseFeedMarkup[FeedMarkupButtons, FeedMarkupData]):
-    prefix = "fd"
+    prefix = _PREFIX
     buttons = FeedMarkupButtons
     data = FeedMarkupData
 
