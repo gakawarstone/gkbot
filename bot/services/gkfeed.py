@@ -1,5 +1,4 @@
 import json
-import random
 from typing import AsyncGenerator
 from dataclasses import dataclass
 
@@ -29,18 +28,25 @@ class GkfeedService:
 
         if sorted_items and sorted_items[0]["link"]:
             first_item = sorted_items[0]
-            yield FeedItem(
-                id=first_item["id"],
-                feed_id=first_item["feed_id"],
-                link=first_item["link"],
-            )
+            yield self._convert_raw_data_to_feed_item(first_item)
+            last_item = sorted_items[-1]
+            yield self._convert_raw_data_to_feed_item(last_item)
 
-        remaining_items = sorted_items[1:]
-        random.shuffle(remaining_items)
+        remaining_items = sorted_items[1:-1]
+        remaining_items = reversed(sorted_items[1:-1])
+        # import random
+        #
+        # random.shuffle(remaining_items)
         for i in remaining_items:
             if not i["link"]:
                 continue
-            yield FeedItem(id=i["id"], feed_id=i["feed_id"], link=i["link"])
+            if (
+                i["link"]
+                == "https://storiesig.website/media.php?media=https%3A%2F%2Fscontent.cdninstagram.com%2Fo1%2Fv%2Ft16%2Ff2%2Fm78%2FAQOvHAZx9daX7F9KvlHpRkUYAGHlgUYDOQxtQoiTacofYVdKLU5l3mL_9fflZymaV8blOV9JYkW-IYAkj8ulXihGy3kySYMRLLofyzc.mp4%3Fefg%3DeyJ4cHZfYXNzZXRfaWQiOjExMjU0MTgxNTU5ODE2NDIsInZlbmNvZGVfdGFnIjoieHB2X3Byb2dyZXNzaXZlLklOU1RBR1JBTS5TVE9SWS5DMy43MjAuZGFzaF9iYXNlbGluZV8xX3YxIn0%26_nc_ht%3Dscontent-iad3-1.cdninstagram.com%26_nc_cat%3D100%26vs%3D302c80b996f5e81b%26_nc_vs%3DHBksFQIYUWlnX3hwdl9wbGFjZW1lbnRfcGVybWFuZW50X3YyL0U1NEVBQzk3RjcyNDgyMzFFNzhCOTAxNkZERjUwN0I3X3ZpZGVvX2Rhc2hpbml0Lm1wNBUAAsgBABUCGDpwYXNzdGhyb3VnaF9ldmVyc3RvcmUvR0dKVW5SeWVEZW5KckxJR0FLTE9oN0xHSlZnamJwa3dBQUFGFQICyAEAKAAYABsCiAd1c2Vfb2lsATEScHJvZ3Jlc3NpdmVfcmVjaXBlATEVAAAmlO3J1vrj_wMVAigCQzMsF0Ax90vGp--eGBJkYXNoX2Jhc2VsaW5lXzFfdjERAHXoBwA%26ccb%3D9-4%26oh%3D00_AYCMqtLkb7o4n4lgif_iNurSNZwlKpYEBVNHK4NO9_wR_w%26oe%3D67BB685C%26_nc_sid%3D1d576d"
+            ):
+                await self.delete_item_by_id(int(i["id"]))
+            # print(i)
+            yield self._convert_raw_data_to_feed_item(i)
 
     async def delete_item_by_id(self, item_id: int) -> None:
         headers = {"Content-Type": "application/json"}
@@ -65,10 +71,14 @@ class GkfeedService:
         resp = await self._get_html(self._api_root + f"item?id={item_id}")
         data = json.loads(resp)
         item = data["item"]
+        return self._convert_raw_data_to_feed_item(item)
+
+    @staticmethod
+    def _convert_raw_data_to_feed_item(raw_data: dict) -> FeedItem:
         return FeedItem(
-            id=item["id"],
-            feed_id=data["feed"]["id"],
-            link=item["link"],
+            id=raw_data["id"],
+            feed_id=raw_data["feed_id"],
+            link=raw_data["link"],
         )
 
     async def _get_soup(self, url: str) -> BeautifulSoup:
