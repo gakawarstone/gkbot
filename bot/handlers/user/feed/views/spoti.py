@@ -5,7 +5,7 @@ from . import BaseFeedItemView
 
 class SpotiFeedItemView(BaseFeedItemView, HttpExtension):
     async def _process_spoti_item(self, item: FeedItem):
-        soup = self._get_soup(item.link)
+        soup = await self._get_soup(item.link)
 
         meta_tag = soup.find("meta", attrs={"name": "twitter:image"})
         media_url = meta_tag["content"]
