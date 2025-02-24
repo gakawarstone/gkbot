@@ -8,11 +8,13 @@ from .views.spoti import SpotiFeedItemView
 from .views.base import BaseWebFeedItemView
 from .views.vk import VKFeedItemView
 from .views.piokok import PiokokFeedItemView
+from .views.youtube import YoutubeFeedItemView
 
 _ITEM_PROCESSOR = Callable[[FeedItem], Awaitable[None]]
 
 
 class GkfeedItemProcessorExtention(
+    YoutubeFeedItemView,
     PiokokFeedItemView,
     BaseWebFeedItemView,
     KinogoFeedItemView,
@@ -29,7 +31,7 @@ class GkfeedItemProcessorExtention(
             "https://kinogo": self._process_kinogo_item,
             "https://open": self._process_spoti_item,
             "https://vk": self._process_vk_item,
-            "https://www.youtube": self._process_base_item,
+            "https://www.youtube": self._process_youtube_item,
             "https://www.tagesschau": self._process_base_item,
             "https://trashbox": self._process_base_item,
             "https://shikimori": self._process_base_item,
