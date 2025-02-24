@@ -5,9 +5,12 @@ from aiogram.types import CallbackQuery
 
 from ui.keyboards.feed import FeedMarkup
 from ._base import BaseHandler
+from ._item_processor import GkfeedItemProcessorExtention
 
 
-class ItemEventHandler(BaseHandler, _BaseHandler[CallbackQuery]):
+class ItemEventHandler(
+    GkfeedItemProcessorExtention, BaseHandler, _BaseHandler[CallbackQuery]
+):
     async def _parse_callback(self) -> tuple[str, int]:
         _, event, data = self.event.data.split(":")
         return event, data
@@ -25,3 +28,13 @@ class ItemEventHandler(BaseHandler, _BaseHandler[CallbackQuery]):
             case FeedMarkup.data.show_all_feed:
                 feed_id = int(data)
                 await self._send_items_from_feed(feed_id)
+
+    async def _send_items_from_feed(self, feed_id: int, limit=10) -> None:
+        items_cnt = 0
+        async for item in self._gkfeed.get_items_from_feed(feed_id):
+            if items_cnt > limit:
+                break
+
+            await self._process_item(item)
+
+            items_cnt += 1

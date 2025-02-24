@@ -6,7 +6,9 @@ from ._base import BaseHandler
 from ._item_processor import GkfeedItemProcessorExtention
 
 
-class GetFeedItemHandler(GkfeedItemProcessorExtention, BaseHandler, BaseMessageHandler):
+class ShowFeedItemsHandler(
+    GkfeedItemProcessorExtention, BaseHandler, BaseMessageHandler
+):
     _items_limit = 10
 
     async def handle(self) -> Any:
