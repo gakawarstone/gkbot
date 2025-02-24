@@ -1,3 +1,5 @@
+PYTHON = .venv/bin/python
+
 termux-build:
 	pkg install libiconv libxslt libxml2 rust binutils-is-llvm
 	python -m venv env
@@ -13,11 +15,19 @@ docker-update:
 	docker compose up -d
 
 merge-to-master:
+	git push
 	git checkout master
 	git merge dev-3.0
 	git push
 	git checkout dev-3.0
 
-dev:
-	pipenv run api
-	pipenv run dev
+api:
+	docker compose -f services/bot-api/docker-compose.yml up -d
+
+dev: api
+	nodemon -e py -x $(PYTHON) bot/main.py
+
+test:
+	$(PYTHON) -m pytest
+
+deploy: merge-to-master
