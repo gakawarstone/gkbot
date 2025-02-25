@@ -1,3 +1,4 @@
+import asyncio
 from typing import Any
 
 
@@ -15,10 +16,11 @@ class ShowFeedItemsHandler(
         await self.event.delete()
 
         items_cnt = 0
-        async for item in self._gkfeed.get_all_user_items():
-            if items_cnt >= self._items_limit:
-                break
+        async with asyncio.TaskGroup() as tg:
+            async for item in self._gkfeed.get_all_user_items():
+                if items_cnt >= self._items_limit:
+                    break
 
-            await self._process_item(item)
+                tg.create_task(self._process_item(item))
 
-            items_cnt += 1
+                items_cnt += 1
