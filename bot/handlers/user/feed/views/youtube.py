@@ -1,14 +1,9 @@
 from services.gkfeed import FeedItem
-from extensions.handlers.message.http import HttpExtension
+from services.youtube import YoutubeApiService
 from . import BaseFeedItemView
 
 
-class YoutubeFeedItemView(BaseFeedItemView, HttpExtension):
+class YoutubeFeedItemView(BaseFeedItemView):
     async def _process_youtube_item(self, item: FeedItem):
-        soup = await self._get_soup(item.link)
-
-        video_code = item.link.split("=")[-1]
-        media_url = f"https://i3.ytimg.com/vi/{video_code}/maxresdefault.jpg"
-        title = soup.find("title").text
-        await self._send_photo(item, media_url, title)
-        return
+        data = await YoutubeApiService.get_video_data(item.link)
+        await self._send_photo(item, data.thumbnail_url, data.title, data.channel_title)
