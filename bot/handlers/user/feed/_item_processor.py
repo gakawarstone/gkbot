@@ -9,11 +9,13 @@ from .views.base import BaseWebFeedItemView
 from .views.vk import VKFeedItemView
 from .views.piokok import PiokokFeedItemView
 from .views.youtube import YoutubeFeedItemView
+from .views.tg import TelegramFeedItemView
 
 _ITEM_PROCESSOR = Callable[[FeedItem], Awaitable[None]]
 
 
 class GkfeedItemProcessorExtention(
+    TelegramFeedItemView,
     YoutubeFeedItemView,
     PiokokFeedItemView,
     BaseWebFeedItemView,
@@ -36,6 +38,7 @@ class GkfeedItemProcessorExtention(
             "https://trashbox": self._process_base_item,
             "https://shikimori": self._process_base_item,
             "https://hdrezka.me": self._process_base_item,
+            "https://t.me": self._process_telegram_item,
         }
 
     async def _process_item(self, item: FeedItem):
