@@ -20,6 +20,7 @@ class _UserCommands(_Commands):
     dl = "dl"
     get_asura = "get_asura"
     feed = "feed"
+    sort_sources = "sort_sources"
 
 
 USER_COMMANDS = _UserCommands()

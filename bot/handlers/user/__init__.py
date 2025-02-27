@@ -17,6 +17,7 @@ from . import platonus2indigo
 from . import download
 from . import asura
 from . import feed
+from . import sort_sources
 
 
 def setup(r: Router):
@@ -37,3 +38,4 @@ def setup(r: Router):
     download.setup(r)
     asura.setup(r)
     feed.setup(r)
+    sort_sources.setup(r)
