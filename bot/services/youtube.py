@@ -11,16 +11,28 @@ class YoutubeVideoData:
     thumbnail_url: str
 
 
+class UnavailableVideo(Exception):
+    def __init__(self, url: str) -> None:
+        self.url = url
+
+
 class YoutubeApiService:
     @classmethod
     async def get_video_data(cls, url: str) -> YoutubeVideoData:
         video_code = url.split("=")[-1]
-        url = f"https://www.googleapis.com/youtube/v3/videos?part=snippet&id={video_code}&key={YOUTUBE_API_KEY}"
-        data = await HttpService.get_json(url)
+        api_url = f"https://www.googleapis.com/youtube/v3/videos?part=snippet&id={video_code}&key={YOUTUBE_API_KEY}"
+        data = await HttpService.get_json(api_url)
+
+        if not data["items"]:
+            raise UnavailableVideo(url)
+        snippet = data["items"][0]["snippet"]
+
+        title = snippet["title"]
+        channel_title = snippet["channelTitle"]
 
         thumbnail_url = f"https://i3.ytimg.com/vi/{video_code}/maxresdefault.jpg"
-        title = data["items"][0]["snippet"]["title"]
-        channel_title = data["items"][0]["snippet"]["channelTitle"]
+        if "maxres" not in snippet["thumbnails"].keys():
+            thumbnail_url = snippet["thumbnails"]["high"]["url"]
 
         return YoutubeVideoData(
             title=title, channel_title=channel_title, thumbnail_url=thumbnail_url
