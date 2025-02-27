@@ -12,4 +12,11 @@ class TelegramFeedItemView(BaseFeedItemView, HttpExtension):
         media_url = meta_tag["content"]
 
         description = soup.find("meta", attrs={"property": "og:description"})["content"]
+        description = self._limit_description(description)
         await self._send_photo(item, media_url, description)
+
+    def _limit_description(self, description: str, limit: int = 500) -> str:
+        if len(description) > limit:
+            description = description[: limit - 3] + "..."
+
+        return description
