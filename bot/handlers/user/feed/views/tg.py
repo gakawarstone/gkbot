@@ -9,10 +9,17 @@ class TelegramFeedItemView(BaseFeedItemView, HttpExtension):
         soup = await self._get_soup(item.link)
 
         meta_tag = soup.find("meta", attrs={"property": "og:image"})
+        if not meta_tag or "content" not in meta_tag.attrs:
+            await self._send_item(item)
+            return
         media_url = meta_tag["content"]
 
-        description = soup.find("meta", attrs={"property": "og:description"})["content"]
+        description_tag = soup.find("meta", attrs={"property": "og:description"})
+        description = ""
+        if description_tag and "content" in description_tag.attrs:
+            description = description_tag["content"]
         description = self._limit_description(description)
+
         await self._send_photo(item, media_url, description)
 
     def _limit_description(self, description: str, limit: int = 500) -> str:
