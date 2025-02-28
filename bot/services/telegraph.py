@@ -20,7 +20,7 @@ class TelegraphAPI:
     ) -> str:
         params = {
             "access_token": TELEGRAPH_API_KEY,
-            "title": title,
+            "title": title[:200],
             "author_name": author_name,
             "content": content,
             "return_content": False,
