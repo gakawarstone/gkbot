@@ -10,11 +10,13 @@ from .views.vk import VKFeedItemView
 from .views.piokok import PiokokFeedItemView
 from .views.youtube import YoutubeFeedItemView
 from .views.tg import TelegramFeedItemView
+from .views.reddit import RedditFeedItemView
 
 _ITEM_PROCESSOR = Callable[[FeedItem], Awaitable[None]]
 
 
 class GkfeedItemProcessorExtention(
+    RedditFeedItemView,
     TelegramFeedItemView,
     YoutubeFeedItemView,
     PiokokFeedItemView,
@@ -34,11 +36,8 @@ class GkfeedItemProcessorExtention(
             "https://open": self._process_spoti_item,
             "https://vk": self._process_vk_item,
             "https://www.youtube": self._process_youtube_item,
-            "https://www.tagesschau": self._process_base_item,
-            "https://trashbox": self._process_base_item,
-            "https://shikimori": self._process_base_item,
-            "https://hdrezka.me": self._process_base_item,
             "https://t.me": self._process_telegram_item,
+            "https://www.reddit.com": self._process_reddit_item,
         }
 
     async def _process_item(self, item: FeedItem):
@@ -46,4 +45,5 @@ class GkfeedItemProcessorExtention(
             if item.link.startswith(proc_key):
                 await self._processors[proc_key](item)
                 return
-        await self._send_item(item)
+
+        await self._process_base_item(item)
