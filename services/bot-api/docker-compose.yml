@@ -9,5 +9,5 @@ services:
       - ./data:/var/lib/telegram-bot-api
     container_name: gkbot-api
 
-volumes:
-  bot_api_data:
+# volumes:
+#   bot_api_data:
