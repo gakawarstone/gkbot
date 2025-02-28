@@ -54,28 +54,28 @@ class RedditFeedItemView(VideoFeedItemView, BaseFeedItemView, HttpExtension):
         post = soup.find(class_="post")
         images = post.find_all("image")
         if images:
-            return self._noromalize_link(images[0]["href"])
+            return self._normalize_link(images[0]["href"])
 
         imgs = post.find_all("img", attrs={"alt": "Post image"})
         if imgs:
-            return self._noromalize_link(imgs[0]["src"])
+            return self._normalize_link(imgs[0]["src"])
 
         return None
 
     async def _find_post_video_url(self, soup: BeautifulSoup) -> Optional[str]:
         video = soup.find("meta", attrs={"property": "og:video"})
         if video:
-            return self._noromalize_link(video["content"])
+            return self._normalize_link(video["content"])
         return None
 
     def _find_post_link(self, soup: BeautifulSoup) -> Optional[str]:
         post = soup.find(class_="post")
         links = post.find_all(id="post_url")
         if links:
-            return self._noromalize_link(links[0]["href"])
+            return self._normalize_link(links[0]["href"])
         return None
 
-    def _noromalize_link(self, link: str) -> str:
+    def _normalize_link(self, link: str) -> str:
         if not link.startswith("https"):
             return self._base_url + link
         return link
