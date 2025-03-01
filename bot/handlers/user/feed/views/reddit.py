@@ -5,6 +5,7 @@ from services.gkfeed import FeedItem
 from services.telegraph import TelegraphAPI, HtmlToTelegraphContentConverter
 from extensions.handlers.message.http import HttpExtension
 from ui.keyboards.feed import FeedMarkup
+from ui.keyboards.feed.reddit import RedditFeedItemMarkup
 from . import BaseFeedItemView
 from .video import VideoFeedItemView
 
@@ -45,8 +46,8 @@ class RedditFeedItemView(VideoFeedItemView, BaseFeedItemView, HttpExtension):
         )
 
         await self.event.answer(
-            f'<b>{title.split("-")[0]}</b>\n\n<a href="{telegraph_url}">{title.split("-")[-1].strip()}</a>',
-            reply_markup=FeedMarkup.get_item_markup(item.id, item.feed_id),
+            f'<b>{title.split("-")[0]}</b>\n\n<a href="{item.link}">{title.split("-")[-1].strip()}</a>',
+            reply_markup=RedditFeedItemMarkup.get_item_markup(item.id, telegraph_url),
             disable_web_page_preview=True,
         )
 
