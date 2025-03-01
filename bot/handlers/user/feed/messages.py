@@ -16,11 +16,15 @@ class ShowFeedItemsHandler(
         await self.event.delete()
 
         items_cnt = 0
-        async with asyncio.TaskGroup() as tg:
-            async for item in self._gkfeed.get_all_user_items():
-                if items_cnt >= self._items_limit:
-                    break
+        try:
+            async with asyncio.TaskGroup() as tg:
+                async for item in self._gkfeed.get_all_user_items():
+                    if items_cnt >= self._items_limit:
+                        break
 
-                tg.create_task(self._process_item(item))
+                    tg.create_task(self._process_item(item))
 
-                items_cnt += 1
+                    items_cnt += 1
+        except* Exception as exc:
+            for e in exc.exceptions:
+                raise e
