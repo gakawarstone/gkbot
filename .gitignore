@@ -18,3 +18,4 @@ nohup.out
 cache_directory/
 video.m4a
 services/bot-api/data/
+.aider*
