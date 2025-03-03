@@ -4,7 +4,6 @@ from bs4 import BeautifulSoup, Tag
 from services.gkfeed import FeedItem
 from services.telegraph import TelegraphAPI, HtmlToTelegraphContentConverter
 from extensions.handlers.message.http import HttpExtension
-from ui.keyboards.feed import FeedMarkup
 from ui.keyboards.feed.reddit import RedditFeedItemMarkup
 from . import BaseFeedItemView
 from .video import VideoFeedItemView
@@ -55,9 +54,12 @@ class RedditFeedItemView(VideoFeedItemView, BaseFeedItemView, HttpExtension):
         return None
 
     async def _send_link_response(self, title: str, link: str, item: FeedItem):
+        _title = title.split("-")[0].strip()
+        link_caption = title.split("-")[-1].strip()
+
         return await self.event.answer(
-            title + f'\n\n<a href="{link}">Link</a>',
-            reply_markup=FeedMarkup.get_item_markup(item.id, item.feed_id),
+            _title + f'\n\n<a href="{item.link}">{link_caption}</a>',
+            reply_markup=RedditFeedItemMarkup.get_item_markup(item.id, link, "Ссылка"),
             disable_web_page_preview=True,
         )
 

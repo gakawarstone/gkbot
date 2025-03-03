@@ -12,11 +12,11 @@ class RedditFeedItemMarkup(
     data = FeedMarkupData
 
     @classmethod
-    def get_item_markup(cls, item_id: int, link: str):
+    def get_item_markup(cls, item_id: int, link: str, link_caption: str = "Читать"):
         return InlineKeyboardBuilder(
             [
                 [
-                    UrlButton.create(link, "Читать"),
+                    UrlButton.create(link, link_caption),
                 ],
                 cls._get_feed_buttons_row(item_id),
             ]
