@@ -1,0 +1,1 @@
+CACHE_STATIC_FILES = False

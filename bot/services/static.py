@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 
 from aiogram.types.input_file import FSInputFile, URLInputFile, InputFile
 
+from configs.services.static import CACHE_STATIC_FILES
 from services.http import HttpService
 
 
@@ -46,6 +47,8 @@ class _StaticFile:
         return (await HttpService.get(await self._cache_url)).decode("utf-8")
 
     async def as_input_file(self) -> InputFile:
+        if not CACHE_STATIC_FILES:
+            return FSInputFile(self.__path)
         if not self.__should_cache:
             return FSInputFile(self.__path)
         return URLInputFile(await self._cache_url)
