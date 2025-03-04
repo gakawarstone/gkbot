@@ -25,7 +25,7 @@ class _LitterboxUploader:
         return response.decode("utf-8")
 
 
-class _StaticFile:
+class StaticFile:
     def __init__(self, path: str, cache: bool = True):
         self.__path = path
         self.__should_cache = cache
@@ -52,13 +52,3 @@ class _StaticFile:
         if not self.__should_cache:
             return FSInputFile(self.__path)
         return URLInputFile(await self._cache_url)
-
-
-class Images:
-    book_shelf = _StaticFile("./static/book_shelf.png")
-    road_greet = _StaticFile("./static/road_greet.png")
-    sort_documents = _StaticFile("./static/sort_documents.png")
-
-
-class TextFiles:
-    anecdots = _StaticFile("./static/anecdots.txt", cache=False)

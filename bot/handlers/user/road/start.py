@@ -3,7 +3,7 @@ from aiogram.filters import StateFilter, Command, or_f
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
-from services.static import Images
+from ui.static import Images
 from ui.keyboards.road import RoadMarkup
 from .._commands import USER_COMMANDS
 from .states import FSM

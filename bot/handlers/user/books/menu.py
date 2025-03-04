@@ -3,7 +3,7 @@ from aiogram.filters import Command, StateFilter, or_f, and_f
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, ReplyKeyboardRemove
 
-from services.static import Images
+from ui.static import Images
 from filters.not_command import NotCommandFilter
 from ui.keyboards.books import MenuMarkup
 from .._commands import USER_COMMANDS

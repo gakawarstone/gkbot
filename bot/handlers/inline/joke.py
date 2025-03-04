@@ -4,14 +4,14 @@ import hashlib
 from aiogram import Router, F
 from aiogram.types import InlineQuery, InlineQueryResultArticle, InputTextMessageContent
 
-from services.static import TextFiles
+from ui.static import TextFiles
 
 
 async def send_joke(query: InlineQuery):
     anecdots = (await TextFiles.anecdots.as_str()).split("\n\n")
     num = random.randint(0, len(anecdots))
     anecdot = anecdots[num]
-    message = f"Анекдот про штирлица: "
+    message = "Анекдот про штирлица: "
     description = " ".join(anecdot.split(" ")[:3])
 
     results = [
