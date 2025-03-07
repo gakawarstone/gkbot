@@ -21,6 +21,7 @@ class _UserCommands(_Commands):
     get_asura = "get_asura"
     feed = "feed"
     sort_sources = "sort_sources"
+    ask = "ask"
 
 
 USER_COMMANDS = _UserCommands()

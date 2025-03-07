@@ -18,6 +18,7 @@ from . import download
 from . import asura
 from . import feed
 from . import sort_sources
+from . import ask
 
 
 def setup(r: Router):
@@ -39,3 +40,4 @@ def setup(r: Router):
     asura.setup(r)
     feed.setup(r)
     sort_sources.setup(r)
+    ask.setup(r)

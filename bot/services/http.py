@@ -81,7 +81,7 @@ class HttpService:
     ) -> dict:
         async with aiohttp.ClientSession(conn_timeout=None) as session:
             try:
-                async with session.post(url, data=body, headers=headers) as response:
+                async with session.post(url, json=body, headers=headers) as response:
                     return await response.json()
             except ClientConnectorError:
                 raise HttpRequestError
