@@ -10,4 +10,5 @@ DEFAULT_COMMANDS = {
     "dl": "download file",
     "tts": "text to speech",
     "feed": "read gkfeed",
+    "sort_sources": "sort sources",
 }
