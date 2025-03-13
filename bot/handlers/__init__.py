@@ -6,6 +6,7 @@ from . import inline
 from . import on_startup
 from . import error
 from . import prompt
+from . import button
 
 
 def setup(dp: Dispatcher):
@@ -16,3 +17,4 @@ def setup(dp: Dispatcher):
     on_startup.setup(r)
     error.setup(r)
     prompt.setup(r)
+    button.setup(r)
