@@ -24,22 +24,22 @@ class FakeContextManager(BaseContextManager[FakeContext]):
         return self.__user_data
 
 
-async def test_get_prop():
+def test_get_prop():
     ctx_manager = FakeContextManager(event=fake_event)
     assert ctx_manager.ctx.str_data == None
 
 
-async def test_context_type():
+def test_context_type():
     ctx_manager = FakeContextManager(event=fake_event)
     assert type(ctx_manager.ctx) == FakeContext
 
 
-async def test_props_type():
+def test_props_type():
     ctx_manager = FakeContextManager(event=fake_event)
     assert ctx_manager.props == FakeContext
 
 
-async def test_set_cache():
+def test_set_cache():
     ctx_manager = FakeContextManager(event=fake_event)
     ctx_manager.set(ctx_manager.props.integer, 10)
     ctx_manager.set(ctx_manager.props.str_data, "10")
@@ -50,7 +50,7 @@ async def test_set_cache():
     assert ctx_manager.user_data == {"str_data": "10", "integer": 10, "any": "10"}
 
 
-async def test_clean_context():
+def test_clean_context():
     ctx_manager = FakeContextManager(event=fake_event)
     ctx_manager.set(ctx_manager.props.integer, 10)
     ctx_manager.set(ctx_manager.props.str_data, "10")
@@ -61,7 +61,7 @@ async def test_clean_context():
     assert ctx_manager.user_data == {"str_data": None, "integer": None, "any": None}
 
 
-async def test_clean_context_with_exclude():
+def test_clean_context_with_exclude():
     ctx_manager = FakeContextManager(event=fake_event)
     ctx_manager.set(ctx_manager.props.integer, 10)
     ctx_manager.set(ctx_manager.props.str_data, "10")
@@ -72,7 +72,7 @@ async def test_clean_context_with_exclude():
     assert ctx_manager.user_data == {"str_data": None, "integer": 10, "any": None}
 
 
-async def test_clean_context_with_multiple_exclude():
+def test_clean_context_with_multiple_exclude():
     ctx_manager = FakeContextManager(event=fake_event)
     ctx_manager.set(ctx_manager.props.integer, 10)
     ctx_manager.set(ctx_manager.props.str_data, "10")
