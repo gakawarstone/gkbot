@@ -25,9 +25,16 @@ api:
 	docker compose -f services/bot-api/docker-compose.yml up -d
 
 dev: api
-	nodemon -e py -x $(PYTHON) bot/main.py
+	find bot -name "*.py" | entr -r $(PYTHON) bot/main.py
 
 test:
 	$(PYTHON) -m pytest
 
 deploy: merge-to-master
+
+debug:
+ifdef FILE
+	$(PYTHON) -m pytest --pdb $(FILE)
+else
+	$(PYTHON) -m pytest --pdb
+endif
