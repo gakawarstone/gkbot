@@ -1,20 +1,15 @@
-import random
-
-from ui.buttons.youtube import (
+from ui.buttons.youtube.download_audio import (
     YoutubeDownloadAudioButtonBuilder,
     YoutubeDownloadAudioButtonData,
     YoutubeDownloadAudioButtonCallbackData,
     YoutubeDownloadAudioButtonCallbackDataDeserializer,
 )
 
-
-def _generate_yt_code():
-    characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
-    return "".join(random.choices(characters, k=11))
+from . import generate_yt_code
 
 
 def _create_button():
-    yt_video_code = _generate_yt_code()
+    yt_video_code = generate_yt_code()
     return YoutubeDownloadAudioButtonBuilder.build(
         button_data=YoutubeDownloadAudioButtonData(),
         callback_data=YoutubeDownloadAudioButtonCallbackData(yt_video_code),
@@ -26,7 +21,7 @@ def test_youtube_button_creation():
 
 
 def test_callback_deserialization():
-    yt_video_code = _generate_yt_code()
+    yt_video_code = generate_yt_code()
     expected_callback_data = YoutubeDownloadAudioButtonCallbackData(yt_video_code)
 
     btn = YoutubeDownloadAudioButtonBuilder.build(

@@ -2,23 +2,28 @@ from aiogram import Router, F
 from aiogram.types import CallbackQuery
 
 from services.ytdlp import YtdlpDownloader
-from ui.buttons.youtube import (
+from ui.buttons.youtube.download_audio import (
     YoutubeDownloadAudioButtonData,
     YoutubeDownloadAudioButtonDataSerializer,
+    YoutubeDownloadAudioButtonCallbackDataDeserializer,
 )
 
 
 async def download_audio(callback: CallbackQuery):
-    video_code = callback.data.split(":")[-1]
-    url = "https://www.youtube.com/watch?v=" + video_code
+    deserializer = YoutubeDownloadAudioButtonCallbackDataDeserializer()
+    data = deserializer.deserialize(callback.data)
+    url = "https://www.youtube.com/watch?v=" + data.yt_video_code
+
     status_message = await callback.message.answer("Cкачиваю " + url)
     audio = await YtdlpDownloader.download_audio(url)
+
     await callback.message.answer_audio(
         audio=audio.input_file,
         title=audio.title,
         performer="GKBOT",
         duration=audio.duration,
     )
+
     await status_message.delete()
 
 
