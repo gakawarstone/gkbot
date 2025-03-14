@@ -20,6 +20,7 @@ pytube = "*"
 pure-eval = "*"
 edge-tts = "*"
 aiogram = "==3.18.0"
+google-generativeai = "*"
 
 [dev-packages]
 autopep8 = "*"
