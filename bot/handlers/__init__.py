@@ -7,6 +7,7 @@ from . import on_startup
 from . import error
 from . import prompt
 from . import button
+from . import on_shutdown
 
 
 def setup(dp: Dispatcher):
@@ -18,3 +19,4 @@ def setup(dp: Dispatcher):
     error.setup(r)
     prompt.setup(r)
     button.setup(r)
+    on_shutdown.setup(r)
