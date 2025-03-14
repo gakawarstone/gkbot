@@ -15,7 +15,6 @@ from .default_commands import DefaultCommands
 
 class BotStarter:
     __storage = MemoryStorage()
-    __loop = asyncio.get_event_loop()
 
     def __init__(self, config: BotConfig):
         session = AiohttpSession(  # NOTE timeout
@@ -46,4 +45,4 @@ class BotStarter:
         await self.dp.start_polling(self.bot)
 
     def start(self) -> None:
-        self.__loop.run_until_complete(self.__on_startup())
+        asyncio.run(self.__on_startup())
