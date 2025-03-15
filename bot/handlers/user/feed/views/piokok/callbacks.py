@@ -1,5 +1,6 @@
 from aiogram.types import URLInputFile, InputMediaPhoto
 
+from services.http import HttpService
 from extensions.handlers.message.http import HttpExtension
 from extensions.handlers.callback.corousel import CorouselWidgetEventHandlerExtention
 from ui.keyboards.feed.piokok import PiokokFeedItemMarkup
@@ -18,6 +19,8 @@ class PiokokCorouselWidgetEventHandler(
         item = await self._gkfeed.get_item_by_item_id(int(item_id))
         soup = await self._get_soup(item.link)
         return [
-            InputMediaPhoto(media=URLInputFile(pic.a["href"]))
+            InputMediaPhoto(
+                media=URLInputFile(await HttpService.get_redirected_url(pic.a["href"]))
+            )
             for pic in soup.find_all(class_="pic")
         ]
