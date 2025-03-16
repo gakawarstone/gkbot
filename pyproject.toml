@@ -11,7 +11,7 @@ dependencies = [
     "beautifulsoup4",
     "translate",
     "youtube-search",
-    "tortoise-orm",
+    "tortoise-orm==0.21.6",
     "docx2txt",
     "varname==0.13.0",
     "yt-dlp==2025.02.19",
@@ -20,6 +20,7 @@ dependencies = [
     "edge-tts",
     "aiogram==3.18.0",
     "google-generativeai",
+    "uvloop>=0.21.0",
 ]
 
 [project.optional-dependencies]
@@ -35,3 +36,7 @@ dev = [
     "types-requests",
     "pre-commit",
 ]
+
+[tool.pyright]
+venvPath = "."
+venv = ".venv"
