@@ -47,3 +47,6 @@ lock-dev:
 
 lock:
 	uv export --no-hashes --format requirements-txt > requirements.txt
+
+lint:
+	uvx ruff check . && uvx typos
