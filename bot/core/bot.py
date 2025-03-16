@@ -1,5 +1,4 @@
-import asyncio
-
+import uvloop
 from aiogram.client.session.aiohttp import AiohttpSession
 from aiogram.client.telegram import TelegramAPIServer
 from aiogram.client.default import DefaultBotProperties
@@ -45,4 +44,4 @@ class BotStarter:
         await self.dp.start_polling(self.bot)
 
     def start(self) -> None:
-        asyncio.run(self.__on_startup())
+        uvloop.run(self.__on_startup())
