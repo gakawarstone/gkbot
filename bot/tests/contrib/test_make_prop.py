@@ -13,8 +13,8 @@ class FakeContext:
 def test_make_prop():
     prop = make_prop(FakeContext.str_data, FakeContext, 2)
     assert prop.name == "str_data"
-    assert prop.type == str
+    assert prop.type is str
 
     prop = make_prop(FakeContext.integer, FakeContext, 2)
     assert prop.name == "integer"
-    assert prop.type == int
+    assert prop.type is int

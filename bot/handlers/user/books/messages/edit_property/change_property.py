@@ -1,3 +1,5 @@
+from aiogram.exceptions import TelegramBadRequest
+
 from typing import Any
 
 from services.repositories.books import BooksRepository
@@ -15,5 +17,5 @@ class ChangeBookPropertyHandler(BaseHandler):
                 new_property_value=self.ctx.new_value,
             )
             await self.event.answer("Успешно изменено")
-        except:  # FIXME: bare exception
+        except TelegramBadRequest:
             await self.event.answer("Что то пошло не так")

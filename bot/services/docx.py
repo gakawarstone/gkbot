@@ -11,5 +11,5 @@ class DocxReader:
             lines = docx2txt.process(file).splitlines()
         except BadZipfile:
             raise ValueError
-        stripped_lines = [l for n, l in enumerate(lines) if n % 2 == 0]
+        stripped_lines = [line for n, line in enumerate(lines) if n % 2 == 0]
         return "\n".join(stripped_lines)

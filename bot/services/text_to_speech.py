@@ -1,6 +1,3 @@
-from io import BytesIO
-
-import gtts
 import edge_tts
 
 from services.cache_dir import CacheDir

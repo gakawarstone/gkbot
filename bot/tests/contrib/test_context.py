@@ -26,12 +26,12 @@ class FakeContextManager(BaseContextManager[FakeContext]):
 
 def test_get_prop():
     ctx_manager = FakeContextManager(event=fake_event)
-    assert ctx_manager.ctx.str_data == None
+    assert ctx_manager.ctx.str_data is None
 
 
 def test_context_type():
     ctx_manager = FakeContextManager(event=fake_event)
-    assert type(ctx_manager.ctx) == FakeContext
+    assert type(ctx_manager.ctx) is FakeContext
 
 
 def test_props_type():
@@ -56,8 +56,8 @@ def test_clean_context():
     ctx_manager.set(ctx_manager.props.str_data, "10")
     ctx_manager.clean_context()
 
-    assert ctx_manager.ctx.integer == None
-    assert ctx_manager.ctx.str_data == None
+    assert ctx_manager.ctx.integer is None
+    assert ctx_manager.ctx.str_data is None
     assert ctx_manager.user_data == {"str_data": None, "integer": None, "any": None}
 
 
@@ -68,7 +68,7 @@ def test_clean_context_with_exclude():
     ctx_manager.clean_context(ctx_manager.props.integer)
 
     assert ctx_manager.ctx.integer == 10
-    assert ctx_manager.ctx.str_data == None
+    assert ctx_manager.ctx.str_data is None
     assert ctx_manager.user_data == {"str_data": None, "integer": 10, "any": None}
 
 
@@ -80,5 +80,5 @@ def test_clean_context_with_multiple_exclude():
     ctx_manager.clean_context(ctx_manager.ctx.integer, ctx_manager.ctx.any)
 
     assert ctx_manager.ctx.integer == 10
-    assert ctx_manager.ctx.str_data == None
+    assert ctx_manager.ctx.str_data is None
     assert ctx_manager.user_data == {"str_data": None, "integer": 10, "any": "10"}

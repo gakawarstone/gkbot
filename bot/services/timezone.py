@@ -8,11 +8,11 @@ _MAX_TZ = timedelta(hours=14).total_seconds()
 
 
 class UserDontHaveTimeZone(Exception):
-    'User isn\'t register in TimeZone database'
+    "User isn't register in TimeZone database"
 
 
 class InvalidTimeZone(Exception):
-    'Valid timezone from -12 to +14 hours'
+    "Valid timezone from -12 to +14 hours"
 
 
 class TimeZone:
@@ -25,7 +25,7 @@ class TimeZone:
     @classmethod
     async def _get_tz_by_user_id(cls, user_id: int) -> Optional[timedelta]:
         tzinfo = await _TimeZone.filter(user_id=user_id).first()
-        if not type(tzinfo) == _TimeZone:
+        if type(tzinfo) is not _TimeZone:
             return None
         return tzinfo.tz
 

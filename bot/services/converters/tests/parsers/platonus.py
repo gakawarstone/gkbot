@@ -2,8 +2,8 @@ from ..types import Question, Choice
 
 
 class PlatonusParser:
-    __question_tag = '<question>'
-    __choice_tag = '<variant>'
+    __question_tag = "<question>"
+    __choice_tag = "<variant>"
     __tags = (__question_tag, __choice_tag)
 
     # FIXME: if end ofl line is not empty last question isn't append
@@ -28,7 +28,7 @@ class PlatonusParser:
         question_buffer = cls._strip_question_buffer(question_buffer)
 
         title = question_buffer[0]
-        choices = [Choice(l, False) for l in question_buffer[1:]]
+        choices = [Choice(line, False) for line in question_buffer[1:]]
         choices[0].is_correct = True
         return Question(title, choices)
 
@@ -46,7 +46,7 @@ class PlatonusParser:
     @classmethod
     def _strip_question_buffer(cls, question_buffer: list[str]) -> list[str]:
         tags = [cls.__question_tag, cls.__choice_tag]
-        return [cls._remove_tags_from_line(l, tags) for l in question_buffer]
+        return [cls._remove_tags_from_line(line, tags) for line in question_buffer]
 
     @classmethod
     def _remove_tags_from_line(cls, line: str, tags: list[str]) -> str:

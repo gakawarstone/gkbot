@@ -33,6 +33,6 @@ class ConvertFileHandler(FileHandlerExtension):
 
     async def _send_lines_file(self, lines: list[str], file_name: str) -> None:
         output_file = BytesIO()
-        [output_file.write(l.encode()) for l in lines]
+        [output_file.write(line.encode()) for line in lines]
         file = BufferedInputFile(output_file.getvalue(), file_name)
         await self.event.answer_document(file)
