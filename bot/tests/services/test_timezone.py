@@ -4,16 +4,13 @@ import pytest
 
 from services.timezone import TimeZone, UserDontHaveTimeZone, InvalidTimeZone
 
-INVALID_TZ_SET = [
-    timedelta(hours=-12, minutes=-1),
-    timedelta(hours=14, seconds=1)
-]
+INVALID_TZ_SET = [timedelta(hours=-12, minutes=-1), timedelta(hours=14, seconds=1)]
 
 VALID_TZ_SET = [
     timedelta(hours=1),
     timedelta(hours=6),
     timedelta(hours=14),
-    timedelta(hours=-12)
+    timedelta(hours=-12),
 ]
 
 
@@ -28,11 +25,13 @@ class MockedTimeZone(TimeZone):
         pass
 
 
+@pytest.mark.asyncio
 async def test_user_dont_have_timezone():
     with pytest.raises(UserDontHaveTimeZone):
         await MockedTimeZone.get_user_timezone(100)
 
 
+@pytest.mark.asyncio
 async def test_set_invalid_timezone():
     for tz in INVALID_TZ_SET:
         with pytest.raises(InvalidTimeZone):
