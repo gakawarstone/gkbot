@@ -1,4 +1,4 @@
-FROM python:3.12-alpine as builder
+FROM python:3.13-alpine AS builder
 
 WORKDIR /app
 
@@ -13,7 +13,7 @@ RUN pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.t
 RUN apk del git build-base
 
 
-FROM python:3.12-alpine
+FROM python:3.13-alpine
 
 COPY --from=builder /app/wheels /wheels
 
