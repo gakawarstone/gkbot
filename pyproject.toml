@@ -1,0 +1,37 @@
+[project]
+name = "gkbot"  
+version = "3.0.0"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "asyncio",
+    "notion-client==0.9.0",
+    "python-dotenv",
+    "gTTS",
+    "wikipedia",
+    "beautifulsoup4",
+    "translate",
+    "youtube-search",
+    "tortoise-orm",
+    "docx2txt",
+    "varname==0.13.0",
+    "yt-dlp==2025.02.19",
+    "pytube",
+    "pure-eval",
+    "edge-tts",
+    "aiogram==3.18.0",
+    "google-generativeai",
+]
+
+[project.optional-dependencies]
+dev = [
+    "autopep8",
+    "flake8",
+    "pytest",
+    "pytest-cov",
+    "pytest-asyncio",
+    "mypy",
+    "pip",
+    "pytest-tornasync",
+    "types-requests",
+    "pre-commit",
+]

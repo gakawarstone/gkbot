@@ -38,3 +38,12 @@ ifdef FILE
 else
 	$(PYTHON) -m pytest --pdb
 endif
+
+init-dev:
+	uv sync --all-extras
+
+lock-dev:
+	uv -q pip freeze > requirements-dev.txt
+
+lock:
+	uv -q pip compile pyproject.toml --output-file requirements.txt
