@@ -43,7 +43,7 @@ init-dev:
 	uv sync --all-extras
 
 lock-dev:
-	uv -q pip freeze > requirements-dev.txt
+	uv pip freeze > requirements-dev.txt
 
 lock:
 	uv -q pip compile pyproject.toml --output-file requirements.txt
