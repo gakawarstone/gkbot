@@ -22,7 +22,7 @@ class TelegramFeedItemView(BaseFeedItemView, HttpExtension):
 
         await self._send_photo(item, media_url, description)
 
-    def _limit_description(self, description: str, limit: int = 500) -> str:
+    def _limit_description(self, description: str, limit: int = 250) -> str:
         if len(description) > limit:
             description = description[: limit - 3] + "..."
 
