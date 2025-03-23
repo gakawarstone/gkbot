@@ -1,3 +1,4 @@
+import os
 import re
 from dataclasses import dataclass
 from enum import Enum
@@ -26,17 +27,29 @@ class AudioDownloadOptions(DownloadOptions):
     youtube = {
         "format": "ba",
         "external_downloader": "aria2c",
-    }
-
-    vk = {
-        "format": "url240",
-        "external_downloader": "aria2c",
         "postprocessors": [
             {
                 "key": "FFmpegExtractAudio",
                 "preferredcodec": "m4a",
             }
         ],
+    }
+
+    vk = {
+        "format": "ba",
+        # "format": "url240",
+        "concurrent_fragment_downloads": 100,
+        # "external_downloader": "aria2c",
+        # "external_downloader_args": {
+        #     "default": ["-x16", "-s16", "-k1M"]  # 16 connections, 1MB chunks
+        # },
+        "force_ipv4": True,
+        # "postprocessors": [
+        #     {
+        #         "key": "FFmpegExtractAudio",
+        #         "preferredcodec": "m4a",
+        #     }
+        # ],
     }
 
 
@@ -48,13 +61,12 @@ class VideoDownloadOptions(DownloadOptions):
     }
 
     youtube = {
-        "format": "wv+ba",
+        "format": "136+140",
         "external_downloader": "aria2c",
     }
 
     tiktok = {
         "format": "mp4",
-        # "external_downloader": "aria2c",
     }
 
 
@@ -92,13 +104,12 @@ class YtdlpDownloader:
     ) -> FSInputFile:
         output_path = cls.__prepare_path() + "/" + file_name
         opts = opts.value.copy()
-        print(opts)  # FIXME:
         opts["outtmpl"] = output_path
 
         with yt_dlp.YoutubeDL(opts) as ydl:
             ydl.download(url)
 
-        if "postprocessors" in opts:
+        if not os.path.exists(output_path):
             postprocessor = opts["postprocessors"][0]
             if "preferedformat" in postprocessor:
                 output_path += "." + postprocessor["preferedformat"]

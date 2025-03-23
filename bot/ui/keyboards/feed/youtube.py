@@ -1,14 +1,9 @@
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from ui.buttons.youtube.download_audio import (
-    YoutubeDownloadAudioButtonBuilder,
-    YoutubeDownloadAudioButtonCallbackData,
-    YoutubeDownloadAudioButtonData,
-)
-from ui.buttons.youtube.download_video import (
-    YoutubeDownloadVideoButtonBuilder,
-    YoutubeDownloadVideoButtonCallbackData,
-    YoutubeDownloadVideoButtonData,
+from ui.buttons.youtube.download import (
+    YoutubeDownloadButtonBuilder,
+    YoutubeDownloadButtonCallbackData,
+    YoutubeDownloadButtonData,
 )
 from . import BaseFeedMarkup, FeedMarkupButtons, FeedMarkupData
 
@@ -23,13 +18,13 @@ class YoutubeFeedItemMarkup(BaseFeedMarkup):
         return InlineKeyboardBuilder(
             [
                 [
-                    YoutubeDownloadAudioButtonBuilder.build(
-                        YoutubeDownloadAudioButtonData(),
-                        YoutubeDownloadAudioButtonCallbackData(yt_code),
+                    YoutubeDownloadButtonBuilder.build(
+                        YoutubeDownloadButtonData.audio,
+                        YoutubeDownloadButtonCallbackData(yt_code),
                     ),
-                    YoutubeDownloadVideoButtonBuilder.build(
-                        YoutubeDownloadVideoButtonData(),
-                        YoutubeDownloadVideoButtonCallbackData(yt_code),
+                    YoutubeDownloadButtonBuilder.build(
+                        YoutubeDownloadButtonData.video,
+                        YoutubeDownloadButtonCallbackData(yt_code),
                     ),
                 ],
                 cls._get_feed_buttons_row(item_id),

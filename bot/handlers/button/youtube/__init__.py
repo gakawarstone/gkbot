@@ -1,9 +1,7 @@
 from aiogram import Router
 
-from . import download_audio
-from . import download_video
+from . import download
 
 
 def setup(r: Router):
-    download_audio.setup(r)
-    download_video.setup(r)
+    download.setup(r)
