@@ -11,6 +11,7 @@ class VideoFeedItemView(BaseFeedItemView):
         await self._send_video(item, item.link)
 
     async def _send_video(self, item: FeedItem, video_url: str):
+        video_url = await HttpService.get_redirected_url(video_url)
         video_data = await HttpService.get(video_url)
         await self.bot.send_video(
             self.event.from_user.id,

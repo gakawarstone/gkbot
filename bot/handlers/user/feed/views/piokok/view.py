@@ -14,27 +14,16 @@ class PiokokFeedItemView(VideoFeedItemView, BaseHandler, HttpExtension):
 
         photos = [
             await HttpService.get_redirected_url(pic.a["href"])
-            # pic.a["href"]
             for pic in soup.find_all(class_="pic")
         ]
-        videos = [
-            # await HttpService.get_redirected_url(vid.a["href"])
-            vid.a["href"]
-            for vid in soup.find_all(class_="video_img")
-        ]
-
-        # breakpoint()
+        videos = [vid.a["href"] for vid in soup.find_all(class_="video_img")]
 
         if photos:
             await self.__send_piokok_item_as_corousel(item, photos[0], len(photos))
         elif videos:
-            video_url = soup.find(class_="downbtn")["href"]
-            # video_url = await HttpService.get_redirected_url(video_url)
-            # breakpoint()
             await self._send_video(item, videos[0])
         else:
             await self._send_item(item)
-        # await self._send_item(item)
 
     async def __send_piokok_item_as_corousel(
         self, item: FeedItem, media_url: str, media_len: int
