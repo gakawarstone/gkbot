@@ -25,7 +25,7 @@ api:
 	docker compose -f services/bot-api/docker-compose.yml up -d
 
 dev: api
-	find bot -name "*.py" | entr -r $(PYTHON) bot/main.py
+	watchexec -r -e py $(PYTHON) bot/main.py
 
 test:
 	$(PYTHON) -m pytest
