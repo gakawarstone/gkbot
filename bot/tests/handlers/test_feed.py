@@ -4,7 +4,7 @@ import pytest
 
 from services.gkfeed import FeedItem
 from handlers.user.feed import ShowFeedItemsHandler
-from . import Bot, Event
+from . import Bot, Event, integration_test
 
 
 class GkfeedService:
@@ -40,6 +40,7 @@ class MockedHandler(ShowFeedItemsHandler):
         return Bot()
 
 
+@integration_test
 @pytest.mark.asyncio(loop_scope="session")
 async def test_handler():
     await MockedHandler(event=Event(breakpoint_at_delete=False)).handle()

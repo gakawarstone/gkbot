@@ -1,10 +1,12 @@
+import pytest
+
 from configs.admins import ADMINS
 
-INTEGRATION_TEST = 0
+_INTEGRATION_TEST = 0
 BREAKPOINTS_ON_DELETE = 0
 
 
-if INTEGRATION_TEST:
+if _INTEGRATION_TEST:
     from aiogram import Bot as _AiogramBot
     from aiogram.client.session.aiohttp import AiohttpSession
     from aiogram.client.telegram import TelegramAPIServer
@@ -16,6 +18,11 @@ if INTEGRATION_TEST:
         default=DefaultBotProperties(parse_mode="HTML"),
         session=AiohttpSession(api=TelegramAPIServer.from_base(API_SERVER_URL)),
     )
+
+integration_test = pytest.mark.skipif(
+    not _INTEGRATION_TEST,
+    reason="It tests if yt_dlp can download audio it can't be mocked",
+)
 
 
 class Bot:

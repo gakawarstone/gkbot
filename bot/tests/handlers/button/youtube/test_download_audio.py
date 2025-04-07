@@ -8,13 +8,10 @@ from ui.buttons.youtube.download import (
 )
 
 # FIX: move to tests._utils or mocks
-from tests.handlers import CallbackEvent, INTEGRATION_TEST
+from tests.handlers import CallbackEvent, integration_test
 
 
-@pytest.mark.skipif(
-    not INTEGRATION_TEST,
-    reason="It tests if yt_dlp can download audio it cant be mocked",
-)
+@integration_test
 @pytest.mark.asyncio(loop_scope="session")
 async def test_download_audio():
     yt_code = "oRxuDeZRFx8"
