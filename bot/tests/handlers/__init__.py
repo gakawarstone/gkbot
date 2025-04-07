@@ -69,6 +69,15 @@ class Event:
                 breakpoint()
             return await m.delete()
 
+    async def answer_video(self, *args, **kwargs):
+        if INTEGRATION_TEST:
+            _args = list(args)
+            _args.insert(0, ADMINS[0])
+            m = await bot.send_video(*_args, **kwargs)
+            if BREAKPOINTS_ON_DELETE:
+                breakpoint()
+            return await m.delete()
+
     async def answer(self, *args, **kwargs):
         if INTEGRATION_TEST:
             _args = list(args)
