@@ -25,31 +25,17 @@ class DownloadOptions(Enum):
 # FIXME: move to separate file
 class AudioDownloadOptions(DownloadOptions):
     youtube = {
-        "format": "ba",
-        "external_downloader": "aria2c",
+        "format": "ba[ext=m4a]",
         "postprocessors": [
-            {
-                "key": "FFmpegExtractAudio",
-                "preferredcodec": "m4a",
-            }
+            {"key": "SponsorBlock", "categories": ["sponsor"]},
+            {"key": "ModifyChapters", "remove_sponsor_segments": ["sponsor"]},
         ],
     }
 
     vk = {
         "format": "ba",
-        # "format": "url240",
         "concurrent_fragment_downloads": 100,
-        # "external_downloader": "aria2c",
-        # "external_downloader_args": {
-        #     "default": ["-x16", "-s16", "-k1M"]  # 16 connections, 1MB chunks
-        # },
         "force_ipv4": True,
-        # "postprocessors": [
-        #     {
-        #         "key": "FFmpegExtractAudio",
-        #         "preferredcodec": "m4a",
-        #     }
-        # ],
     }
 
 
@@ -62,7 +48,10 @@ class VideoDownloadOptions(DownloadOptions):
 
     youtube = {
         "format": "136+140",
-        "external_downloader": "aria2c",
+        "postprocessors": [
+            {"key": "SponsorBlock", "categories": ["sponsor"]},
+            {"key": "ModifyChapters", "remove_sponsor_segments": ["sponsor"]},
+        ],
     }
 
     tiktok = {
