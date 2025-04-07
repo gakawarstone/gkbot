@@ -15,6 +15,8 @@ class FeedItem:
 
 class GkfeedService:
     _api_root = "http://feed.gws.freemyip.com/api/v1/"
+    _items_priority: dict[int, int] = {}
+    _items_offset: dict[int, int] = {}
 
     def __init__(self, login: str, password: str) -> None:
         self.__login = login
@@ -26,17 +28,42 @@ class GkfeedService:
 
         sorted_items = sorted(data["items"], key=lambda x: x["id"], reverse=True)
 
-        if sorted_items and sorted_items[0]["link"]:
-            first_item = sorted_items[0]
-            yield self._convert_raw_data_to_feed_item(first_item)
-            last_item = sorted_items[-1]
-            yield self._convert_raw_data_to_feed_item(last_item)
-
-        remaining_items = reversed(sorted_items[1:-1])
-        for i in remaining_items:
+        for n, i in enumerate(sorted_items):
             if not i["link"]:
+                print(i)
                 continue
+            if n > 4:
+                break
             yield self._convert_raw_data_to_feed_item(i)
+
+        remaining_items = reversed(sorted_items)
+        for n, raw_item in enumerate(remaining_items):
+            if not raw_item["link"]:
+                print(raw_item)
+                continue
+
+            item = self._convert_raw_data_to_feed_item(raw_item)
+            if self._should_return_item_using_priority_strategy(item, n):
+                yield item
+
+    def _should_return_item_using_priority_strategy(
+        self, item: FeedItem, current_item_nummer: int
+    ) -> bool:
+        if item.id not in self._items_priority:
+            self._items_priority[item.id] = 0
+        if item.id not in self._items_offset:
+            self._items_offset[item.id] = 0
+
+        self._items_offset[item.id] -= current_item_nummer + 1
+
+        if self._items_offset[item.id] < 0:
+            self._items_offset[item.id] = 0
+
+        if self._items_offset[item.id] <= 0:
+            self._items_priority[item.id] -= 1
+            self._items_offset[item.id] -= self._items_priority[item.id]
+            return True
+        return False
 
     async def delete_item_by_id(self, item_id: int) -> None:
         headers = {"Content-Type": "application/json"}
