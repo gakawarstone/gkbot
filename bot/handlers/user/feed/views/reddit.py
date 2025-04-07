@@ -17,6 +17,9 @@ class RedditFeedItemView(VideoFeedItemView, BaseFeedItemView, HttpExtension):
         soup = await self._get_soup(url)
         title = soup.find("title").text
 
+        if not soup.find_all(class_="post"):
+            return await self._send_item(item)
+
         if image_url := self._find_post_image_url(soup):
             return await self._send_photo(item, image_url, title)
 
@@ -25,11 +28,17 @@ class RedditFeedItemView(VideoFeedItemView, BaseFeedItemView, HttpExtension):
 
         if link := self._find_post_link(soup):
             return await self._send_link_response(title, link, item)
-
-        await self._send_telegraph_response(title, item, soup)
+        try:
+            await self._send_telegraph_response(title, item, soup)
+        except:
+            await self._send_item(item)
 
     def _find_post_image_url(self, soup: BeautifulSoup) -> Optional[str]:
         post = soup.find(class_="post")
+
+        if not post:
+            return None
+
         images = post.find_all("image")
         if images:
             return self._normalize_link(images[0]["href"])
@@ -48,6 +57,10 @@ class RedditFeedItemView(VideoFeedItemView, BaseFeedItemView, HttpExtension):
 
     def _find_post_link(self, soup: BeautifulSoup) -> Optional[str]:
         post = soup.find(class_="post")
+
+        if not post:
+            return None
+
         links = post.find_all(id="post_url")
         if links:
             return self._normalize_link(links[0]["href"])
@@ -88,6 +101,10 @@ class RedditFeedItemView(VideoFeedItemView, BaseFeedItemView, HttpExtension):
 
     def _get_post_content(self, soup: BeautifulSoup) -> Tag:
         post_body = soup.find(class_="post_body")
+
+        if not post_body:
+            return None
+
         if soup.find(class_="gallery"):
             post_body = soup.find(class_="gallery")
         return post_body
