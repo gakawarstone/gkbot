@@ -1,4 +1,5 @@
 from aiogram.types import URLInputFile
+from aiogram.exceptions import TelegramBadRequest
 
 from services.gkfeed import FeedItem
 from ui.keyboards.feed import FeedMarkup
@@ -13,9 +14,12 @@ class BaseFeedItemView(BaseHandler):
         description: str,
         link_caption: str = "Link",
     ):
-        await self.bot.send_photo(
-            self.event.from_user.id,
-            URLInputFile(media_url),
-            caption=f'<b>{description}</b>\n\n<a href="{item.link}">{link_caption}</a>',
-            reply_markup=FeedMarkup.get_item_markup(item.id, item.feed_id),
-        )
+        try:
+            await self.bot.send_photo(
+                self.event.from_user.id,
+                URLInputFile(media_url),
+                caption=f'<b>{description}</b>\n\n<a href="{item.link}">{link_caption}</a>',
+                reply_markup=FeedMarkup.get_item_markup(item.id, item.feed_id),
+            )
+        except TelegramBadRequest:
+            await self._send_item(item)
