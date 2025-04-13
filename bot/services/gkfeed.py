@@ -28,13 +28,15 @@ class GkfeedService:
 
         sorted_items = sorted(data["items"], key=lambda x: x["id"], reverse=True)
 
-        for n, i in enumerate(sorted_items):
-            if not i["link"]:
-                print(i)
+        for n, raw_item in enumerate(sorted_items):
+            if not raw_item["link"]:
+                print(raw_item)
                 continue
             if n > 4:
                 break
-            yield self._convert_raw_data_to_feed_item(i)
+            item = self._convert_raw_data_to_feed_item(raw_item)
+            if self._should_return_item_using_priority_strategy(item, n):
+                yield item
 
         remaining_items = reversed(sorted_items)
         for n, raw_item in enumerate(remaining_items):
