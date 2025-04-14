@@ -14,7 +14,7 @@ class FeedItem:
 
 
 class GkfeedService:
-    _api_root = "http://feed.gws.freemyip.com/api/v1/"
+    _api_root = "https://feed.gws.freemyip.com/api/v1/"
     _items_priority: dict[int, int] = {}
     _items_offset: dict[int, int] = {}
 
