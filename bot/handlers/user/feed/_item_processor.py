@@ -41,9 +41,12 @@ class GkfeedItemProcessorExtention(
         }
 
     async def _process_item(self, item: FeedItem):
-        for proc_key in self._processors.keys():
-            if item.link.startswith(proc_key):
-                await self._processors[proc_key](item)
-                return
+        try:
+            for proc_key in self._processors.keys():
+                if item.link.startswith(proc_key):
+                    await self._processors[proc_key](item)
+                    return
 
-        await self._process_base_item(item)
+            await self._process_base_item(item)
+        except Exception:
+            print("Failed to process item: ", item)
