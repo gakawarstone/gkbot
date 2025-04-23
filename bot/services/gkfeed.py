@@ -11,6 +11,7 @@ class FeedItem:
     id: int
     feed_id: int
     link: str
+    title: str
 
 
 class GkfeedService:
@@ -98,6 +99,7 @@ class GkfeedService:
             id=raw_data["id"],
             feed_id=raw_data["feed_id"],
             link=raw_data["link"],
+            title=raw_data["title"],
         )
 
     async def _get_soup(self, url: str) -> BeautifulSoup:

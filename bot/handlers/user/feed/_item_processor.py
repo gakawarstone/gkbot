@@ -11,11 +11,13 @@ from .views.piokok import PiokokFeedItemView
 from .views.youtube import YoutubeFeedItemView
 from .views.tg import TelegramFeedItemView
 from .views.reddit import RedditFeedItemView
+from .views.rezka import RezkaFeedItemView
 
 _ITEM_PROCESSOR = Callable[[FeedItem], Awaitable[None]]
 
 
 class GkfeedItemProcessorExtention(
+    RezkaFeedItemView,
     RedditFeedItemView,
     TelegramFeedItemView,
     YoutubeFeedItemView,
@@ -38,6 +40,7 @@ class GkfeedItemProcessorExtention(
             "https://www.youtube": self._process_youtube_item,
             "https://t.me": self._process_telegram_item,
             "https://www.reddit.com": self._process_reddit_item,
+            "https://hdrezka.me": self._process_rezka_item,
         }
 
     async def _process_item(self, item: FeedItem):
