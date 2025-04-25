@@ -31,7 +31,7 @@ class TikTokVideoHandler(BaseHandler):
         await status_message.edit_text(status_text)
 
     async def _send_tiktok_video(self, link: str) -> None:
-        caption = f"<b>{self.event.from_user.username}</b> {link}"
+        caption = f'<b>{self.event.from_user.username}</b> ➤ <a href="{link.split("?")[0]}">TikTok</a>'
         try:
             video_url = await TikTokService.get_video_url(link)
             await self.event.answer_video(video_url, caption=caption)
