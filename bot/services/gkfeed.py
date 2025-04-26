@@ -63,7 +63,7 @@ class GkfeedService:
             self._items_offset[item.id] = 0
 
         if self._items_offset[item.id] <= 0:
-            self._items_priority[item.id] -= 1
+            self._items_priority[item.id] -= 5
             self._items_offset[item.id] -= self._items_priority[item.id]
             return True
         return False
