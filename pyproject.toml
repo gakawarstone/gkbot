@@ -14,7 +14,7 @@ dependencies = [
     "tortoise-orm==0.21.6",
     "docx2txt",
     "varname==0.13.0",
-    "yt-dlp==2025.3.31",
+    "yt-dlp==2025.4.30",
     "pytube",
     "pure-eval",
     "edge-tts",
