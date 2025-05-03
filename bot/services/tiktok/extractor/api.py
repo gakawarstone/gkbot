@@ -29,10 +29,8 @@ class ApiExtractor(BaseExtractor):
             if "image_post_info" in data["data"]:
                 for img in data["data"]["image_post_info"]["images"]:
                     images_urls.append(img["display_image"]["url_list"][0])
-            if "downloadAddr" in data["data"]["video"]:
-                video_url = ""
-                # FIXME: not works
-                # video_url = data["data"]["video"]["downloadAddr"]
+            if "video" in data["data"]:
+                video_url = data["data"]["video"]["play_addr"]["url_list"][0]
 
             music_url = data["data"]["music"]["play_url"]["url_list"][0]
 
