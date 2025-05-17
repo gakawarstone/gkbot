@@ -14,6 +14,7 @@ class _Data:
     mp4 = "ytdlmp4"
 
 
+# NOTE: deprecated use download buttons instead
 class YtdlpMarkup:
     buttons = _Buttons
     data = _Data

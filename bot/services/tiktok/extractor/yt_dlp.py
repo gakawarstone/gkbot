@@ -1,6 +1,6 @@
 import os
 
-from aiogram.types import FSInputFile
+from aiogram.types import InputFile
 from yt_dlp import DownloadError
 
 from configs.services.cache_dir import CACHE_DIR_PATH
@@ -24,12 +24,12 @@ class YtDlp(BaseExtractor):
         except (IndexError, ValueError, DownloadError):
             raise SourceInfoExtractFailed(self)
 
-    async def _get_video_input_file(self, url: str) -> FSInputFile:
-        return await YtdlpDownloader.download_video(url)
+    async def _get_video_input_file(self, url: str) -> InputFile:
+        return (await YtdlpDownloader.download_video(url)).input_file
 
     async def get_video_file_url(self, url: str) -> str:
         try:
-            fs_input_file = await YtdlpDownloader.download_video(url)
+            fs_input_file = await self._get_video_input_file(url)
             video_path = "/".join(fs_input_file.path.split("/")[-3:])
             url_path = os.path.expanduser(CACHE_DIR_PATH + "/serveo_url")
             serveo_url = open(url_path).read()

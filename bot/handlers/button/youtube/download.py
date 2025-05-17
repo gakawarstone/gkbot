@@ -39,10 +39,13 @@ async def download(callback: CallbackQuery):
         )
 
     if _is_button_callback(callback, YoutubeDownloadButtonData.video):
-        video_file = await YtdlpDownloader.download_video(url)
-        # FIXME: duration
+        video = await YtdlpDownloader.download_video(url)
         await callback.message.answer_video(
-            video_file, height=720, width=1280, supports_streaming=True
+            video.input_file,
+            height=video.height,
+            width=video.width,
+            duration=video.duration,
+            supports_streaming=True,
         )
 
     await status_message.delete()
