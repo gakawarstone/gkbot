@@ -34,6 +34,9 @@ class ApiExtractor(BaseExtractor):
 
             music_url = data["data"]["music"]["play_url"]["url_list"][0]
 
+            if video_url.endswith("mp3"):
+                video_url = ""
+
             return InfoVideoTikTok(
                 video_url=video_url,
                 video_input_file=None,
