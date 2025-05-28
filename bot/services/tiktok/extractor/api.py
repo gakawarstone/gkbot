@@ -1,3 +1,5 @@
+import re
+
 from services.http import HttpService, HttpRequestError
 from ..types import InfoVideoTikTok
 from ..exceptions import SerializationError
@@ -34,7 +36,7 @@ class ApiExtractor(BaseExtractor):
 
             music_url = data["data"]["music"]["play_url"]["url_list"][0]
 
-            if video_url.endswith(("mp3", "m4a")):
+            if re.search(r"\bmusic\b", video_url):
                 video_url = ""
 
             return InfoVideoTikTok(
