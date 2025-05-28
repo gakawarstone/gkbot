@@ -16,7 +16,7 @@ class Gemini:
         return resp["candidates"][0]["content"]["parts"][0]["text"]
 
     @classmethod
-    async def stream(cls, prompt: str) -> AsyncGenerator[str]:
+    async def stream(cls, prompt: str) -> AsyncGenerator[str, None]:
         genai.configure(api_key=GEMINI_API_KEY)
         model = genai.GenerativeModel("gemini-2.0-flash")
 
