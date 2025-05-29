@@ -4,7 +4,8 @@ import pytest
 
 from services.gkfeed import FeedItem
 from handlers.user.feed import ShowFeedItemsHandler
-from . import Bot, Event, integration_test
+from tests import integration_test
+from . import Bot, Event
 
 
 class GkfeedService:
@@ -23,6 +24,7 @@ class GkfeedService:
             FeedItem(
                 id=1,
                 feed_id=1,
+                title="title",
                 link="https://www.youtube.com/watch?v=5WMmPoHbQOo",
             ),
         ]

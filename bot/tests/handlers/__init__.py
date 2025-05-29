@@ -1,12 +1,12 @@
-import pytest
+from typing import Optional
 
 from configs.admins import ADMINS
+from tests import INTEGRATION_TEST
 
-_INTEGRATION_TEST = 0
-BREAKPOINTS_ON_DELETE = 0
+BREAKPOINTS_ON_DELETE = 1
 
 
-if _INTEGRATION_TEST:
+if INTEGRATION_TEST:
     from aiogram import Bot as _AiogramBot
     from aiogram.client.session.aiohttp import AiohttpSession
     from aiogram.client.telegram import TelegramAPIServer
@@ -18,11 +18,6 @@ if _INTEGRATION_TEST:
         default=DefaultBotProperties(parse_mode="HTML"),
         session=AiohttpSession(api=TelegramAPIServer.from_base(API_SERVER_URL)),
     )
-
-integration_test = pytest.mark.skipif(
-    not _INTEGRATION_TEST,
-    reason="It tests if yt_dlp can download audio it can't be mocked",
-)
 
 
 class Bot:
@@ -49,15 +44,29 @@ class Bot:
                 breakpoint()
             await m.delete()
 
+    async def send_chat_action(self, *args, **kwargs):
+        if INTEGRATION_TEST:
+            if not await bot.send_chat_action(*args, **kwargs):
+                raise ValueError("failed to send action")
+
 
 class _FromUser:
+    id = ADMINS[0]
+    username = "admin"
+
+
+class _Chat:
     id = ADMINS[0]
 
 
 class Event:
     from_user = _FromUser()
+    chat = _Chat()
 
-    def __init__(self, breakpoint_at_delete: bool = True) -> None:
+    def __init__(
+        self, text: Optional[str] = None, breakpoint_at_delete: bool = True
+    ) -> None:
+        self.text = text
         self._breakpoint_at_delete = breakpoint_at_delete
 
     async def delete(self):

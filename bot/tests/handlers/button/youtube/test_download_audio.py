@@ -7,8 +7,8 @@ from ui.buttons.youtube.download import (
     YoutubeDownloadButtonCallbackData,
 )
 
-# FIX: move to tests._utils or mocks
-from tests.handlers import CallbackEvent, integration_test
+from tests import integration_test
+from tests.handlers import CallbackEvent
 
 
 @integration_test
