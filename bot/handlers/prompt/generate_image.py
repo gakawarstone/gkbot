@@ -12,7 +12,7 @@ async def generate_image(m: Message):
     prompt = " ".join(m.text.split(" ")[1:])
     prompt = await ImagePromptEnhancer.enhance(prompt)
 
-    img_url = f"https://image.pollinations.ai/prompt/{prompt}"
+    img_url = f"https://image.pollinations.ai/prompt/{prompt}".replace(" ", "+")
     img_url += f"?width=1024"
     img_url += f"&height=1024"
     img_url += f"&model=flux"
