@@ -6,7 +6,7 @@ import aiohttp
 from bs4 import BeautifulSoup
 
 
-@dataclass
+@dataclass(frozen=True)
 class FeedItem:
     id: int
     feed_id: int
@@ -18,6 +18,7 @@ class GkfeedService:
     _api_root = "https://feed.gws.freemyip.com/api/v1/"
     _items_priority: dict[int, int] = {}
     _items_offset: dict[int, int] = {}
+    _items_pocket: list[int] = []
 
     def __init__(self, login: str, password: str) -> None:
         self.__login = login
@@ -28,6 +29,8 @@ class GkfeedService:
         data = json.loads(resp)
 
         sorted_items = sorted(data["items"], key=lambda x: x["id"], reverse=True)
+        if len(self._items_pocket) >= len(sorted_items):
+            self._items_pocket = []
 
         for n, raw_item in enumerate(sorted_items):
             if not raw_item["link"]:
@@ -36,7 +39,7 @@ class GkfeedService:
             if n > 4:
                 break
             item = self._convert_raw_data_to_feed_item(raw_item)
-            if self._should_return_item_using_priority_strategy(item, n):
+            if self._should_return_item_using_pocket_strategy(item):
                 yield item
 
         remaining_items = reversed(sorted_items)
@@ -46,7 +49,7 @@ class GkfeedService:
                 continue
 
             item = self._convert_raw_data_to_feed_item(raw_item)
-            if self._should_return_item_using_priority_strategy(item, n):
+            if self._should_return_item_using_pocket_strategy(item):
                 yield item
 
     def _should_return_item_using_priority_strategy(
@@ -68,6 +71,12 @@ class GkfeedService:
             return True
         return False
 
+    def _should_return_item_using_pocket_strategy(self, item: FeedItem) -> bool:
+        if item.id not in self._items_pocket:
+            self._items_pocket.append(item.id)
+            return True
+        return False
+
     async def delete_item_by_id(self, item_id: int) -> None:
         headers = {"Content-Type": "application/json"}
         data = {"itemIds": [item_id]}
@@ -81,6 +90,15 @@ class GkfeedService:
                 headers=headers,
             ) as response:
                 await response.read()
+
+    # TODO: add feed handler
+    async def add_feed_lazy(self, feed_url: str) -> None:
+        url = self._api_root + "add_lazy"
+        body = {"url": feed_url}
+        auth = aiohttp.BasicAuth(login=self.__login, password=self.__password)
+        async with aiohttp.ClientSession(conn_timeout=None) as session:
+            async with session.post(url, auth=auth, data=body) as response:
+                await response.content.read()
 
     async def get_items_from_feed(self, feed_id: int) -> AsyncGenerator[FeedItem, None]:
         async for item in self.get_all_user_items():
@@ -106,7 +124,7 @@ class GkfeedService:
         html = await self._get_html(url)
         return BeautifulSoup(html, "xml")
 
-    async def _get_html(self, url: str) -> bytes:
+    async def _get_html(self, url: str, body={}) -> bytes:
         async with aiohttp.ClientSession() as session:
             auth = aiohttp.BasicAuth(login=self.__login, password=self.__password)
             async with session.get(url, auth=auth) as response:
