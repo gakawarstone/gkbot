@@ -1,19 +1,23 @@
 import asyncio
 
-from services.llm import Gemini
+from services.llm import Gemini, OpenRouter
 from tests import integration_test
 
 
-@integration_test
-async def test_stream_response():
+async def stream_gemini_response():
     async for chunk in Gemini.stream("Что такое деконструкция"):
+        assert type(chunk) == str
+        assert len(chunk) != 0
+
+
+async def stream_open_router_response():
+    async for chunk in OpenRouter.stream("Что такое деконструкция"):
         assert type(chunk) == str
         assert len(chunk) != 0
 
 
 @integration_test
 async def test_event_loop_not_blocked():
-    loop = asyncio.get_event_loop()
     started = asyncio.Event()
     finished = asyncio.Event()
 
@@ -22,9 +26,9 @@ async def test_event_loop_not_blocked():
         await asyncio.sleep(0.01)
         finished.set()
 
-    # Start both the probe and the function under test
-    task1 = asyncio.create_task(test_stream_response())
-    task2 = asyncio.create_task(probe())
+    task1 = asyncio.create_task(stream_gemini_response())
+    task2 = asyncio.create_task(stream_open_router_response())
+    task3 = asyncio.create_task(probe())
 
     await started.wait()
     try:
@@ -33,5 +37,7 @@ async def test_event_loop_not_blocked():
     except asyncio.TimeoutError:
         loop_blocked = True
 
-    await task1  # Ensure the main task completes
+    await task1
+    await task2
+    await task3
     assert not loop_blocked, "Function blocked the event loop!"

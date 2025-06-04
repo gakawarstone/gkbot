@@ -21,6 +21,7 @@ dependencies = [
     "aiogram==3.18.0",
     "google-generativeai",
     "uvloop>=0.21.0",
+    "openai>=1.82.1",
 ]
 
 [dependency-groups]
