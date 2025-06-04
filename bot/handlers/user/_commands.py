@@ -22,6 +22,7 @@ class _UserCommands(_Commands):
     feed = "feed"
     sort_sources = "sort_sources"
     ask = "ask"
+    cvision = "cvision"
 
 
 USER_COMMANDS = _UserCommands()

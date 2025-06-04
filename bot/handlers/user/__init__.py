@@ -19,6 +19,7 @@ from . import asura
 from . import feed
 from . import sort_sources
 from . import ask
+from . import cvision
 
 
 def setup(r: Router):
@@ -41,3 +42,4 @@ def setup(r: Router):
     feed.setup(r)
     sort_sources.setup(r)
     ask.setup(r)
+    cvision.setup(r)
