@@ -11,6 +11,8 @@ async def delete_download_markup(callback: CallbackQuery):
     await callback.message.delete()
 
 
+# TODO: refactor
+# FIXME: bot as parametr? make it class based
 async def download_audio(callback: CallbackQuery, bot: Bot):
     request_from_user_id = int(callback.data.split(":")[1])
     if callback.from_user.id != request_from_user_id:
