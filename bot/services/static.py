@@ -3,26 +3,7 @@ from datetime import datetime, timedelta
 from aiogram.types.input_file import FSInputFile, URLInputFile, InputFile
 
 from configs.services.static import CACHE_STATIC_FILES
-from services.http import HttpService
-
-
-class _LitterboxUploader:
-    host_url = "https://litterbox.catbox.moe/resources/internals/api.php"
-
-    @classmethod
-    async def upload_with_path(cls, path: str) -> str:
-        file = open(path, "rb")
-        try:
-            data = {
-                "reqtype": "fileupload",
-                "fileToUpload": file,
-                "time": "1h",
-            }
-            response = await HttpService.post(cls.host_url, body=data)
-        finally:
-            file.close()
-
-        return response.decode("utf-8")
+from services.litterbox import LitterboxUploader
 
 
 class StaticFile:
@@ -35,7 +16,7 @@ class StaticFile:
     @property
     async def _cache_url(self) -> str:
         if datetime.now().timestamp() > self.__cache_expire_timestamp:
-            self.__cache_url = await _LitterboxUploader.upload_with_path(self.__path)
+            self.__cache_url = await LitterboxUploader.upload_with_path(self.__path)
             self.__cache_expire_timestamp = (
                 datetime.now() + timedelta(hours=1)
             ).timestamp()
