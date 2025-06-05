@@ -28,7 +28,6 @@ class TikTokService:
         if not (info := await TikTokInfoExtractor.get_video_info(url)):
             raise TikTokInfoExtractionFailed(url)
         if video_url := info.video_url:
-            print(video_url)
             return await HttpService.get(video_url)
         if info.images_urls:
             return await FfmpegService.make_slideshow_from_web(
