@@ -1,10 +1,9 @@
-from inspect import markcoroutinefunction
 from typing import Any
 import time
 import re
 
 from aiogram import Router
-from aiogram.utils.formatting import Bold, Italic
+from aiogram.utils.formatting import Bold
 from aiogram.filters import Command
 from aiogram.filters.state import StateFilter
 from aiogram.fsm.state import State, StatesGroup
