@@ -20,6 +20,7 @@ from . import feed
 from . import sort_sources
 from . import ask
 from . import cvision
+from . import chatgpt
 
 
 def setup(r: Router):
@@ -43,3 +44,4 @@ def setup(r: Router):
     sort_sources.setup(r)
     ask.setup(r)
     cvision.setup(r)
+    chatgpt.setup(r)

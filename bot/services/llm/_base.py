@@ -1,14 +1,19 @@
 from abc import ABC, abstractmethod
-from typing import AsyncGenerator, Any
+from typing import AsyncGenerator, Optional, NamedTuple, Literal
+
+
+class StreamChunk(NamedTuple):
+    text: str
+    type: Literal["content", "reason"]
 
 
 class LLM(ABC):
-    @classmethod
     @abstractmethod
-    async def generate(cls, prompt: str) -> str:
+    async def generate(self, prompt: str) -> str:
         pass
 
-    @classmethod
     @abstractmethod
-    async def stream(cls, prompt: str, *args: Any) -> AsyncGenerator[str, None]:
+    async def stream(
+        self, prompt: str, images: Optional[list[str]] = None
+    ) -> AsyncGenerator[StreamChunk, None]:
         pass

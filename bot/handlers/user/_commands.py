@@ -23,6 +23,7 @@ class _UserCommands(_Commands):
     sort_sources = "sort_sources"
     ask = "ask"
     cvision = "cvision"
+    chatgpt = "chatgpt"
 
 
 USER_COMMANDS = _UserCommands()
