@@ -9,10 +9,12 @@ class BaseExtractor(ABC):
     async def get_video_info(self, url: str) -> InfoVideoTikTok:
         pass
 
+    # FIXME: deprecated
     @abstractmethod
     async def get_video_file_url(self, url: str) -> str:
         pass
 
+    # FIXME: ?? is it
     async def _extract_full_url(self, url: str) -> str:
         redirected_url = await HttpService.get_redirected_url(url)
         return redirected_url.split("?")[0].replace("photo", "video")
