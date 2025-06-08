@@ -36,7 +36,7 @@ class ApiExtractor(BaseExtractor):
 
             music_url = data["data"]["music"]["play_url"]["url_list"][0]
 
-            if re.search(r"\bmusic\b", video_url):
+            if re.search(r"\bmusic\b|\bmime_type=audio_mpeg\b", video_url):
                 video_url = ""
 
             return InfoVideoTikTok(
