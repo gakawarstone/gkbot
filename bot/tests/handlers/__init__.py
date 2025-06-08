@@ -64,7 +64,9 @@ class Event:
     chat = _Chat()
 
     def __init__(
-        self, text: Optional[str] = None, breakpoint_at_delete: bool = True
+        self,
+        text: Optional[str] = None,
+        breakpoint_at_delete: bool = bool(BREAKPOINTS_ON_DELETE),
     ) -> None:
         self.text = text
         self._breakpoint_at_delete = breakpoint_at_delete
@@ -103,7 +105,11 @@ class Event:
 
 
 class CallbackEvent(Event):
-    def __init__(self, callback_data: str, breakpoint_at_delete: bool = True) -> None:
+    def __init__(
+        self,
+        callback_data: str,
+        breakpoint_at_delete: bool = bool(BREAKPOINTS_ON_DELETE),
+    ) -> None:
         self.data = callback_data
         self.message = Event()
-        super().__init__(breakpoint_at_delete)
+        super().__init__(breakpoint_at_delete=breakpoint_at_delete)
