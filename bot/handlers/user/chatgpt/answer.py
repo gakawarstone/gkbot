@@ -51,7 +51,7 @@ class AnswerHandler(MarkdownRenderHandlerExtension, BaseHandler):
                 last_update = now
                 _message_text = ""
 
-                if not text:
+                if not text and reason:
                     _message_text += BlockQuote(reason[-500:]).as_html()
                 else:
                     _message_text += text.replace("<", "__tagopen__").replace(
