@@ -24,11 +24,12 @@ async def get_response(message: Message, state: FSMContext):
     await message.delete()
     _message = await message.answer("Подождите..")
     text = ""
-    async for ch in Gemini.stream(message.text):
-        text += ch
+    async for ch in Gemini().stream(message.text):
+        text += ch.text
         await _message.edit_text(text)
 
 
+# FIXME: deprecated use /chatgpt
 def setup(r: Router):
     r.message.register(start_chat, Command(commands=USER_COMMANDS.ask))
     r.message.register(get_response, StateFilter(FSM.get_response))

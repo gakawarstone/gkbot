@@ -2,6 +2,7 @@ from typing import AsyncGenerator
 import base64
 
 from services.llm import OpenRouter
+from services.llm.openrouter import OpenRouterModel
 
 
 class ImageExplainer:
@@ -10,7 +11,7 @@ class ImageExplainer:
         image_base64 = base64.b64encode(image).decode("utf-8")
         image_data_url = f"data:image/jpeg;base64,{image_base64}"
 
-        async for ch in OpenRouter.stream(
+        async for ch in OpenRouter(OpenRouterModel.META_LLAMA_4_SCOUT).stream(
             """Что на этом изображении?
                 (
                     отвечай сплошным текстом 
@@ -20,4 +21,4 @@ class ImageExplainer:
             """,
             [image_data_url],
         ):
-            yield ch
+            yield ch.text

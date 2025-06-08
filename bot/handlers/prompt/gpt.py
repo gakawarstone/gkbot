@@ -12,8 +12,8 @@ async def send_llm_answer(m: Message):
 
     _message = await m.answer("Подождите..")
     text = ""
-    async for ch in Gemini.stream(prompt):
-        text += ch
+    async for ch in Gemini().stream(prompt):
+        text += ch.text
         await _message.edit_text(text)
 
 
