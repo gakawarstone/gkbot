@@ -28,8 +28,12 @@ class GkfeedService:
         resp = await self._get_html(self._api_root + "get_items")
         data = json.loads(resp)
 
-        sorted_items = sorted(data["items"], key=lambda x: x["id"], reverse=True)
-        if len(self._items_pocket) >= len(sorted_items):
+        sorted_items = sorted(
+            filter(lambda x: x not in self._items_pocket, data["items"]),
+            key=lambda x: x["id"],
+            reverse=True,
+        )
+        if not sorted_items:
             self._items_pocket = []
 
         for n, raw_item in enumerate(sorted_items):
