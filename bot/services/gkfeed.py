@@ -29,10 +29,13 @@ class GkfeedService:
         data = json.loads(resp)
 
         sorted_items = sorted(
-            filter(lambda x: x not in self._items_pocket, data["items"]),
+            filter(
+                lambda x: x["id"] not in self._items_pocket and x["link"], data["items"]
+            ),
             key=lambda x: x["id"],
             reverse=True,
         )
+
         if not sorted_items:
             self._items_pocket = []
 
