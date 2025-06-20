@@ -36,9 +36,6 @@ class GkfeedService:
             reverse=True,
         )
 
-        if not sorted_items:
-            self._items_pocket = []
-
         for n, raw_item in enumerate(sorted_items):
             if not raw_item["link"]:
                 print(raw_item)
@@ -58,6 +55,9 @@ class GkfeedService:
             item = self._convert_raw_data_to_feed_item(raw_item)
             if self._should_return_item_using_pocket_strategy(item):
                 yield item
+
+        if not sorted_items:
+            self._items_pocket = []
 
     def _should_return_item_using_priority_strategy(
         self, item: FeedItem, current_item_nummer: int
