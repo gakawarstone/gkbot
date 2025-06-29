@@ -98,14 +98,17 @@ class GkfeedService:
             ) as response:
                 await response.read()
 
-    # TODO: add feed handler
     async def add_feed_lazy(self, feed_url: str) -> None:
         url = self._api_root + "add_lazy"
         body = {"url": feed_url}
+        json_data = json.dumps(body)
         auth = aiohttp.BasicAuth(login=self.__login, password=self.__password)
         async with aiohttp.ClientSession(conn_timeout=None) as session:
-            async with session.post(url, auth=auth, data=body) as response:
-                await response.content.read()
+            async with session.post(url, auth=auth, data=json_data) as response:
+                resp = await response.content.read()
+        resp = json.loads(resp)
+        if resp["created"] == False:
+            raise ValueError
 
     async def get_items_from_feed(self, feed_id: int) -> AsyncGenerator[FeedItem, None]:
         async for item in self.get_all_user_items():
