@@ -45,9 +45,9 @@ async def generate_image(m: Message):
 
 def _generate_url(prompt: str) -> str:
     img_url = f"https://image.pollinations.ai/prompt/{prompt}".replace(" ", "+").strip()
-    img_url += f"?width=1024"
-    img_url += f"&height=1024"
-    img_url += f"&model=flux"
+    img_url += "?width=1024"
+    img_url += "&height=1024"
+    img_url += "&model=flux"
     img_url += "&nologo=true"
     img_url += "&private=false"
     img_url += "&enhance=false"
