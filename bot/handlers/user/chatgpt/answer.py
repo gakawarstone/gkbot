@@ -2,7 +2,7 @@ from typing import Any, AsyncGenerator
 import time
 
 from aiogram.types import Message
-from aiogram.utils.formatting import BlockQuote, ExpandableBlockQuote
+from aiogram.utils.formatting import BlockQuote
 
 from services.llm import OpenRouter
 from services.llm.openrouter import OpenRouterModel, StreamChunk
