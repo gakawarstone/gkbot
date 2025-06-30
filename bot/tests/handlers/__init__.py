@@ -76,7 +76,13 @@ class Event:
             breakpoint()
 
     async def answer_photo(self, *args, **kwargs):
-        breakpoint()
+        if INTEGRATION_TEST:
+            _args = list(args)
+            _args.insert(0, ADMINS[0])
+            m = await bot.send_photo(*_args, **kwargs)
+            if BREAKPOINTS_ON_DELETE:
+                breakpoint()
+            return await m.delete()
 
     async def answer_audio(self, *args, **kwargs):
         if INTEGRATION_TEST:
