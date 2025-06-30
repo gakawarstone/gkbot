@@ -52,4 +52,5 @@ class GkfeedItemProcessorExtention(
 
             await self._process_base_item(item)
         except Exception:
+            await self._send_item(item)
             print("Failed to process item: ", item)
