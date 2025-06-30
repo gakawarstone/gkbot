@@ -10,27 +10,14 @@ from . import Bot, Event
 
 class GkfeedService:
     async def get_all_user_items(self) -> AsyncGenerator[FeedItem, None]:
-        items = [
-            # FeedItem(
-            #     id=1,
-            #     feed_id=1,
-            #     link="https://trashbox.ru/link/2025-03-10-iphone-17-air-iphone-17-pro",
-            # ),
-            # FeedItem(
-            #     id=1,
-            #     feed_id=1,
-            #     link="https://www.piokok.com/post/6745656138125062123563/",
-            # ),
-            FeedItem(
-                id=1,
-                feed_id=1,
-                title="title",
-                link="https://www.youtube.com/watch?v=5WMmPoHbQOo",
-            ),
+        links = [
+            "https://trashbox.ru/link/2025-03-10-iphone-17-air-iphone-17-pro",
+            "https://www.piokok.com/post/6733377018605557242512/",
+            "https://www.youtube.com/watch?v=5WMmPoHbQOo",
         ]
 
-        for item in items:
-            yield item
+        for i, link in enumerate(links):
+            yield FeedItem(id=i + 1, title=f"link {i + 1}", feed_id=1, link=link)
 
 
 class MockedHandler(ShowFeedItemsHandler):
