@@ -1,6 +1,7 @@
+import os
 import pytest
 
-INTEGRATION_TEST = 0
+INTEGRATION_TEST = int(os.getenv("INTEGRATION_TEST", 0))
 
 integration_test = pytest.mark.skipif(
     not INTEGRATION_TEST,

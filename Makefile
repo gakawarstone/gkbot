@@ -28,12 +28,12 @@ dev: api
 	watchexec -r -e py $(PYTHON) bot/main.py
 
 test:
-	$(PYTHON) -m pytest --ignore services $(FILE)
+	INTEGRATION_TEST=0 $(PYTHON) -m pytest --ignore services $(FILE)
 
 deploy: merge-to-master
 
 debug:
-	$(PYTHON) -m pytest --ignore services/ --pdb $(FILE)
+	INTEGRATION_TEST=1 $(PYTHON) -m pytest --ignore services/ --pdb $(FILE)
 
 init-dev:
 	uv sync --all-extras
