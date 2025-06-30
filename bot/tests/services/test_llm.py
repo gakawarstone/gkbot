@@ -6,13 +6,13 @@ from tests import integration_test
 
 async def stream_gemini_response():
     async for chunk in Gemini.stream("Что такое деконструкция"):
-        assert type(chunk) == str
+        assert isinstance(chunk, str)
         assert len(chunk) != 0
 
 
 async def stream_open_router_response():
     async for chunk in OpenRouter.stream("Что такое деконструкция"):
-        assert type(chunk) == str
+        assert isinstance(chunk, str)
         assert len(chunk) != 0
 
 
