@@ -19,3 +19,5 @@ cache_directory/
 video.m4a
 services/bot-api/data/
 .aider*
+.ruff_cache/
+prof/
