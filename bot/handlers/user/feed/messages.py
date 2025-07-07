@@ -10,7 +10,7 @@ from ._item_processor import GkfeedItemProcessorExtention
 class ShowFeedItemsHandler(
     GkfeedItemProcessorExtention, BaseHandler, BaseMessageHandler
 ):
-    _items_limit = 10
+    _items_limit = 1
 
     async def handle(self) -> Any:
         await self.event.delete()

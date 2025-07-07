@@ -70,7 +70,7 @@ class RedditFeedItemView(VideoFeedItemView, BaseFeedItemView, HttpExtension):
         _title = title.split("-")[0].strip()
         link_caption = title.split("-")[-1].strip()
 
-        return await self.event.answer(
+        return await self.answer(
             _title + f'\n\n<a href="{item.link}">{link_caption}</a>',
             reply_markup=RedditFeedItemMarkup.get_item_markup(item.id, link, "Ссылка"),
             disable_web_page_preview=True,
@@ -80,7 +80,7 @@ class RedditFeedItemView(VideoFeedItemView, BaseFeedItemView, HttpExtension):
         self, title: str, item: FeedItem, soup: BeautifulSoup
     ):
         telegraph_url = await self._create_telegraph_page(title, soup)
-        await self.event.answer(
+        await self.answer(
             f'<b>{title.split("-")[0]}</b>\n\n<a href="{item.link}">{title.split("-")[-1].strip()}</a>',
             reply_markup=RedditFeedItemMarkup.get_item_markup(item.id, telegraph_url),
             disable_web_page_preview=True,

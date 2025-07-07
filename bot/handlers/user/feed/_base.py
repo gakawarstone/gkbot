@@ -1,4 +1,5 @@
 from aiogram.handlers import BaseHandler as _BaseHandler
+from aiogram.types import CallbackQuery
 
 from configs.env import GKFEED_USER, GKFEED_PASSWORD
 from services.gkfeed import GkfeedService, FeedItem
@@ -14,3 +15,8 @@ class BaseHandler(_BaseHandler):
             f'<a href="{item.link}">Link</a>',
             reply_markup=FeedMarkup.get_item_markup(item.id, item.feed_id),
         )
+
+    async def answer(self, *args, **kwargs):
+        if type(self.event) == CallbackQuery:
+            return await self.event.message.answer(*args, **kwargs)
+        return await self.event.answer(*args, **kwargs)

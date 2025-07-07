@@ -10,7 +10,7 @@ class BaseWebFeedItemView(BaseFeedItemView, HttpExtension):
 
         meta_tag = soup.find("meta", attrs={"property": "og:image"})
         if not meta_tag:
-            await self.event.answer(
+            await self.answer(
                 f'<a href="{item.link}">Link</a>',
                 reply_markup=FeedMarkup.get_item_markup(item.id, item.feed_id),
             )
