@@ -9,6 +9,7 @@ from aiogram.filters.state import StateFilter
 from aiogram.fsm.state import State, StatesGroup
 
 from services.agents.image_explainer import ImageExplainer
+from extensions.handlers.message.markdown_render import MarkdownRenderHandlerExtension
 from extensions.handlers.message.one_time_extension import (
     OneTimeMessageHandlerExtension,
 )
@@ -33,7 +34,7 @@ class StartChatHandler(OneTimeMessageHandlerExtension):
         )
 
 
-class AnswerHandler(FileHandlerExtension):
+class AnswerHandler(MarkdownRenderHandlerExtension, FileHandlerExtension):
     async def handle(self) -> Any:
         await self.state.set_state(FSM.finish)
         await self.event.delete()
@@ -47,9 +48,11 @@ class AnswerHandler(FileHandlerExtension):
             text += chunk
             now = time.time()
             if now - last_update >= 0.5:
-                await _message.edit_text(text)
+                await _message.edit_text(
+                    text.replace("<", "__tagopen__").replace(">", "__tagclose__")
+                )
                 last_update = now
-        await _message.edit_text(self._render(text))
+        await _message.edit_text(self._render_markdown(text))
 
     @staticmethod
     def _render(markdown_string: str) -> str:
