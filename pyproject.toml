@@ -22,6 +22,7 @@ dependencies = [
     "google-generativeai",
     "uvloop>=0.21.0",
     "openai>=1.82.1",
+    "asyncpg>=0.30.0",
 ]
 
 [dependency-groups]

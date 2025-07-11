@@ -1,4 +1,3 @@
-version: '3'
 services:
   gkbot:
     build: .
@@ -8,7 +7,16 @@ services:
       - gkbot_data:/data
       - $HOME/.cache/gkbot:/root/.cache/gkbot
       - ./services/bot-api/data:/var/lib/telegram-bot-api
-    env_file: .env
+    environment:
+      BOT_TOKEN: ${BOT_TOKEN:?bot token required}
+      SQLdialect: ${SQLDIALECT:-sqlite}
+      DB_USER: ${DB_USER:-gkbot}
+      DB_PASSWORD: ${DB_PASSWORD:-?db password required}
+      DB_HOST: ${DB_HOST:-localhost}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_NAME: ${DB_NAME:-gkbot}
+      DB_URL: ${DB_URL}
+      API_SERVER_URL: ${API_SERVER_URL:-https://api.telegram.org}
     network_mode: bridge
     container_name: gkbot
 volumes:
