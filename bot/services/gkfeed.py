@@ -121,6 +121,10 @@ class GkfeedService:
         item = data["item"]
         return self._convert_raw_data_to_feed_item(item)
 
+    async def get_raw_item_data(self, item_id: int) -> dict:
+        resp = await self._get_html(self._api_root + f"item?id={item_id}")
+        return json.loads(resp)
+
     @staticmethod
     def _convert_raw_data_to_feed_item(raw_data: dict) -> FeedItem:
         return FeedItem(

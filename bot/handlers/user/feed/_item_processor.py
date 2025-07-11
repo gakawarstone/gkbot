@@ -13,11 +13,13 @@ from .views.tg import TelegramFeedItemView
 from .views.reddit import RedditFeedItemView
 from .views.rezka import RezkaFeedItemView
 from .views.shiki import ShikiFeedItemView
+from .views.stories import StoriesFeedItemView
 
 _ITEM_PROCESSOR = Callable[[FeedItem], Awaitable[None]]
 
 
 class GkfeedItemProcessorExtention(
+    StoriesFeedItemView,
     ShikiFeedItemView,
     RezkaFeedItemView,
     RedditFeedItemView,
@@ -35,7 +37,7 @@ class GkfeedItemProcessorExtention(
     def _processors(self) -> dict[str, _ITEM_PROCESSOR]:
         return {
             "https://www.piokok": self._process_piokok_item,
-            "https://stor": self._process_video_item,
+            "https://stor": self._process_stories_item,
             "https://kinogo": self._process_kinogo_item,
             "https://open": self._process_spoti_item,
             "https://vk": self._process_vk_item,
