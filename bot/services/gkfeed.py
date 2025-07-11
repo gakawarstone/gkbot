@@ -107,7 +107,7 @@ class GkfeedService:
             async with session.post(url, auth=auth, data=json_data) as response:
                 resp = await response.content.read()
         resp = json.loads(resp)
-        if resp["created"] == False:
+        if not resp["created"]:
             raise ValueError
 
     async def get_items_from_feed(self, feed_id: int) -> AsyncGenerator[FeedItem, None]:

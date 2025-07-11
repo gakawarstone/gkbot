@@ -1,4 +1,3 @@
-from aiogram.client import default
 from ._types import DownloadOptions
 
 

@@ -4,6 +4,7 @@ from aiogram.types.input_file import FSInputFile, URLInputFile, InputFile
 
 from configs.services.static import CACHE_STATIC_FILES
 from services.litterbox import LitterboxUploader
+from services.http import HttpService
 
 
 class StaticFile:

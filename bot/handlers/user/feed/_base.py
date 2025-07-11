@@ -17,6 +17,6 @@ class BaseHandler(_BaseHandler):
         )
 
     async def answer(self, *args, **kwargs):
-        if type(self.event) == CallbackQuery:
+        if isinstance(self.event, CallbackQuery):
             return await self.event.message.answer(*args, **kwargs)
         return await self.event.answer(*args, **kwargs)

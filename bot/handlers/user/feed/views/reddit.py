@@ -30,7 +30,7 @@ class RedditFeedItemView(VideoFeedItemView, BaseFeedItemView, HttpExtension):
             return await self._send_link_response(title, link, item)
         try:
             await self._send_telegraph_response(title, item, soup)
-        except:
+        except Exception:
             await self._send_item(item)
 
     def _find_post_image_url(self, soup: BeautifulSoup) -> Optional[str]:
