@@ -8,17 +8,17 @@ from ui.static import TextFiles
 
 
 async def send_joke(query: InlineQuery):
-    anecdots = (await TextFiles.anecdots.as_str()).split("\n\n")
-    num = random.randint(0, len(anecdots))
-    anecdot = anecdots[num]
+    anecdotes = (await TextFiles.anecdotes.as_str()).split("\n\n")
+    num = random.randint(0, len(anecdotes))
+    anecdote = anecdotes[num]
     message = "Анекдот про штирлица: "
-    description = " ".join(anecdot.split(" ")[:3])
+    description = " ".join(anecdote.split(" ")[:3])
 
     results = [
         InlineQueryResultArticle(
             id=hashlib.md5(query.query.encode()).hexdigest(),
             title=message,
-            input_message_content=InputTextMessageContent(message_text=anecdot),
+            input_message_content=InputTextMessageContent(message_text=anecdote),
             description=description,
         )
     ]

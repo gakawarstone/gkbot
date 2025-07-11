@@ -3,23 +3,23 @@ from typing import Type
 from aiogram.types import InlineKeyboardButton
 
 
-class CorouselMarkupButtons:
+class CarouselMarkupButtons:
     show_prev_media = "<<"
     show_next_media = ">>"
 
 
-class CorouselMarkupData:
+class CarouselMarkupData:
     show_prev_media = "pkprev"
     show_next_media = "pknext"
 
 
-class BaseCorouselMarkup[T: CorouselMarkupButtons, S: CorouselMarkupData]:
+class BaseCarouselMarkup[T: CarouselMarkupButtons, S: CarouselMarkupData]:
     prefix: str
     buttons: Type[T]
     data: Type[S]
 
     @classmethod
-    def _get_corousel_navs_row(
+    def _get_carousel_navs_row(
         cls, media_current_num: int, media_len: int, callback_data: str
     ) -> list[InlineKeyboardButton]:
         row = [

@@ -5,7 +5,7 @@ from .base import BaseHandler
 
 
 class NoFileException(Exception):
-    """No document sended"""
+    """No document sent"""
 
 
 class FileHandlerExtension(BaseHandler):

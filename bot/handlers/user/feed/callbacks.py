@@ -6,11 +6,11 @@ from aiogram.types import CallbackQuery
 
 from ui.keyboards.feed import FeedMarkup
 from ._base import BaseHandler
-from ._item_processor import GkfeedItemProcessorExtention
+from ._item_processor import GkfeedItemProcessorExtension
 
 
 class ItemEventHandler(
-    GkfeedItemProcessorExtention, BaseHandler, _BaseHandler[CallbackQuery]
+    GkfeedItemProcessorExtension, BaseHandler, _BaseHandler[CallbackQuery]
 ):
     async def _parse_callback(self) -> tuple[str, int]:
         _, event, data = self.event.data.split(":")

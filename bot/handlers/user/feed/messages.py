@@ -4,11 +4,11 @@ from typing import Any
 
 from extensions.handlers.message.base import BaseHandler as BaseMessageHandler
 from ._base import BaseHandler
-from ._item_processor import GkfeedItemProcessorExtention
+from ._item_processor import GkfeedItemProcessorExtension
 
 
 class ShowFeedItemsHandler(
-    GkfeedItemProcessorExtention, BaseHandler, BaseMessageHandler
+    GkfeedItemProcessorExtension, BaseHandler, BaseMessageHandler
 ):
     _items_limit = 1
 

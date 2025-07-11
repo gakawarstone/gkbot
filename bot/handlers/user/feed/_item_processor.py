@@ -18,7 +18,7 @@ from .views.stories import StoriesFeedItemView
 _ITEM_PROCESSOR = Callable[[FeedItem], Awaitable[None]]
 
 
-class GkfeedItemProcessorExtention(
+class GkfeedItemProcessorExtension(
     StoriesFeedItemView,
     ShikiFeedItemView,
     RezkaFeedItemView,

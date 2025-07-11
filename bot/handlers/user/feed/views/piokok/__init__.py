@@ -2,7 +2,7 @@ from aiogram import Router, F
 from aiogram.filters import and_f
 
 from filters.bot_admin import BotAdmin
-from .callbacks import PiokokCorouselWidgetEventHandler, PiokokFeedItemMarkup
+from .callbacks import PiokokCarouselWidgetEventHandler, PiokokFeedItemMarkup
 from .view import PiokokFeedItemView
 
 __all__ = ("PiokokFeedItemView",)
@@ -10,7 +10,7 @@ __all__ = ("PiokokFeedItemView",)
 
 def setup(r: Router):
     r.callback_query.register(
-        PiokokCorouselWidgetEventHandler,
+        PiokokCarouselWidgetEventHandler,
         and_f(
             F.data.startswith(PiokokFeedItemMarkup.prefix),
             BotAdmin(),

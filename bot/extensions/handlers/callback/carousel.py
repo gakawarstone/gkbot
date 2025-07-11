@@ -3,11 +3,11 @@ from abc import abstractmethod
 
 from aiogram.types import InputMediaPhoto
 
-from ui.keyboards.feed.piokok import BaseCorouselMarkup
+from ui.keyboards.feed.piokok import BaseCarouselMarkup
 from .base import BaseHandler
 
 
-class CorouselWidgetEventHandlerExtention[T: BaseCorouselMarkup](BaseHandler):
+class CarouselWidgetEventHandlerExtension[T: BaseCarouselMarkup](BaseHandler):
     _markup: Type[T]
 
     async def _parse_callback(self) -> tuple[str, int, str]:

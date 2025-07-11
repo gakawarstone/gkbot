@@ -9,4 +9,4 @@ class Images:
 
 
 class TextFiles:
-    anecdots = _StaticFile("./static/anecdots.txt", cache=False)
+    anecdotes = _StaticFile("./static/anecdots.txt", cache=False)

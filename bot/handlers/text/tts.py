@@ -10,7 +10,7 @@ from filters.long_message import LongMessageFilter
 from filters.chat_type import ChatTypeFilter, ChatType
 
 
-class TextToSpeachHandler(SendVoiceHandlerExtension, BaseHandler):
+class TextToSpeechHandler(SendVoiceHandlerExtension, BaseHandler):
     async def handle(self) -> Any:
         await self.event.delete()
         voice_file = await TextToSpeechService.convert_text_to_speech(self.event.text)
@@ -19,6 +19,6 @@ class TextToSpeachHandler(SendVoiceHandlerExtension, BaseHandler):
 
 def setup(r: Router):
     r.message.register(
-        TextToSpeachHandler,
+        TextToSpeechHandler,
         and_f(LongMessageFilter(), ChatTypeFilter(ChatType.private)),
     )

@@ -2,13 +2,13 @@ from aiogram.types import URLInputFile, InputMediaPhoto
 
 from services.http import HttpService
 from extensions.handlers.message.http import HttpExtension
-from extensions.handlers.callback.corousel import CorouselWidgetEventHandlerExtention
+from extensions.handlers.callback.carousel import CarouselWidgetEventHandlerExtension
 from ui.keyboards.feed.piokok import PiokokFeedItemMarkup
 from ..._base import BaseHandler
 
 
-class PiokokCorouselWidgetEventHandler(
-    CorouselWidgetEventHandlerExtention,
+class PiokokCarouselWidgetEventHandler(
+    CarouselWidgetEventHandlerExtension,
     HttpExtension,
     BaseHandler,
 ):
