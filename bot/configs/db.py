@@ -1,6 +1,6 @@
-from . import env
+from tortoise import Tortoise
 
-DB_URL = env.DB_URL
+from . import env
 
 MODELS = [
     "models.users",
@@ -9,3 +9,8 @@ MODELS = [
     "models.timezone",
     "models.tasks",
 ]
+
+
+async def on_startup():
+    await Tortoise.init(db_url=env.DB_URL, modules={"models": MODELS})
+    await Tortoise.generate_schemas(safe=True)
