@@ -1,20 +1,12 @@
 from tortoise import Tortoise
 
-from models import setup
-
-
-MODELS = [
-    'models.users',
-    'models.road',
-    'models.books',
-    'models.timezone',
-    'models.tasks',
-]
+from configs.db import MODELS
 
 
 def use_db(func):
     async def wrapper(*args, **kwargs):
-        await setup('sqlite://:memory:', MODELS)
+        await Tortoise.init(db_url="sqlite://:memory:", modules={"models": MODELS})
+        await Tortoise.generate_schemas(safe=True)
 
         try:
             result = await func(*args, **kwargs)
