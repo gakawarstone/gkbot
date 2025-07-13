@@ -9,7 +9,7 @@ services:
       - ./services/bot-api/data:/var/lib/telegram-bot-api
     environment:
       BOT_TOKEN: ${BOT_TOKEN:?bot token required}
-      SQLdialect: ${SQLDIALECT:-sqlite}
+      SQLDIALECT: ${SQLDIALECT:-sqlite}
       DB_USER: ${DB_USER:-gkbot}
       DB_PASSWORD: ${DB_PASSWORD:-?db password required}
       DB_HOST: ${DB_HOST:-localhost}

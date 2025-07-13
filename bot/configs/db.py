@@ -61,8 +61,15 @@ def build_db_config_from_env(schemas: list[str]) -> dict:
         },
     }
 async def on_startup():
-    await Tortoise.init(db_url=env.DB_URL, modules={"models": MODELS})
+    if env.DB_URL:
+        await Tortoise.init(db_url=env.DB_URL, modules={"models": MODELS})
+    else:
+        config = build_db_config_from_env(MODELS)
+        await Tortoise.init(config=config)
+
     await Tortoise.generate_schemas(safe=True)
+
+
 def build_db_config_from_env(schemas: list[str]) -> dict:
     dialect = env.DB_DIALECT
     user = env.DB_USER
