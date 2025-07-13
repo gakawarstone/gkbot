@@ -9,6 +9,8 @@ services:
       - ./services/bot-api/data:/var/lib/telegram-bot-api
     env_file: .env
     environment:
+      # separate is comma
+      ADMIN_IDS: ${ADMIN_IDS:?admin id required}
       BOT_TOKEN: ${BOT_TOKEN:?bot token required}
       SQLDIALECT: ${SQLDIALECT:-sqlite}
       DB_USER: ${DB_USER:-gkbot}
