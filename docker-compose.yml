@@ -7,6 +7,7 @@ services:
       - gkbot_data:/data
       - $HOME/.cache/gkbot:/root/.cache/gkbot
       - ./services/bot-api/data:/var/lib/telegram-bot-api
+    env_file: .env
     environment:
       BOT_TOKEN: ${BOT_TOKEN:?bot token required}
       SQLDIALECT: ${SQLDIALECT:-sqlite}
