@@ -1,4 +1,5 @@
 from aiogram import Bot
+from aiogram.exceptions import TelegramForbiddenError
 
 
 class Notifier:
@@ -8,4 +9,7 @@ class Notifier:
 
     @classmethod
     async def notify(cls, chat_id: int, text: str) -> None:
-        await cls.__bot.send_message(chat_id, text)
+        try:
+            await cls.__bot.send_message(chat_id, text)
+        except TelegramForbiddenError:
+            print(f"admin with id: {chat_id} blocked bot")
