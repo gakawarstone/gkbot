@@ -2,10 +2,10 @@ import os
 from typing import Any
 
 import yt_dlp
-from aiogram.types import FSInputFile, InputFile
+from aiogram.types import FSInputFile, InputFile, URLInputFile
 
 from utils.async_wrapper import async_wrap
-from workers.yt_dlp import YtdlpWorker
+from workers.yt_dlp import get_info, download_video
 from ._types import AudioFileInfo, VideoFileInfo
 from .options_manager import YtDlpOptionsManager
 
@@ -39,6 +39,9 @@ class YtdlpDownloader:
 
     @classmethod
     async def _get_info(cls, url: str) -> dict[str, Any]:
+        if url.startswith("https://youtube.com/shorts"):
+            return await get_info(url)
+
         with yt_dlp.YoutubeDL() as ydl:
             info = await async_wrap(ydl.extract_info)(url, download=False)
 
@@ -50,8 +53,8 @@ class YtdlpDownloader:
     @classmethod
     async def _download_file(cls, url: str, opts: dict) -> InputFile:
         if url.startswith("https://youtube.com/shorts"):
-            path = await YtdlpWorker().download(url)  # FIXME: classmethod
-            return FSInputFile(path, "video.mp4")
+            url = await download_video(url, opts)
+            return URLInputFile(url)
 
         with yt_dlp.YoutubeDL(opts) as ydl:
             await async_wrap(ydl.download)(url)

@@ -1,64 +1,41 @@
-import os
+from typing import Any, Sequence
 import asyncio
+import json
 
-from configs.services.cache_dir import CACHE_DIR_PATH
-from services.cache_dir import CacheDir
-
-
-class Task:
-    _tasks_file_path = os.path.expanduser(CACHE_DIR_PATH + "/tasks")
-
-    def __init__(self, url: str) -> None:
-        self.url = url
-        self._dir = CacheDir()
-        self.id = self._dir.path.split("/")[-2]
-        print(self.id)
-
-    def create_entry(self) -> None:
-        entry = f"{self.url},{self.id}\n"
-        print(self._tasks_file_path)
-        with open(self._tasks_file_path, "a") as f:
-            f.write(entry)
-
-    def delete_entry(self) -> None:
-        with open(self._tasks_file_path, "r") as f:
-            lines = f.readlines()
-
-        target_entry = f"{self.url},{self.id}\n"
-        new_lines = [line for line in lines if line != target_entry]
-
-        with open(self._tasks_file_path, "w") as f:
-            f.writelines(new_lines)
-
-    @property
-    def result(self) -> str:
-        return os.path.join(self._dir.path, "video.mp4")
-
-    @property
-    def is_success(self) -> bool:
-        return self._check_video_exists()
-
-    def _check_video_exists(self) -> bool:
-        video_path = os.path.join(self._dir.path, "video.mp4")
-        return os.path.exists(video_path)
+from configs.env import BROKER_URL
+from services.http import HttpService
 
 
-class YtdlpWorker:
-    @classmethod
-    async def download(cls, url: str) -> str:
-        task = cls._build_task(url)
+async def get_info(url: str) -> dict:
+    resp = await _put_and_wait_for_result("ytdlp.extract_info", [url])
+    return json.loads(resp)
 
-        for _ in range(100):
-            if task.is_success:
-                task.delete_entry()
-                return task.result
-            await asyncio.sleep(1)
 
-        task.delete_entry()
-        raise Exception("Timeout downloading: " + url)
+async def download_video(url: str, opts: dict) -> str:
+    return await _put_and_wait_for_result("ytdlp.download_video", [url, opts])
 
-    @classmethod
-    def _build_task(cls, url: str) -> Task:
-        task = Task(url)
-        task.create_entry()
-        return task
+
+async def _put_and_wait_for_result(func: str, args: Sequence[Any]) -> Any:
+    task_id = await _enqueue(func, args)
+    status = await _get_status(task_id)
+    while status != "completed":
+        status = await _get_status(task_id)
+        await asyncio.sleep(1)
+    return await _get_result(task_id)
+
+
+async def _get_result(task_id: str) -> Any:
+    response = await HttpService.get_json(BROKER_URL + "/result/" + task_id)
+    return response["result"]
+
+
+async def _get_status(task_id: str) -> str:
+    response = await HttpService.get_json(BROKER_URL + "/result/" + task_id)
+    return response["status"]
+
+
+async def _enqueue(func: str, args: Sequence[Any]) -> str:
+    response = await HttpService.post_json(
+        BROKER_URL + "/enqueue", {"function": func, "data": args}
+    )
+    return response["task_id"]
