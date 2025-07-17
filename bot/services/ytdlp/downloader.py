@@ -1,5 +1,6 @@
 import os
 from typing import Any
+import re
 
 import yt_dlp
 from aiogram.types import FSInputFile, InputFile, URLInputFile
@@ -39,7 +40,7 @@ class YtdlpDownloader:
 
     @classmethod
     async def _get_info(cls, url: str) -> dict[str, Any]:
-        if url.startswith("https://youtube.com/shorts"):
+        if re.match(r"^https://(?:www\.)?youtu", url):
             return await get_info(url)
 
         with yt_dlp.YoutubeDL() as ydl:
@@ -52,7 +53,7 @@ class YtdlpDownloader:
 
     @classmethod
     async def _download_file(cls, url: str, opts: dict) -> InputFile:
-        if url.startswith("https://youtube.com/shorts"):
+        if re.match(r"^https://(?:www\.)?youtu", url):
             url = await download_video(url, opts)
             return URLInputFile(url)
 
