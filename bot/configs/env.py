@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-_ADMIN_IDS = os.getenv("ADMIN_IDS")
+ADMIN_IDS = os.getenv("ADMIN_IDS")
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 NOTION_API_TOKEN = os.getenv("NOTION_API_TOKEN")
