@@ -15,7 +15,7 @@ class RedditFeedItemView(VideoFeedItemView, BaseFeedItemView, HttpExtension):
     async def _process_reddit_item(self, item: FeedItem):
         url = self._base_url + "r/" + item.link.split("r/")[-1]
         soup = await self._get_soup(url)
-        title = soup.find("title").text
+        title = soup.find("title").text.strip()
 
         if not soup.find_all(class_="post"):
             return await self._send_item(item)
