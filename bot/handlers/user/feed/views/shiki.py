@@ -8,10 +8,14 @@ from . import BaseFeedItemView
 
 class ShikiFeedItemView(BaseFeedItemView, HttpExtension):
     async def _process_shiki_item(self, item: FeedItem) -> None:
+        data = await self._gkfeed.get_raw_item_data(item.id)
         soup = await self._get_soup(item.link)
+
         media_url = self._get_media_url(soup)
-        title = self._get_title(soup)
-        await self._send_photo(item, media_url, title, "shiki")
+        description = data["item"]["text"]
+        title_name = self._get_title_name(soup)
+
+        await self._send_photo(item, media_url, description, title_name)
 
     def _get_media_url(self, soup: BeautifulSoup) -> str:
         meta_tag = soup.find("meta", attrs={"property": "og:image"})
@@ -35,7 +39,7 @@ class ShikiFeedItemView(BaseFeedItemView, HttpExtension):
 
         return srcset.split(" ")[-2]
 
-    def _get_title(self, soup: BeautifulSoup) -> str:
+    def _get_title_name(self, soup: BeautifulSoup) -> str:
         h1_tag = soup.find("h1")
         if not isinstance(h1_tag, Tag):
             raise ValueError("h1 tag not found")
