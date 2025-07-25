@@ -14,11 +14,13 @@ from .views.reddit import RedditFeedItemView
 from .views.rezka import RezkaFeedItemView
 from .views.shiki import ShikiFeedItemView
 from .views.stories import StoriesFeedItemView
+from .views.twitch import TwitchFeedItemView
 
 _ITEM_PROCESSOR = Callable[[FeedItem], Awaitable[None]]
 
 
 class GkfeedItemProcessorExtension(
+    TwitchFeedItemView,
     StoriesFeedItemView,
     ShikiFeedItemView,
     RezkaFeedItemView,
@@ -46,6 +48,7 @@ class GkfeedItemProcessorExtension(
             "https://www.reddit.com": self._process_reddit_item,
             "https://hdrezka.me": self._process_rezka_item,
             "https://shikimori": self._process_shiki_item,
+            "https://www.twitch": self._process_twitch_item,
         }
 
     async def _process_item(self, item: FeedItem):
