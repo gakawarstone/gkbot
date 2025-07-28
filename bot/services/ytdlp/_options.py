@@ -26,7 +26,7 @@ class VideoDownloadOptions(DownloadOptions):
     }
 
     youtube = {
-        "format": "136+140",
+        "format": "136+ba[ext=m4a]",
         "postprocessors": [
             {"key": "SponsorBlock", "categories": ["sponsor"]},
             {"key": "ModifyChapters", "remove_sponsor_segments": ["sponsor"]},
