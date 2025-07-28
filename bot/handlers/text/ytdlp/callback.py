@@ -11,6 +11,7 @@ async def delete_download_markup(callback: CallbackQuery):
     await callback.message.delete()
 
 
+# FIXME: use new Buttons instead of YtdlpMarkup
 # TODO: refactor
 # FIXME: bot as parameter? make it class based
 async def download_audio(callback: CallbackQuery, bot: Bot):
@@ -43,8 +44,8 @@ async def download_video(callback: CallbackQuery, bot: Bot):
     )
     await callback.message.edit_reply_markup()
     await callback.message.edit_text("Cкачиваю " + (url := callback.message.text))
-    video_file = await YtdlpDownloader.download_video(url)
-    await callback.message.answer_video(video_file)
+    video = await YtdlpDownloader.download_video(url)
+    await callback.message.answer_video(video.input_file)
     await callback.message.delete()
 
 
