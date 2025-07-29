@@ -45,4 +45,4 @@ lock:
 	uv export --no-hashes --format requirements-txt > requirements.txt
 
 lint:
-	uvx ruff check $(or $(FILE),bot/) && uvx typos $(or $(FILE),bot/) && if [ -z "$(FILE)" ]; then uv run mypy bot/; fi && uv run pyright $(or $(FILE),bot/)
+	MYPYPATH=bot/ uvx ruff check $(or $(FILE),bot/) && uvx typos $(or $(FILE),bot/) && if [ -z "$(FILE)" ]; then uv run mypy bot/; fi && uv run pyright $(or $(FILE),bot/)
