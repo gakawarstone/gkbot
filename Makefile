@@ -42,7 +42,7 @@ lock-dev:
 	uv pip freeze > requirements-dev.txt
 
 lock:
-	uv export --no-hashes --format requirements-txt > requirements.txt
+	uv export --no-dev --no-hashes --format=requirements-txt > requirements.txt
 
 lint:
 	uvx ruff check $(or $(FILE),bot/) && uvx typos $(or $(FILE),bot/) && if [ -z "$(FILE)" ]; then uv run mypy bot/; fi && uv run pyright $(or $(FILE),bot/)
