@@ -14,7 +14,7 @@ class FakeContext(BaseContext):
 
 class FakeContextManager(BaseContextManager[FakeContext]):
     props = FakeContext
-    __user_data = {}
+    __user_data: dict[str, Any] = {}
 
     async def handle(self) -> Any:
         pass
