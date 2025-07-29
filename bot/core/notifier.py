@@ -3,6 +3,8 @@ from aiogram.exceptions import TelegramForbiddenError
 
 
 class Notifier:
+    __bot: Bot
+
     @classmethod
     async def setup(cls, bot: Bot) -> None:
         cls.__bot = bot
