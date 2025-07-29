@@ -1,6 +1,5 @@
 from services.gkfeed import FeedItem
 from extensions.handlers.message.http import HttpExtension
-from ui.keyboards.feed import FeedMarkup
 from . import BaseFeedItemView
 
 
