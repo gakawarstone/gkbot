@@ -1,5 +1,5 @@
 from aiogram import Router, F
-from aiogram.types import CallbackQuery
+from aiogram.types import CallbackQuery, Message
 
 from services.ytdlp import YtdlpDownloader
 from ui.buttons.youtube.download import (
@@ -10,13 +10,8 @@ from ui.buttons.youtube.download import (
 )
 
 
-def _get_video_url(callback: CallbackQuery) -> str:
-    if callback.data is None:
-        raise ValueError("Callback data cannot be None")
-
-    deserializer = YoutubeDownloadButtonCallbackDataDeserializer()
-    data = deserializer.deserialize(callback.data)
-    return "https://www.youtube.com/watch?v=" + data.yt_video_code
+def _get_video_url(yt_video_code: str) -> str:
+    return "https://www.youtube.com/watch?v=" + yt_video_code
 
 
 def _is_button_callback(
@@ -34,8 +29,18 @@ async def download(callback: CallbackQuery):
     if callback.message is None:
         return
 
-    url = _get_video_url(callback)
-    status_message = await callback.message.answer("Cкачиваю " + url)
+    deserializer = YoutubeDownloadButtonCallbackDataDeserializer()
+    if callback.data is None:
+        return
+    data = deserializer.deserialize(callback.data)
+    url = _get_video_url(data.yt_video_code)
+
+    if not data.use_callback_message_as_status:
+        status_message = await callback.message.answer("Cкачиваю " + url)
+    else:
+        status_message = callback.message
+        if isinstance(status_message, Message):
+            await status_message.edit_text("Cкачиваю " + url)
 
     if _is_button_callback(callback, YoutubeDownloadButtonData.audio):
         audio = await YtdlpDownloader.download_audio(url)
@@ -56,7 +61,8 @@ async def download(callback: CallbackQuery):
             supports_streaming=True,
         )
 
-    await status_message.delete()
+    if isinstance(status_message, Message):
+        await status_message.delete()
 
 
 def setup(r: Router):

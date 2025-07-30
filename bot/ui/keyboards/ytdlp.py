@@ -1,40 +1,28 @@
-from aiogram.types import InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-
-class _Buttons:
-    delete = "Убрать"
-    audio = "Аудио"
-    video = "Видео"
-
-
-class _Data:
-    delete = "del"
-    mp3 = "ytdlmp3"
-    mp4 = "ytdlmp4"
+from ui.buttons.youtube.download import (
+    YoutubeDownloadButtonBuilder,
+    YoutubeDownloadButtonCallbackData,
+    YoutubeDownloadButtonData,
+)
+from ui.buttons.delete_message import deleteMessageButton
 
 
-# NOTE: deprecated use download buttons instead
 class YtdlpMarkup:
-    buttons = _Buttons
-    data = _Data
-
     @classmethod
-    def get_download_dialog(cls, user_id: int, message_id: int):
+    def get_download_dialog(cls, yt_code: str):
         return InlineKeyboardBuilder(
             [
                 [
-                    InlineKeyboardButton(
-                        text=_Buttons.audio,
-                        callback_data=f"{_Data.mp3}:{user_id}:{message_id}",
+                    YoutubeDownloadButtonBuilder.build(
+                        YoutubeDownloadButtonData.audio,
+                        YoutubeDownloadButtonCallbackData(yt_code, True),
                     ),
-                    InlineKeyboardButton(
-                        text=_Buttons.video,
-                        callback_data=f"{_Data.mp4}:{user_id}:{message_id}",
+                    YoutubeDownloadButtonBuilder.build(
+                        YoutubeDownloadButtonData.video,
+                        YoutubeDownloadButtonCallbackData(yt_code, True),
                     ),
-                    InlineKeyboardButton(
-                        text=_Buttons.delete, callback_data=_Data.delete
-                    ),
+                    deleteMessageButton,
                 ]
             ]
         ).as_markup()
