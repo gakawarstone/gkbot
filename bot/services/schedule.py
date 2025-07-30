@@ -1,13 +1,15 @@
 import asyncio
 from datetime import datetime
-from typing import Awaitable, Any, Callable, Tuple
+from typing import Awaitable, Any, Callable
 import pickle
 
 from models.tasks import Task as _Model
 
 
 class Task:
-    def __init__(self, func: Callable[..., Awaitable], args: list[Any] = None) -> None:
+    def __init__(
+        self, func: Callable[..., Awaitable], args: list[Any] | None = None
+    ) -> None:
         self.__func = func
         self.__args = args
 
@@ -23,10 +25,9 @@ class TasksStorage:
         callback_dump = pickle.dumps(task)
         await _Model.create(callback=callback_dump, datetime=time)
 
-    async def get_all(self) -> list[Tuple[Task, datetime]]:
+    async def get_all(self) -> list[tuple[Task, datetime, int]]:
         return [
-            (pickle.loads(i.callback), i.datetime, i.id)
-            for i in await _Model.all()
+            (pickle.loads(i.callback), i.datetime, i.id) for i in await _Model.all()
         ]
 
     async def remove_by_id(self, id: int) -> None:
@@ -43,8 +44,7 @@ class Schedule:
     @staticmethod
     def __get_now_timestamp() -> float:
         return datetime.strptime(
-            datetime.now().strftime('%d.%m.%Y_%H:%M'),
-            '%d.%m.%Y_%H:%M'
+            datetime.now().strftime("%d.%m.%Y_%H:%M"), "%d.%m.%Y_%H:%M"
         ).timestamp()
 
     @classmethod
