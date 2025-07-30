@@ -1,12 +1,13 @@
 import json
 from typing import TypeAlias
 
-from bs4 import BeautifulSoup, Tag, Comment, NavigableString
+from bs4 import BeautifulSoup, Tag, Comment
+from bs4.element import NavigableString, PageElement
 
 from configs.env import TELEGRAPH_API_KEY
 from services.http import HttpService
 
-_NODE = BeautifulSoup | Tag | NavigableString | Comment
+_NODE = BeautifulSoup | Tag | NavigableString | Comment | PageElement
 TelegraphContent: TypeAlias = str
 
 
@@ -79,13 +80,13 @@ class HtmlToTelegraphContentConverter:
             if not preserve_whitespace:
                 text = text.strip()
             return [text] if text else []
-        elif hasattr(node, "name") and node.name in self._allowed_tags:
+        elif isinstance(node, Tag) and node.name in self._allowed_tags:
             tag = node.name
             attrs = {}
             for attr in self._allowed_attrs:
                 attr_val = node.get(attr)
                 if attr_val is not None:
-                    if attr_val.startswith("/"):
+                    if isinstance(attr_val, str) and attr_val.startswith("/"):
                         attr_val = self._base_url + attr_val
                     attrs[attr] = attr_val
             new_preserve = preserve_whitespace
@@ -94,13 +95,13 @@ class HtmlToTelegraphContentConverter:
             children = []
             for child in node.contents:
                 children.extend(self.__process_node(child, new_preserve))
-            element = {"tag": tag}
+            element: dict[str, str | dict[str, str] | list[dict | str]] = {"tag": tag}
             if attrs:
                 element["attrs"] = attrs
             if children:
                 element["children"] = children
             return [element]
-        elif hasattr(node, "name"):
+        elif isinstance(node, Tag):
             children = []
             for child in node.contents:
                 children.extend(self.__process_node(child, preserve_whitespace))
