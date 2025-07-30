@@ -1,6 +1,7 @@
 from typing import Optional
 from yarl import URL
 import subprocess
+from http.cookies import SimpleCookie
 
 import aiohttp
 from aiohttp.client_exceptions import ClientConnectorError, ContentTypeError, InvalidURL
@@ -47,7 +48,7 @@ class HttpService:
                 raise HttpRequestError
 
     @classmethod
-    async def extract_cookies(cls, url: str, headers: Optional[dict] = headers) -> str:
+    async def extract_cookies(cls, url: str, headers: Optional[dict] = headers) -> SimpleCookie:
         async with aiohttp.ClientSession(conn_timeout=None) as session:
             try:
                 async with session.get(url, headers=headers) as response:
