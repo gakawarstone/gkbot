@@ -4,6 +4,9 @@ from .base import BaseComponent
 
 
 class BaseCreatorComponent(BaseComponent):
+    def __init__(self) -> None:
+        self._has_highlighted_property: bool
+
     def _render_property(
         self, prop: Any, prefix: str = "", new_line: bool = True
     ) -> str:
