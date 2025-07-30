@@ -46,3 +46,10 @@ lock:
 
 lint:
 	MYPYPATH=bot/ uvx ruff check $(or $(FILE),bot/) && uvx typos $(or $(FILE),bot/) && if [ -z "$(FILE)" ]; then uv run mypy bot/; fi && uv run pyright $(or $(FILE),bot/)
+
+format:
+ifdef FILE
+	uvx ruff format $(FILE)
+else
+	uvx ruff format .
+endif
