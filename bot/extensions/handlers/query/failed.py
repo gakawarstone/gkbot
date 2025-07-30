@@ -1,5 +1,5 @@
 import hashlib
-from typing import Type, Callable
+from typing import Type, Callable, Awaitable
 from functools import wraps
 
 from aiogram.types import InputTextMessageContent, InlineQueryResultArticle, InlineQuery
@@ -19,11 +19,13 @@ def async_return_failed_result_if(
     message_to_send: str,
     description: str,
 ) -> Callable:
-    def decorator(func: Callable) -> Callable[[InlineQuery], InlineQueryResultArticle]:
+    def decorator(
+        func: Callable[..., Awaitable[list[InlineQueryResultArticle]]],
+    ) -> Callable[..., Awaitable[list[InlineQueryResultArticle]]]:
         @wraps(func)
         async def wrapper(
             query: InlineQuery, *args, **kwargs
-        ) -> InlineQueryResultArticle:
+        ) -> list[InlineQueryResultArticle]:
             try:
                 return await func(query, *args, **kwargs)
             except tuple(exceptions_to_handle):
