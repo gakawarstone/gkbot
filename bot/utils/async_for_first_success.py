@@ -1,9 +1,9 @@
 def async_for_first_success(
     sources: list,
     inject_as: str,
-    exception_if_all_failed: Exception,
+    exception_if_all_failed: type[Exception],
     exception_if_all_failed_inject_args: list[int] = [],
-    exception_to_continue: Exception = Exception,
+    exception_to_continue: type[Exception] = Exception,
 ):
     def decorator(func):
         async def wrapper(*args, **kwargs):

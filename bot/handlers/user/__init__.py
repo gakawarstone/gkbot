@@ -7,7 +7,6 @@ from . import bomber
 from . import reminder
 from . import road
 from . import wiki
-from . import shiki
 from . import admins as adm
 from . import timer
 from . import books
@@ -31,7 +30,6 @@ def setup(r: Router):
     reminder.setup(r)
     road.setup(r)
     wiki.setup(r)
-    shiki.setup(r)
     adm.setup(r)
     timer.setup(r)
     books.setup(r)

@@ -18,16 +18,18 @@ class RemindCreator(BaseCreatorComponent):
         self.status_message = status_message
         self._has_highlighted_property = False
 
+        self.date_str = None
         if date:
-            self.date = date.strftime("%d.%m.%Y")
+            self.date_str = date.strftime("%d.%m.%Y")
 
+        self.time_str = None
         if time:
-            self.time = time.strftime("%H:%M")
+            self.time_str = time.strftime("%H:%M")
 
     def render(self) -> str:
         text = "<u>Создатель напоминаний ⌚️</u>\n"
         text += self._render_property(self.text, prefix="Текст: ")
-        text += self._render_property(self.date, prefix="Время: ", new_line=False)
-        text += self._render_property(self.time)
+        text += self._render_property(self.date_str, prefix="Время: ", new_line=False)
+        text += self._render_property(self.time_str)
         text += self._render_if_exist(self.status_message)
         return text

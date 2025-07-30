@@ -1,4 +1,4 @@
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Tag
 
 from services.http import HttpService
 
@@ -13,7 +13,11 @@ class VKService:
         soup = BeautifulSoup(html, "html.parser")
         video_post = soup.find(class_="page_post_thumb_video")
 
-        if not video_post:
+        if not video_post or not isinstance(video_post, Tag):
             raise ValueError
 
-        return "https://vk.com" + video_post["href"].split("?")[0]
+        href = video_post.get("href")
+        if not href or not isinstance(href, str):
+            raise ValueError
+
+        return "https://vk.com" + href.split("?")[0]

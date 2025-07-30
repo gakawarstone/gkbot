@@ -11,6 +11,9 @@ from ui.buttons.youtube.download import (
 
 
 def _get_video_url(callback: CallbackQuery) -> str:
+    if callback.data is None:
+        raise ValueError("Callback data cannot be None")
+
     deserializer = YoutubeDownloadButtonCallbackDataDeserializer()
     data = deserializer.deserialize(callback.data)
     return "https://www.youtube.com/watch?v=" + data.yt_video_code
@@ -19,14 +22,19 @@ def _get_video_url(callback: CallbackQuery) -> str:
 def _is_button_callback(
     callback: CallbackQuery, button_data: YoutubeDownloadButtonData
 ) -> bool:
+    if callback.data is None:
+        return False
+
     return callback.data.startswith(
         YoutubeDownloadButtonDataSerializer.get_full_prefix(button_data)
     )
 
 
 async def download(callback: CallbackQuery):
-    url = _get_video_url(callback)
+    if callback.message is None:
+        return
 
+    url = _get_video_url(callback)
     status_message = await callback.message.answer("Cкачиваю " + url)
 
     if _is_button_callback(callback, YoutubeDownloadButtonData.audio):

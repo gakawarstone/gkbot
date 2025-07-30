@@ -15,7 +15,8 @@ class RedditFeedItemView(VideoFeedItemView, BaseFeedItemView, HttpExtension):
     async def _process_reddit_item(self, item: FeedItem):
         url = self._base_url + "r/" + item.link.split("r/")[-1]
         soup = await self._get_soup(url)
-        title = soup.find("title").text.strip()
+        title_tag = soup.find("title")
+        title = title_tag.text.strip() if title_tag else "No title"
 
         if not soup.find_all(class_="post"):
             return await self._send_item(item)
@@ -36,34 +37,40 @@ class RedditFeedItemView(VideoFeedItemView, BaseFeedItemView, HttpExtension):
     def _find_post_image_url(self, soup: BeautifulSoup) -> Optional[str]:
         post = soup.find(class_="post")
 
-        if not post:
+        if not post or not isinstance(post, Tag):
             return None
 
         images = post.find_all("image")
-        if images:
-            return self._normalize_link(images[0]["href"])
+        if images and len(images) > 0:
+            image = images[0]
+            if isinstance(image, Tag) and image.get("href"):
+                return self._normalize_link(str(image["href"]))
 
         imgs = post.find_all("img", attrs={"alt": "Post image"})
-        if imgs:
-            return self._normalize_link(imgs[0]["src"])
+        if imgs and len(imgs) > 0:
+            img = imgs[0]
+            if isinstance(img, Tag) and img.get("src"):
+                return self._normalize_link(str(img["src"]))
 
         return None
 
     def _find_post_video_url(self, soup: BeautifulSoup) -> Optional[str]:
         video = soup.find("meta", attrs={"property": "og:video"})
-        if video:
-            return self._normalize_link(video["content"])
+        if video and isinstance(video, Tag) and video.get("content"):
+            return self._normalize_link(str(video["content"]))
         return None
 
     def _find_post_link(self, soup: BeautifulSoup) -> Optional[str]:
         post = soup.find(class_="post")
 
-        if not post:
+        if not post or not isinstance(post, Tag):
             return None
 
         links = post.find_all(id="post_url")
-        if links:
-            return self._normalize_link(links[0]["href"])
+        if links and len(links) > 0:
+            link = links[0]
+            if isinstance(link, Tag) and link.get("href"):
+                return self._normalize_link(str(link["href"]))
         return None
 
     async def _send_link_response(self, title: str, link: str, item: FeedItem):
@@ -87,10 +94,13 @@ class RedditFeedItemView(VideoFeedItemView, BaseFeedItemView, HttpExtension):
         )
 
     async def _create_telegraph_page(self, title: str, soup: BeautifulSoup) -> str:
+        post_content = self._get_post_content(soup)
+        if post_content is None:
+            post_content = BeautifulSoup("", "html.parser")
         return await TelegraphAPI.create_telegraph_page(
             title=title.split("-")[0].strip(),
             content=HtmlToTelegraphContentConverter(self._base_url).convert(
-                self._get_post_content(soup)
+                post_content
             ),
         )
 
@@ -99,7 +109,7 @@ class RedditFeedItemView(VideoFeedItemView, BaseFeedItemView, HttpExtension):
             return self._base_url + link
         return link
 
-    def _get_post_content(self, soup: BeautifulSoup) -> Tag:
+    def _get_post_content(self, soup: BeautifulSoup) -> Optional[Tag]:
         post_body = soup.find(class_="post_body")
 
         if not post_body:
@@ -107,4 +117,4 @@ class RedditFeedItemView(VideoFeedItemView, BaseFeedItemView, HttpExtension):
 
         if soup.find(class_="gallery"):
             post_body = soup.find(class_="gallery")
-        return post_body
+        return post_body if isinstance(post_body, Tag) else None

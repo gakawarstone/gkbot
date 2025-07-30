@@ -13,7 +13,7 @@ def split_str_into_chunks(text: str, size: int = 4000) -> Generator[str, None, N
     if not words:
         return
 
-    current_chunk = []
+    current_chunk: list[str] = []
     current_length = 0
     for word in words:
         if not current_chunk:
