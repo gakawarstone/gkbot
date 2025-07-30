@@ -95,7 +95,6 @@ class HttpService:
         return file_path
 
     @classmethod
-    @async_wrap
-    def download_file_to_path(cls, url: str, output_path: str):
+    async def download_file_to_path(cls, url: str, output_path: str):
         command = ["aria2c", "-x16", "-s16", "-k1M", url, "-o", output_path]
-        subprocess.call(command)
+        await async_wrap(subprocess.call)(command)
