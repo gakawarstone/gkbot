@@ -9,6 +9,9 @@ from ..states import FSM
 
 
 async def show_user_books(message: Message, state: FSMContext):
+    if message.from_user is None:
+        raise ValueError("Message does not contain user information.")
+
     await state.set_state(FSM.check_menu_command)
     await message.delete()
     await message.answer(

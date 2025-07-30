@@ -7,6 +7,10 @@ from filters.command import CommandWithPrompt
 
 async def send_llm_answer(m: Message):
     await m.delete()
+
+    if not m.text:
+        raise ValueError("Message text cannot be empty")
+
     command_args = m.text.split(" ")[1:]
     prompt = " ".join(command_args)
 

@@ -9,6 +9,9 @@ from filters.command import CommandWithPrompt
 
 
 async def init_handler(m: Message):
+    if not m.text or not m.from_user:
+        raise ValueError("Invalid message or user data")
+
     minutes_to_wait = int(m.text.split(" ")[1])
     message_text = " ".join(m.text.split(" ")[1:])
     sending_time = datetime.now() + timedelta(minutes=minutes_to_wait)
