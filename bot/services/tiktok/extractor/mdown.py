@@ -72,6 +72,6 @@ class Mdown(BaseExtractor, requests.Session):
             "a", attrs={"target": "_blank"}
         ):
             if isinstance(link, Tag) and link.get("href"):
-                links.append(link["href"])
+                links.append(str(link["href"]))
 
         return links
