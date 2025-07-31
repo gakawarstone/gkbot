@@ -1,4 +1,5 @@
 from bs4 import BeautifulSoup
+from bs4.element import Tag
 
 import requests
 
@@ -13,8 +14,7 @@ class Mdown(BaseExtractor, requests.Session):
     _headers = {
         "origin": "https://musicaldown.com",
         "referer": "https://musicaldown.com/en/",
-        "sec-ch-ua": '"Chromium";v="94", "Google Chrome";v="94", '
-        '";Not A Brand";v="99"',
+        "sec-ch-ua": '"Chromium";v="94", "Google Chrome";v="94", ";Not A Brand";v="99"',
         "sec-ch-ua-mobile": "?0",
         "sec-ch-ua-platform": "Linux",
         "sec-fetch-dest": "document",
@@ -41,20 +41,22 @@ class Mdown(BaseExtractor, requests.Session):
 
     async def get_video_file_url(self, url: str) -> str:
         try:
-            return (await self._get_video_links(url))[0]
+            return (await async_wrap(self._get_video_links)(url))[0]
         except (IndexError, ValueError):
             raise SourceInfoExtractFailed(self)
 
-    @async_wrap
     def _get_video_links(self, url: str) -> list[str]:
         html = self.get(self._base_url).text
 
         soup = BeautifulSoup(html, "html.parser")
-        form = {
-            i["name"]: i["value"]
-            for i in soup.find_all("input", attrs={"type": "hidden"})
-        }
-        form.update({soup.find("input", attrs={"type": "text"})["name"]: url})
+        form = {}
+        for i in soup.find_all("input", attrs={"type": "hidden"}):
+            if isinstance(i, Tag) and i.get("name") and i.get("value"):
+                form[i["name"]] = i["value"]
+
+        text_input = soup.find("input", attrs={"type": "text"})
+        if isinstance(text_input, Tag) and text_input.get("name"):
+            form[text_input["name"]] = url
 
         res = self.post(
             f"{self._base_url}download",
@@ -65,9 +67,11 @@ class Mdown(BaseExtractor, requests.Session):
         if "err" in res.url:
             raise ValueError
 
-        return [
-            link["href"]
-            for link in BeautifulSoup(res.text, "html.parser").find_all(
-                "a", attrs={"target": "_blank"}
-            )
-        ]
+        links = []
+        for link in BeautifulSoup(res.text, "html.parser").find_all(
+            "a", attrs={"target": "_blank"}
+        ):
+            if isinstance(link, Tag) and link.get("href"):
+                links.append(link["href"])
+
+        return links
