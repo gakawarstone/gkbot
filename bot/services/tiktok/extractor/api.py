@@ -20,7 +20,12 @@ class ApiExtractor(BaseExtractor):
             raise SourceInfoExtractFailed(self)
 
     async def get_video_file_url(self, url: str) -> str:
-        return (await self.get_video_info(url)).video_url
+        video_info = await self.get_video_info(url)
+
+        if video_info.video_url is None:
+            raise ValueError("Video URL is None")
+
+        return video_info.video_url
 
     @staticmethod
     def _serialize_api_data(data: dict) -> InfoVideoTikTok:
