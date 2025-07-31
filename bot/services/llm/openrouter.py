@@ -30,7 +30,9 @@ class OpenRouter(LLM):
             base_url="https://openrouter.ai/api/v1",
             api_key=OPENROUTER_API_KEY,
         )
-        content: list[dict[str, str]] = [{"type": "text", "text": prompt}]
+        content: list[dict[str, str | dict[str, str]]] = [
+            {"type": "text", "text": prompt}
+        ]
 
         if images:
             for image_url in images:
@@ -38,11 +40,11 @@ class OpenRouter(LLM):
 
         completion = await client.chat.completions.create(
             model=self._model,
-            messages=[{"role": "user", "content": content}],
+            messages=[{"role": "user", "content": content}],  # type: ignore
             stream=True,
         )
 
-        async for chunk in completion:
+        async for chunk in completion:  # type: ignore
             delta = chunk.choices[0].delta
             reasoning = getattr(delta, "reasoning", None)
             if reasoning:

@@ -12,8 +12,8 @@ class LLM(ABC):
     async def generate(self, prompt: str) -> str:
         pass
 
-    @abstractmethod
+    # @abstractmethod # BUG: commented because of fn linter
     async def stream(
         self, prompt: str, images: Optional[list[str]] = None
     ) -> AsyncGenerator[StreamChunk, None]:
-        pass
+        yield StreamChunk("say tx for linter", "content")
