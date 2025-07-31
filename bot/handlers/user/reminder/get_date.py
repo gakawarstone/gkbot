@@ -15,9 +15,15 @@ class DateInputHandler(BaseHandler, OneTimeMessageHandlerExtension):
         await self.event.delete()
         try:
             await self.state.set_state(FSM.get_time)
-            _date = self._validate_input(self.event.text)
+
+            text = self.event.text
+            if text is None:
+                raise InvalidDateInput
+
+            _date = self._validate_input(text)
             self.set(self.props.date, _date)
             await self.render_widget()
+
             self._set_one_time_message((await self.event.answer("Введите время")))
         except InvalidDateInput:
             await self.state.set_state(FSM.get_date)
@@ -30,7 +36,7 @@ class DateInputHandler(BaseHandler, OneTimeMessageHandlerExtension):
                 )
             )
 
-    def _validate_input(self, text: str) -> datetime:
+    def _validate_input(self, text: str) -> date:
         match text:  # [ ] move to contrib and datemarkup
             case RemindMarkup.buttons.today | "1":
                 return date.today()
@@ -39,8 +45,8 @@ class DateInputHandler(BaseHandler, OneTimeMessageHandlerExtension):
             case _:
                 return self._validate_date(text)
 
-    def _validate_date(self, text: str, __format: str = "%d.%m.%Y") -> datetime:
+    def _validate_date(self, text: str, format: str = "%d.%m.%Y") -> date:
         try:
-            return datetime.strptime(text, __format).date()
+            return datetime.strptime(text, format).date()
         except ValueError:
             raise InvalidDateInput
