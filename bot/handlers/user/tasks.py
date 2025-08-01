@@ -1,7 +1,8 @@
 from datetime import datetime
 
 from aiogram import Router
-from aiogram.filters.state import State, StateFilter, StatesGroup
+from aiogram.fsm.state import State, StatesGroup
+from aiogram.filters.state import StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 from aiogram.filters import Command
@@ -30,18 +31,25 @@ async def add(message: Message, state: FSMContext):
 
 async def get_name(message: Message, state: FSMContext):
     await state.set_state(FSM.subject)
-    await row.set_name(message.text)
+    if message.text is not None:
+        await row.set_name(message.text)
     await message.answer('Отправьте предмет')
 
 
 async def get_subject(message: Message, state: FSMContext):
     await state.set_state(FSM.deadline)
-    await row.set_select('Subject', message.text)
+    if message.text is not None:
+        await row.set_select('Subject', message.text)
     await message.answer('Отправьте дедлайн')
 
 
 async def get_deadline(message: Message, state: FSMContext):
     await state.set_state(FSM.finish)
+    if message.text is None:
+        await state.set_state(FSM.deadline)
+        await message.answer('Дата некорректна [01.01.1970]')
+        return
+        
     try:
         deadline = datetime.strptime(message.text, "%d.%m.%Y")
         await row.set_date('Deadline', deadline)
