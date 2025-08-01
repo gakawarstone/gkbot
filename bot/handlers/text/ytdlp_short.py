@@ -1,18 +1,22 @@
 from typing import Any
 
 from aiogram import Router, F
-from aiogram.types import Message
 from aiogram.filters import or_f
 
 from services.ytdlp import YtdlpDownloader
 from extensions.handlers.message.base import BaseHandler
 
-F: Message
-
 
 class YtdlpShortVideoHandler(BaseHandler):
     async def handle(self) -> Any:
         await self.event.delete()
+
+        if not self.event.text:
+            raise ValueError("No text provided in the message.")
+
+        if not hasattr(self.event, "from_user") or not self.event.from_user:
+            raise ValueError("No user information available in the message.")
+
         status_message = await self.event.answer("Скачиваю " + self.event.text)
         await self.bot.send_chat_action(self.event.chat.id, "upload_video")
         video = await YtdlpDownloader.download_video(self.event.text)
