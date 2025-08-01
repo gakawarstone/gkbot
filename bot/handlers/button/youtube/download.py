@@ -26,12 +26,13 @@ def _is_button_callback(
 
 
 async def download(callback: CallbackQuery):
-    if callback.message is None:
+    if callback.message is None or not isinstance(callback.message, Message):
         return
 
     deserializer = YoutubeDownloadButtonCallbackDataDeserializer()
     if callback.data is None:
         return
+
     data = deserializer.deserialize(callback.data)
     url = _get_video_url(data.yt_video_code)
 
