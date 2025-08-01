@@ -16,12 +16,12 @@ async def youtube_search(query: InlineQuery):
     await query.answer(
         results=[
             InlineQueryResultArticle(
-                id=hashlib.md5(f'{link["id"]}'.encode()).hexdigest(),
-                title=f'{link["title"]}',
-                description=f'Просмотров: {link["views"].split()[0]}',
-                thumb_url=f'{link["thumbnails"][0]}',
+                id=hashlib.md5(f"{link['id']}".encode()).hexdigest(),
+                title=f"{link['title']}",
+                description=f"Просмотров: {link['views'].split()[0]}",
+                thumb_url=f"{link['thumbnails'][0]}",
                 input_message_content=InputTextMessageContent(
-                    message_text=f'https://www.youtube.com{link["url_suffix"]}'
+                    message_text=f"https://www.youtube.com{link['url_suffix']}"
                 ),
             )
             for link in links

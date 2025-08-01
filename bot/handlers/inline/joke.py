@@ -5,6 +5,7 @@ from aiogram import Router, F
 from aiogram.types import InlineQuery, InlineQueryResultArticle, InputTextMessageContent
 
 from ui.static import TextFiles
+from ._types import ResultsType
 
 
 async def send_joke(query: InlineQuery):
@@ -14,7 +15,7 @@ async def send_joke(query: InlineQuery):
     message = "Анекдот про штирлица: "
     description = " ".join(anecdote.split(" ")[:3])
 
-    results = [
+    results: ResultsType = [
         InlineQueryResultArticle(
             id=hashlib.md5(query.query.encode()).hexdigest(),
             title=message,

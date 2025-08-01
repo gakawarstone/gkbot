@@ -4,13 +4,15 @@ import hashlib
 from aiogram import Router, F
 from aiogram.types import InlineQuery, InlineQueryResultArticle, InputTextMessageContent
 
+from ._types import ResultsType
+
 
 async def send_chance(query: InlineQuery):
     message = f"Шанс того что {' '.join(query.query.split(' ')[1:])}: "
     chance = random.randint(0, 100)
     description = "tap to send your chance"
 
-    results = [
+    results: ResultsType = [
         InlineQueryResultArticle(
             id=hashlib.md5(query.query.encode()).hexdigest(),
             title=message,

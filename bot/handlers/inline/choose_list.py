@@ -4,6 +4,8 @@ import hashlib
 from aiogram import Router, F
 from aiogram.types import InlineQuery, InlineQueryResultArticle, InputTextMessageContent
 
+from ._types import ResultsType
+
 
 async def send_choice(query: InlineQuery):
     message = f"Из {', '.join(query.query.split(' ')[1:])} я выбираю: "
@@ -15,7 +17,7 @@ async def send_choice(query: InlineQuery):
     choice = random.choice(choices)
     description = "tap to send your choice"
 
-    results = [
+    results: ResultsType = [
         InlineQueryResultArticle(
             id=hashlib.md5(query.query.encode()).hexdigest(),
             title=message,
