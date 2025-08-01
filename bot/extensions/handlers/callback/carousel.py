@@ -1,9 +1,9 @@
 from typing import Any, Type
 from abc import abstractmethod
 
-from aiogram.types import InputMediaPhoto
+from aiogram.types import InputMediaPhoto, Message
 
-from ui.keyboards.feed.piokok import BaseCarouselMarkup
+from ui.keyboards.carousel import BaseCarouselMarkup
 from .base import BaseHandler
 
 
@@ -12,12 +12,12 @@ class CarouselWidgetEventHandlerExtension[T: BaseCarouselMarkup](BaseHandler):
 
     async def _parse_callback(self) -> tuple[str, int, str]:
         if not self.event.data:
-            raise ValueError("No callback data providet")
+            raise ValueError("No callback data provided")
 
         prefix, event, current_media_num, data = self.event.data.split(":")
 
         if prefix != self._markup.prefix:
-            raise ValueError("Wrong Handler configuration prefix isnt same")
+            raise ValueError("Wrong Handler configuration prefix isn't same")
 
         return event, int(current_media_num), data
 
@@ -52,10 +52,16 @@ class CarouselWidgetEventHandlerExtension[T: BaseCarouselMarkup](BaseHandler):
         if not self.event.message:
             raise ValueError("No message to edit")
 
-        await self.event.message.edit_media(media)
-        # await self.event.message.edit_caption(caption=f'<a href="{item.link}">Link</a>')
-        await self.event.message.edit_reply_markup(
-            reply_markup=self._markup.get_item_markup(
+        if not isinstance(self.event.message, Message):
+            raise ValueError("Callback message is not of type Message")
+
+        message = self.event.message
+        await message.edit_media(media)
+        # await message.edit_caption(caption=f'<a href="{item.link}">Link</a>')
+        # Get the get_item_markup method from the concrete implementation
+        get_item_markup = getattr(self._markup, "get_item_markup")
+        await message.edit_reply_markup(
+            reply_markup=get_item_markup(
                 int(data),  # FIXME: str instead of int
                 media_len,
                 media_current_num,
