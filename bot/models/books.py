@@ -3,6 +3,7 @@ from tortoise.models import Model
 
 
 class Book(Model):
+    id = fields.IntField(pk=True)
     name = fields.TextField()
     author = fields.TextField()
     chapters_cnt = fields.IntField()
