@@ -1,5 +1,5 @@
 import traceback
-from typing import Any
+from typing import Any, cast
 from datetime import datetime
 
 from aiogram import Router
@@ -11,8 +11,6 @@ from configs.admins import ADMINS
 
 
 class ErrorHandler(_BaseHandler):
-    event: ErrorEvent
-
     async def handle(self) -> Any:
         [
             await self.bot.send_document(
@@ -23,23 +21,29 @@ class ErrorHandler(_BaseHandler):
 
     @property
     def _traceback_file(self) -> BufferedInputFile:
-        tb = self.event.exception.__traceback__
+        event = cast(ErrorEvent, self.event)
+        tb = event.exception.__traceback__
         tb_str = "".join(traceback.format_tb(tb))
         file_content = bytes(tb_str, "utf-8")
         return BufferedInputFile(file_content, "traceback.txt")
 
     @property
     def _caption(self) -> str:
-        text = "Error: " + str(self.event.exception) + "\n"
+        event = cast(ErrorEvent, self.event)
+        text = "Error: " + str(event.exception) + "\n"
         text += "User: @" + self._try_get_username() + "\n"
         text += "Date: " + str(datetime.now()) + "\n"
         return text
 
     def _try_get_username(self) -> str:
-        try:
-            return self.event.update.message.from_user.username
-        except AttributeError:
+        event = cast(ErrorEvent, self.event)
+        if not event.update.message:
             return ""
+        if not event.update.message.from_user:
+            return ""
+        if not event.update.message.from_user.username:
+            return ""
+        return event.update.message.from_user.username
 
 
 def setup(r: Router):
