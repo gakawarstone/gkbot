@@ -1,7 +1,7 @@
 from typing import Optional
 
 from configs.admins import ADMINS
-from tests import INTEGRATION_TEST
+from .. import INTEGRATION_TEST
 
 BREAKPOINTS_ON_DELETE = 1
 
@@ -13,6 +13,13 @@ if INTEGRATION_TEST:
     from aiogram.client.default import DefaultBotProperties
     from configs.env import BOT_TOKEN, API_SERVER_URL
 
+    # Ensure BOT_TOKEN and API_SERVER_URL are not None for integration tests
+    if BOT_TOKEN is None:
+        raise ValueError("BOT_TOKEN is required for integration tests")
+
+    if API_SERVER_URL is None:
+        raise ValueError("API_SERVER_URL is required for integration tests")
+
     bot = _AiogramBot(
         token=BOT_TOKEN,
         default=DefaultBotProperties(parse_mode="HTML"),
@@ -21,7 +28,7 @@ if INTEGRATION_TEST:
 
 
 class Bot:
-    _messages = []
+    _messages: list = []
 
     async def send_message(self, *args, **kwargs):
         if INTEGRATION_TEST:
