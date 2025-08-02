@@ -16,9 +16,10 @@ VALID_TZ_SET = [
 
 class MockedTimeZone(TimeZone):
     @classmethod
-    async def _get_tz_by_user_id(cls, user_id: int) -> timedelta:
+    async def _get_tz_by_user_id(cls, user_id: int) -> timedelta | None:  # type: ignore[override]
         if user_id > 1000:
             return timedelta(hours=1)
+        return None
 
     @classmethod
     async def _set_tz_by_user_id(cls, user_id: int, tz: timedelta) -> None:
