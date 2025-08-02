@@ -82,13 +82,14 @@ class HtmlToTelegraphContentConverter:
             return [text] if text else []
         elif isinstance(node, Tag) and node.name in self._allowed_tags:
             tag = node.name
-            attrs = {}
+            attrs: dict[str, str] = {}
             for attr in self._allowed_attrs:
                 attr_val = node.get(attr)
-                if attr_val is not None:
-                    if isinstance(attr_val, str) and attr_val.startswith("/"):
-                        attr_val = self._base_url + attr_val
-                    attrs[attr] = attr_val
+                if not isinstance(attr_val, str):
+                    continue
+                if attr_val.startswith("/"):
+                    attr_val = self._base_url + attr_val
+                attrs[attr] = attr_val
             new_preserve = preserve_whitespace
             if tag in ["pre", "code"]:
                 new_preserve = True
