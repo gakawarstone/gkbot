@@ -1,5 +1,5 @@
 from aiogram import Router, F
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import CallbackQuery, Message, InaccessibleMessage
 
 from services.ytdlp import YtdlpDownloader
 from ui.buttons.youtube.download import (
@@ -26,7 +26,7 @@ def _is_button_callback(
 
 
 async def download(callback: CallbackQuery):
-    if callback.message is None or not isinstance(callback.message, Message):
+    if callback.message is None or isinstance(callback.message, InaccessibleMessage):
         return
 
     deserializer = YoutubeDownloadButtonCallbackDataDeserializer()
