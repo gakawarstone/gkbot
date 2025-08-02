@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from enum import Enum
 
 from aiogram.types import InputFile
 
@@ -20,5 +19,7 @@ class VideoFileInfo:
     title: str
 
 
-class DownloadOptions(Enum):
+# Previously DownloadOptions was an Enum; simplify to a plain base class for namespacing.
+class DownloadOptions:
     pass
+
