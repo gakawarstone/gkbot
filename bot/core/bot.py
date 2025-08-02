@@ -33,8 +33,8 @@ class BotStarter:
         await Notifier.setup(self.bot)
         await DefaultCommands(self.default_commands).set(self.bot)
 
-        for callback in self.tasks_on_startup_async:
-            await callback
+        for coroutine in self.tasks_on_startup_async:
+            await coroutine
 
         for callback in self.tasks_on_startup_sync:
             callback()

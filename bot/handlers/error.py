@@ -5,11 +5,14 @@ from datetime import datetime
 from aiogram import Router
 from aiogram.types import BufferedInputFile
 from aiogram.handlers import ErrorHandler as _BaseHandler
+from aiogram.types.error_event import ErrorEvent
 
 from configs.admins import ADMINS
 
 
 class ErrorHandler(_BaseHandler):
+    event: ErrorEvent
+
     async def handle(self) -> Any:
         [
             await self.bot.send_document(
