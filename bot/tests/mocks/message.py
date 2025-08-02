@@ -8,16 +8,16 @@ fake_event = AsyncMock()
 
 
 class MockedMessage(Message):
-    async def answer(*args: Any, **kwargs: Any) -> Any:
+    async def answer(*args: Any, **kwargs: Any) -> Any:  # type: ignore[override]
         return MockedMessage(
             message_id=42,
             date=datetime.datetime.now(),
             text=args[1],
             chat=Chat(id=42, type="private"),
-            from_user=User(id=1, is_bot=False, first_name="Test"),
-        )  # type: ignore
+            from_user=User(id=1, is_bot=False, first_name="Test"),  # pyright: ignore[reportCallIssue]
+        )  # type: ignore  # pyright: ignore[reportCallIssue]
 
-    async def delete(*args: Any) -> Any:
+    async def delete(*args: Any) -> Any:  # type: ignore[override]
         pass
 
 
@@ -27,8 +27,8 @@ def make_fake_message(text: str) -> Message:
         date=datetime.datetime.now(),
         text=text,
         chat=Chat(id=42, type="private"),
-        from_user=User(id=1, is_bot=False, first_name="Test"),
-    )  # type: ignore
+        from_user=User(id=1, is_bot=False, first_name="Test"),  # pyright: ignore[reportCallIssue]
+    )  # type: ignore  # pyright: ignore[reportCallIssue]
 
 
 def make_fake_callback(data: str) -> CallbackQuery:
