@@ -44,20 +44,20 @@ class RedditFeedItemView(VideoFeedItemView, BaseFeedItemView, HttpExtension):
         if images and len(images) > 0:
             image = images[0]
             if isinstance(image, Tag) and image.get("href"):
-                return self._normalize_link(str(image["href"]))
+                return self._normalize_link(str(image.get("href")))
 
         imgs = post.find_all("img", attrs={"alt": "Post image"})
         if imgs and len(imgs) > 0:
             img = imgs[0]
             if isinstance(img, Tag) and img.get("src"):
-                return self._normalize_link(str(img["src"]))
+                return self._normalize_link(str(img.get("src")))
 
         return None
 
     def _find_post_video_url(self, soup: BeautifulSoup) -> Optional[str]:
         video = soup.find("meta", attrs={"property": "og:video"})
         if video and isinstance(video, Tag) and video.get("content"):
-            return self._normalize_link(str(video["content"]))
+            return self._normalize_link(str(video.get("content")))
         return None
 
     def _find_post_link(self, soup: BeautifulSoup) -> Optional[str]:
@@ -70,7 +70,7 @@ class RedditFeedItemView(VideoFeedItemView, BaseFeedItemView, HttpExtension):
         if links and len(links) > 0:
             link = links[0]
             if isinstance(link, Tag) and link.get("href"):
-                return self._normalize_link(str(link["href"]))
+                return self._normalize_link(str(link.get("href")))
         return None
 
     async def _send_link_response(self, title: str, link: str, item: FeedItem):
