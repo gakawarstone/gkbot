@@ -1,6 +1,6 @@
 from enum import Enum
 from dataclasses import dataclass
-from typing import Coroutine, Callable
+from typing import Coroutine, Callable, Sequence
 
 
 # FIXME: aigram have this type
@@ -13,8 +13,8 @@ class ChatType(Enum):
 @dataclass
 class BotConfig:
     token: str
-    tasks_on_startup_async: list[Coroutine]
-    tasks_on_startup_sync: list[Callable]
+    tasks_on_startup_async: Sequence[Coroutine]
+    tasks_on_startup_sync: Sequence[Callable]
     default_commands: dict[str, str]
     parse_mode: str
     admins: list[int]
