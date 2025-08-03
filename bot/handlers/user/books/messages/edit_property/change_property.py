@@ -9,6 +9,13 @@ from ...states import FSM
 
 class ChangeBookPropertyHandler(BaseHandler):
     async def handle(self) -> Any:
+        await self.state.set_state(FSM.finish)
+
+        if self.ctx.book_id is None:
+            raise ValueError("book_id is required")
+        if self.ctx.property_name is None:
+            raise ValueError("property_name is required")
+
         await self.state.set_state(FSM.check_menu_command)
         try:
             await BooksRepository.edit_book_property(
