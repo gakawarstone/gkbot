@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from extensions.handlers.message.context_manager._utils import make_prop
+from extensions.handlers.context_manager._utils import make_prop
 
 
 @dataclass

@@ -16,15 +16,12 @@ def get_hint(obj_parent: Any, obj_name: str) -> Type:
 def make_prop(obj: Any, obj_parent: Any, frame=3) -> Property:
     """Obj must have type hint"""
     obj_name = nameof(obj, frame=frame)  # NOTE: in max frame?
-    return Property(
-        name=obj_name,
-        type=get_hint(obj_parent, obj_name)
-    )
+    return Property(name=obj_name, type=get_hint(obj_parent, obj_name))
 
 
 def make_args_names_list(*args, frame: int = 2) -> list[str]:
     names = []
     for i, _ in enumerate(args):
-        arg_id = 'args[%s]' % i
+        arg_id = "args[%s]" % i
         names.append(argname(arg_id, frame=frame))
     return names

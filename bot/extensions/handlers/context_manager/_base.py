@@ -5,7 +5,7 @@ from ..base import BaseHandler as _BaseHandler
 from ._types import Property, BaseContext
 from ._utils import get_hint, make_prop, make_args_names_list
 
-_T = TypeVar('_T', bound=BaseContext)
+_T = TypeVar("_T", bound=BaseContext)
 
 
 class BaseContextManager(_BaseHandler, Generic[_T], ABC):
@@ -14,9 +14,7 @@ class BaseContextManager(_BaseHandler, Generic[_T], ABC):
     @property
     def ctx(self) -> _T:
         props_name_list: list[str] = [
-            prop_name
-            for prop_name in dir(self.props)
-            if not prop_name.startswith('__')
+            prop_name for prop_name in dir(self.props) if not prop_name.startswith("__")
         ]
 
         context_args = {}
@@ -37,11 +35,11 @@ class BaseContextManager(_BaseHandler, Generic[_T], ABC):
 
     def clean_context(self, *args):
         """
-            Example: self.clean_context(self.props.string)
-            where self.props.string not cleaning
+        Example: self.clean_context(self.props.string)
+        where self.props.string not cleaning
         """
         for prop_name in dir(self.props):
-            if prop_name.startswith('__'):
+            if prop_name.startswith("__"):
                 continue
 
             exclude = make_args_names_list(*args)
@@ -58,8 +56,7 @@ class BaseContextManager(_BaseHandler, Generic[_T], ABC):
     def _try_get_prop(self, prop: Property) -> Optional[Any]:
         value = self._try_get_from_user_data(prop.name)
 
-        if value is not None and type(value) is not prop.type \
-                and prop.type is not Any:
+        if value is not None and type(value) is not prop.type and prop.type is not Any:
             raise ValueError
 
         return value

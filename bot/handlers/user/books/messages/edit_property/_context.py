@@ -2,7 +2,7 @@ from abc import ABC
 from typing import Optional
 from dataclasses import dataclass
 
-from extensions.handlers.message.context_manager import BaseContextManager, BaseContext
+from extensions.handlers.context_manager import BaseContextManager, BaseContext
 
 
 @dataclass
