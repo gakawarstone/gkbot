@@ -25,16 +25,25 @@ async def _put_and_wait_for_result(func: str, args: Sequence[Any]) -> Any:
 
 
 async def _get_result(task_id: str) -> Any:
+    if not BROKER_URL:
+        raise ValueError("BROKER_URL is not set")
+
     response = await HttpService.get_json(BROKER_URL + "/result/" + task_id)
     return response["result"]
 
 
 async def _get_status(task_id: str) -> str:
+    if not BROKER_URL:
+        raise ValueError("BROKER_URL is not set")
+
     response = await HttpService.get_json(BROKER_URL + "/result/" + task_id)
     return response["status"]
 
 
 async def _enqueue(func: str, args: Sequence[Any]) -> str:
+    if not BROKER_URL:
+        raise ValueError("BROKER_URL is not set")
+
     response = await HttpService.post_json(
         BROKER_URL + "/enqueue", {"function": func, "data": args}
     )
