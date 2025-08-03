@@ -21,18 +21,18 @@ class WidgetMarkup(BaseMarkup):
                         callback_data=(
                             f'{PropertiesMarkup.prefix}:'
                             f'{_BookProperties.PROGRESS.value.name_in_db}:'
-                            f'{book.id}'
+                            f'{str(book.id)}'
                         )
                     ),
                     InlineKeyboardButton(
                         text='-',
                         callback_data=cls._gen_callback_data(
-                            cls.events.decrement, book.id),
+                            cls.events.decrement, str(book.id)),
                     ),
                     InlineKeyboardButton(
                         text='+',
                         callback_data=cls._gen_callback_data(
-                            cls.events.increment, book.id)
+                            cls.events.increment, str(book.id))
                     )
                 ],
             ]
