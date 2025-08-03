@@ -1,22 +1,23 @@
 from services.gkfeed import FeedItem
 from extensions.handlers.message.http import HttpExtension
-from ui.keyboards.feed import FeedMarkup
+from bs4 import Tag
 from . import BaseFeedItemView
 
 
 class VKFeedItemView(BaseFeedItemView, HttpExtension):
     async def _process_vk_item(self, item: FeedItem):
         soup = await self._get_soup(item.link)
-        title = soup.find("title").text
 
         meta_tag = soup.find("meta", attrs={"property": "og:image"})
-        if not meta_tag:
-            await self.answer(
-                title + f'\n\n <a href="{item.link}">Link</a>',
-                reply_markup=FeedMarkup.get_item_markup(item.id, item.feed_id),
-            )
-            return
+        if not isinstance(meta_tag, Tag):
+            return await self._send_item(item)
 
-        media_url = meta_tag["content"]
-        await self._send_photo(item, media_url, title)
+        media_url = meta_tag.get("content")
+        if not media_url:
+            return await self._send_item(item)
+
+        title_tag = soup.find("title")
+        title = title_tag.text if isinstance(title_tag, Tag) else ""
+
+        await self._send_photo(item, str(media_url), title)
         return
