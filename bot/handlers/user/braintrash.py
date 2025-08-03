@@ -2,7 +2,8 @@ from aiogram import Router
 from aiogram.types import Message
 from aiogram.filters import and_f
 from aiogram.filters.command import Command
-from aiogram.filters.state import State, StateFilter, StatesGroup
+from aiogram.filters import StateFilter
+from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 
 from filters.bot_admin import BotAdmin
@@ -37,6 +38,10 @@ async def get_all_data(message: Message, state: FSMContext):
 
 async def get_message(message: Message, state: FSMContext):
     await state.set_state(FSM.finish)
+
+    if message.text is None:
+        raise ValueError("Message text is None")
+
     await braintrash.write(message.text)
     markup = UrlButton.as_markup(url=await braintrash.get_url(), text="Ссылка")
     await message.answer("Информация сохранена", reply_markup=markup)
