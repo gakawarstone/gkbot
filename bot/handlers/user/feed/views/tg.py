@@ -1,5 +1,6 @@
 from services.gkfeed import FeedItem
 from extensions.handlers.message.http import HttpExtension
+from bs4 import Tag
 
 from . import BaseFeedItemView
 
@@ -9,18 +10,21 @@ class TelegramFeedItemView(BaseFeedItemView, HttpExtension):
         soup = await self._get_soup(item.link)
 
         meta_tag = soup.find("meta", attrs={"property": "og:image"})
-        if not meta_tag or "content" not in meta_tag.attrs:
-            await self._send_item(item)
-            return
-        media_url = meta_tag["content"]
+        if not isinstance(meta_tag, Tag):
+            return await self._send_item(item)
+
+        media_url = meta_tag.get("content")
+        if not media_url:
+            return await self._send_item(item)
 
         description_tag = soup.find("meta", attrs={"property": "og:description"})
-        description = ""
-        if description_tag and "content" in description_tag.attrs:
-            description = description_tag["content"]
+        if not isinstance(description_tag, Tag):
+            return await self._send_item(item)
+
+        description = str(description_tag.get("content"))
         description = self._limit_description(description)
 
-        await self._send_photo(item, media_url, description)
+        await self._send_photo(item, str(media_url), description)
 
     def _limit_description(self, description: str, limit: int = 250) -> str:
         if len(description) > limit:
