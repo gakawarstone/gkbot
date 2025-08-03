@@ -7,20 +7,23 @@ from ._context import ReminderContextManager
 
 
 class _Status:
-    invalid_date = '❌<b>Формат [30.12.2021]</b>❌'
-    invalid_time = '❌<b>Формат [10:14]</b>❌'
-    success = '<u>Создано успешно</u> ✅'
+    invalid_date = "❌<b>Формат [30.12.2021]</b>❌"
+    invalid_time = "❌<b>Формат [10:14]</b>❌"
+    success = "<u>Создано успешно</u> ✅"
 
 
 class BaseHandler(ReminderContextManager):
     status = _Status
 
     async def render_widget(self, status_message: Optional[str] = None):
+        if self.ctx.message is None:
+            raise ValueError("ctx.message is None")
+
         text = RemindCreator(
             text=self.ctx.text,
             date=self.ctx.date,
             time=self.ctx.time,
-            status_message=status_message
+            status_message=status_message,
         ).render()
 
         try:
