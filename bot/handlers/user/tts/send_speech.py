@@ -10,5 +10,9 @@ class SendSpeechHandler(SendVoiceHandlerExtension, BaseHandler):
     async def handle(self) -> Any:
         await self.state.set_state(FSM.finish)
         await self.event.delete()
+
+        if self.event.text is None:
+            raise ValueError("event.text is None")
+
         voice_file = await TextToSpeechService.convert_text_to_speech(self.event.text)
         await self.answer_voice(voice_file)
