@@ -13,6 +13,10 @@ from filters.chat_type import ChatTypeFilter, ChatType
 class TextToSpeechHandler(SendVoiceHandlerExtension, BaseHandler):
     async def handle(self) -> Any:
         await self.event.delete()
+
+        if not self.event.text:
+            raise ValueError("TTS requires non-empty text")
+
         voice_file = await TextToSpeechService.convert_text_to_speech(self.event.text)
         await self.answer_voice(voice_file)
 
