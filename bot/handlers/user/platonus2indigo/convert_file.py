@@ -20,10 +20,10 @@ class ConvertFileHandler(FileHandlerExtension):
             text = DocxReader.read_str(await self.document_io)
         except NoFileException:
             await self.state.set_state(FSM.convert)
-            await self.event.answer("Отправьте файл")
+            return await self.event.answer("Отправьте файл")
         except ValueError:
             await self.state.set_state(FSM.convert)
-            await self.event.answer("Формат <b>.docx</b>")
+            return await self.event.answer("Формат <b>.docx</b>")
 
         chunks = Platonus2Indigo.get_lines_with_max_questions(
             text.splitlines(), 25
