@@ -5,11 +5,15 @@ from core.types import ChatType
 
 
 class ChatTypeFilter(BaseFilter):
+    # TODO: allowed: list[ChatType]
     def __init__(self, chat_type: ChatType | list[ChatType]) -> None:
         self.chat_type = chat_type
 
     async def __call__(self, message: Message) -> bool:
-        if type(self.chat_type) is ChatType:
-            return ChatType(message.chat.type) == self.chat_type
-        else:
-            return ChatType(message.chat.type) in self.chat_type
+        m_type = ChatType(message.chat.type)
+
+        if isinstance(self.chat_type, ChatType):
+            return m_type == self.chat_type
+
+        allowed: list[ChatType] = list(self.chat_type)
+        return m_type in allowed
