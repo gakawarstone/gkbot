@@ -15,6 +15,9 @@ class BaseHandler(AddBookContextManager):
     status = _Status
 
     async def render_widget(self, status_message: Optional[str] = None):
+        if self.ctx.message is None:
+            raise ValueError("Message context is not set.")
+
         text = BookCreatorComponent(
             title=self.ctx.name,
             author=self.ctx.author,
