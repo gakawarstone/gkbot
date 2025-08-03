@@ -26,7 +26,10 @@ class SortFileHandler(FileHandlerExtension):
             await self.event.answer_photo(
                 await Images.sorted_documents.as_input_file(), caption=caption
             )
-            await self._send_sorted_file(sorted_lines, self.event.document.file_name)
+            file_name = getattr(self.event.document, "file_name", None)
+            if file_name is None:
+                raise ValueError("document.file_name is None")
+            await self._send_sorted_file(sorted_lines, file_name)
         except NoFileException:
             await self.state.set_state(FSM.sort_file)
             await self.event.answer("Отправьте файл")
