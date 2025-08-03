@@ -29,8 +29,7 @@ class FfmpegService:
     __convert_to_voice_options = ["-acodec", "libopus"]
 
     @classmethod
-    @async_wrap
-    def convert_music_to_voice(cls, music: bytes) -> bytes:
+    async def convert_music_to_voice(cls, music: bytes) -> bytes:
         cache_dir = CacheDir()
 
         cache_dir.save_file("music.mp3", music)
@@ -41,7 +40,7 @@ class FfmpegService:
             props=cls.__convert_to_voice_options,
         )
 
-        subprocess.run(command, check=True)
+        await async_wrap(subprocess.run)(command, check=True)
 
         content = open(f"{cache_dir.path}/voice.ogg", "rb").read()
         cache_dir.delete()
