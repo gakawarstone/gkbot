@@ -1,4 +1,4 @@
-from typing import Awaitable, Callable
+from typing import Awaitable, Callable, Any
 
 from services.gkfeed import FeedItem
 from ._base import BaseHandler
@@ -16,7 +16,7 @@ from .views.shiki import ShikiFeedItemView
 from .views.stories import StoriesFeedItemView
 from .views.twitch import TwitchFeedItemView
 
-_ITEM_PROCESSOR = Callable[[FeedItem], Awaitable[None]]
+_ITEM_PROCESSOR = Callable[[FeedItem], Awaitable[Any]]
 
 
 class GkfeedItemProcessorExtension(
