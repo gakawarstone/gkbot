@@ -1,4 +1,4 @@
-from aiogram.filters.state import StatesGroup, State
+from aiogram.fsm.state import StatesGroup, State
 
 
 class _TTSFSM(StatesGroup):
