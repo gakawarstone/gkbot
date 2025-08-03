@@ -8,6 +8,9 @@ from ..states import FSM
 class EditSettingsHandler(BaseHandler, RoadSettingsContextManager):
     async def handle(self) -> Any:
         await self.state.set_state(FSM.finish)
+        if self.event.message is None:
+            raise ValueError("event.message is None")
+
         setting_name = self._parse_callback()
         self.clean_context()
         self.set(self.props.setting_name, setting_name)
