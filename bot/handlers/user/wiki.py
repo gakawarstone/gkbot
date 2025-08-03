@@ -1,8 +1,8 @@
 from aiogram import Router
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
-from aiogram.filters import Command
-from aiogram.filters.state import State, StateFilter, StatesGroup
+from aiogram.filters import Command, StateFilter
+from aiogram.fsm.state import State, StatesGroup
 
 from services.wiki import WikiApi, QuoteNotFound
 
@@ -24,6 +24,10 @@ async def search(message: Message, state: FSMContext):
 async def get_data(message: Message, state: FSMContext):
     await state.set_state(FSM.finish)
     await message.delete()
+
+    if message.text is None:
+        raise ValueError("Message text is None")
+
     try:
         quote = WikiApi.get_quote(message.text)
         await message.answer(
