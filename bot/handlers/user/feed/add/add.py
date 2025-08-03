@@ -12,6 +12,12 @@ class AddFeedHandler(BaseHandler):
         await self.state.set_state(FSM.finish)
         await self.event.delete()
 
+        if self.event.text is None:
+            raise ValueError("event.text is None after validation")
+
+        if GKFEED_USER is None or GKFEED_PASSWORD is None:
+            raise ValueError("GKFEED_USER or GKFEED_PASSWORD is not set")
+
         if not (
             self.event.text and urlparse(self.event.text).scheme in ["http", "https"]
         ):
