@@ -8,6 +8,9 @@ from ui.widgets.timer import Timer
 class BaseHandler(_BaseHandler):
     @property
     async def settings(self) -> RoadSettings:
+        if self.event.from_user is None:
+            raise ValueError("from_user is None")
+
         user_id = self.event.from_user.id
         settings = await RoadSettingsRepository.get_user_settings(user_id)
         return settings
