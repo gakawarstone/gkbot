@@ -10,7 +10,10 @@ class BooksRepository:
 
     @classmethod
     async def get_book_by_id(cls, book_id: int) -> Book:
-        return await Book.filter(id=book_id).first()
+        book = await Book.filter(id=book_id).first()
+        if book is None:
+            raise ValueError(f"Book with id={book_id} not found")
+        return book
 
     @classmethod  # FIXME
     async def edit_book_property(
