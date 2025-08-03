@@ -10,7 +10,7 @@ class BaseHandler(_BaseHandler[CallbackQuery]):
         # Check if self.event.data is not None before splitting
         if self.event.data is None:
             raise ValueError("Callback data is None")
-        
+
         _, event, book_id = self.event.data.split(":")
-        book = await BooksRepository.get_book_by_id(book_id)
+        book = await BooksRepository.get_book_by_id(int(book_id))
         return event, book
