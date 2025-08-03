@@ -2,7 +2,8 @@ from aiogram import Router
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 from aiogram.filters import Command
-from aiogram.filters.state import State, StateFilter, StatesGroup
+from aiogram.fsm.state import State, StatesGroup
+from aiogram.filters import StateFilter
 
 from services.llm import Gemini
 from ._commands import USER_COMMANDS
@@ -22,6 +23,10 @@ async def start_chat(message: Message, state: FSMContext):
 async def get_response(message: Message, state: FSMContext):
     await state.set_state(FSM.finish)
     await message.delete()
+
+    if not message.text:
+        raise ValueError("Prompt text is required")
+
     _message = await message.answer("Подождите..")
     text = ""
     async for ch in Gemini().stream(message.text):
