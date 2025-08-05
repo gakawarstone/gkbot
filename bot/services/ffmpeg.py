@@ -48,16 +48,17 @@ class FfmpegService:
 
     @classmethod
     async def make_slideshow_from_web(
-        cls, images_urls: list[str], audio_url: str
+        cls, images_urls: list[str], audio_url: str | None
     ) -> bytes:
         cache_dir = CacheDir()
 
         await cls.download_and_prepare_images(images_urls, cache_dir.path)
-        await cls.download_and_prepare_audio(audio_url, cache_dir.path)
+        if audio_url:
+            await cls.download_and_prepare_audio(audio_url, cache_dir.path)
 
         command = cls._build_slideshow_command(
             images_input=f"{cache_dir.path}/*.jpg",
-            audio_input=f"{cache_dir.path}/audio.m4a",
+            audio_input=f"{cache_dir.path}/audio.m4a" if audio_url else None,
             output_path=f"{cache_dir.path}/slideshow.mp4",
         )
 
@@ -112,12 +113,19 @@ class FfmpegService:
 
     @classmethod
     def _build_slideshow_command(
-        cls, images_input: str, audio_input: str, output_path: str
+        cls, images_input: str, audio_input: str | None, output_path: str
     ) -> list[str]:
         command = ["ffmpeg", "-y", "-framerate", "1/3"]
         command += ["-pattern_type", "glob", "-i", images_input]
-        command += ["-stream_loop", "-1", "-i", audio_input]
-        command += cls.__make_slideshow_options
+
+        if audio_input:
+            command += ["-stream_loop", "-1", "-i", audio_input]
+            command += cls.__make_slideshow_options
+        else:
+            opts = cls.__make_slideshow_options.copy()
+            opts.remove("-shortest")
+            command += opts
+
         command += [
             output_path,
         ]
