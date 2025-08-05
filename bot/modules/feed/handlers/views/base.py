@@ -10,11 +10,11 @@ class BaseWebFeedItemView(BaseFeedItemView, HttpExtension):
 
         meta_tag = soup.find("meta", attrs={"property": "og:image"})
         if not isinstance(meta_tag, Tag):
-            return self._send_item(item)
+            return await self._send_item(item)
 
         media_url = meta_tag.get("content")
         if not media_url:
-            return self._send_item(item)
+            return await self._send_item(item)
 
         title_tag = soup.find("title")
         title = title_tag.text if isinstance(title_tag, Tag) else ""
