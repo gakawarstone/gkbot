@@ -11,7 +11,9 @@ from ..states import FSM
 class _Handler(Protocol):
     data: dict
     event: Message
-    state: FSMContext
+
+    @property
+    def state(self) -> FSMContext: ...
 
     async def handle(self) -> None: ...
 
