@@ -1,17 +1,20 @@
 import asyncio
 
 from services.llm import Gemini, OpenRouter
+from services.llm.openrouter import OpenRouterModel
 from .. import integration_test
 
 
 async def stream_gemini_response():
-    async for chunk in Gemini.stream("Что такое деконструкция"):
+    g = Gemini()
+    async for chunk in g.stream(prompt="Что такое деконструкция"):
         assert isinstance(chunk, str)
         assert len(chunk) != 0
 
 
 async def stream_open_router_response():
-    async for chunk in OpenRouter.stream("Что такое деконструкция"):
+    o = OpenRouter(model=OpenRouterModel.META_LLAMA_4_SCOUT)  # type: ignore[call-arg]
+    async for chunk in o.stream(prompt="Что такое деконструкция"):
         assert isinstance(chunk, str)
         assert len(chunk) != 0
 

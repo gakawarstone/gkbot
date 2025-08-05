@@ -8,18 +8,18 @@ from . import Event, Bot
 
 
 class MockedHandler(YtdlpShortVideoHandler):
-    @property
+    @property  # type: ignore[override]
     @override
-    def bot(self) -> Bot:
+    def bot(self) -> Bot:  # type: ignore[override]
         return Bot()
 
 
 @integration_test
 @pytest.mark.asyncio(loop_scope="session")
 async def test_handler():
-    await MockedHandler(
+    await MockedHandler(  # type: ignore[call-arg]
         event=Event(
             text="https://x.com/i/status/1919231128180810005",
             breakpoint_at_delete=False,
-        )
+        )  # type: ignore[arg-type]
     ).handle()

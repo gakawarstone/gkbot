@@ -8,14 +8,14 @@ from . import Event, Bot
 
 
 class MockedHandler(TikTokVideoHandler):
-    @property
+    @property  # type: ignore[override]
     @override
-    def bot(self) -> Bot:
+    def bot(self) -> Bot:  # type: ignore[override]
         return Bot()
 
 
 async def _handle_url(url: str):
-    await MockedHandler(event=Event(text=url, breakpoint_at_delete=False)).handle()
+    await MockedHandler(event=Event(text=url, breakpoint_at_delete=False)).handle()  # type: ignore[arg-type]
 
 
 @integration_test

@@ -24,13 +24,14 @@ class GkfeedService:
 class MockedHandler(ShowFeedItemsHandler):
     _gkfeed = GkfeedService()
 
-    @property
+    @property  # type: ignore[override]
     @override
-    def bot(self) -> Bot:
+    def bot(self) -> Bot:  # type: ignore[override]
         return Bot()
 
 
 @integration_test
 @pytest.mark.asyncio(loop_scope="session")
 async def test_handler():
-    await MockedHandler(event=Event(breakpoint_at_delete=False)).handle()
+    await MockedHandler(event=Event(breakpoint_at_delete=False)).handle()  # type: ignore[arg-type]
+

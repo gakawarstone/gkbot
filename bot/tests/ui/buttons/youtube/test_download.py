@@ -38,8 +38,9 @@ def test_callback_deserialization():
         callback_data=YoutubeDownloadButtonCallbackData(yt_video_code),
     )
 
+    callback_data_str = btn.callback_data  # type: ignore[assignment]
     desirialized_callback_data = (
-        YoutubeDownloadButtonCallbackDataDeserializer.deserialize(btn.callback_data)
+        YoutubeDownloadButtonCallbackDataDeserializer.deserialize(callback_data_str)  # type: ignore[arg-type]
     )
 
     assert expected_callback_data == desirialized_callback_data
@@ -58,3 +59,4 @@ def test_not_constant_callback():
     btn1 = _create_audio_button()
     btn2 = _create_video_button()
     assert btn1.callback_data != btn2.callback_data
+
