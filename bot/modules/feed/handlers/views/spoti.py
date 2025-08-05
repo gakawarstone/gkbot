@@ -27,6 +27,6 @@ class SpotiFeedItemView(BaseFeedItemView, HttpExtension):
         description = str(description_tag.get("content") or "")
 
         if description.split(" · ")[0] == "Playlist":
-            return await self._send_photo(item, str(media_url), "\n", title)
+            return await self._send_photo(item, str(media_url), "", title)
 
         await self._send_photo(item, str(media_url), title + "\n" + description)
