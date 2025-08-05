@@ -1,16 +1,22 @@
-from typing import Type, Union
+from typing import Protocol
 
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
-from extensions.handlers.message.base import BaseHandler
 from ui.keyboards.bool import BoolMarkup
 
 from ..states import FSM
 
-_Handler = Union[BaseHandler, Type[BaseHandler]]
 
-# TODO: move to contrib
+class _Handler(Protocol):
+    data: dict
+    event: Message
+    state: FSMContext
+
+    async def handle(self) -> None: ...
+
+
+# TODO: move to extensions
 
 
 async def ask_to_restart(callback: _Handler, text: str):
