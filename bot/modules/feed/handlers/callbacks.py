@@ -4,7 +4,7 @@ import asyncio
 from aiogram.handlers import BaseHandler as _BaseHandler
 from aiogram.types import CallbackQuery
 
-from ui.keyboards.feed import FeedMarkup
+from ..ui.keyboards import FeedMarkup
 from ._base import BaseHandler
 from ._item_processor import GkfeedItemProcessorExtension
 

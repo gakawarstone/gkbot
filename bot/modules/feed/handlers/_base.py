@@ -3,7 +3,7 @@ from aiogram.types import CallbackQuery
 
 from configs.env import GKFEED_USER, GKFEED_PASSWORD
 from services.gkfeed import GkfeedService, FeedItem
-from ui.keyboards.feed import FeedMarkup
+from ..ui.keyboards import FeedMarkup
 
 
 def _get_gkfeed() -> GkfeedService:

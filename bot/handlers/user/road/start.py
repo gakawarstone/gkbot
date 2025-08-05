@@ -5,7 +5,7 @@ from aiogram.types import Message
 
 from ui.static import Images
 from ui.keyboards.road import RoadMarkup
-from .._commands import USER_COMMANDS
+from configs.commands import USER_COMMANDS
 from .states import FSM
 
 

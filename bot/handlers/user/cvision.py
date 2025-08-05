@@ -14,7 +14,7 @@ from extensions.handlers.message.one_time_extension import (
     OneTimeMessageHandlerExtension,
 )
 from extensions.handlers.message.file_extension import FileHandlerExtension
-from ._commands import USER_COMMANDS
+from configs.commands import USER_COMMANDS
 
 
 class _CVisionFSM(StatesGroup):

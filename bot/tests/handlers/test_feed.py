@@ -3,7 +3,7 @@ from typing import AsyncGenerator, override
 import pytest
 
 from services.gkfeed import FeedItem
-from handlers.user.feed import ShowFeedItemsHandler
+from modules.feed import ShowFeedItemsHandler
 from .. import integration_test
 from . import Bot, Event
 

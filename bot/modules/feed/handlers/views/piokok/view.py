@@ -3,7 +3,7 @@ from aiogram.types import URLInputFile
 from services.gkfeed import FeedItem
 from services.http import HttpService
 from extensions.handlers.message.http import HttpExtension
-from ui.keyboards.feed.piokok import PiokokFeedItemMarkup
+from ....ui.keyboards.piokok import PiokokFeedItemMarkup
 from bs4 import Tag
 from ..._base import BaseHandler
 from ..video import VideoFeedItemView

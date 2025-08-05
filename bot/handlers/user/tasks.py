@@ -8,7 +8,7 @@ from aiogram.types import Message
 from aiogram.filters import Command
 
 from services.notion_api import Database
-from ._commands import USER_COMMANDS
+from configs.commands import USER_COMMANDS
 
 tasks = Database("67f38400c29f4137ac285fe6569567e2")
 

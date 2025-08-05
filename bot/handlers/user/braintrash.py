@@ -9,7 +9,7 @@ from aiogram.fsm.context import FSMContext
 from filters.bot_admin import BotAdmin
 from services.notion_api import Page
 from ui.keyboards.url_button import UrlButton
-from ._commands import USER_COMMANDS
+from configs.commands import USER_COMMANDS
 
 # [ ] move page id to settings | env
 braintrash = Page("98997f76b28d48cb946d04e32b540e64")

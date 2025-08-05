@@ -1,13 +1,13 @@
 from aiogram import Router, F
 from aiogram.filters import Command, and_f
 
-from ui.keyboards.feed import FeedMarkup
+from .ui.keyboards import FeedMarkup
 from filters.bot_admin import BotAdmin
-from .._commands import USER_COMMANDS
-from . import add
-from .views import piokok
-from .messages import ShowFeedItemsHandler
-from .callbacks import ItemEventHandler
+from configs.commands import USER_COMMANDS
+from .handlers import add
+from .handlers.views import piokok
+from .handlers.messages import ShowFeedItemsHandler
+from .handlers.callbacks import ItemEventHandler
 
 
 def setup(r: Router):

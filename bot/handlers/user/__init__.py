@@ -15,7 +15,6 @@ from . import list
 from . import platonus2indigo
 from . import download
 from . import asura
-from . import feed
 from . import sort_sources
 from . import ask
 from . import cvision
@@ -38,7 +37,6 @@ def setup(r: Router):
     platonus2indigo.setup(r)
     download.setup(r)
     asura.setup(r)
-    feed.setup(r)
     sort_sources.setup(r)
     ask.setup(r)
     cvision.setup(r)

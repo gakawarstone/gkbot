@@ -6,7 +6,7 @@ from aiogram.types import Message, ReplyKeyboardRemove
 from ui.static import Images
 from filters.not_command import NotCommandFilter
 from ui.keyboards.books import MenuMarkup
-from .._commands import USER_COMMANDS
+from configs.commands import USER_COMMANDS
 from .messages import delete, show
 from .messages.add.start import InitAddBookHandler
 from .messages.edit_property.choose_book import choose_book

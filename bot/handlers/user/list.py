@@ -2,7 +2,7 @@ from aiogram import Router
 from aiogram.filters import Command
 from aiogram.types import Message
 
-from ._commands import USER_COMMANDS
+from configs.commands import USER_COMMANDS
 
 
 async def list_of_commands(message: Message):

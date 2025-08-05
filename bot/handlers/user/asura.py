@@ -6,7 +6,7 @@ from aiogram.types import BufferedInputFile
 
 from extensions.handlers.message.base import BaseHandler
 from services.http import HttpService
-from ._commands import USER_COMMANDS
+from configs.commands import USER_COMMANDS
 
 
 class DownloadAsura(BaseHandler):

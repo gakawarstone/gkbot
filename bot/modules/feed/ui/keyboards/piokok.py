@@ -1,6 +1,6 @@
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from ..carousel import BaseCarouselMarkup, CarouselMarkupButtons, CarouselMarkupData
+from ui.keyboards.carousel import BaseCarouselMarkup, CarouselMarkupButtons, CarouselMarkupData
 from . import BaseFeedMarkup, FeedMarkupButtons, FeedMarkupData
 
 

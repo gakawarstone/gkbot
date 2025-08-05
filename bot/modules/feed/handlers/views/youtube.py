@@ -2,7 +2,7 @@ from aiogram.types import URLInputFile
 
 from services.gkfeed import FeedItem
 from services.youtube import YoutubeApiService, UnavailableVideo
-from ui.keyboards.feed.youtube import YoutubeFeedItemMarkup
+from ...ui.keyboards.youtube import YoutubeFeedItemMarkup
 from . import BaseFeedItemView
 
 

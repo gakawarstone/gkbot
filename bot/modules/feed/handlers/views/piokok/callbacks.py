@@ -3,7 +3,7 @@ from aiogram.types import URLInputFile, InputMediaPhoto
 from services.http import HttpService
 from extensions.handlers.message.http import HttpExtension
 from extensions.handlers.callback.carousel import CarouselWidgetEventHandlerExtension
-from ui.keyboards.feed.piokok import PiokokFeedItemMarkup
+from ....ui.keyboards.piokok import PiokokFeedItemMarkup
 from bs4 import Tag
 from ..._base import BaseHandler
 

@@ -2,7 +2,7 @@ from aiogram import Router
 from aiogram.types import Message
 from aiogram.filters import Command, StateFilter
 
-from .._commands import USER_COMMANDS
+from configs.commands import USER_COMMANDS
 from ._states import FSM
 from .init import InitHandler
 from .get_name import GetNameHandler

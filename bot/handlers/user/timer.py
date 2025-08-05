@@ -8,7 +8,7 @@ from aiogram.types import Message, CallbackQuery
 from services.timer import TimersManager
 from ui.keyboards.timer import TimerMarkup
 from ui.components.timer import TimerComponent
-from ._commands import USER_COMMANDS
+from configs.commands import USER_COMMANDS
 
 
 class FSM(StatesGroup):

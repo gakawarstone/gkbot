@@ -1,7 +1,7 @@
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from . import BaseFeedMarkup, FeedMarkupButtons, FeedMarkupData
-from ..url_button import UrlButton
+from ui.keyboards.url_button import UrlButton
 
 
 class RedditFeedItemMarkup(

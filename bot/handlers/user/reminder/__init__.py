@@ -1,7 +1,7 @@
 from aiogram import Router
 from aiogram.filters import Command, StateFilter
 
-from .._commands import USER_COMMANDS
+from configs.commands import USER_COMMANDS
 from ._states import FSM
 from .start import InitHandler
 from .get_text import TextInputHandler

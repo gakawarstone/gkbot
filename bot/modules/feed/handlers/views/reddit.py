@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup, Tag
 from services.gkfeed import FeedItem
 from services.telegraph import TelegraphAPI, HtmlToTelegraphContentConverter
 from extensions.handlers.message.http import HttpExtension
-from ui.keyboards.feed.reddit import RedditFeedItemMarkup
+from ...ui.keyboards.reddit import RedditFeedItemMarkup
 from . import BaseFeedItemView
 from .video import VideoFeedItemView
 

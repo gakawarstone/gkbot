@@ -7,6 +7,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 
 import middlewares
 import handlers
+import modules
 from .types import BotConfig
 from .notifier import Notifier
 from .default_commands import DefaultCommands
@@ -41,6 +42,7 @@ class BotStarter:
 
         middlewares.setup(self.dp)
         handlers.setup(self.dp)
+        modules.setup(self.dp)
         await self.dp.start_polling(self.bot)
 
     def start(self) -> None:

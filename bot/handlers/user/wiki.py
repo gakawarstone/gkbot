@@ -6,7 +6,7 @@ from aiogram.fsm.state import State, StatesGroup
 
 from services.wiki import WikiApi, QuoteNotFound
 
-from ._commands import USER_COMMANDS
+from configs.commands import USER_COMMANDS
 
 
 class FSM(StatesGroup):

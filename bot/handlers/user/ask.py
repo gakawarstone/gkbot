@@ -6,7 +6,7 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.filters import StateFilter
 
 from services.llm import Gemini
-from ._commands import USER_COMMANDS
+from configs.commands import USER_COMMANDS
 
 
 class FSM(StatesGroup):

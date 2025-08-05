@@ -2,7 +2,7 @@ from aiogram.types import URLInputFile
 from aiogram.exceptions import TelegramBadRequest
 
 from services.gkfeed import FeedItem
-from ui.keyboards.feed import FeedMarkup
+from ...ui.keyboards import FeedMarkup
 from .._base import BaseHandler
 
 
