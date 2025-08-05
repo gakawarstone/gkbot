@@ -26,12 +26,15 @@ class TTDownloader(BaseExtractor, requests.Session):
 
     async def get_video_file_url(self, url: str) -> str:
         try:
-            return (await self._get_video_links(url))[0]
+            links = await self._get_video_links(url)
+            return links[0]
         except (IndexError, ValueError):
             raise SourceInfoExtractFailed(self)
 
-    @async_wrap
-    def _get_video_links(self, url: str) -> list[str]:
+    async def _get_video_links(self, url: str) -> list[str]:
+        return await async_wrap(self.__get_video_links_sync)(url)
+
+    def __get_video_links_sync(self, url: str) -> list[str]:
         html = self.get(self._base_url).text
         token = re.findall(r"value=\"([0-9a-z]+)\"", html)
         result = self.post(
