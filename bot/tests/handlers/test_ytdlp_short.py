@@ -3,7 +3,7 @@ from typing import override
 import pytest
 
 from handlers.text.ytdlp_short import YtdlpShortVideoHandler
-from tests import integration_test
+from .. import integration_test
 from . import Event, Bot
 
 

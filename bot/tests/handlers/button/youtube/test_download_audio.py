@@ -7,7 +7,7 @@ from ui.buttons.youtube.download import (
     YoutubeDownloadButtonCallbackData,
 )
 
-from tests import integration_test
+from .... import integration_test
 from tests.handlers import CallbackEvent
 
 

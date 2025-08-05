@@ -3,7 +3,7 @@ from typing import override
 import pytest
 
 from handlers.text.tiktok import TikTokVideoHandler
-from tests import integration_test
+from .. import integration_test
 from . import Event, Bot
 
 

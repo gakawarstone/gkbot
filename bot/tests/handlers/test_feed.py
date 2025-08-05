@@ -4,7 +4,7 @@ import pytest
 
 from services.gkfeed import FeedItem
 from handlers.user.feed import ShowFeedItemsHandler
-from tests import integration_test
+from .. import integration_test
 from . import Bot, Event
 
 

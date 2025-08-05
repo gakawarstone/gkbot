@@ -1,7 +1,7 @@
 import asyncio
 
 from services.llm import Gemini, OpenRouter
-from tests import integration_test
+from .. import integration_test
 
 
 async def stream_gemini_response():
