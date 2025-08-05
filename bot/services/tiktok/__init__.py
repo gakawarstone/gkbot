@@ -1,4 +1,4 @@
-from aiogram.types import BufferedInputFile
+from aiogram.types import InputFile, BufferedInputFile
 
 from services.http import HttpService
 from services.ffmpeg import FfmpegService
@@ -14,7 +14,7 @@ class TikTokService:
         raise TikTokVideoUrlExtractionFailed(url)
 
     @classmethod
-    async def get_video_as_input_file(cls, url: str) -> BufferedInputFile:
+    async def get_video_as_input_file(cls, url: str) -> InputFile:
         if not (info := await TikTokInfoExtractor.get_video_info(url)):
             raise TikTokInfoExtractionFailed(url)
         if not info.video_input_file:
