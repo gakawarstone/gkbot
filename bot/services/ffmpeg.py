@@ -47,12 +47,13 @@ class FfmpegService:
         return content
 
     @classmethod
-    @async_wrap
-    def make_slideshow_from_web(cls, images_urls: list[str], audio_url: str) -> bytes:
+    async def make_slideshow_from_web(
+        cls, images_urls: list[str], audio_url: str
+    ) -> bytes:
         cache_dir = CacheDir()
 
-        cls.download_and_prepare_images(images_urls, cache_dir.path)
-        cls.download_and_prepare_audio(audio_url, cache_dir.path)
+        await cls.download_and_prepare_images(images_urls, cache_dir.path)
+        await cls.download_and_prepare_audio(audio_url, cache_dir.path)
 
         command = cls._build_slideshow_command(
             images_input=f"{cache_dir.path}/*.jpg",
@@ -60,14 +61,14 @@ class FfmpegService:
             output_path=f"{cache_dir.path}/slideshow.mp4",
         )
 
-        subprocess.run(command, check=True)
+        await async_wrap(subprocess.run)(command, check=True)
 
         content = open(f"{cache_dir.path}/slideshow.mp4", "rb").read()
         cache_dir.delete()
         return content
 
     @classmethod
-    def download_and_prepare_images(
+    async def download_and_prepare_images(
         cls, images_url: list[str], work_dir_path: str
     ) -> None:
         for n, url in enumerate(images_url):
@@ -78,7 +79,7 @@ class FfmpegService:
                 output=f"{work_dir_path}/{n + 1:03d}.jpg",
                 props=cls.__resize_image_options,
             )
-            subprocess.run(command, check=True)
+            await async_wrap(subprocess.run)(command, check=True)
 
         if len(images_url) == 1:
             shutil.copy(f"{work_dir_path}/001.jpg", f"{work_dir_path}/002.jpg")
@@ -88,11 +89,13 @@ class FfmpegService:
             shutil.copy(f"{work_dir_path}/002.jpg", f"{work_dir_path}/003.jpg")
 
     @classmethod
-    def download_and_prepare_audio(cls, audio_url: str, work_dir_path: str) -> None:
+    async def download_and_prepare_audio(
+        cls, audio_url: str, work_dir_path: str
+    ) -> None:
         command = cls._build_command(
             inputs=[audio_url], output=f"{work_dir_path}/audio.m4a", props=[]
         )
-        subprocess.run(command, check=True)
+        await async_wrap(subprocess.run)(command, check=True)
 
     @classmethod
     def _build_command(cls, inputs: list, output: str, props: list) -> list[str]:
