@@ -1,6 +1,7 @@
+from bs4 import Tag
+
 from services.gkfeed import FeedItem
 from extensions.handlers.message.http import HttpExtension
-from bs4 import Tag
 from . import BaseFeedItemView
 
 
@@ -19,5 +20,6 @@ class VKFeedItemView(BaseFeedItemView, HttpExtension):
         title_tag = soup.find("title")
         title = title_tag.text if isinstance(title_tag, Tag) else ""
 
-        await self._send_photo(item, str(media_url), title)
-        return
+        await self._send_photo(
+            item, str(media_url), title.split(" | ")[0], title.split(" | ")[1]
+        )
