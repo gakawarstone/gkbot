@@ -46,10 +46,12 @@ class TikTokInfoExtractor:
 
     @classmethod
     @async_for_first_success_extractor
-    async def get_video_url(cls, url: str, source: BaseExtractor) -> str:
+    async def get_video_url(cls, url: str, source: BaseExtractor = YtDlp()) -> str:
         return await source.get_video_file_url(url)
 
     @classmethod
     @async_for_first_success_extractor
-    async def get_video_info(cls, url: str, source: BaseExtractor) -> InfoVideoTikTok:
+    async def get_video_info(
+        cls, url: str, source: BaseExtractor = YtDlp()
+    ) -> InfoVideoTikTok:
         return await source.get_video_info(url)
