@@ -15,7 +15,10 @@ async def add_download_markup(message: Message):
     # if url.startswith("https://vk.com/wall"):
     #     url = await VKService.try_to_extract_video_link_from_post(url)
 
-    yt_code = url.split("v=")[-1]
+    if url.startswith("https://youtu.be/"):
+        yt_code = url.split("/")[-1].split("?")[0]
+    else:
+        yt_code = url.split("v=")[-1]
 
     await message.answer(
         url,
