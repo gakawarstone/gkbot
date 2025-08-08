@@ -1,19 +1,16 @@
 from aiogram import Router
 from aiogram.types import Message
-from aiogram.filters import or_f
 
-# from services.vk import VKService
-from ui.keyboards.ytdlp import YtdlpMarkup
 from filters.youtube import YouTubeVideoLink
-from filters.vk import VkVideoLink
+from ui.keyboards.ytdlp import YtdlpMarkup
 
 
 async def add_download_markup(message: Message):
     await message.delete()
-    url = message.text if message.text else ""
-    # FIXME: VKDOWNLOAD
-    # if url.startswith("https://vk.com/wall"):
-    #     url = await VKService.try_to_extract_video_link_from_post(url)
+
+    if not message.text:
+        raise ValueError("Message text is empty")
+    url = message.text
 
     if url.startswith("https://youtu.be/"):
         yt_code = url.split("/")[-1].split("?")[0]
@@ -29,5 +26,4 @@ async def add_download_markup(message: Message):
 
 
 def setup(r: Router):
-    filter = or_f(YouTubeVideoLink(), VkVideoLink())
-    r.message.register(add_download_markup, filter)
+    r.message.register(add_download_markup, YouTubeVideoLink())

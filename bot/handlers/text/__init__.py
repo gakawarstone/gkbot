@@ -6,6 +6,7 @@ from . import jutsu
 from . import ytdlp_short
 from . import instagram
 from . import tts
+from . import vk
 
 
 def setup(r: Router):
@@ -15,3 +16,4 @@ def setup(r: Router):
     ytdlp_short.setup(r)
     instagram.setup(r)
     tts.setup(r)
+    vk.setup(r)
