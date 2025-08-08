@@ -1,5 +1,6 @@
 from core.bot import BotStarter
-from configs import BOT_CONFIG
+
+from configs.bot_config import BOT_CONFIG
 
 
 def start():
