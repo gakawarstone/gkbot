@@ -1,19 +1,25 @@
+from typing import Optional
 from aiogram.handlers import BaseHandler as _BaseHandler
-from aiogram.types import CallbackQuery
+from aiogram.types import CallbackQuery, Message
 
 from configs.env import GKFEED_USER, GKFEED_PASSWORD
 from services.gkfeed import GkfeedService, FeedItem
 from ..ui.keyboards import FeedMarkup
 
 
-def _get_gkfeed() -> GkfeedService:
-    if GKFEED_USER is None or GKFEED_PASSWORD is None:
-        raise ValueError("GKFEED_USER and GKFEED_PASSWORD must be set")
-    return GkfeedService(GKFEED_USER, GKFEED_PASSWORD)
+class BaseHandler(_BaseHandler[CallbackQuery | Message]):
+    __gkfeed: Optional[GkfeedService] = None
 
+    @property
+    def _gkfeed(self) -> GkfeedService:
+        if self.__gkfeed:
+            return self.__gkfeed
 
-class BaseHandler(_BaseHandler):
-    _gkfeed = _get_gkfeed()
+        if GKFEED_USER is None or GKFEED_PASSWORD is None:
+            raise ValueError("GKFEED_USER and GKFEED_PASSWORD must be set")
+
+        self.__gkfeed = GkfeedService(GKFEED_USER, GKFEED_PASSWORD)
+        return self.__gkfeed
 
     async def _send_item(self, item: FeedItem):
         if self.event.from_user is None:
