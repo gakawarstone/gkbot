@@ -30,12 +30,14 @@ class YtdlpDownloader:
         opts = YtDlpOptionsManager.choose_video_options(url)
         file = await cls._download_file(url, opts)
 
+        width = info.get("width", 0)
+
         return VideoFileInfo(
             input_file=file,
             duration=info["duration"],
             title=info["title"],
             height=info["height"],
-            width=info["width"],
+            width=width,
         )
 
     @classmethod
