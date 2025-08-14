@@ -1,4 +1,4 @@
-from aiogram.types import URLInputFile
+from aiogram.types import CallbackQuery, Message, URLInputFile
 from aiogram.exceptions import TelegramBadRequest
 
 from services.gkfeed import FeedItem
@@ -7,6 +7,8 @@ from .._base import BaseHandler
 
 
 class BaseFeedItemView(BaseHandler):
+    event: Message | CallbackQuery
+
     async def _send_photo(
         self,
         item: FeedItem,
