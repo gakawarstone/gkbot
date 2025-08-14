@@ -5,6 +5,10 @@ from extensions.handlers.message.http import HttpExtension
 from ...ui.keyboards import FeedMarkup
 from . import BaseFeedItemView
 
+_DEFAULT_THUMBNAIL_URL = (
+    "http://sun6-21.userapi.com/fafvjSB8ha2EWPn-VR6LIahBtBkf50LZSLbKfQ/BiN2pjgeJTw.png"
+)
+
 
 class VKFeedItemView(BaseFeedItemView, HttpExtension):
     async def _process_vk_item(self, item: FeedItem):
@@ -15,7 +19,7 @@ class VKFeedItemView(BaseFeedItemView, HttpExtension):
             return await self._send_text_item(item, soup)
 
         media_url = meta_tag.get("content")
-        if not media_url:
+        if not media_url or media_url == _DEFAULT_THUMBNAIL_URL:
             return await self._send_text_item(item, soup)
 
         title_tag = soup.find("title")
