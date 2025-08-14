@@ -13,13 +13,18 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: 3.12
+
+      - name: Install uv
+        run: pip install uv
+
       - name: Install dependencies
         run: |
           sudo apt -y install build-essential
-          pip install -r requirements-dev.txt
+          uv sync --dev
           python scripts/install_site_packages.py ~/.local/lib/python3.12/site-packages
+
       - name: Run tests
-        run: make test PYTHON=/usr/bin/python
+        run: make test
   deploy:
     runs-on: ubuntu-latest
     needs: test
