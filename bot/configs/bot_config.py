@@ -5,6 +5,9 @@ from .default_commands import DEFAULT_COMMANDS
 from .admins import ADMINS
 
 
+if env.BOT_TOKEN is None:
+    raise ValueError("BOT_TOKEN must be set")
+
 BOT_CONFIG = BotConfig(
     token=env.BOT_TOKEN,
     tasks_on_startup_async=TASKS_ON_STARTUP_ASYNC,
