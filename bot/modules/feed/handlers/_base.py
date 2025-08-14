@@ -1,4 +1,4 @@
-from typing import Optional, Any
+from typing import Any
 from aiogram.types import CallbackQuery
 
 from configs.env import GKFEED_USER, GKFEED_PASSWORD
@@ -6,20 +6,12 @@ from services.gkfeed import GkfeedService, FeedItem
 from extensions.handlers.base import BaseHandler as _ExtensionsBaseHandler
 from ..ui.keyboards import FeedMarkup
 
+if not GKFEED_USER or not GKFEED_PASSWORD:
+    raise ValueError("Gkfeed is not configured")
+
 
 class BaseHandler(_ExtensionsBaseHandler):
-    __gkfeed: Optional[GkfeedService] = None
-
-    @property
-    def _gkfeed(self) -> GkfeedService:
-        if self.__gkfeed:
-            return self.__gkfeed
-
-        if GKFEED_USER is None or GKFEED_PASSWORD is None:
-            raise ValueError("GKFEED_USER and GKFEED_PASSWORD must be set")
-
-        self.__gkfeed = GkfeedService(GKFEED_USER, GKFEED_PASSWORD)
-        return self.__gkfeed
+    _gkfeed = GkfeedService(GKFEED_USER, GKFEED_PASSWORD)
 
     async def _send_item(self, item: FeedItem):
         if self.event.from_user is None:
