@@ -19,7 +19,7 @@ jobs:
           pip install -r requirements-dev.txt
           python scripts/install_site_packages.py ~/.local/lib/python3.12/site-packages
       - name: Run tests
-        run: pytest
+        run: make test
   deploy:
     runs-on: ubuntu-latest
     needs: test
