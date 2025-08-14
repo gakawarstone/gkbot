@@ -1,18 +1,22 @@
 import asyncio
 from typing import Any
 
+from aiogram.types import Message
 
-from extensions.handlers.message.base import BaseHandler as BaseMessageHandler
+
 from ._base import BaseHandler
 from ._item_processor import GkfeedItemProcessorExtension
 
 
 class ShowFeedItemsHandler(
-    GkfeedItemProcessorExtension, BaseHandler, BaseMessageHandler
+    GkfeedItemProcessorExtension, BaseHandler
 ):
     _items_limit = 1
 
     async def handle(self) -> Any:
+        if not isinstance(self.event, Message):
+            raise ValueError("event must be Message")
+
         await self.event.delete()
 
         items_cnt = 0
