@@ -15,8 +15,7 @@ class BaseFeedItemView(BaseHandler):
         link_caption: str = "Link",
     ):
         try:
-            await self.bot.send_photo(
-                self.event.from_user.id,
+            await self.answer_photo(
                 URLInputFile(media_url),
                 caption=f'<b>{description}</b>\n\n<a href="{item.link}">{link_caption}</a>',
                 reply_markup=FeedMarkup.get_item_markup(item.id, item.feed_id),

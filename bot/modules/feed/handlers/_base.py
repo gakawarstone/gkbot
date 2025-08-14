@@ -1,13 +1,13 @@
-from typing import Optional
-from aiogram.handlers import BaseHandler as _BaseHandler
-from aiogram.types import CallbackQuery, Message
+from typing import Optional, Any
+from aiogram.types import CallbackQuery
 
 from configs.env import GKFEED_USER, GKFEED_PASSWORD
 from services.gkfeed import GkfeedService, FeedItem
+from extensions.handlers.base import BaseHandler as _ExtensionsBaseHandler
 from ..ui.keyboards import FeedMarkup
 
 
-class BaseHandler(_BaseHandler[CallbackQuery | Message]):
+class BaseHandler(_ExtensionsBaseHandler):
     __gkfeed: Optional[GkfeedService] = None
 
     @property
@@ -30,9 +30,23 @@ class BaseHandler(_BaseHandler[CallbackQuery | Message]):
             reply_markup=FeedMarkup.get_item_markup(item.id, item.feed_id),
         )
 
-    async def answer(self, *args, **kwargs):
+    async def answer(self, *args: Any, **kwargs: Any):
         if isinstance(self.event, CallbackQuery):
             if self.event.message is None:
                 raise ValueError("message is required for CallbackQuery.answer")
             return await self.event.message.answer(*args, **kwargs)
         return await self.event.answer(*args, **kwargs)
+
+    async def answer_photo(self, *args: Any, **kwargs: Any):
+        if isinstance(self.event, CallbackQuery):
+            if self.event.message is None:
+                raise ValueError("message is required for CallbackQuery.answer_photo")
+            return await self.event.message.answer_photo(*args, **kwargs)
+        return await self.event.answer_photo(*args, **kwargs)
+
+    async def answer_video(self, *args: Any, **kwargs: Any):
+        if isinstance(self.event, CallbackQuery):
+            if self.event.message is None:
+                raise ValueError("message is required for CallbackQuery.answer_video")
+            return await self.event.message.answer_video(*args, **kwargs)
+        return await self.event.answer_video(*args, **kwargs)

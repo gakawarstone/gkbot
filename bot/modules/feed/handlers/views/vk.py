@@ -40,8 +40,7 @@ class VKFeedItemView(BaseFeedItemView, HttpExtension):
         if not description or not isinstance(description, str):
             raise ValueError("Description content not found")
 
-        await self.bot.send_message(
-            self.event.from_user.id,
+        await self.answer(
             f"<b>{description.replace('<br>', '\n')}</b>\n\n<a href='{item.link}'>{self._get_channel_name(soup)}</a>",
             reply_markup=FeedMarkup.get_item_markup(item.id, item.feed_id),
             disable_web_page_preview=True,

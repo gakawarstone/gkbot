@@ -36,7 +36,7 @@ class PiokokFeedItemView(VideoFeedItemView, BaseHandler, HttpExtension):
     async def __send_piokok_item_as_carousel(
         self, item: FeedItem, media_url: str, media_len: int
     ):
-        await self.event.answer_photo(
+        await self.answer_photo(
             URLInputFile(media_url),
             caption=f'<a href="{item.link}">Link</a>',
             reply_markup=PiokokFeedItemMarkup.get_item_markup(item.id, media_len, 0),
