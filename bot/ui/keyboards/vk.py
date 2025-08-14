@@ -16,11 +16,11 @@ class VkMarkup:
         builder.row(
             VKDownloadButtonBuilder.build(
                 button_data=VKDownloadButtonData.audio,
-                callback_data=VKDownloadButtonCallbackData(url=url),
+                callback_data=VKDownloadButtonCallbackData(url, True),
             ),
             VKDownloadButtonBuilder.build(
                 button_data=VKDownloadButtonData.video,
-                callback_data=VKDownloadButtonCallbackData(url=url),
+                callback_data=VKDownloadButtonCallbackData(url, True),
             ),
             deleteMessageButton,
         )
