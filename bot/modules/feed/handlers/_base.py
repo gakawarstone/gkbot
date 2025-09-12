@@ -18,7 +18,9 @@ class BaseHandler(_ExtensionsBaseHandler):
             raise ValueError("from_user is required to send a message")
         await self.bot.send_message(
             self.event.from_user.id,
-            f'<a href="{item.link}">Link</a>',
+            f'<a href="{item.link}">{
+                item.link.split("https://")[1].split("/")[0].split(".")[-2]
+            }</a>',
             reply_markup=FeedMarkup.get_item_markup(item.id, item.feed_id),
         )
 
