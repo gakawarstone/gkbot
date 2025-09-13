@@ -25,6 +25,7 @@ class _UserCommands(_Commands):
     ask = "ask"
     cvision = "cvision"
     chatgpt = "chatgpt"
+    login_feed = "login_feed"
 
 
 USER_COMMANDS = _UserCommands()

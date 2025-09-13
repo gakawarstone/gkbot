@@ -40,7 +40,7 @@ class ItemEventHandler(GkfeedItemProcessorExtension, BaseHandler):
 
         match event:
             case FeedMarkup.data.delete:
-                await self._gkfeed.delete_item_by_id(data)
+                await (await self._gkfeed()).delete_item_by_id(data)
                 await self.event.message.delete()
             case FeedMarkup.data.keep:
                 await self.event.message.delete()
@@ -48,14 +48,14 @@ class ItemEventHandler(GkfeedItemProcessorExtension, BaseHandler):
                 await self._send_items_from_feed(data)
 
     async def _send_one_feed_item(self):
-        async for item in self._gkfeed.get_all_user_items():
+        async for item in (await self._gkfeed()).get_all_user_items():
             print(item.id)
             await self._process_item(item)
             break
 
     async def _send_items_from_feed(self, feed_id: int, limit=10) -> None:
         items_cnt = 0
-        async for item in self._gkfeed.get_items_from_feed(feed_id):
+        async for item in (await self._gkfeed()).get_items_from_feed(feed_id):
             if items_cnt > limit:
                 break
 

@@ -8,7 +8,7 @@ from . import BaseFeedItemView
 
 class ShikiFeedItemView(BaseFeedItemView, HttpExtension):
     async def _process_shiki_item(self, item: FeedItem) -> None:
-        data = await self._gkfeed.get_raw_item_data(item.id)
+        data = await (await self._gkfeed()).get_raw_item_data(item.id)
         soup = await self._get_soup(item.link)
 
         media_url = self._get_media_url(soup)

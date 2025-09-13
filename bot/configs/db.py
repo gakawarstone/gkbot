@@ -8,6 +8,7 @@ MODELS = [
     "models.books",
     "models.timezone",
     "models.tasks",
+    "models.gkfeed",
 ]
 
 

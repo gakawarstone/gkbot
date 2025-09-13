@@ -1,26 +1,23 @@
 from typing import Any
 from aiogram.types import CallbackQuery
 
-from configs.env import GKFEED_USER, GKFEED_PASSWORD
 from services.gkfeed import GkfeedService, FeedItem
+from services.gkfeed_auth import GkfeedAuthService
 from extensions.handlers.base import BaseHandler as _ExtensionsBaseHandler
 from ..ui.keyboards import FeedMarkup
 
-if not GKFEED_USER or not GKFEED_PASSWORD:
-    raise ValueError("Gkfeed is not configured")
-
 
 class BaseHandler(_ExtensionsBaseHandler):
-    _gkfeed = GkfeedService(GKFEED_USER, GKFEED_PASSWORD)
+    async def _gkfeed(self) -> GkfeedService:
+        credentials = await GkfeedAuthService().get_credentials(self.event.from_user.id)
+        return GkfeedService(credentials.login, credentials.password)
 
     async def _send_item(self, item: FeedItem):
         if self.event.from_user is None:
             raise ValueError("from_user is required to send a message")
         await self.bot.send_message(
             self.event.from_user.id,
-            f'<a href="{item.link}">{
-                item.link.split("https://")[1].split("/")[0].split(".")[-2]
-            }</a>',
+            f'<a href="{item.link}">{item.link.split("https://")[1].split("/")[0].split(".")[-2]}</a>',
             reply_markup=FeedMarkup.get_item_markup(item.id, item.feed_id),
         )
 

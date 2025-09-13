@@ -22,7 +22,7 @@ class ShowFeedItemsHandler(
         items_cnt = 0
         try:
             async with asyncio.TaskGroup() as tg:
-                async for item in self._gkfeed.get_all_user_items():
+                async for item in (await self._gkfeed()).get_all_user_items():
                     if items_cnt >= self._items_limit:
                         break
 

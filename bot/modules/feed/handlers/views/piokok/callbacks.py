@@ -17,7 +17,7 @@ class PiokokCarouselWidgetEventHandler(
 
     async def _get_media_list(self) -> list[InputMediaPhoto]:
         item_id = int(await self._callback_data())
-        item = await self._gkfeed.get_item_by_item_id(int(item_id))
+        item = await (await self._gkfeed()).get_item_by_item_id(int(item_id))
         soup = await self._get_soup(item.link)
         photos: list[InputMediaPhoto] = []
         for pic in soup.find_all(class_="pic"):
