@@ -11,12 +11,8 @@ from .handlers.callbacks import ItemEventHandler
 
 
 def setup(r: Router):
-    r.message.register(
-        ShowFeedItemsHandler, and_f(Command(USER_COMMANDS.feed), BotAdmin())
-    )
-    r.callback_query.register(
-        ItemEventHandler, and_f(F.data.startswith(FeedMarkup.prefix), BotAdmin())
-    )
+    r.message.register(ShowFeedItemsHandler, Command(USER_COMMANDS.feed))
+    r.callback_query.register(ItemEventHandler, F.data.startswith(FeedMarkup.prefix))
     piokok.setup(r)
     add.setup(r)
     auth.setup(r)
