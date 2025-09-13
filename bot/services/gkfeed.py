@@ -16,15 +16,16 @@ class FeedItem:
 
 class GkfeedService:
     _api_root = "https://feed.gws.freemyip.com/api/v1/"
-    _items_priority: dict[int, int] = {}
-    _items_offset: dict[int, int] = {}
-    _items_pocket: list[int] = []
+    _items_pocket: dict[str, list[int]] = {}
 
     def __init__(self, login: str, password: str) -> None:
         self.__login = login
         self.__password = password
 
     async def get_all_user_items(self) -> AsyncGenerator[FeedItem, None]:
+        if self.__login not in self._items_pocket:
+            self._items_pocket[self.__login] = []
+
         resp = await self._get_html(self._api_root + "get_items")
         data = json.loads(resp)
 
@@ -45,31 +46,11 @@ class GkfeedService:
             if self._should_return_item_using_pocket_strategy(item):
                 yield item
 
-        if not sorted_items:
-            self._items_pocket = []
-
-    def _should_return_item_using_priority_strategy(
-        self, item: FeedItem, current_item_nummer: int
-    ) -> bool:
-        if item.id not in self._items_priority:
-            self._items_priority[item.id] = 0
-        if item.id not in self._items_offset:
-            self._items_offset[item.id] = 0
-
-        self._items_offset[item.id] -= current_item_nummer + 1
-
-        if self._items_offset[item.id] < 0:
-            self._items_offset[item.id] = 0
-
-        if self._items_offset[item.id] <= 0:
-            self._items_priority[item.id] -= 5
-            self._items_offset[item.id] -= self._items_priority[item.id]
-            return True
-        return False
+        self._items_pocket[self.__login] = []
 
     def _should_return_item_using_pocket_strategy(self, item: FeedItem) -> bool:
-        if item.id not in self._items_pocket:
-            self._items_pocket.append(item.id)
+        if item.id not in self._items_pocket[self.__login]:
+            self._items_pocket[self.__login].append(item.id)
             return True
         return False
 
