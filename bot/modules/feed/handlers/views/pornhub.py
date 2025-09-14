@@ -3,7 +3,7 @@ from aiogram.types import URLInputFile
 from bs4 import Tag
 
 from services.gkfeed import FeedItem
-from modules.feed.ui.keyboards import FeedMarkup
+from modules.feed.ui.keyboards.pornhub import PornhubFeedItemMarkup
 from modules.feed.handlers.views.base import BaseWebFeedItemView
 
 
@@ -42,7 +42,7 @@ class PornhubFeedItemView(BaseWebFeedItemView):
             await self.answer_photo(
                 URLInputFile(media_url),
                 caption=f'<b>{description}</b>\n\n<a href="{item.link}">{link_caption}</a>',
-                reply_markup=FeedMarkup.get_item_markup(item.id, item.feed_id),
+                reply_markup=PornhubFeedItemMarkup.get_item_markup(item.id, item.link),
                 has_spoiler=True,
             )
         except TelegramBadRequest:
