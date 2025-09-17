@@ -17,11 +17,13 @@ from .views.stories import StoriesFeedItemView
 from .views.twitch import TwitchFeedItemView
 from .views.tiktok import TikTokFeedItemView
 from .views.pornhub import PornhubFeedItemView
+from .views.discours import DiscoursFeedItemView
 
 _ITEM_PROCESSOR = Callable[[FeedItem], Awaitable[Any]]
 
 
 class GkfeedItemProcessorExtension(
+    DiscoursFeedItemView,
     PornhubFeedItemView,
     TikTokFeedItemView,
     TwitchFeedItemView,
@@ -55,6 +57,7 @@ class GkfeedItemProcessorExtension(
             "https://www.twitch": self._process_twitch_item,
             "https://www.tiktok": self._process_tiktok_item,
             "https://www.pornhub.com": self._process_pornhub_item,
+            "https://discours.io": self._process_discours_item,
         }
 
     async def _process_item(self, item: FeedItem):
