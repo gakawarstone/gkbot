@@ -1,9 +1,11 @@
+from aiogram.types import InlineKeyboardMarkup
 from bs4 import Tag, BeautifulSoup
 
 from services.gkfeed import FeedItem
 from extensions.handlers.message.http import HttpExtension
 from ...ui.keyboards import FeedMarkup
 from . import BaseFeedItemView
+from ...ui.keyboards.vk import VKFeedVideoItemMarkup
 
 _DEFAULT_THUMBNAIL_URL = (
     "http://sun6-21.userapi.com/fafvjSB8ha2EWPn-VR6LIahBtBkf50LZSLbKfQ/BiN2pjgeJTw.png"
@@ -14,19 +16,31 @@ class VKFeedItemView(BaseFeedItemView, HttpExtension):
     async def _process_vk_item(self, item: FeedItem):
         soup = await self._get_soup(item.link)
 
-        meta_tag = soup.find("meta", attrs={"property": "og:image"})
-        if not isinstance(meta_tag, Tag):
+        image_meta_tag = soup.find("meta", attrs={"property": "og:image"})
+        if not isinstance(image_meta_tag, Tag):
             return await self._send_text_item(item, soup)
 
-        media_url = meta_tag.get("content")
+        media_url = image_meta_tag.get("content")
         if not media_url or media_url == _DEFAULT_THUMBNAIL_URL:
             return await self._send_text_item(item, soup)
+
+        reply_markup: InlineKeyboardMarkup | None = None
+        video_meta_tag = soup.find("meta", attrs={"property": "og:video"})
+        if video_meta_tag and isinstance(video_meta_tag, Tag):
+            object_id = video_meta_tag.get("content").split("oid=")[-1].split("&")[0]
+            video_id = video_meta_tag.get("content").split("id=")[-1].split("&")[0]
+            video_link = f"https://vk.com/video{object_id}_{video_id}"
+            reply_markup = VKFeedVideoItemMarkup.get_item_markup(item.id, video_link)
 
         title_tag = soup.find("title")
         title = title_tag.text if isinstance(title_tag, Tag) else ""
 
         await self._send_photo(
-            item, str(media_url), title.split(" | ")[0], title.split(" | ")[1]
+            item,
+            str(media_url),
+            title.split(" | ")[0],
+            title.split(" | ")[1],
+            reply_markup,
         )
 
     async def _send_text_item(self, item: FeedItem, soup: BeautifulSoup):
