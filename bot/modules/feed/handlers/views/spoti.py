@@ -1,6 +1,7 @@
+from bs4 import Tag
+
 from services.gkfeed import FeedItem
 from extensions.handlers.message.http import HttpExtension
-from bs4 import Tag
 from . import BaseFeedItemView
 
 
@@ -29,4 +30,11 @@ class SpotiFeedItemView(BaseFeedItemView, HttpExtension):
         if description.split(" · ")[0] == "Playlist":
             return await self._send_photo(item, str(media_url), "", title)
 
-        await self._send_photo(item, str(media_url), title + "\n" + description)
+        artist_name = description.split(" · ")[0]
+        release_name = title.split(" - ")[0]
+        await self._send_photo(
+            item,
+            str(media_url),
+            f"{release_name} - {artist_name}",
+            "Spotify Release",
+        )
