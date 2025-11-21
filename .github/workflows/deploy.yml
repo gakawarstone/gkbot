@@ -20,7 +20,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt -y install build-essential libxml2-dev libxslt-dev
-          uv sync --dev
+          uv sync --dev --python 3.12
           python scripts/install_site_packages.py ~/.local/lib/python3.12/site-packages
 
       - name: Run tests
