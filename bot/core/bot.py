@@ -18,7 +18,7 @@ class BotStarter:
 
     def __init__(self, config: BotConfig):
         session = AiohttpSession(  # NOTE timeout
-            api=TelegramAPIServer.from_base(config.api_url)
+            api=TelegramAPIServer.from_base(config.api_url), timeout=300.0
         )
         self.bot = Bot(
             token=config.token,
