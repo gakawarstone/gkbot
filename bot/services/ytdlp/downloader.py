@@ -15,7 +15,7 @@ class YtdlpDownloader:
     @classmethod
     async def download_audio(cls, url: str) -> AudioFileInfo:
         info = await cls._get_info(url)
-        opts = YtDlpOptionsManager.choose_audio_options(url)
+        opts = await YtDlpOptionsManager.choose_audio_options(url)
         file = await cls._download_file(url, opts)
 
         return AudioFileInfo(
@@ -27,7 +27,7 @@ class YtdlpDownloader:
     @classmethod
     async def download_video(cls, url: str) -> VideoFileInfo:
         info = await cls._get_info(url)
-        opts = YtDlpOptionsManager.choose_video_options(url)
+        opts = await YtDlpOptionsManager.choose_video_options(url)
         file = await cls._download_file(url, opts)
 
         width = info.get("width", 0)

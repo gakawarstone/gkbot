@@ -7,19 +7,18 @@ from ._options import VideoDownloadOptions, AudioDownloadOptions
 
 class YtDlpOptionsManager:
     @classmethod
-    def choose_audio_options(cls, url: str) -> dict[str, Any]:
-        # Use a fresh dict to avoid type invariance issues and accidental mutation of class-level dicts
+    async def choose_audio_options(cls, url: str) -> dict[str, Any]:
         opts: dict[str, Any] = {}
         if url.startswith("https://vk.com"):
             opts.update(AudioDownloadOptions.vk)
         else:
             opts.update(AudioDownloadOptions.youtube)
 
-        opts["outtmpl"] = CacheDir().path + "/" + "audio.m4a"
+        opts["outtmpl"] = await cls._create_path("audio.m4a")
         return opts
 
     @classmethod
-    def choose_video_options(cls, url: str) -> dict[str, Any]:
+    async def choose_video_options(cls, url: str) -> dict[str, Any]:
         opts: dict[str, Any] = {}
 
         _yt_pattern = (
@@ -35,5 +34,11 @@ class YtDlpOptionsManager:
         if url.startswith("https://vk.com/clip-"):
             opts.update(VideoDownloadOptions.tiktok)
 
-        opts["outtmpl"] = CacheDir().path + "/" + "video.mp4"
+        opts["outtmpl"] = await cls._create_path("video.mp4")
         return opts
+
+    @staticmethod
+    async def _create_path(file_name: str) -> str:
+        cache_dir = CacheDir()
+        await cache_dir.delete_after(minutes=5)
+        return cache_dir.path + "/" + file_name

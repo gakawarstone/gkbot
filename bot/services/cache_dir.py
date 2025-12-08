@@ -3,6 +3,7 @@ import shutil
 from uuid import uuid4
 
 from configs.services.cache_dir import CACHE_DIR_PATH
+from services.schedule import Schedule, Task
 
 
 class CacheDir:
@@ -21,3 +22,13 @@ class CacheDir:
 
     def delete(self) -> None:
         shutil.rmtree(self.path)
+        del self
+
+    async def delete_after(self, minutes: int) -> None:
+        async def _delete(self) -> None:
+            self.delete()
+
+        await Schedule.run_task_after(
+            Task(_delete),
+            minutes * 60,
+        )

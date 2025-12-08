@@ -1,5 +1,5 @@
 import asyncio
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from typing import Awaitable, Any, Callable
 import pickle
 
@@ -41,6 +41,14 @@ class Schedule:
     async def add_task(cls, task: Task, time: datetime) -> None:
         await cls.__tasks.add(task, time)
 
+    @classmethod
+    async def run_task_after(cls, task: Task, delay_seconds: int) -> None:
+        local_timezone = datetime.now(timezone(timedelta(0))).astimezone().tzinfo
+        run_time = (datetime.now() + timedelta(seconds=delay_seconds)).astimezone(
+            local_timezone
+        )
+        await cls.add_task(task, run_time)
+
     @staticmethod
     def __get_now_timestamp() -> float:
         return datetime.strptime(
@@ -56,6 +64,7 @@ class Schedule:
                     await cls.__tasks.remove_by_id(id)
             await asyncio.sleep(delay)
 
+    # FIXME: not async
     @classmethod
     async def on_startup(cls):
         asyncio.create_task(cls.__dispatcher())
