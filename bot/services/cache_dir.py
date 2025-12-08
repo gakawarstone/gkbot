@@ -22,13 +22,12 @@ class CacheDir:
 
     def delete(self) -> None:
         shutil.rmtree(self.path)
-        del self
+
+    async def _delete(self) -> None:
+        self.delete()
 
     async def delete_after(self, minutes: int) -> None:
-        async def _delete(self) -> None:
-            self.delete()
-
         await Schedule.run_task_after(
-            Task(_delete),
+            Task(self._delete),
             minutes * 60,
         )
