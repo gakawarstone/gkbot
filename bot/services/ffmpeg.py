@@ -47,6 +47,22 @@ class FfmpegService:
         return content
 
     @classmethod
+    async def convert_video(cls, input_path: str, output_path: str) -> None:
+        command = cls._build_command(
+            inputs=[input_path],
+            output=output_path,
+            props=[
+                "-c:v",
+                "libx264",
+                "-c:a",
+                "aac",
+                "-pix_fmt",
+                "yuv420p",
+            ],
+        )
+        await async_wrap(subprocess.run)(command, check=True)
+
+    @classmethod
     async def make_slideshow_from_web(
         cls, images_urls: list[str], audio_url: str | None
     ) -> bytes:

@@ -5,6 +5,7 @@ import re
 import yt_dlp
 from aiogram.types import FSInputFile, InputFile, URLInputFile
 
+from services.ffmpeg import FfmpegService
 from utils.async_wrapper import async_wrap
 from workers.yt_dlp import get_info, download_video
 from ._types import AudioFileInfo, VideoFileInfo
@@ -69,4 +70,11 @@ class YtdlpDownloader:
                 output_path += "." + postprocessor["preferedformat"]
             if "preferredcodec" in postprocessor:
                 output_path += "." + postprocessor["preferredcodec"]
+
+        if "instagram.com/reel" in url:
+            base, _ = os.path.splitext(output_path)
+            converted_path = f"{base}_converted.mp4"
+            await FfmpegService.convert_video(output_path, converted_path)
+            output_path = converted_path
+
         return FSInputFile(output_path)
