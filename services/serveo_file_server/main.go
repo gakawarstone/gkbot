@@ -44,7 +44,7 @@ func startSSHTunnel(port int) (*exec.Cmd, string, error) {
 	var serveoURL string
 	for scanner.Scan() {
 		line := scanner.Text()
-		re := regexp.MustCompile(`https?://[^\s]+\.serveo\.net`)
+		re := regexp.MustCompile(`https?://[^\s]+(?:\.serveo\.net|\.serveousercontent\.com)`)
 		if url := re.FindString(line); url != "" {
 			serveoURL = url
 			break
