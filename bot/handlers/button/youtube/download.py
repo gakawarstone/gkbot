@@ -1,7 +1,9 @@
 from aiogram import Router, F
-from aiogram.types import CallbackQuery, Message, InaccessibleMessage
+from aiogram.types import CallbackQuery, Message, InaccessibleMessage, URLInputFile
 
+from utils.strings import remove_emoji
 from services.ytdlp import YtdlpDownloader
+from services.youtube import YoutubeApiService
 from ui.buttons.youtube.download import (
     YoutubeDownloadButtonData,
     YoutubeDownloadButtonDataSerializer,
@@ -54,12 +56,19 @@ async def download(callback: CallbackQuery):
 
     if _is_button_callback(callback, YoutubeDownloadButtonData.video):
         video = await YtdlpDownloader.download_video(url)
+        data = await YoutubeApiService.get_video_data(url)
+
+        channel_title = remove_emoji(data.channel_title)
+        caption = f'<b>{video.title}</b>\n\n<a href="{url}">{channel_title}</a>'
+
         await callback.message.answer_video(
             video.input_file,
             height=video.height,
             width=video.width,
             duration=video.duration,
             supports_streaming=True,
+            caption=caption,
+            thumbnail=URLInputFile(data.thumbnail_url),
         )
 
     if isinstance(status_message, Message):
