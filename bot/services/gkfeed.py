@@ -28,16 +28,9 @@ class GkfeedService:
 
         resp = await self._get_html(self._api_root + "get_items")
         data = json.loads(resp)
+        items = self._sort_items_by_feed(data["items"])
 
-        sorted_items = sorted(
-            filter(
-                lambda x: x["id"] not in self._items_pocket and x["link"], data["items"]
-            ),
-            key=lambda x: x["id"],
-            reverse=True,
-        )
-
-        for raw_item in reversed(sorted_items):
+        for raw_item in items:
             if not raw_item["link"]:
                 print(raw_item)
                 continue
@@ -47,6 +40,29 @@ class GkfeedService:
                 yield item
 
         self._items_pocket[self.__login] = []
+
+    def _sort_items_by_feed(self, items: list[dict]) -> list[dict]:
+        items_by_id = sorted(items, key=lambda x: x["id"])
+
+        items_by_feed: dict[int, list[dict]] = {}
+        for item in items_by_id:
+            feed_id = item["feed_id"]
+            if feed_id not in items_by_feed:
+                items_by_feed[feed_id] = []
+            items_by_feed[feed_id].append(item)
+
+        final_sorted_items = []
+        processed_feed_ids = set()
+
+        for item in items_by_id:
+            feed_id = item["feed_id"]
+            if feed_id in processed_feed_ids:
+                continue
+
+            final_sorted_items.extend(items_by_feed[feed_id])
+            processed_feed_ids.add(feed_id)
+
+        return final_sorted_items
 
     def _should_return_item_using_pocket_strategy(self, item: FeedItem) -> bool:
         if item.id not in self._items_pocket[self.__login]:
