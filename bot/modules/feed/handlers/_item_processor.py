@@ -18,11 +18,13 @@ from .views.twitch import TwitchFeedItemView
 from .views.tiktok import TikTokFeedItemView
 from .views.pornhub import PornhubFeedItemView
 from .views.discours import DiscoursFeedItemView
+from .views.instagram import InstagramFeedItemView
 
 _ITEM_PROCESSOR = Callable[[FeedItem], Awaitable[Any]]
 
 
 class GkfeedItemProcessorExtension(
+    InstagramFeedItemView,
     DiscoursFeedItemView,
     PornhubFeedItemView,
     TikTokFeedItemView,
@@ -58,6 +60,8 @@ class GkfeedItemProcessorExtension(
             "https://www.tiktok": self._process_tiktok_item,
             "https://www.pornhub.com": self._process_pornhub_item,
             "https://discours.io": self._process_discours_item,
+            "https://instagram.com": self._process_instagram_item,
+            "https://www.instagram.com": self._process_instagram_item,
         }
 
     async def _process_item(self, item: FeedItem):
@@ -71,3 +75,4 @@ class GkfeedItemProcessorExtension(
         except Exception:
             await self._send_item(item)
             print("Failed to process item: ", item)
+

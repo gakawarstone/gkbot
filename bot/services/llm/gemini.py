@@ -10,7 +10,7 @@ from ._base import LLM, StreamChunk
 class Gemini(LLM):
     def _get_model(self) -> GenerativeModel:
         configure(api_key=GEMINI_API_KEY)
-        return GenerativeModel("gemini-2.0-flash")
+        return GenerativeModel("gemini-2.5-flash")
 
     async def generate(self, prompt: str) -> str:
         response = await self._get_model().generate_content_async(prompt)
