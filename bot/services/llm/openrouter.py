@@ -11,6 +11,7 @@ class OpenRouterModel(Enum):
     META_LLAMA_4_SCOUT = "meta-llama/llama-4-scout:free"
     MICROSOFT_PHI_4_REASONING = "microsoft/phi-4-reasoning:free"
     DEEPSEEK_DEEPSEEK_R1_0528 = "deepseek/deepseek-r1-0528:free"
+    SOLAR_PRO_3 = "upstage/solar-pro-3:free"
 
 
 class OpenRouter(LLM):
