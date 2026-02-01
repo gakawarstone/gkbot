@@ -2,13 +2,17 @@ from typing import AsyncGenerator, override
 
 import pytest
 
-from services.gkfeed import FeedItem
+from services.gkfeed import FeedItem, GkfeedService
 from modules.feed import ShowFeedItemsHandler
 from .. import integration_test
 from . import Bot, Event
 
 
-class GkfeedService:
+class MockedGkfeedService(GkfeedService):
+    def __init__(self):
+        super().__init__("login", "password")
+
+    @override
     async def get_all_user_items(self) -> AsyncGenerator[FeedItem, None]:
         links = [
             "https://trashbox.ru/link/2025-03-10-iphone-17-air-iphone-17-pro",
@@ -22,7 +26,9 @@ class GkfeedService:
 
 
 class MockedHandler(ShowFeedItemsHandler):
-    _gkfeed = GkfeedService()
+    @override
+    async def _gkfeed(self) -> GkfeedService:
+        return MockedGkfeedService()
 
     @property  # type: ignore[override]
     @override
