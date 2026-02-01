@@ -1,7 +1,6 @@
 from aiogram import Router, F
-from aiogram.filters import Command, and_f
+from aiogram.filters import Command
 
-from filters.bot_admin import BotAdmin
 from configs.commands import USER_COMMANDS
 from .ui.keyboards import FeedMarkup
 from .handlers import add, auth
