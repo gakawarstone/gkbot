@@ -4,8 +4,8 @@ from bs4 import Tag, BeautifulSoup
 from services.gkfeed import FeedItem
 from extensions.handlers.message.http import HttpExtension
 from ...ui.keyboards import FeedMarkup
-from . import BaseFeedItemView
 from ...ui.keyboards.vk import VKFeedVideoItemMarkup
+from . import BaseFeedItemView
 
 _DEFAULT_THUMBNAIL_URL = (
     "http://sun6-21.userapi.com/fafvjSB8ha2EWPn-VR6LIahBtBkf50LZSLbKfQ/BiN2pjgeJTw.png"
@@ -16,51 +16,106 @@ class VKFeedItemView(BaseFeedItemView, HttpExtension):
     async def _process_vk_item(self, item: FeedItem):
         soup = await self._get_soup(item.link)
 
-        image_meta_tag = soup.find("meta", attrs={"property": "og:image"})
-        if not isinstance(image_meta_tag, Tag):
+        if not self._is_media_item(soup):
             return await self._send_text_item(item, soup)
 
-        media_url = image_meta_tag.get("content")
-        if not media_url or media_url == _DEFAULT_THUMBNAIL_URL:
-            return await self._send_text_item(item, soup)
+        media_url = self._get_og_image(soup)
+        title, channel_name = self._parse_title(soup)
 
-        reply_markup: InlineKeyboardMarkup | None = None
-        video_meta_tag = soup.find("meta", attrs={"property": "og:video"})
-        if video_meta_tag and isinstance(video_meta_tag, Tag):
-            object_id = video_meta_tag.get("content").split("oid=")[-1].split("&")[0]
-            video_id = video_meta_tag.get("content").split("id=")[-1].split("&")[0]
-            video_link = f"https://vk.com/video{object_id}_{video_id}"
-            reply_markup = VKFeedVideoItemMarkup.get_item_markup(item.id, video_link)
-
-        title_tag = soup.find("title")
-        title = title_tag.text if isinstance(title_tag, Tag) else ""
+        reply_markup = None
+        if self._is_video_item(soup):
+            reply_markup = self._get_video_markup(item, soup)
 
         await self._send_photo(
-            item,
-            str(media_url),
-            title.split(" | ")[0],
-            title.split(" | ")[1],
-            reply_markup,
+            item=item,
+            media_url=media_url,
+            description=title,
+            link_caption=channel_name,
+            reply_markup=reply_markup,
         )
 
     async def _send_text_item(self, item: FeedItem, soup: BeautifulSoup):
-        soup = await self._get_soup(item.link)
-
-        description_tag = soup.find("meta", attrs={"property": "og:description"})
-        if not description_tag or not isinstance(description_tag, Tag):
-            raise ValueError("Description meta tag not found")
-
-        description = description_tag.get("content")
-        if not description or not isinstance(description, str):
-            raise ValueError("Description content not found")
+        description = self._get_og_description(soup)
+        _, channel_name = self._parse_title(soup)
 
         await self.answer(
-            f"<b>{description.replace('<br>', '\n')}</b>\n\n<a href='{item.link}'>{self._get_channel_name(soup)}</a>",
+            f"<b>{description.replace('<br>', '\n')}</b>\n\n<a href='{item.link}'>{channel_name}</a>",
             reply_markup=FeedMarkup.get_item_markup(item.id, item.feed_id),
             disable_web_page_preview=True,
         )
 
-    def _get_channel_name(self, soup: BeautifulSoup) -> str:
-        title_tag = soup.find("title")
-        title = title_tag.text if isinstance(title_tag, Tag) else ""
-        return title.split(" | ")[1]
+    def _is_media_item(self, soup: BeautifulSoup) -> bool:
+        tag = soup.find("meta", attrs={"property": "og:image"})
+        if not isinstance(tag, Tag):
+            return False
+
+        content = tag.get("content")
+        if not isinstance(content, str) or not content or content == _DEFAULT_THUMBNAIL_URL:
+            return False
+
+        return True
+
+    def _is_video_item(self, soup: BeautifulSoup) -> bool:
+        tag = soup.find("meta", attrs={"property": "og:video"})
+        if not isinstance(tag, Tag):
+            return False
+
+        content = tag.get("content")
+        if not isinstance(content, str):
+            return False
+
+        return "oid=" in content and "&" in content and "id=" in content
+
+    def _get_og_image(self, soup: BeautifulSoup) -> str:
+        tag = soup.find("meta", attrs={"property": "og:image"})
+        if not isinstance(tag, Tag):
+            raise ValueError("og:image meta tag not found")
+
+        content = tag.get("content")
+        if not isinstance(content, str):
+            raise ValueError("og:image content not found")
+
+        return content
+
+    def _get_og_description(self, soup: BeautifulSoup) -> str:
+        tag = soup.find("meta", attrs={"property": "og:description"})
+        if not isinstance(tag, Tag):
+            raise ValueError("og:description meta tag not found")
+
+        content = tag.get("content")
+        if not isinstance(content, str):
+            raise ValueError("og:description content not found")
+
+        return content
+
+    def _parse_title(self, soup: BeautifulSoup) -> tuple[str, str]:
+        tag = soup.find("title")
+        if not isinstance(tag, Tag):
+            raise ValueError("title tag not found")
+
+        raw_title = tag.text
+        parts = raw_title.split(" | ")
+        if len(parts) < 2:
+            return raw_title, ""
+
+        return parts[0], parts[1]
+
+    def _get_video_markup(
+        self,
+        item: FeedItem,
+        soup: BeautifulSoup,
+    ) -> InlineKeyboardMarkup:
+        tag = soup.find("meta", attrs={"property": "og:video"})
+        if not isinstance(tag, Tag):
+            raise ValueError("og:video meta tag not found")
+
+        content = tag.get("content")
+        if not isinstance(content, str):
+            raise ValueError("og:video content not found")
+
+        oid_part = content.split("oid=")[-1].split("&")[0]
+        id_part = content.split("id=")[-1].split("&")[0]
+
+        video_link = f"https://vk.com/video{oid_part}_{id_part}"
+        return VKFeedVideoItemMarkup.get_item_markup(item.id, video_link)
+
