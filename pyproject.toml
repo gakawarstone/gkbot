@@ -14,7 +14,7 @@ dependencies = [
     "tortoise-orm==0.21.6",
     "docx2txt",
     "varname==0.13.0",
-    "yt-dlp==2025.4.30",
+    "yt-dlp==2026.1.29",
     "pytube",
     "pure-eval",
     "edge-tts",
@@ -28,7 +28,7 @@ dependencies = [
 [dependency-groups]
 dev = [
     "mypy>=1.16.1",
-    "pyright>=1.1.402",
+    "pyright>=1.1.408",
     "pytest>=8.3.5",
     "pytest-asyncio>=0.25.3",
     "types-requests>=2.32.4.20250611",
