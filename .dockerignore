@@ -10,3 +10,4 @@ log.txt
 /build
 /dist
 .venv
+/services/bot-api/data
