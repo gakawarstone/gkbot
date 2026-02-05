@@ -32,12 +32,21 @@ class ApiExtractor(BaseExtractor):
         try:
             video_url = ""
             images_urls = []
+            height = None
+            width = None
+            duration = None
 
             if "image_post_info" in data["data"]:
                 for img in data["data"]["image_post_info"]["images"]:
                     images_urls.append(img["display_image"]["url_list"][0])
             if "video" in data["data"]:
-                video_url = data["data"]["video"]["play_addr"]["url_list"][0]
+                video_data = data["data"]["video"]
+                video_url = video_data["play_addr"]["url_list"][0]
+                height = video_data.get("height")
+                width = video_data.get("width")
+                duration = video_data.get("duration")
+                if duration:
+                    duration = duration // 1000
 
             music_url = data["data"]["music"]["play_url"]["url_list"][0]
 
@@ -49,6 +58,9 @@ class ApiExtractor(BaseExtractor):
                 video_input_file=None,
                 music_url=music_url,
                 images_urls=images_urls,
+                height=height,
+                width=width,
+                duration=duration,
             )
         except (KeyError, ValueError):
             raise SerializationError

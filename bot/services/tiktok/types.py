@@ -10,3 +10,6 @@ class InfoVideoTikTok:
     video_input_file: Optional[InputFile]
     music_url: Optional[str]
     images_urls: Optional[list[str]]
+    height: Optional[int] = None
+    width: Optional[int] = None
+    duration: Optional[int] = None

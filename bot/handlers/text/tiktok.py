@@ -38,11 +38,22 @@ class TikTokVideoHandler(BaseHandler):
         caption = f'<b>{username}</b> ➤ <a href="{link.split("?")[0]}">TikTok</a>'
 
         try:
-            video_url = await TikTokService.get_video_url(link)
-            await self.event.answer_video(video_url, caption=caption)
+            url = await TikTokService.get_video_url(link)
+            await self.event.answer_video(url, caption=caption)
         except (TelegramBadRequest, TikTokVideoUrlExtractionFailed):
-            video_file = await TikTokService.get_video_as_input_file(link)
-            await self.event.answer_video(video_file, caption=caption)
+            info = await TikTokService.get_video_info(link)
+
+            video_file = info.video_input_file
+            if not video_file:
+                video_file = await TikTokService.get_video_as_input_file(link)
+
+            await self.event.answer_video(
+                video_file,
+                caption=caption,
+                height=info.height,
+                width=info.width,
+                duration=info.duration,
+            )
 
     @property
     def _tiktok_link(self) -> str:

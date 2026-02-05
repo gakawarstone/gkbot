@@ -14,12 +14,30 @@ class TikTokFeedItemView(VideoFeedItemView, BaseFeedItemView):
             video = await TikTokService.get_video_url(item.link)
             await self._send_video_item(video, item)
         except (TelegramBadRequest, TikTokVideoUrlExtractionFailed):
-            video = await TikTokService.get_video_as_input_file(item.link)
-            await self._send_video_item(video, item)
+            info = await TikTokService.get_video_info(item.link)
 
-    async def _send_video_item(self, video: str | InputFile, item: FeedItem):
+            video = info.video_input_file
+            if not video:
+                video = await TikTokService.get_video_as_input_file(item.link)
+
+            await self._send_video_item(
+                video, item, info.height, info.width, info.duration
+            )
+
+    async def _send_video_item(
+        self,
+        video: str | InputFile,
+        item: FeedItem,
+        height: int | None = None,
+        width: int | None = None,
+        duration: int | None = None,
+    ):
         await self.answer_video(
             video,
             caption=f'<a href="{item.link}">{item.link.split("@")[1].split("/")[0]}</a>',
             reply_markup=FeedMarkup.get_item_markup(item.id, item.feed_id),
+            height=height,
+            width=width,
+            duration=duration,
+            supports_streaming=True,
         )

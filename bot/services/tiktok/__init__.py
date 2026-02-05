@@ -4,6 +4,7 @@ from services.http import HttpService
 from services.ffmpeg import FfmpegService
 from .exceptions import TikTokInfoExtractionFailed, TikTokVideoUrlExtractionFailed
 from .extractor import TikTokInfoExtractor
+from .types import InfoVideoTikTok
 
 
 class TikTokService:
@@ -15,22 +16,25 @@ class TikTokService:
 
     @classmethod
     async def get_video_as_input_file(cls, url: str) -> InputFile:
-        if not (info := await TikTokInfoExtractor.get_video_info(url)):
-            raise TikTokInfoExtractionFailed(url)
+        info = await cls.get_video_info(url)
         if not info.video_input_file:
             return BufferedInputFile(
-                file=await cls.__get_video_file(url), filename="video.mp4"
+                file=await cls.__get_video_file_from_info(info), filename="video.mp4"
             )
         return info.video_input_file
 
     @classmethod
-    async def __get_video_file(cls, url: str) -> bytes:
+    async def get_video_info(cls, url: str) -> InfoVideoTikTok:
         if not (info := await TikTokInfoExtractor.get_video_info(url)):
             raise TikTokInfoExtractionFailed(url)
+        return info
+
+    @classmethod
+    async def __get_video_file_from_info(cls, info: InfoVideoTikTok) -> bytes:
         if video_url := info.video_url:
             return await HttpService.get(video_url)
         if info.images_urls:
             return await FfmpegService.make_slideshow_from_web(
                 info.images_urls, info.music_url
             )
-        raise TikTokInfoExtractionFailed(url)
+        raise TikTokInfoExtractionFailed("")
