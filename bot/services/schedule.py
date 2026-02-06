@@ -41,12 +41,20 @@ class Schedule:
     async def add_task(cls, task: Task, time: datetime) -> None:
         await cls.__tasks.add(task, time)
 
+    @staticmethod
+    def get_local_tz() -> timezone:
+        tzinfo = datetime.now(timezone(timedelta(0))).astimezone().tzinfo
+        if not isinstance(tzinfo, timezone):
+            raise TypeError(f"Expected timezone, got {type(tzinfo)}")
+        return tzinfo
+
+    @staticmethod
+    def to_local_tz(date_time: datetime) -> datetime:
+        return date_time.astimezone(Schedule.get_local_tz())
+
     @classmethod
     async def run_task_after(cls, task: Task, delay_seconds: int) -> None:
-        local_timezone = datetime.now(timezone(timedelta(0))).astimezone().tzinfo
-        run_time = (datetime.now() + timedelta(seconds=delay_seconds)).astimezone(
-            local_timezone
-        )
+        run_time = cls.to_local_tz(datetime.now() + timedelta(seconds=delay_seconds))
         await cls.add_task(task, run_time)
 
     @staticmethod
