@@ -18,7 +18,7 @@ For example:
 
 When importing modules, use absolute imports instead of relative ones. For example, instead of `from bot.services.ytdlp import YtdlpDownloader`, use `from services.ytdlp import YtdlpDownloader`.
 
-When managing tasks, use the `tasks` CLI.
+When managing tasks, use the `tasks` executable (which should be in your PATH).
 - Create a new task: `tasks new "Task Title"`
 - List open tasks: `tasks list`
 - Edit a task: `tasks edit <timestamp>`
