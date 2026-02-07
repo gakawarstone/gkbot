@@ -5,7 +5,10 @@ from aiogram.types import Message
 
 
 class VkVideoLink(BaseFilter):
-    __pattern = r"https://vk\.com/(wall-\d+|video-\d+_\d+)|https://vk\.cc/[\w-]+"
+    __pattern = (
+        r"https://(vk\.com|vkvideo\.ru)/(wall-\d+|video-\d+_\d+)"
+        r"|https://vk\.cc/[\w-]+"
+    )
 
     async def __call__(self, telegram_object: Message) -> bool:
         if not isinstance(telegram_object, Message):

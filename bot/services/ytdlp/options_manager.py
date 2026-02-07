@@ -9,7 +9,7 @@ class YtDlpOptionsManager:
     @classmethod
     async def choose_audio_options(cls, url: str) -> dict[str, Any]:
         opts: dict[str, Any] = {}
-        if url.startswith("https://vk.com"):
+        if url.startswith(("https://vk.com", "https://vkvideo.ru")):
             opts.update(AudioDownloadOptions.vk)
         else:
             opts.update(AudioDownloadOptions.youtube)
