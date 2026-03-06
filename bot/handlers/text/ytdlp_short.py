@@ -5,6 +5,7 @@ from aiogram.filters import or_f
 
 from services.ytdlp import YtdlpDownloader
 from extensions.handlers.message.base import BaseHandler
+from filters.x import XVideoLink
 
 
 class YtdlpShortVideoHandler(BaseHandler):
@@ -39,7 +40,7 @@ def setup(r: Router):
             F.text.startswith("https://youtube.com/shorts"),
             F.text.startswith("https://www.youtube.com/shorts"),
             F.text.startswith("https://www.instagram.com/reel"),
-            F.text.startswith("https://x.com/i/status/"),
+            XVideoLink(),
             F.text.startswith("https://vk.com/clip-"),
         ),
     )
