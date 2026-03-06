@@ -18,7 +18,7 @@ dependencies = [
     "pytube",
     "pure-eval",
     "edge-tts",
-    "aiogram==3.18.0",
+    "aiogram==3.26.0",
     "google-generativeai",
     "uvloop>=0.21.0",
     "openai>=1.82.1",

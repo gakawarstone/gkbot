@@ -2,7 +2,7 @@
 #    uv export --no-dev --no-hashes --format=requirements-txt
 aiofiles==24.1.0
     # via aiogram
-aiogram==3.18.0
+aiogram==3.26.0
     # via gkbot
 aiohappyeyeballs==2.6.1
     # via aiohttp
