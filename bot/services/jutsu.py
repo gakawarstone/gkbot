@@ -35,11 +35,14 @@ class JutSuDownloader:
 
         video_elements = soup.find_all("video")
         if not video_elements:
-            return []
+            raise ValueError("No video elements found on the page")
 
         video_element = video_elements[0]
-        if not isinstance(video_element, Tag) or not hasattr(video_element, "find_all"):
-            return []
+        if not isinstance(video_element, Tag):
+            raise TypeError("Video element is not a Tag")
+        
+        if not hasattr(video_element, "find_all"):
+             raise AttributeError("Video element does not have find_all method")
 
         sources = video_element.find_all("source")
         valid_sources = []

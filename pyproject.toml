@@ -19,7 +19,7 @@ dependencies = [
     "pure-eval",
     "edge-tts",
     "aiogram==3.26.0",
-    "google-generativeai",
+    "google-genai",
     "uvloop>=0.21.0",
     "openai>=1.82.1",
     "asyncpg>=0.30.0",

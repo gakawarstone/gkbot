@@ -22,7 +22,7 @@ class MockedGkfeedService(GkfeedService):
         ]
 
         for i, link in enumerate(links):
-            yield FeedItem(id=i + 1, title=f"link {i + 1}", feed_id=1, link=link)
+            yield FeedItem(id=i + 1, title=f"link {i + 1}", feed_id=1, link=link, text="")
 
 
 class MockedHandler(ShowFeedItemsHandler):
