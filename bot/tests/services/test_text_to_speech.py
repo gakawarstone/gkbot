@@ -18,9 +18,7 @@ async def test_convert_text_to_speech_edge():
             mock_cache_dir.return_value = mock_cache_instance
             mock_cache_instance.get_file_path.return_value = "dummy.mp3"
 
-            with patch(
-                "builtins.open", patch("builtins.open", MagicMock()).start()
-            ) as mock_open:
+            with patch("builtins.open", MagicMock()) as mock_open:
                 mock_file = MagicMock()
                 mock_open.return_value.__enter__.return_value = mock_file
                 mock_file.read.return_value = b"audio content"
