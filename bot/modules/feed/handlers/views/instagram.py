@@ -26,7 +26,7 @@ class InstagramFeedItemView(BaseFeedItemView):
 
         _, encoded = src.split(",", 1)
         photo_data = base64.b64decode(encoded)
-        photo = BufferedInputFile(photo_data, filename=f"image.jpg")
+        photo = BufferedInputFile(photo_data, filename="image.jpg")
 
         await self.answer_photo(
             photo,
