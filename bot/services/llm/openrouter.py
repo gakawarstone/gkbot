@@ -11,7 +11,7 @@ class OpenRouterModel(Enum):
     META_LLAMA_4_SCOUT = "meta-llama/llama-4-scout:free"
     MICROSOFT_PHI_4_REASONING = "microsoft/phi-4-reasoning:free"
     DEEPSEEK_DEEPSEEK_R1_0528 = "deepseek/deepseek-r1-0528:free"
-    SOLAR_PRO_3 = "upstage/solar-pro-3:free"
+    STEP_35 = "stepfun/step-3.5-flash:free"
 
 
 class OpenRouter(LLM):
@@ -46,6 +46,8 @@ class OpenRouter(LLM):
         )
 
         async for chunk in completion:  # type: ignore
+            if not chunk.choices:
+                continue
             delta = chunk.choices[0].delta
             reasoning = getattr(delta, "reasoning", None)
             if reasoning:

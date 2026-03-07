@@ -10,6 +10,16 @@ class InitHandler(BaseHandler):
         await self.event.delete()
         self.clean_context()
         await self.event.answer("Что хочешь от меня?")
+
+        assert self.ctx.messages is not None
+        self.ctx.messages.append(
+            """
+            Ты должен отвечать коротко и по существу, не добавляя лишних слов.
+            Если тебе задают вопрос, на который ты не знаешь ответа,
+            просто скажи, что не знаешь."
+            """
+        )
+
         await self.state.set_state(FSM.get_message)
 
     @override
