@@ -1,5 +1,6 @@
 from dataclasses import dataclass
-
+from sqlalchemy import select
+from configs import db
 from models.gkfeed import GkFeed
 
 
@@ -12,15 +13,27 @@ class GkfeedCredentials:
 class GkfeedAuthService:
     async def login(self, user_id: int, login: str, password: str) -> bool:
         """Save user's credentials for GkFeed."""
-        await GkFeed.update_or_create(
-            defaults={"login": login, "password": password},
-            user_id=user_id,
-        )
+        async with db.SessionLocal() as session:
+            stmt = select(GkFeed).where(GkFeed.user_id == user_id)
+            result = await session.execute(stmt)
+            existing = result.scalar_one_or_none()
+            
+            if existing:
+                existing.login = login
+                existing.password = password
+            else:
+                new_feed = GkFeed(user_id=user_id, login=login, password=password)
+                session.add(new_feed)
+            await session.commit()
         return True
 
     async def get_credentials(self, user_id: int) -> GkfeedCredentials:
         """Get user's credentials for GkFeed."""
-        raw_credentials = await GkFeed.get_or_none(user_id=user_id)
-        if raw_credentials is None:
-            raise ValueError(f"No GkFeed credentials found for user {user_id}")
-        return GkfeedCredentials(raw_credentials.login, raw_credentials.password)
+        async with db.SessionLocal() as session:
+            stmt = select(GkFeed).where(GkFeed.user_id == user_id)
+            result = await session.execute(stmt)
+            raw_credentials = result.scalar_one_or_none()
+            
+            if raw_credentials is None:
+                raise ValueError(f"No GkFeed credentials found for user {user_id}")
+            return GkfeedCredentials(raw_credentials.login, raw_credentials.password)

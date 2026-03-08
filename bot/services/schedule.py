@@ -1,8 +1,10 @@
 import asyncio
+import pickle
 from datetime import datetime, timedelta, timezone
 from typing import Awaitable, Any, Callable
-import pickle
+from sqlalchemy import select, delete
 
+from configs import db
 from models.tasks import Task as _Model
 
 
@@ -23,15 +25,25 @@ class Task:
 class TasksStorage:
     async def add(self, task: Task, time: datetime) -> None:
         callback_dump = pickle.dumps(task)
-        await _Model.create(callback=callback_dump, datetime=time)
+        async with db.SessionLocal() as session:
+            new_task = _Model(callback=callback_dump, datetime=time)
+            session.add(new_task)
+            await session.commit()
 
     async def get_all(self) -> list[tuple[Task, datetime, int]]:
-        return [
-            (pickle.loads(i.callback), i.datetime, i.id) for i in await _Model.all()
-        ]
+        async with db.SessionLocal() as session:
+            stmt = select(_Model)
+            result = await session.execute(stmt)
+            tasks = result.scalars().all()
+            return [
+                (pickle.loads(i.callback), i.datetime, i.id) for i in tasks
+            ]
 
     async def remove_by_id(self, id: int) -> None:
-        [await i.delete() for i in await _Model.filter(id=id).all()]
+        async with db.SessionLocal() as session:
+            stmt = delete(_Model).where(_Model.id == id)
+            await session.execute(stmt)
+            await session.commit()
 
 
 class Schedule:

@@ -1,9 +1,9 @@
 from aiogram import Router
-from tortoise import Tortoise
+from configs import db
 
 
 async def on_shutdown():
-    await Tortoise.close_connections()
+    await db.on_shutdown()
 
 
 def setup(r: Router):

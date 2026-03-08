@@ -1,74 +1,59 @@
-from tortoise import Tortoise
+from sqlalchemy.engine import URL, make_url
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+from configs import env
+from models.base import Base
 
-from . import env
+# Imports for models to be registered in Base.metadata
+import models.users
+import models.road
+import models.books
+import models.timezone
+import models.tasks
+import models.gkfeed
 
-MODELS = [
-    "models.users",
-    "models.road",
-    "models.books",
-    "models.timezone",
-    "models.tasks",
-    "models.gkfeed",
-]
+DIALECT_MAP = {
+    "postgres": "postgresql+asyncpg",
+    "postgresql": "postgresql+asyncpg",
+    "mysql": "mysql+aiomysql",
+    "sqlite": "sqlite+aiosqlite",
+}
+
+
+def get_database_url() -> str:
+    if env.DB_URL:
+        url = make_url(env.DB_URL)
+        backend = url.get_backend_name()
+        if backend in DIALECT_MAP:
+            return str(url.set(drivername=DIALECT_MAP[backend]))
+        return str(url)
+
+    dialect = env.DB_DIALECT
+    if dialect not in DIALECT_MAP:
+        raise ValueError(f"Unsupported dialect: {dialect}")
+
+    if dialect == "sqlite":
+        return f"{DIALECT_MAP[dialect]}:///{env.DB_NAME or ':memory:'}"
+
+    return str(
+        URL.create(
+            drivername=DIALECT_MAP[dialect],
+            username=env.DB_USER,
+            password=env.DB_PASSWORD,
+            host=env.DB_HOST,
+            port=int(env.DB_PORT) if env.DB_PORT else None,
+            database=env.DB_NAME,
+        )
+    )
+
+
+engine = create_async_engine(get_database_url())
+SessionLocal = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
 
 
 async def on_startup():
-    if env.DB_URL:
-        await Tortoise.init(db_url=env.DB_URL, modules={"models": MODELS})
-    else:
-        config = build_db_config_from_env(MODELS)
-        await Tortoise.init(config=config)
-
-    await Tortoise.generate_schemas(safe=True)
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
 
 
-def build_db_config_from_env(schemas: list[str]) -> dict:
-    dialect = env.DB_DIALECT
-    user = env.DB_USER
-    password = env.DB_PASSWORD
-    host = env.DB_HOST
-    port = env.DB_PORT
-    db_name = env.DB_NAME
-
-    if dialect == "sqlite":
-        # SQLite использует file как credential
-        credentials = {
-            "engine": "tortoise.backends.sqlite",
-            "credentials": {
-                "file_path": db_name or ":memory:",
-            },
-        }
-    else:
-        # PostgreSQL или MySQL
-        engine_map = {
-            "postgres": "tortoise.backends.asyncpg",
-            "postgresql": "tortoise.backends.asyncpg",
-            "mysql": "tortoise.backends.mysql",
-        }
-
-        if dialect not in engine_map:
-            raise ValueError(f"Unsupported dialect: {dialect}")
-
-        credentials = {
-            "engine": engine_map[dialect],
-            "credentials": {
-                "host": host,
-                "port": port,
-                "user": user,
-                "password": password,
-                "database": db_name,
-            },
-        }
-
-    return {
-        "connections": {
-            "default": credentials,
-        },
-        "apps": {
-            "models": {
-                "models": schemas,
-                "default_connection": "default",
-            }
-        },
-    }
-  
+async def on_shutdown():
+    await engine.dispose()

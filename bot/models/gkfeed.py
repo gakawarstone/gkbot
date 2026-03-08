@@ -1,11 +1,11 @@
-from tortoise import fields
-from tortoise.models import Model
+from sqlalchemy import BigInteger, Text
+from sqlalchemy.orm import Mapped, mapped_column
+from models.base import Base
 
 
-class GkFeed(Model):
-    user_id = fields.IntField(pk=True)
-    login = fields.TextField()
-    password = fields.TextField()
+class GkFeed(Base):
+    __tablename__ = "gkfeed"
 
-    class Meta(Model.Meta):
-        table = "gkfeed"
+    user_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    login: Mapped[str] = mapped_column(Text)
+    password: Mapped[str] = mapped_column(Text)
