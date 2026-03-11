@@ -8,6 +8,7 @@ from ui.buttons.vk import (
     VKDownloadButtonDataSerializer,
     PREFIX,
 )
+from utils.vk import reconstruct_vk_url
 
 
 def _is_button_callback(
@@ -30,16 +31,17 @@ async def download(callback: CallbackQuery):
         raise ValueError("Callback data cannot be None")
 
     data = deserializer.deserialize(callback.data)
+    url = reconstruct_vk_url(data.vk_id)
 
     if not data.use_callback_message_as_status:
-        status_message = await callback.message.answer("Cкачиваю " + data.url)
+        status_message = await callback.message.answer("Cкачиваю " + url)
     else:
         status_message = callback.message
         if isinstance(status_message, Message):
-            await status_message.edit_text("Cкачиваю " + data.url)
+            await status_message.edit_text("Cкачиваю " + url)
 
     if _is_button_callback(callback, VKDownloadButtonData.audio):
-        audio = await YtdlpDownloader.download_audio(data.url)
+        audio = await YtdlpDownloader.download_audio(url)
         await callback.message.answer_audio(
             audio=audio.input_file,
             title=audio.title,
@@ -48,7 +50,7 @@ async def download(callback: CallbackQuery):
         )
 
     if _is_button_callback(callback, VKDownloadButtonData.video):
-        video = await YtdlpDownloader.download_video(data.url)
+        video = await YtdlpDownloader.download_video(url)
         await callback.message.answer_video(
             video.input_file,
             height=video.height,

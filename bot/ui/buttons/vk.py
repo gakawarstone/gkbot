@@ -32,7 +32,7 @@ class VKDownloadButtonData(Enum):
 
 @dataclass
 class VKDownloadButtonCallbackData:
-    url: str
+    vk_id: str
     use_callback_message_as_status: bool = False
 
 
@@ -54,18 +54,18 @@ class VKDownloadButtonCallbackDataSerializer:
         base = VKDownloadButtonDataSerializer.get_full_prefix(button_data)
         return base + (
             f"{callback_data.use_callback_message_as_status}:"
-            f"{callback_data.url}"
+            f"{callback_data.vk_id}"
         )
 
 
 class VKDownloadButtonCallbackDataDeserializer:
     @staticmethod
     def deserialize(callback_data: str) -> VKDownloadButtonCallbackData:
-        _, _, raw_status, raw_url = callback_data.split(":", 3)
-        url = raw_url
+        _, _, raw_status, raw_vk_id = callback_data.split(":", 3)
+        vk_id = raw_vk_id
         use_callback_message_as_status = raw_status != "False"
         return VKDownloadButtonCallbackData(
-            url, use_callback_message_as_status
+            vk_id, use_callback_message_as_status
         )
 
 

@@ -3,6 +3,7 @@ from aiogram.types import Message
 
 from filters.vk import VkVideoLink
 from ui.keyboards.vk import VkMarkup
+from utils.vk import get_vk_id
 
 
 async def add_download_markup(message: Message):
@@ -12,9 +13,10 @@ async def add_download_markup(message: Message):
         raise ValueError("Message text is empty")
 
     url = message.text
+    vk_id = get_vk_id(url)
     await message.answer(
         url,
-        reply_markup=VkMarkup.get_download_dialog(url),
+        reply_markup=VkMarkup.get_download_dialog(vk_id),
     )
 
 
