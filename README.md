@@ -16,7 +16,7 @@ GKBot is an async Telegram bot with a modular feed system, media tooling, and op
 - `aiogram` 3
 - `tortoise-orm` with `asyncpg` (Postgres) and SQLite support
 - `yt-dlp` and `ffmpeg`
-- `google-generativeai` and OpenAI SDK (OpenRouter)
+- `google-genai` and OpenAI SDK (OpenRouter)
 - `notion-client`
 - `edge-tts`
 - `uv` and `ruff` for tooling
