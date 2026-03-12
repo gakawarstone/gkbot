@@ -560,7 +560,7 @@ requires-dist = [
     { name = "varname", specifier = "==0.13.0" },
     { name = "wikipedia" },
     { name = "youtube-search" },
-    { name = "yt-dlp", specifier = "==2026.1.29" },
+    { name = "yt-dlp", specifier = "==2026.3.3" },
 ]
 
 [package.metadata.requires-dev]
@@ -1645,9 +1645,9 @@ wheels = [
 
 [[package]]
 name = "yt-dlp"
-version = "2026.1.29"
+version = "2026.3.3"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/42/b6/b401777f2fb16cb35bfc352079b8c5a60fbc8189c655539f51a9847d1e0b/yt_dlp-2026.1.29.tar.gz", hash = "sha256:12b489eb16828cc3fff1723f244992ebae8a5bf1ad75c8e9f01d729ae237ebb9", size = 3098668, upload-time = "2026-01-29T17:18:03.394Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/66/6f/7427d23609353e5ef3470ff43ef551b8bd7b166dd4fef48957f0d0e040fe/yt_dlp-2026.3.3.tar.gz", hash = "sha256:3db7969e3a8964dc786bdebcffa2653f31123bf2a630f04a17bdafb7bbd39952", size = 3118658, upload-time = "2026-03-03T16:54:53.909Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/0f/1d/696538eb18a9da3dd4b7772162cb3a6537723a56426a7452b98201c04bfd/yt_dlp-2026.1.29-py3-none-any.whl", hash = "sha256:08d0a25aead160c4787cbd0d2e82a269c75c8dbcfbfa729ce45ad52a8375fa1d", size = 3297510, upload-time = "2026-01-29T17:18:01.369Z" },
+    { url = "https://files.pythonhosted.org/packages/7e/a4/8b5cd28ab87aef48ef15e74241befec3445496327db028f34147a9e0f14f/yt_dlp-2026.3.3-py3-none-any.whl", hash = "sha256:166c6e68c49ba526474bd400e0129f58aa522c2896204aa73be669c3d2f15e63", size = 3315599, upload-time = "2026-03-03T16:54:51.899Z" },
 ]
