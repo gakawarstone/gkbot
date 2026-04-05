@@ -13,7 +13,7 @@ async def stream_gemini_response():
 
 
 async def stream_open_router_response():
-    o = OpenRouter(model=OpenRouterModel.META_LLAMA_4_SCOUT)  # type: ignore[call-arg]
+    o = OpenRouter(model=OpenRouterModel.QWEN_36_PLUS)  # type: ignore[call-arg]
     async for chunk in o.stream(prompt="Что такое деконструкция"):
         assert isinstance(chunk, str)
         assert len(chunk) != 0

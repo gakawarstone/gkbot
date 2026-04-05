@@ -11,7 +11,7 @@ class ImageExplainer:
         image_base64 = base64.b64encode(image).decode("utf-8")
         image_data_url = f"data:image/jpeg;base64,{image_base64}"
 
-        async for ch in OpenRouter(OpenRouterModel.META_LLAMA_4_SCOUT).stream(
+        async for ch in OpenRouter(OpenRouterModel.QWEN_36_PLUS).stream(
             """Что на этом изображении?
                 (
                     отвечай сплошным текстом 
