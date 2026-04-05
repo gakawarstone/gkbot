@@ -8,11 +8,16 @@ from ._base import LLM, StreamChunk
 
 
 class OpenRouterModel(Enum):
-    META_LLAMA_4_SCOUT = "meta-llama/llama-4-scout:free"
     MICROSOFT_PHI_4_REASONING = "microsoft/phi-4-reasoning:free"
     DEEPSEEK_DEEPSEEK_R1_0528 = "deepseek/deepseek-r1-0528:free"
     STEP_35 = "stepfun/step-3.5-flash:free"
     QWEN_36_PLUS = "qwen/qwen3.6-plus:free"
+
+    @property
+    def supports_images(self) -> bool:
+        return self in {
+            OpenRouterModel.QWEN_36_PLUS,
+        }
 
 
 class OpenRouter(LLM):
