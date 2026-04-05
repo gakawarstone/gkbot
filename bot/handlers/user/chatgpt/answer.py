@@ -24,7 +24,9 @@ class AnswerHandler(MarkdownRenderHandlerExtension, BaseHandler):
         _message = await self.event.answer("Подождите")
         text = await self._stream_to_message(
             _message,
-            OpenRouter(OpenRouterModel.STEP_35).stream(" | ".join(self.ctx.messages)),
+            OpenRouter(OpenRouterModel.QWEN_36_PLUS).stream(
+                " | ".join(self.ctx.messages)
+            ),
         )
 
         self.ctx.messages.append(text)

@@ -12,6 +12,7 @@ class OpenRouterModel(Enum):
     MICROSOFT_PHI_4_REASONING = "microsoft/phi-4-reasoning:free"
     DEEPSEEK_DEEPSEEK_R1_0528 = "deepseek/deepseek-r1-0528:free"
     STEP_35 = "stepfun/step-3.5-flash:free"
+    QWEN_36_PLUS = "qwen/qwen3.6-plus:free"
 
 
 class OpenRouter(LLM):
