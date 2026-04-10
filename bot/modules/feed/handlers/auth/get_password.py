@@ -1,7 +1,7 @@
 from typing import Any
 
 from extensions.handlers.message.base import BaseHandler
-from services.gkfeed_auth import GkfeedAuthService
+from services.gkfeed import GkfeedAuthService
 from modules.feed.handlers.auth._states import FSM
 
 
