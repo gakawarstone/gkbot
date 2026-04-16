@@ -15,7 +15,7 @@ from ._states import FSM
 
 
 class AnswerHandler(BaseHandler, MarkdownRenderHandlerExtension, FileHandlerExtension):
-    _MODEL = OpenRouterModel.QWEN_36_PLUS
+    _MODEL = OpenRouterModel.GEMINI_3_FLASH
 
     async def handle(self) -> Any:
         await self.state.set_state(FSM.finish)

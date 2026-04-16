@@ -11,12 +11,16 @@ class OpenRouterModel(Enum):
     MICROSOFT_PHI_4_REASONING = "microsoft/phi-4-reasoning:free"
     DEEPSEEK_DEEPSEEK_R1_0528 = "deepseek/deepseek-r1-0528:free"
     STEP_35 = "stepfun/step-3.5-flash:free"
-    QWEN_36_PLUS = "qwen/qwen3.6-plus:free"
+    GEMMA_4 = "google/gemma-4-31b-it:free"
+    KIMI_K25 = "moonshotai/kimi-k2.5"
+    GEMINI_3_FLASH = "google/gemini-3-flash-preview"
+    GPT_OSS_120 = "openai/gpt-oss-120b:free"
 
     @property
     def supports_images(self) -> bool:
         return self in {
-            OpenRouterModel.QWEN_36_PLUS,
+            OpenRouterModel.GEMMA_4,
+            OpenRouterModel.GEMINI_3_FLASH,
         }
 
 
