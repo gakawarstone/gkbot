@@ -1,12 +1,5 @@
-from dataclasses import dataclass
-
 from models.gkfeed import GkFeed
-
-
-@dataclass
-class GkfeedCredentials:
-    login: str
-    password: str
+from ._types import GkfeedCredentials
 
 
 class GkfeedAuthService:

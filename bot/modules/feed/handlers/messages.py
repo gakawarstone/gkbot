@@ -4,13 +4,13 @@ from typing import Any
 from aiogram.types import Message
 
 
+from services.gkfeed.picker import GkfeedItemsPicker
+
 from ._base import BaseHandler
 from ._item_processor import GkfeedItemProcessorExtension
 
 
-class ShowFeedItemsHandler(
-    GkfeedItemProcessorExtension, BaseHandler
-):
+class ShowFeedItemsHandler(GkfeedItemProcessorExtension, BaseHandler):
     _items_limit = 1
 
     async def handle(self) -> Any:
@@ -19,16 +19,18 @@ class ShowFeedItemsHandler(
 
         await self.event.delete()
 
-        items_cnt = 0
+        picker = GkfeedItemsPicker(await self._gkfeed_credentials)
+
         try:
             async with asyncio.TaskGroup() as tg:
-                async for item in (await self._gkfeed()).get_all_user_items():
-                    if items_cnt >= self._items_limit:
+                for _ in range(self._items_limit):
+                    item = await picker.get_next_item()
+                    print(item)
+
+                    if not item:
                         break
 
                     tg.create_task(self._process_item(item))
-
-                    items_cnt += 1
         except* Exception as exc:
             for e in exc.exceptions:
                 raise e

@@ -1,16 +1,15 @@
 from typing import Any
 from aiogram.types import CallbackQuery
 
-from services.gkfeed import GkfeedService, FeedItem
-from services.gkfeed_auth import GkfeedAuthService
+from services.gkfeed import FeedItem, GkfeedAuthService, GkfeedCredentials
 from extensions.handlers.base import BaseHandler as _ExtensionsBaseHandler
 from ..ui.keyboards import FeedMarkup
 
 
 class BaseHandler(_ExtensionsBaseHandler):
-    async def _gkfeed(self) -> GkfeedService:
-        credentials = await GkfeedAuthService().get_credentials(self.event.from_user.id)
-        return GkfeedService(credentials.login, credentials.password)
+    @property
+    async def _gkfeed_credentials(self) -> GkfeedCredentials:
+        return await GkfeedAuthService().get_credentials(self.event.from_user.id)
 
     async def _send_item(self, item: FeedItem):
         if self.event.from_user is None:
