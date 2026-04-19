@@ -4,6 +4,7 @@ import asyncio
 from aiogram.types import CallbackQuery, InaccessibleMessage
 
 from services.gkfeed.api import GkfeedApi
+from services.gkfeed import GkfeedRequestError
 from services.gkfeed.picker import GkfeedItemsPicker
 
 from ..ui.keyboards import FeedMarkup
@@ -57,10 +58,13 @@ class ItemEventHandler(GkfeedItemProcessorExtension, BaseHandler):
     async def _send_one_feed_item(self):
         picker = GkfeedItemsPicker(await self._gkfeed_credentials)
 
-        if item := await picker.get_next_item():
-            await self._process_item(item)
-        else:
-            await self.answer("На данный момент ничего нового")
+        try:
+            if item := await picker.get_next_item():
+                await self._process_item(item)
+            else:
+                await self.answer("На данный момент ничего нового")
+        except GkfeedRequestError:
+            await self.answer("Не удалось загрузить ленту, попробуйте позже")
 
     # NOTE : Deprecated
     # async def _send_items_from_feed(self, feed_id: int, limit=10) -> None:
