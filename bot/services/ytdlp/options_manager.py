@@ -33,6 +33,10 @@ class YtDlpOptionsManager:
             opts.update(VideoDownloadOptions.tiktok)
         if url.startswith("https://vk.com/clip-"):
             opts.update(VideoDownloadOptions.tiktok)
+        if url.startswith(("https://vk.com", "https://vkvideo.ru")) and not url.startswith(
+            "https://vk.com/clip-"
+        ):
+            opts.update(VideoDownloadOptions.vk)
 
         opts["outtmpl"] = await cls._create_path("video.mp4")
         return opts

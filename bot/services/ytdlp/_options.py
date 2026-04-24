@@ -43,3 +43,9 @@ class VideoDownloadOptions(DownloadOptions):
     tiktok = {
         "format": "bv[ext=mp4][vcodec^=avc1]",
     }
+
+    vk = {
+        "format": "bv[ext=mp4]+ba[ext=m4a]/b[ext=mp4]",
+        "concurrent_fragment_downloads": 100,
+        "force_ipv4": True,
+    }
