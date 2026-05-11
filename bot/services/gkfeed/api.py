@@ -1,5 +1,5 @@
 import json
-from typing import AsyncGenerator
+from typing import AsyncGenerator, Optional
 
 import aiohttp
 from bs4 import BeautifulSoup
@@ -14,8 +14,14 @@ class GkfeedApi:
         self.__login = credentials.login
         self.__password = credentials.password
 
-    async def get_all_user_items(self) -> AsyncGenerator[FeedItem, None]:
-        resp = await self._get_html(self._api_root + "get_items")
+    async def get_user_items(
+        self, limit: int = 1000, cursor: Optional[int] = None
+    ) -> AsyncGenerator[FeedItem, None]:
+        url = self._api_root + f"get_items?limit={limit}"
+        if cursor:
+            url += f"&cursor={cursor}"
+
+        resp = await self._get_html(url)
         data = json.loads(resp)
 
         for raw_item in data["items"]:

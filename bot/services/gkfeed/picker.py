@@ -16,8 +16,12 @@ class GkfeedItemsPicker:
     ) -> FeedItem | None:
         item = None
         api = GkfeedApi(self.__credentials)
+        items: list[FeedItem] = []
 
-        async for _item in api.get_all_user_items():
+        async for _item in api.get_user_items():
+            items.append(_item)
+
+        for _item in self._sort_items_by_feed(items):
             if not is_item_valid(_item):
                 continue
 
@@ -46,12 +50,12 @@ class GkfeedItemsPicker:
     def _clean_pocket(self) -> None:
         self._items_pocket[self.__credentials.login] = []
 
-    def _sort_items_by_feed(self, items: list[dict]) -> list[dict]:
-        items_by_id = sorted(items, key=lambda x: x["id"])
+    def _sort_items_by_feed(self, items: list[FeedItem]) -> list[FeedItem]:
+        items_by_id = sorted(items, key=lambda x: x.id)
 
-        items_by_feed: dict[int, list[dict]] = {}
+        items_by_feed: dict[int, list[FeedItem]] = {}
         for item in items_by_id:
-            feed_id = item["feed_id"]
+            feed_id = item.feed_id
             if feed_id not in items_by_feed:
                 items_by_feed[feed_id] = []
             items_by_feed[feed_id].append(item)
@@ -60,7 +64,7 @@ class GkfeedItemsPicker:
         processed_feed_ids = set()
 
         for item in items_by_id:
-            feed_id = item["feed_id"]
+            feed_id = item.feed_id
             if feed_id in processed_feed_ids:
                 continue
 
