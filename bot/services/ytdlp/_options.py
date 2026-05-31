@@ -41,7 +41,7 @@ class VideoDownloadOptions(DownloadOptions):
     }
 
     tiktok = {
-        "format": "bv[ext=mp4][vcodec^=avc1]",
+        "format": "b[vcodec^=h264][acodec!=none]/b[acodec!=none]/bv*+ba/b",
     }
 
     vk = {

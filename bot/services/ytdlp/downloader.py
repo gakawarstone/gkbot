@@ -1,5 +1,5 @@
 import os
-from typing import Any
+from typing import Any, cast
 import re
 
 import yt_dlp
@@ -31,14 +31,12 @@ class YtdlpDownloader:
         opts = await YtDlpOptionsManager.choose_video_options(url)
         file = await cls._download_file(url, opts)
 
-        width = info.get("width", 0)
-
         return VideoFileInfo(
             input_file=file,
             duration=info["duration"],
             title=info["title"],
-            height=info["height"],
-            width=width,
+            height=info.get("height"),
+            width=info.get("width"),
         )
 
     @classmethod
@@ -55,23 +53,26 @@ class YtdlpDownloader:
         return info
 
     @classmethod
-    async def _download_file(cls, url: str, opts: dict) -> InputFile:
+    async def _download_file(cls, url: str, opts: dict[str, Any]) -> InputFile:
         if re.match(r"^https://(?:www\.)?youtu", url):
             url = await download_video(url, opts)
             return URLInputFile(url)
 
-        with yt_dlp.YoutubeDL(opts) as ydl:
+        with yt_dlp.YoutubeDL(cast(Any, opts)) as ydl:
             await async_wrap(ydl.download)(url)
 
-        output_path = opts["outtmpl"]["default"]
+        outtmpl = opts["outtmpl"]
+        output_path = outtmpl["default"] if isinstance(outtmpl, dict) else outtmpl
         if not os.path.exists(output_path):
-            postprocessor = opts["postprocessors"][0]
-            if "preferedformat" in postprocessor:
-                output_path += "." + postprocessor["preferedformat"]
-            if "preferredcodec" in postprocessor:
-                output_path += "." + postprocessor["preferredcodec"]
+            postprocessors = opts.get("postprocessors", [])
+            if postprocessors:
+                postprocessor = postprocessors[0]
+                if "preferedformat" in postprocessor:
+                    output_path += "." + postprocessor["preferedformat"]
+                if "preferredcodec" in postprocessor:
+                    output_path += "." + postprocessor["preferredcodec"]
 
-        if "instagram.com/reel" in url:
+        if "instagram.com/reel" in url or "tiktok.com" in url:
             base, _ = os.path.splitext(output_path)
             converted_path = f"{base}_converted.mp4"
             await FfmpegService.convert_video(output_path, converted_path)

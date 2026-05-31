@@ -1,8 +1,7 @@
-from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import InputFile
 
 from services.gkfeed import FeedItem
-from services.tiktok import TikTokService, TikTokVideoUrlExtractionFailed
+from services.tiktok import TikTokService
 from . import BaseFeedItemView
 from .video import VideoFeedItemView
 from ...ui.keyboards import FeedMarkup
@@ -10,19 +9,15 @@ from ...ui.keyboards import FeedMarkup
 
 class TikTokFeedItemView(VideoFeedItemView, BaseFeedItemView):
     async def _process_tiktok_item(self, item: FeedItem):
-        try:
-            video = await TikTokService.get_video_url(item.link)
-            await self._send_video_item(video, item)
-        except (TelegramBadRequest, TikTokVideoUrlExtractionFailed):
-            info = await TikTokService.get_video_info(item.link)
+        video = await TikTokService.get_video(item.link)
 
-            video = info.video_input_file
-            if not video:
-                video = await TikTokService.get_video_as_input_file(item.link)
-
-            await self._send_video_item(
-                video, item, info.height, info.width, info.duration
-            )
+        await self._send_video_item(
+            video.input_file,
+            item,
+            video.height,
+            video.width,
+            video.duration,
+        )
 
     async def _send_video_item(
         self,

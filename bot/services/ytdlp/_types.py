@@ -13,8 +13,8 @@ class AudioFileInfo:
 @dataclass
 class VideoFileInfo:
     input_file: InputFile
-    height: int
-    width: int
+    height: int | None
+    width: int | None
     duration: int
     title: str
 
@@ -22,4 +22,3 @@ class VideoFileInfo:
 # Previously DownloadOptions was an Enum; simplify to a plain base class for namespacing.
 class DownloadOptions:
     pass
-

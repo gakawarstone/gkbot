@@ -13,3 +13,12 @@ class InfoVideoTikTok:
     height: Optional[int] = None
     width: Optional[int] = None
     duration: Optional[int] = None
+
+
+@dataclass
+class TikTokVideo:
+    input_file: InputFile
+    url: str | None = None
+    height: int | None = None
+    width: int | None = None
+    duration: int | None = None

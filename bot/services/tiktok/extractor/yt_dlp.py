@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 from aiogram.types import InputFile, FSInputFile
 from yt_dlp.utils import DownloadError
@@ -15,9 +16,8 @@ class YtDlp(BaseExtractor):
     async def get_video_info(self, url: str) -> InfoVideoTikTok:
         try:
             video_file_info = await YtdlpDownloader.download_video(url)
-            video_url = await self._get_video_file_url_from_info(video_file_info)
             return InfoVideoTikTok(
-                video_url=video_url,
+                video_url=None,
                 video_input_file=video_file_info.input_file,
                 music_url="",
                 images_urls=[],
@@ -33,9 +33,11 @@ class YtDlp(BaseExtractor):
 
     async def get_video_file_url(self, url: str) -> str:
         try:
+            if not self._get_serveo_url():
+                raise ValueError("Serveo URL is missing")
             video_file_info = await YtdlpDownloader.download_video(url)
             return await self._get_video_file_url_from_info(video_file_info)
-        except (IndexError, ValueError, DownloadError):
+        except (IndexError, ValueError, OSError, DownloadError):
             raise SourceInfoExtractFailed(self)
 
     async def _get_video_file_url_from_info(
@@ -46,9 +48,20 @@ class YtDlp(BaseExtractor):
             if not isinstance(fs_input_file, FSInputFile):
                 raise ValueError("Input file is not an FSInputFile instance")
 
+            serveo_url = self._get_serveo_url()
+            if serveo_url is None:
+                raise ValueError("Serveo URL is missing")
+
             video_path = "/".join(str(fs_input_file.path).split("/")[-3:])
-            url_path = os.path.expanduser(CACHE_DIR_PATH + "/serveo_url")
-            serveo_url = open(url_path).read()
             return serveo_url + "/" + video_path
         except (IndexError, ValueError, DownloadError):
             raise SourceInfoExtractFailed(self)
+
+    @classmethod
+    def _get_serveo_url(cls) -> str | None:
+        url_path = Path(os.path.expanduser(CACHE_DIR_PATH + "/serveo_url"))
+        try:
+            serveo_url = url_path.read_text().strip()
+        except OSError:
+            return None
+        return serveo_url or None
