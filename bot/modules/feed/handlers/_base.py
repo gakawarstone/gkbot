@@ -7,6 +7,14 @@ from ..ui.keyboards import FeedMarkup
 
 
 class BaseHandler(_ExtensionsBaseHandler):
+    @staticmethod
+    def _get_item_link_caption(item: FeedItem) -> str:
+        if item.link.startswith("https://www.tiktok") and "@" in item.link:
+            username = item.link.split("@")[1].split("/")[0]
+            return f"TikTok:{username}"
+
+        return item.link.split("https://")[1].split("/")[0].split(".")[-2]
+
     @property
     async def _gkfeed_credentials(self) -> GkfeedCredentials:
         return await GkfeedAuthService().get_credentials(self.event.from_user.id)
@@ -16,7 +24,7 @@ class BaseHandler(_ExtensionsBaseHandler):
             raise ValueError("from_user is required to send a message")
         await self.bot.send_message(
             self.event.from_user.id,
-            f'<a href="{item.link}">{item.link.split("https://")[1].split("/")[0].split(".")[-2]}</a>',
+            f'<a href="{item.link}">{self._get_item_link_caption(item)}</a>',
             reply_markup=FeedMarkup.get_item_markup(item.id, item.feed_id),
         )
 
