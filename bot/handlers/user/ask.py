@@ -34,6 +34,8 @@ async def get_response(message: Message, state: FSMContext):
         await _message.edit_text(text)
 
 
+# TODO: should work as /ask <prompt> and dont use gemini
+# TODO: inline @gkbot ai <prompt>
 # FIXME: deprecated use /chatgpt
 def setup(r: Router):
     r.message.register(start_chat, Command(commands=USER_COMMANDS.ask))
