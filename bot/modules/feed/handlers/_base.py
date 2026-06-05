@@ -1,4 +1,6 @@
 from typing import Any
+from urllib.parse import urlparse
+
 from aiogram.types import CallbackQuery
 
 from services.gkfeed import FeedItem, GkfeedAuthService, GkfeedCredentials
@@ -13,7 +15,15 @@ class BaseHandler(_ExtensionsBaseHandler):
             username = item.link.split("@")[1].split("/")[0]
             return f"TikTok:{username}"
 
-        return item.link.split("https://")[1].split("/")[0].split(".")[-2]
+        host = urlparse(item.link).hostname
+        if host is None:
+            return "Link"
+
+        domain_parts = host.removeprefix("www.").split(".")
+        if len(domain_parts) < 2:
+            return domain_parts[0]
+
+        return domain_parts[-2]
 
     @property
     async def _gkfeed_credentials(self) -> GkfeedCredentials:
