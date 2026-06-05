@@ -27,10 +27,8 @@ class ItemEventHandler(GkfeedItemProcessorExtension, BaseHandler):
 
     async def handle(self) -> Any:
         event, data = await self._parse_callback()
-
-        async with asyncio.TaskGroup() as tg:
-            tg.create_task(self._send_one_feed_item())
-            tg.create_task(self._handle_event(event, data))
+        await self._handle_event(event, data)
+        await self._send_one_feed_item()
 
     async def _handle_event(self, event: str, data: int):
         if not isinstance(self.event, CallbackQuery):
@@ -45,11 +43,13 @@ class ItemEventHandler(GkfeedItemProcessorExtension, BaseHandler):
 
         match event:
             case FeedMarkup.data.delete:
-                await api.delete_item_by_id(data)
                 await self.event.message.delete()
+                # BUG: can fail silently
+                asyncio.create_task(api.delete_item_by_id(data))
             case FeedMarkup.data.keep:
                 await self.event.message.delete()
             # NOTE: Deprecated
+            # NOTE: need to be replaced with general actions button
             case FeedMarkup.data.show_all_feed:
                 pass
                 # await self._send_items_from_feed(data)
