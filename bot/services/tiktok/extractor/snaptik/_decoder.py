@@ -1,5 +1,3 @@
-from re import findall
-from ast import literal_eval
 from typing import Union
 
 alpha = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+/"
@@ -28,10 +26,6 @@ def main(d, e, f):
         k = i[j % f] + k
         j = int((j - (j % f)) / f)
     return int(k) or 0
-
-
-def from_string(text: str):
-    return decoder(*literal_eval(findall(r"\(\".*?,.*?,.*?,.*?,.*?.*?\)", text)[0]))
 
 
 def reduces(function, iterable, initializer=None) -> int:

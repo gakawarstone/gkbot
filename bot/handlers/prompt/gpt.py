@@ -5,6 +5,7 @@ from services.llm import Gemini
 from filters.command import CommandWithPrompt
 
 
+# DEPRECATED: use /ask instead.
 async def send_llm_answer(m: Message):
     await m.delete()
 
@@ -19,11 +20,6 @@ async def send_llm_answer(m: Message):
     async for ch in Gemini().stream(prompt):
         text += ch.text
         await _message.edit_text(text)
-
-
-async def send_unavailable_message(m: Message):
-    await m.delete()
-    await m.answer("this function is unavailable")
 
 
 def setup(r: Router):

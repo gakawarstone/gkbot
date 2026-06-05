@@ -9,7 +9,6 @@ class _UserCommands(_Commands):
     add_remind = "add_remind"
     tts = "tts"
     wiki = "wiki"
-    shiki = "shiki"
     sub = "sub"
     list = "list"
     road = "road"
