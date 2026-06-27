@@ -4,6 +4,7 @@ from . import youtube
 from . import delete_message
 from . import vk
 from . import pornhub
+from . import porno365
 
 
 def setup(r: Router):
@@ -11,4 +12,4 @@ def setup(r: Router):
     delete_message.setup(r)
     vk.setup(r)
     pornhub.setup(r)
-
+    porno365.setup(r)
