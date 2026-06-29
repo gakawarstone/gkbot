@@ -47,6 +47,7 @@ class GkfeedItemProcessorExtension(
 ):
     @property
     def _processors(self) -> dict[str, _ITEM_PROCESSOR]:
+        # TODO: create filters for processor matching instead of startswith prefixes.
         return {
             "https://www.piokok": self._process_piokok_item,
             "https://stor": self._process_stories_item,
@@ -61,6 +62,7 @@ class GkfeedItemProcessorExtension(
             "https://www.twitch": self._process_twitch_item,
             "https://www.tiktok": self._process_tiktok_item,
             "https://www.pornhub.com": self._process_pornhub_item,
+            "https://de.pornhub.org": self._process_pornhub_item,
             "http://i.porno365.broker": self._process_porno365_item,
             "http://a.porno365.broker": self._process_porno365_item,
             "https://discours.io": self._process_discours_item,
