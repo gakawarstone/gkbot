@@ -24,7 +24,7 @@ class GkfeedApi:
         resp = await self._get_html(url)
         data = json.loads(resp)
 
-        for raw_item in data["items"]:
+        for raw_item in data.get("items", []):
             if not raw_item["link"]:
                 print(raw_item)
                 continue
