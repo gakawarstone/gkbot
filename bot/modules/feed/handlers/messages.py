@@ -28,6 +28,7 @@ class ShowFeedItemsHandler(GkfeedItemProcessorExtension, BaseHandler):
                     print(item)
 
                     if not item:
+                        await self.answer("На данный момент ничего нового")
                         break
 
                     tg.create_task(self._process_item(item))
