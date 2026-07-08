@@ -6,7 +6,7 @@ from .auth import GkfeedCredentials
 
 
 class GkfeedItemsPicker:
-    _items_pocket: dict[str, list[int]] = {}
+    _items_pocket: dict[str, set[int]] = {}
 
     def __init__(self, credentials: GkfeedCredentials):
         self.__credentials = credentials
@@ -37,18 +37,18 @@ class GkfeedItemsPicker:
 
     def _is_item_in_pocket(self, item_id: int) -> bool:
         if self.__credentials.login not in self._items_pocket:
-            self._items_pocket[self.__credentials.login] = []
+            self._items_pocket[self.__credentials.login] = set()
 
         return item_id in self._items_pocket[self.__credentials.login]
 
     def _save_to_pocket(self, item_id: int) -> None:
         if self.__credentials.login not in self._items_pocket:
-            self._items_pocket[self.__credentials.login] = []
+            self._items_pocket[self.__credentials.login] = set()
 
-        self._items_pocket[self.__credentials.login].append(item_id)
+        self._items_pocket[self.__credentials.login].add(item_id)
 
     def _clean_pocket(self) -> None:
-        self._items_pocket[self.__credentials.login] = []
+        self._items_pocket[self.__credentials.login] = set()
 
     def _sort_items_by_feed(self, items: list[FeedItem]) -> list[FeedItem]:
         items_by_id = sorted(items, key=lambda x: x.id)
