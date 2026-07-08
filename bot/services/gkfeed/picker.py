@@ -10,6 +10,7 @@ class GkfeedItemsPicker:
 
     def __init__(self, credentials: GkfeedCredentials):
         self.__credentials = credentials
+        self._items_pocket.setdefault(credentials.login, set())
 
     async def get_next_item(
         self, is_item_valid: Callable[[FeedItem], bool] = lambda _: True
@@ -36,15 +37,9 @@ class GkfeedItemsPicker:
         return item
 
     def _is_item_in_pocket(self, item_id: int) -> bool:
-        if self.__credentials.login not in self._items_pocket:
-            self._items_pocket[self.__credentials.login] = set()
-
         return item_id in self._items_pocket[self.__credentials.login]
 
     def _save_to_pocket(self, item_id: int) -> None:
-        if self.__credentials.login not in self._items_pocket:
-            self._items_pocket[self.__credentials.login] = set()
-
         self._items_pocket[self.__credentials.login].add(item_id)
 
     def _clean_pocket(self) -> None:
