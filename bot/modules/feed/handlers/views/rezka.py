@@ -5,12 +5,14 @@ from extensions.handlers.message.http import HttpExtension
 from bs4 import Tag
 from . import BaseFeedItemView
 
+_PREVIEW_HEADERS = {"User-Agent": "Twitterbot/1.0"}
+
 
 class RezkaFeedItemView(BaseFeedItemView, HttpExtension):
-    async def _process_rezka_item(self, item: FeedItem):
+    async def _process_rezka_item(self, item: FeedItem) -> None:
         item_url = urlsplit(item.link)
         preview_url = urlunsplit(item_url._replace(netloc="rezka.ag"))
-        soup = await self._get_soup(preview_url)
+        soup = await self._get_soup(preview_url, headers=_PREVIEW_HEADERS)
 
         meta_tag = soup.find("meta", attrs={"property": "og:image"})
         if not isinstance(meta_tag, Tag):
