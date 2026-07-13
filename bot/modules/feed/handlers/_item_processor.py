@@ -20,11 +20,13 @@ from .views.pornhub import PornhubFeedItemView
 from .views.porno365 import Porno365FeedItemView
 from .views.discours import DiscoursFeedItemView
 from .views.instagram import InstagramFeedItemView
+from .views.hltv import HltvFeedItemView
 
 _ITEM_PROCESSOR = Callable[[FeedItem], Awaitable[Any]]
 
 
 class GkfeedItemProcessorExtension(
+    HltvFeedItemView,
     InstagramFeedItemView,
     DiscoursFeedItemView,
     Porno365FeedItemView,
@@ -69,6 +71,7 @@ class GkfeedItemProcessorExtension(
             "https://discours.io": self._process_discours_item,
             "https://instagram.com": self._process_instagram_item,
             "https://www.instagram.com": self._process_instagram_item,
+            "https://www.hltv.org": self._process_hltv_item,
         }
 
     async def _process_item(self, item: FeedItem):
