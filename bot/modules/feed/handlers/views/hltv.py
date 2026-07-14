@@ -7,29 +7,29 @@ from bs4 import BeautifulSoup, Tag
 
 from services.gkfeed import FeedItem
 from services.http import HttpService
+from services.open_graph import OpenGraphService
 
 from ...ui.keyboards import FeedMarkup
 
 from . import BaseFeedItemView
 
-_PREVIEW_HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; Twitterbot/1.0)"}
-
 
 class HltvFeedItemView(BaseFeedItemView):
     async def _process_hltv_item(self, item: FeedItem) -> None:
         soup = await self._get_hltv_soup(item.link)
+        metadata = OpenGraphService.parse_soup(soup)
 
-        image_tag = soup.find("meta", attrs={"property": "og:image"})
-        if not isinstance(image_tag, Tag):
+        if metadata.image_url is None:
             return await self._send_item(item)
 
-        image_url = image_tag.get("content")
-        if not isinstance(image_url, str) or not image_url:
-            return await self._send_item(item)
+        matchup, match_time = self._get_match_details(
+            soup,
+            metadata.title or item.title,
+        )
 
-        matchup, match_time = self._get_match_details(soup, item.title)
-
-        image_data = await HttpService.get(self._normalize_image_url(image_url))
+        image_data = await HttpService.get(
+            self._normalize_image_url(metadata.image_url)
+        )
         photo = BufferedInputFile(image_data, filename="hltv.png")
 
         await self.answer_photo(
@@ -39,8 +39,7 @@ class HltvFeedItemView(BaseFeedItemView):
         )
 
     async def _get_hltv_soup(self, url: str) -> BeautifulSoup:
-        html = await HttpService.get_with_downloader(url, headers=_PREVIEW_HEADERS)
-        return BeautifulSoup(html, "html.parser")
+        return await OpenGraphService.get_soup(url, use_downloader=True)
 
     @staticmethod
     def _normalize_image_url(image_url: str) -> str:
@@ -50,12 +49,9 @@ class HltvFeedItemView(BaseFeedItemView):
 
     @staticmethod
     def _get_match_details(
-        soup: BeautifulSoup, fallback_title: str
+        soup: BeautifulSoup,
+        title: str,
     ) -> tuple[str, str | None]:
-        title_tag = soup.find("meta", attrs={"property": "og:title"})
-        title = title_tag.get("content") if isinstance(title_tag, Tag) else None
-        if not isinstance(title, str) or not title:
-            title = fallback_title
         matchup = title.split(" at ", maxsplit=1)[0]
 
         event_tag = soup.find("script", attrs={"type": "application/ld+json"})

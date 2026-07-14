@@ -1,25 +1,17 @@
 from urllib.parse import urlsplit, urlunsplit
 
 from services.gkfeed import FeedItem
-from extensions.handlers.message.http import HttpExtension
-from bs4 import Tag
+from services.open_graph import OpenGraphService
+
 from . import BaseFeedItemView
 
-_PREVIEW_HEADERS = {"User-Agent": "Twitterbot/1.0"}
 
-
-class RezkaFeedItemView(BaseFeedItemView, HttpExtension):
+class RezkaFeedItemView(BaseFeedItemView):
     async def _process_rezka_item(self, item: FeedItem) -> None:
         item_url = urlsplit(item.link)
         preview_url = urlunsplit(item_url._replace(netloc="rezka.ag"))
-        soup = await self._get_soup(preview_url, headers=_PREVIEW_HEADERS)
-
-        meta_tag = soup.find("meta", attrs={"property": "og:image"})
-        if not isinstance(meta_tag, Tag):
+        metadata = await OpenGraphService.get(preview_url)
+        if metadata.image_url is None:
             return await self._send_item(item)
 
-        media_url = meta_tag.get("content")
-        if not media_url:
-            return await self._send_item(item)
-
-        await self._send_photo(item, str(media_url), item.title)
+        await self._send_photo(item, metadata.image_url, item.title)

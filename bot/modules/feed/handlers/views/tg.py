@@ -1,30 +1,18 @@
 from services.gkfeed import FeedItem
-from extensions.handlers.message.http import HttpExtension
-from bs4 import Tag
+from services.open_graph import OpenGraphService
 
 from . import BaseFeedItemView
 
 
-class TelegramFeedItemView(BaseFeedItemView, HttpExtension):
+class TelegramFeedItemView(BaseFeedItemView):
     async def _process_telegram_item(self, item: FeedItem):
-        soup = await self._get_soup(item.link)
-
-        meta_tag = soup.find("meta", attrs={"property": "og:image"})
-        if not isinstance(meta_tag, Tag):
+        metadata = await OpenGraphService.get(item.link)
+        if metadata.image_url is None or metadata.description is None:
             return await self._send_item(item)
 
-        media_url = meta_tag.get("content")
-        if not media_url:
-            return await self._send_item(item)
+        description = self._limit_description(metadata.description)
 
-        description_tag = soup.find("meta", attrs={"property": "og:description"})
-        if not isinstance(description_tag, Tag):
-            return await self._send_item(item)
-
-        description = str(description_tag.get("content"))
-        description = self._limit_description(description)
-
-        await self._send_photo(item, str(media_url), description)
+        await self._send_photo(item, metadata.image_url, description)
 
     def _limit_description(self, description: str, limit: int = 250) -> str:
         if len(description) > limit:

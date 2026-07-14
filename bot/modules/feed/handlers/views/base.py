@@ -1,21 +1,18 @@
 from services.gkfeed import FeedItem
-from extensions.handlers.message.http import HttpExtension
-from bs4 import Tag
+from services.open_graph import OpenGraphService
+
 from . import BaseFeedItemView
 
 
-class BaseWebFeedItemView(BaseFeedItemView, HttpExtension):
+class BaseWebFeedItemView(BaseFeedItemView):
     async def _process_base_item(self, item: FeedItem):
-        soup = await self._get_soup(item.link)
+        metadata = await OpenGraphService.get(item.link)
 
-        meta_tag = soup.find("meta", attrs={"property": "og:image"})
-        if not isinstance(meta_tag, Tag):
+        if metadata.image_url is None:
             return await self._send_item(item)
 
-        media_url = meta_tag.get("content")
-        if not media_url:
-            return await self._send_item(item)
-
-        title_tag = soup.find("title")
-        title = title_tag.text if isinstance(title_tag, Tag) else ""
-        await self._send_photo(item, str(media_url), str(title))
+        await self._send_photo(
+            item,
+            metadata.image_url,
+            metadata.title or item.title,
+        )
