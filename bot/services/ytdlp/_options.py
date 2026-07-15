@@ -26,7 +26,10 @@ class VideoDownloadOptions(DownloadOptions):
     }
 
     youtube = {
-        "format": "bv[ext=mp4][filesize<1G][vcodec^=avc1]+ba[ext=m4a]",
+        "format": (
+            "bv[ext=mp4][filesize<1G][vcodec^=avc1]+ba[ext=m4a]"
+            "/b[ext=mp4][filesize<1G]"
+        ),
         "external_downloader": "aria2c",
         "external_downloader_args": [
             "-x",
