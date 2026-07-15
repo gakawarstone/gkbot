@@ -20,7 +20,7 @@ class AudioDownloadOptions(DownloadOptions):
 class VideoDownloadOptions(DownloadOptions):
     default: dict = {}
     youtube_shorts = {
-        "format": "bv+ba",
+        "format": "bv*+ba/b",
         "external_downloader": "aria2c",
         "postprocessors": [{"key": "FFmpegVideoConvertor", "preferedformat": "mp4"}],
     }
