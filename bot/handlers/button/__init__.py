@@ -5,6 +5,7 @@ from . import delete_message
 from . import vk
 from . import pornhub
 from . import porno365
+from . import sasflix
 
 
 def setup(r: Router):
@@ -13,3 +14,4 @@ def setup(r: Router):
     vk.setup(r)
     pornhub.setup(r)
     porno365.setup(r)
+    sasflix.setup(r)

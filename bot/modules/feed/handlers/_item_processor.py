@@ -1,4 +1,4 @@
-from typing import Awaitable, Callable, Any
+from typing import Any, Awaitable, Callable
 
 from services.gkfeed import FeedItem
 from ._base import BaseHandler
@@ -21,11 +21,13 @@ from .views.porno365 import Porno365FeedItemView
 from .views.discours import DiscoursFeedItemView
 from .views.instagram import InstagramFeedItemView
 from .views.hltv import HltvFeedItemView
+from .views.sasflix import SasflixFeedItemView
 
 _ITEM_PROCESSOR = Callable[[FeedItem], Awaitable[Any]]
 
 
 class GkfeedItemProcessorExtension(
+    SasflixFeedItemView,
     HltvFeedItemView,
     InstagramFeedItemView,
     DiscoursFeedItemView,
@@ -72,6 +74,7 @@ class GkfeedItemProcessorExtension(
             "https://instagram.com": self._process_instagram_item,
             "https://www.instagram.com": self._process_instagram_item,
             "https://www.hltv.org": self._process_hltv_item,
+            "https://sasflix.ru/": self._process_sasflix_item,
         }
 
     async def _process_item(self, item: FeedItem):
