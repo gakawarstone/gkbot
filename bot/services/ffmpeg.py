@@ -10,6 +10,9 @@ from services.cache_dir import CacheDir
 
 
 class FfmpegService:
+    SLIDESHOW_WIDTH = 720
+    SLIDESHOW_HEIGHT = 1080
+
     _semaphore = asyncio.Semaphore(1)
 
     __resize_image_options = [
@@ -24,7 +27,7 @@ class FfmpegService:
         "libx264",
         "-shortest",
         "-vf",
-        "scale=720:1080",
+        f"scale={SLIDESHOW_WIDTH}:{SLIDESHOW_HEIGHT}",
         "-r",
         "30",
         "-pix_fmt",

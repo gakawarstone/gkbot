@@ -46,6 +46,11 @@ class TikTokService:
         if info.height and info.width and info.duration:
             return
 
+        is_generated_slideshow = bool(info.images_urls and not info.video_url)
+        if is_generated_slideshow:
+            info.height = FfmpegService.SLIDESHOW_HEIGHT
+            info.width = FfmpegService.SLIDESHOW_WIDTH
+
         if not isinstance(info.video_input_file, FSInputFile):
             return
         source = str(info.video_input_file.path)

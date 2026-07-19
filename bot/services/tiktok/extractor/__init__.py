@@ -5,6 +5,7 @@ from ._base import BaseExtractor
 from .exceptions import SourceInfoExtractFailed
 
 from .api import ApiExtractor
+from .gallery_dl import GalleryDl
 from .snaptik import Snaptik
 from .mdown import Mdown
 from .tikdown import Tikdown
@@ -15,6 +16,7 @@ from .yt_dlp import YtDlp
 _EXTRACTORS: list[BaseExtractor] = [
     YtDlp(),
     ApiExtractor("https://api.douyin.wtf"),
+    GalleryDl(),
     TTDownloader(),
     ApiExtractor("http://ttapi.gws.freemyip.com"),
     Snaptik(),
