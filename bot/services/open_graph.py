@@ -19,23 +19,30 @@ class OpenGraphMetadata:
 
 class OpenGraphService:
     @classmethod
-    async def get(cls, url: str) -> OpenGraphMetadata:
-        soup = await cls.get_soup(url)
+    async def get(
+        cls,
+        url: str,
+        *,
+        headers: dict[str, str] | None = None,
+    ) -> OpenGraphMetadata:
+        soup = await cls.get_soup(url, headers=headers)
         return cls.parse_soup(soup)
 
     @staticmethod
     async def get_soup(
         url: str,
         *,
+        headers: dict[str, str] | None = None,
         use_downloader: bool = False,
     ) -> BeautifulSoup:
+        request_headers = headers or _TWITTERBOT_HEADERS
         if use_downloader:
             html = await HttpService.get_with_downloader(
                 url,
-                headers=_TWITTERBOT_HEADERS,
+                headers=request_headers,
             )
         else:
-            html = await HttpService.get(url, headers=_TWITTERBOT_HEADERS)
+            html = await HttpService.get(url, headers=request_headers)
 
         return BeautifulSoup(html, "html.parser")
 
