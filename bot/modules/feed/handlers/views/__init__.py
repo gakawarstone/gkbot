@@ -16,7 +16,8 @@ class BaseFeedItemView(BaseHandler):
         description: str,
         link_caption: str = "Link",
         reply_markup: InlineKeyboardMarkup | None = None,
-    ):
+        has_spoiler: bool = False,
+    ) -> None:
         try:
             if reply_markup is None:
                 reply_markup = FeedMarkup.get_item_markup(item.id, item.feed_id)
@@ -25,6 +26,7 @@ class BaseFeedItemView(BaseHandler):
                 URLInputFile(media_url),
                 caption=f'<b>{description}</b>\n\n<a href="{item.link}">{link_caption}</a>',
                 reply_markup=reply_markup,
+                has_spoiler=has_spoiler,
             )
         except TelegramBadRequest:
             await self._send_item(item)

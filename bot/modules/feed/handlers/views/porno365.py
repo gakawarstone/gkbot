@@ -16,4 +16,5 @@ class Porno365FeedItemView(BaseWebFeedItemView):
             metadata.title or item.title,
             link_caption="porno365",
             reply_markup=Porno365FeedItemMarkup.get_item_markup(item.id, item.link),
+            has_spoiler=True,
         )
