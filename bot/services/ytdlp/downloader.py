@@ -1,6 +1,7 @@
 import os
-from typing import Any, cast
 import re
+from typing import Any, cast
+from dataclasses import dataclass
 
 import yt_dlp
 from aiogram.types import FSInputFile, InputFile, URLInputFile
@@ -12,6 +13,14 @@ from ._types import AudioFileInfo, VideoFileInfo
 from .options_manager import YtDlpOptionsManager
 
 
+@dataclass(frozen=True)
+class _YtDlpInfo:
+    duration: int
+    title: str
+    height: int | None
+    width: int | None
+
+
 class YtdlpDownloader:
     @classmethod
     async def download_audio(cls, url: str) -> AudioFileInfo:
@@ -21,8 +30,8 @@ class YtdlpDownloader:
 
         return AudioFileInfo(
             input_file=file,
-            duration=info["duration"],
-            title=info["title"],
+            duration=info.duration,
+            title=info.title,
         )
 
     @classmethod
@@ -33,24 +42,29 @@ class YtdlpDownloader:
 
         return VideoFileInfo(
             input_file=file,
-            duration=info["duration"],
-            title=info["title"],
-            height=info.get("height"),
-            width=info.get("width"),
+            duration=info.duration,
+            title=info.title,
+            height=info.height,
+            width=info.width,
         )
 
     @classmethod
-    async def _get_info(cls, url: str) -> dict[str, Any]:
+    async def _get_info(cls, url: str) -> _YtDlpInfo:
         if re.match(r"^https://(?:www\.)?youtu", url):
-            return await get_info(url)
+            raw_info = await get_info(url)
+        else:
+            with yt_dlp.YoutubeDL() as ydl:
+                raw_info = await async_wrap(ydl.extract_info)(url, download=False)
 
-        with yt_dlp.YoutubeDL() as ydl:
-            info = await async_wrap(ydl.extract_info)(url, download=False)
+        if not isinstance(raw_info, dict):
+            raise ValueError("yt-dlp returned invalid metadata")
 
-        if not info:
-            raise Exception
-
-        return info
+        return _YtDlpInfo(
+            duration=raw_info["duration"],
+            title=raw_info["title"],
+            height=raw_info.get("height") or 0,
+            width=raw_info.get("width") or 0,
+        )
 
     @classmethod
     async def _download_file(cls, url: str, opts: dict[str, Any]) -> InputFile:
