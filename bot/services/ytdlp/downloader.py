@@ -1,5 +1,6 @@
 import os
 import re
+from subprocess import SubprocessError
 from typing import Any, cast
 from dataclasses import dataclass
 
@@ -39,6 +40,7 @@ class YtdlpDownloader:
         info = await cls._get_info(url)
         opts = await YtDlpOptionsManager.choose_video_options(url)
         file = await cls._download_file(url, opts)
+        info = await cls._fill_missing_metadata(info, file)
 
         return VideoFileInfo(
             input_file=file,
@@ -46,6 +48,27 @@ class YtdlpDownloader:
             title=info.title,
             height=info.height,
             width=info.width,
+        )
+
+    @classmethod
+    async def _fill_missing_metadata(
+        cls, info: _YtDlpInfo, file: InputFile
+    ) -> _YtDlpInfo:
+        if not isinstance(file, FSInputFile) or (
+            info.duration and info.height and info.width
+        ):
+            return info
+
+        try:
+            metadata = await FfmpegService.get_video_metadata(str(file.path))
+        except SubprocessError:
+            return info
+
+        return _YtDlpInfo(
+            duration=info.duration or metadata.get("duration", 0),
+            title=info.title,
+            height=info.height or metadata.get("height"),
+            width=info.width or metadata.get("width"),
         )
 
     @classmethod
@@ -60,7 +83,7 @@ class YtdlpDownloader:
             raise ValueError("yt-dlp returned invalid metadata")
 
         return _YtDlpInfo(
-            duration=raw_info["duration"],
+            duration=raw_info.get("duration") or 0,
             title=raw_info["title"],
             height=raw_info.get("height") or 0,
             width=raw_info.get("width") or 0,
