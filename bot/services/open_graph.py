@@ -54,24 +54,33 @@ class OpenGraphService:
     @classmethod
     def parse_soup(cls, soup: BeautifulSoup) -> OpenGraphMetadata:
         return OpenGraphMetadata(
-            image_url=cls._get_property(soup, "og:image"),
-            title=cls._get_property(soup, "og:title"),
-            description=cls._get_property(soup, "og:description"),
-            video_url=cls._get_property(soup, "og:video"),
+            image_url=cls._get_property(soup, "og:image", "twitter:image"),
+            title=cls._get_property(soup, "og:title", "twitter:title"),
+            description=cls._get_property(
+                soup,
+                "og:description",
+                "twitter:description",
+            ),
+            video_url=cls._get_property(soup, "og:video", "twitter:player"),
         )
 
     @staticmethod
     def _get_property(
         soup: BeautifulSoup,
         property_name: str,
+        fallback_name: str,
     ) -> str | None:
-        tag = soup.find("meta", attrs={"property": property_name})
-        if not isinstance(tag, Tag):
-            return None
+        metadata_names = (
+            ("property", property_name),
+            ("name", fallback_name),
+        )
+        for attribute_name, metadata_name in metadata_names:
+            tag = soup.find("meta", attrs={attribute_name: metadata_name})
+            if not isinstance(tag, Tag):
+                continue
 
-        content = tag.get("content")
-        if not isinstance(content, str):
-            return None
+            value = tag.get("content") or tag.get("value")
+            if isinstance(value, str) and (value := value.strip()):
+                return value
 
-        content = content.strip()
-        return content or None
+        return None
