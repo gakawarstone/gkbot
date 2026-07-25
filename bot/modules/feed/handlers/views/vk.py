@@ -1,8 +1,8 @@
 from aiogram.types import InlineKeyboardMarkup
-from bs4 import Tag, BeautifulSoup
+from bs4 import BeautifulSoup, Tag
 
 from services.gkfeed import FeedItem
-from extensions.handlers.message.http import HttpExtension
+from services.open_graph import OpenGraphMetadata, OpenGraphService
 from ...ui.keyboards import FeedMarkup
 from ...ui.keyboards.vk import VKFeedVideoItemMarkup
 from . import BaseFeedItemView
@@ -12,19 +12,20 @@ _DEFAULT_THUMBNAIL_URL = (
 )
 
 
-class VKFeedItemView(BaseFeedItemView, HttpExtension):
-    async def _process_vk_item(self, item: FeedItem):
-        soup = await self._get_soup(item.link)
+class VKFeedItemView(BaseFeedItemView):
+    async def _process_vk_item(self, item: FeedItem) -> None:
+        soup = await OpenGraphService.get_soup(item.link)
+        metadata = OpenGraphService.parse_soup(soup)
 
-        if not self._is_media_item(soup):
-            return await self._send_text_item(item, soup)
+        if not self._is_media_item(metadata):
+            return await self._send_text_item(item, soup, metadata)
 
-        media_url = self._get_og_image(soup)
+        media_url = self._get_image(metadata)
         title, channel_name = self._parse_title(soup)
 
         reply_markup = None
-        if self._is_video_item(soup):
-            reply_markup = self._get_video_markup(item, soup)
+        if self._is_video_item(metadata):
+            reply_markup = self._get_video_markup(item, metadata)
 
         await self._send_photo(
             item=item,
@@ -34,8 +35,13 @@ class VKFeedItemView(BaseFeedItemView, HttpExtension):
             reply_markup=reply_markup,
         )
 
-    async def _send_text_item(self, item: FeedItem, soup: BeautifulSoup):
-        description = self._get_og_description(soup)
+    async def _send_text_item(
+        self,
+        item: FeedItem,
+        soup: BeautifulSoup,
+        metadata: OpenGraphMetadata,
+    ) -> None:
+        description = self._get_description(metadata)
         _, channel_name = self._parse_title(soup)
 
         await self.answer(
@@ -44,49 +50,30 @@ class VKFeedItemView(BaseFeedItemView, HttpExtension):
             disable_web_page_preview=True,
         )
 
-    def _is_media_item(self, soup: BeautifulSoup) -> bool:
-        tag = soup.find("meta", attrs={"property": "og:image"})
-        if not isinstance(tag, Tag):
-            return False
+    def _is_media_item(self, metadata: OpenGraphMetadata) -> bool:
+        return (
+            metadata.image_url is not None
+            and metadata.image_url != _DEFAULT_THUMBNAIL_URL
+        )
 
-        content = tag.get("content")
-        if not isinstance(content, str) or not content or content == _DEFAULT_THUMBNAIL_URL:
-            return False
+    def _is_video_item(self, metadata: OpenGraphMetadata) -> bool:
+        player_url = metadata.video_url
+        return (
+            player_url is not None
+            and "oid=" in player_url
+            and "&" in player_url
+            and "id=" in player_url
+        )
 
-        return True
+    def _get_image(self, metadata: OpenGraphMetadata) -> str:
+        if metadata.image_url is None:
+            raise ValueError("VK preview image meta tag not found")
+        return metadata.image_url
 
-    def _is_video_item(self, soup: BeautifulSoup) -> bool:
-        tag = soup.find("meta", attrs={"property": "og:video"})
-        if not isinstance(tag, Tag):
-            return False
-
-        content = tag.get("content")
-        if not isinstance(content, str):
-            return False
-
-        return "oid=" in content and "&" in content and "id=" in content
-
-    def _get_og_image(self, soup: BeautifulSoup) -> str:
-        tag = soup.find("meta", attrs={"property": "og:image"})
-        if not isinstance(tag, Tag):
-            raise ValueError("og:image meta tag not found")
-
-        content = tag.get("content")
-        if not isinstance(content, str):
-            raise ValueError("og:image content not found")
-
-        return content
-
-    def _get_og_description(self, soup: BeautifulSoup) -> str:
-        tag = soup.find("meta", attrs={"property": "og:description"})
-        if not isinstance(tag, Tag):
-            raise ValueError("og:description meta tag not found")
-
-        content = tag.get("content")
-        if not isinstance(content, str):
-            raise ValueError("og:description content not found")
-
-        return content
+    def _get_description(self, metadata: OpenGraphMetadata) -> str:
+        if metadata.description is None:
+            raise ValueError("VK description meta tag not found")
+        return metadata.description
 
     def _parse_title(self, soup: BeautifulSoup) -> tuple[str, str]:
         tag = soup.find("title")
@@ -103,19 +90,14 @@ class VKFeedItemView(BaseFeedItemView, HttpExtension):
     def _get_video_markup(
         self,
         item: FeedItem,
-        soup: BeautifulSoup,
+        metadata: OpenGraphMetadata,
     ) -> InlineKeyboardMarkup:
-        tag = soup.find("meta", attrs={"property": "og:video"})
-        if not isinstance(tag, Tag):
-            raise ValueError("og:video meta tag not found")
-
-        content = tag.get("content")
-        if not isinstance(content, str):
-            raise ValueError("og:video content not found")
+        content = metadata.video_url
+        if content is None:
+            raise ValueError("VK video player meta tag not found")
 
         oid_part = content.split("oid=")[-1].split("&")[0]
         id_part = content.split("id=")[-1].split("&")[0]
 
         video_link = f"https://vk.com/video{oid_part}_{id_part}"
         return VKFeedVideoItemMarkup.get_item_markup(item.id, video_link)
-
