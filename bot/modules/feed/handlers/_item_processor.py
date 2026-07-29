@@ -4,6 +4,7 @@ from services.gkfeed import FeedItem
 from ._base import BaseHandler
 from .views.video import VideoFeedItemView
 from .views.kinogo import KinogoFeedItemView
+from .views.matreshka import MatreshkaFeedItemView
 from .views.spoti import SpotiFeedItemView
 from .views.base import BaseWebFeedItemView
 from .views.vk import VKFeedItemView
@@ -29,6 +30,7 @@ _ITEM_PROCESSOR = Callable[[FeedItem], Awaitable[Any]]
 class GkfeedItemProcessorExtension(
     SasflixFeedItemView,
     HltvFeedItemView,
+    MatreshkaFeedItemView,
     InstagramFeedItemView,
     DiscoursFeedItemView,
     Porno365FeedItemView,
@@ -68,13 +70,13 @@ class GkfeedItemProcessorExtension(
             "https://www.pornhub.com": self._process_pornhub_item,
             "https://de.pornhub.org": self._process_pornhub_item,
             "https://pornhub.org": self._process_pornhub_item,
-            "http://i.porno365.broker": self._process_porno365_item,
-            "http://a.porno365.broker": self._process_porno365_item,
+            "http://porno365.broker": self._process_porno365_item,
             "https://discours.io": self._process_discours_item,
             "https://instagram.com": self._process_instagram_item,
             "https://www.instagram.com": self._process_instagram_item,
             "https://www.hltv.org": self._process_hltv_item,
             "https://sasflix.ru/": self._process_sasflix_item,
+            "https://matreshka.tv/video/": self._process_matreshka_item,
         }
 
     async def _process_item(self, item: FeedItem):
