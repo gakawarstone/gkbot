@@ -1,5 +1,4 @@
 from bs4 import BeautifulSoup, Tag
-
 from extensions.handlers.message.http import HttpExtension
 from services.gkfeed import FeedItem
 
@@ -20,13 +19,13 @@ class ShikiFeedItemView(BaseFeedItemView, HttpExtension):
         poster_img = soup.select_one(".b-db_entry-poster picture img")
         if isinstance(poster_img, Tag):
             src = poster_img.get("src")
-            if isinstance(src, str):
+            if isinstance(src, str) and src.strip():
                 return self._normalize_media_url(src)
 
         poster_meta = soup.find("meta", attrs={"itemprop": "image"})
         if isinstance(poster_meta, Tag):
             content = poster_meta.get("content")
-            if isinstance(content, str):
+            if isinstance(content, str) and content.strip():
                 return self._normalize_media_url(content)
 
         picture_tag = soup.find("picture")
@@ -37,25 +36,32 @@ class ShikiFeedItemView(BaseFeedItemView, HttpExtension):
                 if isinstance(srcset, list):
                     srcset = srcset[0]
 
-                if isinstance(srcset, str):
-                    return self._normalize_media_url(srcset.split(" ")[-2])
+                if isinstance(srcset, str) and srcset.strip():
+                    candidates = srcset.rsplit(",", maxsplit=1)
+                    media_url = candidates[-1].strip().split()[0]
+                    return self._normalize_media_url(media_url)
 
         meta_tag = soup.find("meta", attrs={"property": "og:image"})
         if isinstance(meta_tag, Tag):
             content = meta_tag.get("content")
-            if isinstance(content, str):
+            if isinstance(content, str) and content.strip():
                 return self._normalize_media_url(content)
 
         raise ValueError("media url not found")
 
     @staticmethod
     def _normalize_media_url(url: str) -> str:
-        if url.startswith("http://"):
-            return f"https://{url.removeprefix('http://')}"
-        return url
+        media_url = url.strip()
+        if media_url.startswith("//"):
+            return f"https:{media_url}"
+        return media_url
 
     def _get_title_name(self, soup: BeautifulSoup) -> str:
         h1_tag = soup.find("h1")
         if not isinstance(h1_tag, Tag):
-            raise ValueError("h1 tag not found")
-        return h1_tag.text.split("/")[0]
+            raise TypeError("h1 tag not found")
+
+        title = h1_tag.get_text(" ", strip=True).partition("/")[0].strip()
+        if not title:
+            raise ValueError("title name not found")
+        return title
