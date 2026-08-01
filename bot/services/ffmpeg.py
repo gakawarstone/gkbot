@@ -153,7 +153,9 @@ class FfmpegService:
         cls, audio_url: str, work_dir_path: str
     ) -> None:
         command = cls._build_command(
-            inputs=[audio_url], output=f"{work_dir_path}/audio.m4a", props=[]
+            inputs=[audio_url],
+            output=f"{work_dir_path}/audio.m4a",
+            props=["-vn"],
         )
         await cls._run_command(command)
 
