@@ -1,12 +1,11 @@
 from aiogram import Router
-from aiogram.types import Message
+from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
-from aiogram.filters import Command
 from aiogram.fsm.state import State, StatesGroup
-from aiogram.filters import StateFilter
+from aiogram.types import Message
 
-from services.llm import Gemini
 from configs.commands import USER_COMMANDS
+from services.llm import OpenRouter
 
 
 class FSM(StatesGroup):
@@ -29,12 +28,11 @@ async def get_response(message: Message, state: FSMContext):
 
     _message = await message.answer("Подождите..")
     text = ""
-    async for ch in Gemini().stream(message.text):
+    async for ch in OpenRouter().stream(message.text):
         text += ch.text
         await _message.edit_text(text)
 
 
-# TODO: should work as /ask <prompt> and dont use gemini
 # TODO: inline @gkbot ai <prompt>
 # FIXME: deprecated use /chatgpt
 def setup(r: Router):

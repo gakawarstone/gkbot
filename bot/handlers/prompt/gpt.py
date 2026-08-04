@@ -1,8 +1,7 @@
 from aiogram import Router
 from aiogram.types import Message
-
-from services.llm import Gemini
 from filters.command import CommandWithPrompt
+from services.llm import OpenRouter
 
 
 # DEPRECATED: use /ask instead.
@@ -17,7 +16,7 @@ async def send_llm_answer(m: Message):
 
     _message = await m.answer("Подождите..")
     text = ""
-    async for ch in Gemini().stream(prompt):
+    async for ch in OpenRouter().stream(prompt):
         text += ch.text
         await _message.edit_text(text)
 

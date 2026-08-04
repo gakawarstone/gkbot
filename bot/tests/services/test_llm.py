@@ -1,22 +1,14 @@
 import asyncio
 
-from services.llm import Gemini, OpenRouter
-from services.llm.openrouter import OpenRouterModel
+from services.llm import OpenRouter
+
 from .. import integration_test
 
 
-async def stream_gemini_response():
-    g = Gemini()
-    async for chunk in g.stream(prompt="Что такое деконструкция"):
-        assert isinstance(chunk, str)
-        assert len(chunk) != 0
-
-
 async def stream_open_router_response():
-    o = OpenRouter(model=OpenRouterModel.QWEN_36_PLUS)  # type: ignore[call-arg]
+    o = OpenRouter()
     async for chunk in o.stream(prompt="Что такое деконструкция"):
-        assert isinstance(chunk, str)
-        assert len(chunk) != 0
+        assert len(chunk.text) != 0
 
 
 @integration_test
@@ -29,7 +21,7 @@ async def test_event_loop_not_blocked():
         await asyncio.sleep(0.01)
         finished.set()
 
-    task1 = asyncio.create_task(stream_gemini_response())
+    task1 = asyncio.create_task(stream_open_router_response())
     task2 = asyncio.create_task(stream_open_router_response())
     task3 = asyncio.create_task(probe())
 
@@ -37,7 +29,7 @@ async def test_event_loop_not_blocked():
     try:
         await asyncio.wait_for(finished.wait(), timeout=0.02)
         loop_blocked = False
-    except asyncio.TimeoutError:
+    except TimeoutError:
         loop_blocked = True
 
     await task1

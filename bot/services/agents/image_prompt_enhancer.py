@@ -1,4 +1,4 @@
-from services.llm import Gemini
+from services.llm import OpenRouter
 
 
 class ImagePromptEnhancer:
@@ -15,4 +15,4 @@ class ImagePromptEnhancer:
         Mentioning the subject's pose, clothing, expression, or background if relevant.
         Output the improved version in a concise yet vivid paragraph. Do not add extra commentary.
         """
-        return await Gemini().generate(_prompt)
+        return await OpenRouter().generate(_prompt)

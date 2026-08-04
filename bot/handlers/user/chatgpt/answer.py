@@ -1,21 +1,22 @@
-from typing import Any, AsyncGenerator
 import base64
 import time
+from collections.abc import AsyncGenerator
+from typing import Any
 
 from aiogram.types import Message
 from aiogram.utils.formatting import BlockQuote
-
-from services.agents.image_explainer import ImageExplainer
-from services.llm import OpenRouter
-from services.llm.openrouter import OpenRouterModel, StreamChunk
 from extensions.handlers.message.file_extension import FileHandlerExtension
 from extensions.handlers.message.markdown_render import MarkdownRenderHandlerExtension
+from services.agents.image_explainer import ImageExplainer
+from services.llm import OpenRouter
+from services.llm.openrouter import DEFAULT_MODEL, StreamChunk
+
 from ._base import BaseHandler
 from ._states import FSM
 
 
 class AnswerHandler(BaseHandler, MarkdownRenderHandlerExtension, FileHandlerExtension):
-    _MODEL = OpenRouterModel.GEMINI_3_FLASH
+    _MODEL = DEFAULT_MODEL
 
     async def handle(self) -> Any:
         await self.state.set_state(FSM.finish)
@@ -69,7 +70,7 @@ class AnswerHandler(BaseHandler, MarkdownRenderHandlerExtension, FileHandlerExte
         return text
 
     async def _stream_to_message(
-        self, message: Message, stream: AsyncGenerator[StreamChunk, None]
+        self, message: Message, stream: AsyncGenerator[StreamChunk]
     ) -> str:
         reason = ""
         text = ""

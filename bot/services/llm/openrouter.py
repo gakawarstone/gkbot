@@ -1,9 +1,9 @@
-from typing import AsyncGenerator, Optional
-from openai import AsyncOpenAI
+from collections.abc import AsyncGenerator
 from enum import Enum
 
-
 from configs.env import OPENROUTER_API_KEY
+from openai import AsyncOpenAI
+
 from ._base import LLM, StreamChunk
 
 
@@ -13,19 +13,22 @@ class OpenRouterModel(Enum):
     STEP_35 = "stepfun/step-3.5-flash:free"
     GEMMA_4 = "google/gemma-4-31b-it:free"
     KIMI_K25 = "moonshotai/kimi-k2.5"
-    GEMINI_3_FLASH = "google/gemini-3-flash-preview"
+    GPT_5_6_LUNA = "openai/gpt-5.6-luna"
     GPT_OSS_120 = "openai/gpt-oss-120b:free"
 
     @property
     def supports_images(self) -> bool:
         return self in {
             OpenRouterModel.GEMMA_4,
-            OpenRouterModel.GEMINI_3_FLASH,
+            OpenRouterModel.GPT_5_6_LUNA,
         }
 
 
+DEFAULT_MODEL = OpenRouterModel.GPT_5_6_LUNA
+
+
 class OpenRouter(LLM):
-    def __init__(self, model: OpenRouterModel) -> None:
+    def __init__(self, model: OpenRouterModel = DEFAULT_MODEL) -> None:
         self._model = model.value
 
     async def generate(self, prompt: str) -> str:
@@ -35,8 +38,8 @@ class OpenRouter(LLM):
         return result
 
     async def stream(
-        self, prompt: str, images: Optional[list[str]] = None
-    ) -> AsyncGenerator[StreamChunk, None]:
+        self, prompt: str, images: list[str] | None = None
+    ) -> AsyncGenerator[StreamChunk]:
         client = AsyncOpenAI(
             base_url="https://openrouter.ai/api/v1",
             api_key=OPENROUTER_API_KEY,
