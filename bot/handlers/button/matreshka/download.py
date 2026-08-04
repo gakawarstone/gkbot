@@ -1,12 +1,12 @@
 from aiogram import F, Router
 from aiogram.types import CallbackQuery, InaccessibleMessage
+
+from configs.timeouts import AUDIO_TRANSFER_TIMEOUT_SECONDS
 from services.matreshka import MatreshkaService
 from ui.buttons.matreshka import (
     PREFIX,
     MatreshkaDownloadButtonCallbackDataDeserializer,
 )
-
-_AUDIO_UPLOAD_TIMEOUT_SECONDS = 1800
 
 
 async def download(callback: CallbackQuery) -> None:
@@ -32,7 +32,7 @@ async def download(callback: CallbackQuery) -> None:
             performer="GKBOT",
             duration=audio.duration,
         ),
-        request_timeout=_AUDIO_UPLOAD_TIMEOUT_SECONDS,
+        request_timeout=AUDIO_TRANSFER_TIMEOUT_SECONDS,
     )
 
     await status_message.delete()
