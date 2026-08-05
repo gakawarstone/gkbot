@@ -1,5 +1,7 @@
 import html
 import re
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from urllib.parse import urlparse
 
@@ -82,13 +84,18 @@ class MatreshkaService:
         )
 
     @staticmethod
-    async def download_audio(video: MatreshkaVideo) -> AudioFileInfo:
+    @asynccontextmanager
+    async def download_audio(video: MatreshkaVideo) -> AsyncIterator[AudioFileInfo]:
         cache_dir = CacheDir()
-        await cache_dir.delete_after(minutes=5)
-        await FfmpegService.download_and_prepare_audio(video.hls_url, cache_dir.path)
+        try:
+            await FfmpegService.download_and_prepare_audio(
+                video.hls_url, cache_dir.path
+            )
 
-        return AudioFileInfo(
-            input_file=FSInputFile(cache_dir.get_file_path("audio.m4a")),
-            duration=video.duration,
-            title=video.title,
-        )
+            yield AudioFileInfo(
+                input_file=FSInputFile(cache_dir.get_file_path("audio.m4a")),
+                duration=video.duration,
+                title=video.title,
+            )
+        finally:
+            cache_dir.delete()

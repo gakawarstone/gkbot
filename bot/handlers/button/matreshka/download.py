@@ -24,16 +24,16 @@ async def download(callback: CallbackQuery) -> None:
     status_message = await callback.message.answer("Cкачиваю " + video_url)
 
     video = await MatreshkaService.get_video(video_url)
-    audio = await MatreshkaService.download_audio(video)
-    await callback.bot(
-        callback.message.answer_audio(
-            audio=audio.input_file,
-            title=audio.title,
-            performer="GKBOT",
-            duration=audio.duration,
-        ),
-        request_timeout=AUDIO_TRANSFER_TIMEOUT_SECONDS,
-    )
+    async with MatreshkaService.download_audio(video) as audio:
+        await callback.bot(
+            callback.message.answer_audio(
+                audio=audio.input_file,
+                title=audio.title,
+                performer="GKBOT",
+                duration=audio.duration,
+            ),
+            request_timeout=AUDIO_TRANSFER_TIMEOUT_SECONDS,
+        )
 
     await status_message.delete()
 
