@@ -26,9 +26,11 @@ class VideoDownloadOptions(DownloadOptions):
     }
 
     youtube = {
+        # Combined YouTube formats commonly omit filesize, so keep the size
+        # guard only on the adaptive-stream path.
         "format": (
             "bv[ext=mp4][filesize<1G][vcodec^=avc1]+ba[ext=m4a]"
-            "/b[ext=mp4][filesize<1G]"
+            "/b[ext=mp4]"
         ),
         "external_downloader": "aria2c",
         "external_downloader_args": [
