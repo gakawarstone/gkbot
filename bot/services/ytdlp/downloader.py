@@ -1,5 +1,7 @@
 import os
 import re
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from subprocess import SubprocessError
 from typing import Any, cast
@@ -24,37 +26,50 @@ class _YtDlpInfo:
 
 class YtdlpDownloader:
     @classmethod
-    async def download_audio(cls, url: str) -> AudioFileInfo:
+    @asynccontextmanager
+    async def download_audio(cls, url: str) -> AsyncIterator[AudioFileInfo]:
         info = await cls._get_info(url)
-        opts = await YtDlpOptionsManager.choose_audio_options(url)
-        file = await cls._download_file(url, opts)
-        if isinstance(file, URLInputFile):
-            output_path = cast(str, opts["outtmpl"])
-            await FfmpegService.download_and_prepare_audio(
-                file.url, os.path.dirname(output_path)
-            )
-            file = FSInputFile(output_path)
+        opts, cache_dir = YtDlpOptionsManager.choose_audio_options(url)
+        try:
+            file = await cls._download_file(url, opts)
+            if isinstance(file, URLInputFile):
+                output_path = cast(str, opts["outtmpl"])
+                await FfmpegService.download_and_prepare_audio(
+                    file.url, os.path.dirname(output_path)
+                )
+                file = FSInputFile(output_path)
 
-        return AudioFileInfo(
-            input_file=file,
-            duration=info.duration,
-            title=info.title,
-        )
+            yield AudioFileInfo(
+                input_file=file,
+                duration=info.duration,
+                title=info.title,
+            )
+        finally:
+            cache_dir.delete()
 
     @classmethod
-    async def download_video(cls, url: str) -> VideoFileInfo:
+    @asynccontextmanager
+    async def download_video(
+        cls, url: str, cleanup_delay_minutes: int | None = None
+    ) -> AsyncIterator[VideoFileInfo]:
         info = await cls._get_info(url)
-        opts = await YtDlpOptionsManager.choose_video_options(url)
-        file = await cls._download_file(url, opts)
-        info = await cls._fill_missing_metadata(info, file)
+        opts, cache_dir = YtDlpOptionsManager.choose_video_options(url)
+        try:
+            file = await cls._download_file(url, opts)
+            info = await cls._fill_missing_metadata(info, file)
 
-        return VideoFileInfo(
-            input_file=file,
-            duration=info.duration,
-            title=info.title,
-            height=info.height,
-            width=info.width,
-        )
+            yield VideoFileInfo(
+                input_file=file,
+                duration=info.duration,
+                title=info.title,
+                height=info.height,
+                width=info.width,
+            )
+        finally:
+            if cleanup_delay_minutes is None:
+                cache_dir.delete()
+            else:
+                await cache_dir.delete_after(minutes=cleanup_delay_minutes)
 
     @classmethod
     async def _fill_missing_metadata(

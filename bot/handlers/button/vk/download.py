@@ -41,23 +41,23 @@ async def download(callback: CallbackQuery):
             await status_message.edit_text("Cкачиваю " + url)
 
     if _is_button_callback(callback, VKDownloadButtonData.audio):
-        audio = await YtdlpDownloader.download_audio(url)
-        await callback.message.answer_audio(
-            audio=audio.input_file,
-            title=audio.title,
-            performer="GKBOT",
-            duration=audio.duration,
-        )
+        async with YtdlpDownloader.download_audio(url) as audio:
+            await callback.message.answer_audio(
+                audio=audio.input_file,
+                title=audio.title,
+                performer="GKBOT",
+                duration=audio.duration,
+            )
 
     if _is_button_callback(callback, VKDownloadButtonData.video):
-        video = await YtdlpDownloader.download_video(url)
-        await callback.message.answer_video(
-            video.input_file,
-            height=video.height,
-            width=video.width,
-            duration=video.duration,
-            supports_streaming=True,
-        )
+        async with YtdlpDownloader.download_video(url) as video:
+            await callback.message.answer_video(
+                video.input_file,
+                height=video.height,
+                width=video.width,
+                duration=video.duration,
+                supports_streaming=True,
+            )
 
     if isinstance(status_message, Message):
         await status_message.delete()
@@ -65,4 +65,3 @@ async def download(callback: CallbackQuery):
 
 def setup(r: Router):
     r.callback_query.register(download, F.data.startswith(PREFIX))
-

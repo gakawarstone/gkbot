@@ -41,15 +41,15 @@ async def download(callback: CallbackQuery):
             await status_message.edit_text("Cкачиваю " + url)
 
     if _is_button_callback(callback, Porno365DownloadButtonData.video):
-        video = await YtdlpDownloader.download_video(url)
-        await callback.message.answer_video(
-            video.input_file,
-            height=video.height,
-            width=video.width,
-            duration=video.duration,
-            supports_streaming=True,
-            has_spoiler=True,
-        )
+        async with YtdlpDownloader.download_video(url) as video:
+            await callback.message.answer_video(
+                video.input_file,
+                height=video.height,
+                width=video.width,
+                duration=video.duration,
+                supports_streaming=True,
+                has_spoiler=True,
+            )
 
     if isinstance(status_message, Message):
         await status_message.delete()

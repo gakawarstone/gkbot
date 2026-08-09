@@ -15,28 +15,35 @@ from ._base import BaseExtractor
 class YtDlp(BaseExtractor):
     async def get_video_info(self, url: str) -> InfoVideoTikTok:
         try:
-            video_file_info = await YtdlpDownloader.download_video(url)
-            return InfoVideoTikTok(
-                video_url=None,
-                video_input_file=video_file_info.input_file,
-                music_url="",
-                images_urls=[],
-                duration=video_file_info.duration,
-                height=video_file_info.height,
-                width=video_file_info.width,
-            )
+            async with YtdlpDownloader.download_video(
+                url, cleanup_delay_minutes=5
+            ) as video_file_info:
+                return InfoVideoTikTok(
+                    video_url=None,
+                    video_input_file=video_file_info.input_file,
+                    music_url="",
+                    images_urls=[],
+                    duration=video_file_info.duration,
+                    height=video_file_info.height,
+                    width=video_file_info.width,
+                )
         except (IndexError, ValueError, DownloadError):
             raise SourceInfoExtractFailed(self)
 
     async def _get_video_input_file(self, url: str) -> InputFile:
-        return (await YtdlpDownloader.download_video(url)).input_file
+        async with YtdlpDownloader.download_video(
+            url, cleanup_delay_minutes=5
+        ) as video_file_info:
+            return video_file_info.input_file
 
     async def get_video_file_url(self, url: str) -> str:
         try:
             if not self._get_serveo_url():
                 raise ValueError("Serveo URL is missing")
-            video_file_info = await YtdlpDownloader.download_video(url)
-            return await self._get_video_file_url_from_info(video_file_info)
+            async with YtdlpDownloader.download_video(
+                url, cleanup_delay_minutes=5
+            ) as video_file_info:
+                return await self._get_video_file_url_from_info(video_file_info)
         except (IndexError, ValueError, OSError, DownloadError):
             raise SourceInfoExtractFailed(self)
 

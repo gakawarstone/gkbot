@@ -2,23 +2,25 @@ import re
 from typing import Any
 
 from services.cache_dir import CacheDir
-from ._options import VideoDownloadOptions, AudioDownloadOptions
+
+from ._options import AudioDownloadOptions, VideoDownloadOptions
 
 
 class YtDlpOptionsManager:
     @classmethod
-    async def choose_audio_options(cls, url: str) -> dict[str, Any]:
+    def choose_audio_options(cls, url: str) -> tuple[dict[str, Any], CacheDir]:
         opts: dict[str, Any] = {}
         if url.startswith(("https://vk.com", "https://vkvideo.ru")):
             opts.update(AudioDownloadOptions.vk)
         else:
             opts.update(AudioDownloadOptions.youtube)
 
-        opts["outtmpl"] = await cls._create_path("audio.m4a")
-        return opts
+        cache_dir = CacheDir()
+        opts["outtmpl"] = cache_dir.get_file_path("audio.m4a")
+        return opts, cache_dir
 
     @classmethod
-    async def choose_video_options(cls, url: str) -> dict[str, Any]:
+    def choose_video_options(cls, url: str) -> tuple[dict[str, Any], CacheDir]:
         opts: dict[str, Any] = {}
 
         _yt_pattern = (
@@ -33,16 +35,11 @@ class YtDlpOptionsManager:
             opts.update(VideoDownloadOptions.tiktok)
         if url.startswith("https://vk.com/clip-"):
             opts.update(VideoDownloadOptions.tiktok)
-        if url.startswith(("https://vk.com", "https://vkvideo.ru")) and not url.startswith(
-            "https://vk.com/clip-"
-        ):
+        if url.startswith(
+            ("https://vk.com", "https://vkvideo.ru")
+        ) and not url.startswith("https://vk.com/clip-"):
             opts.update(VideoDownloadOptions.vk)
 
-        opts["outtmpl"] = await cls._create_path("video.mp4")
-        return opts
-
-    @staticmethod
-    async def _create_path(file_name: str) -> str:
         cache_dir = CacheDir()
-        await cache_dir.delete_after(minutes=5)
-        return cache_dir.path + "/" + file_name
+        opts["outtmpl"] = cache_dir.get_file_path("video.mp4")
+        return opts, cache_dir

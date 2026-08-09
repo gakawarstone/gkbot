@@ -46,30 +46,30 @@ async def download(callback: CallbackQuery):
             await status_message.edit_text("Cкачиваю " + url)
 
     if _is_button_callback(callback, YoutubeDownloadButtonData.audio):
-        audio = await YtdlpDownloader.download_audio(url)
-        await callback.message.answer_audio(
-            audio=audio.input_file,
-            title=audio.title,
-            performer="GKBOT",
-            duration=audio.duration,
-        )
+        async with YtdlpDownloader.download_audio(url) as audio:
+            await callback.message.answer_audio(
+                audio=audio.input_file,
+                title=audio.title,
+                performer="GKBOT",
+                duration=audio.duration,
+            )
 
     if _is_button_callback(callback, YoutubeDownloadButtonData.video):
-        video = await YtdlpDownloader.download_video(url)
-        data = await YoutubeApiService.get_video_data(url)
+        async with YtdlpDownloader.download_video(url) as video:
+            data = await YoutubeApiService.get_video_data(url)
 
-        channel_title = remove_emoji(data.channel_title)
-        caption = f'<b>{video.title}</b>\n\n<a href="{url}">{channel_title}</a>'
+            channel_title = remove_emoji(data.channel_title)
+            caption = f'<b>{video.title}</b>\n\n<a href="{url}">{channel_title}</a>'
 
-        await callback.message.answer_video(
-            video.input_file,
-            height=video.height,
-            width=video.width,
-            duration=video.duration,
-            supports_streaming=True,
-            caption=caption,
-            thumbnail=URLInputFile(data.thumbnail_url),
-        )
+            await callback.message.answer_video(
+                video.input_file,
+                height=video.height,
+                width=video.width,
+                duration=video.duration,
+                supports_streaming=True,
+                caption=caption,
+                thumbnail=URLInputFile(data.thumbnail_url),
+            )
 
     if isinstance(status_message, Message):
         await status_message.delete()
