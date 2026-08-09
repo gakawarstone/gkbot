@@ -3,7 +3,7 @@ from ._types import DownloadOptions
 
 class AudioDownloadOptions(DownloadOptions):
     youtube = {
-        "format": "ba[ext=m4a]",
+        "format": "ba[ext=m4a]/ba/b",
         "postprocessors": [
             {"key": "SponsorBlock", "categories": ["sponsor"]},
             {"key": "ModifyChapters", "remove_sponsor_segments": ["sponsor"]},

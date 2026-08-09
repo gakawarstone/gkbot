@@ -1,15 +1,15 @@
 import os
 import re
+from dataclasses import dataclass
 from subprocess import SubprocessError
 from typing import Any, cast
-from dataclasses import dataclass
 
 import yt_dlp
 from aiogram.types import FSInputFile, InputFile, URLInputFile
-
 from services.ffmpeg import FfmpegService
 from utils.async_wrapper import async_wrap
-from workers.yt_dlp import get_info, download_video
+from workers.yt_dlp import download_video, get_info
+
 from ._types import AudioFileInfo, VideoFileInfo
 from .options_manager import YtDlpOptionsManager
 
@@ -28,6 +28,12 @@ class YtdlpDownloader:
         info = await cls._get_info(url)
         opts = await YtDlpOptionsManager.choose_audio_options(url)
         file = await cls._download_file(url, opts)
+        if isinstance(file, URLInputFile):
+            output_path = cast(str, opts["outtmpl"])
+            await FfmpegService.download_and_prepare_audio(
+                file.url, os.path.dirname(output_path)
+            )
+            file = FSInputFile(output_path)
 
         return AudioFileInfo(
             input_file=file,
