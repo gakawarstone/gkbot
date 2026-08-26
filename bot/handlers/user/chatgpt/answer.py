@@ -23,8 +23,9 @@ class AnswerHandler(BaseHandler, MarkdownRenderHandlerExtension, FileHandlerExte
         assert self.ctx.messages is not None
 
         prompt = await self._build_prompt()
-        if not prompt or prompt == "q":
-            await self.event.answer("Пока")
+        if not prompt:
+            await self.event.answer("Отправь текст или изображение с подписью.")
+            await self.state.set_state(FSM.get_message)
             return
 
         self.ctx.messages.append(prompt)

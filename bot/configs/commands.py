@@ -21,10 +21,10 @@ class _UserCommands(_Commands):
     feed = "feed"
     add_feed = "add_feed"
     sort_sources = "sort_sources"
-    ask = "ask"
     cvision = "cvision"
-    chatgpt = "chatgpt"
+    chat = "chat"
     login_feed = "login_feed"
+    exit = "exit"
 
 
 USER_COMMANDS = _UserCommands()

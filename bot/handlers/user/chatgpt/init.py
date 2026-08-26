@@ -1,5 +1,6 @@
 from typing import Any, override
 
+from ui.keyboards.chat import ChatMarkup
 from ._base import BaseHandler
 from ._states import FSM
 
@@ -9,7 +10,6 @@ class InitHandler(BaseHandler):
         await self.state.set_state(FSM.finish)
         await self.event.delete()
         self.clean_context()
-        await self.event.answer("Что хочешь от меня?")
 
         assert self.ctx.messages is not None
         self.ctx.messages.append(
@@ -20,6 +20,11 @@ class InitHandler(BaseHandler):
             """
         )
 
+        await self.event.answer(
+            "AI-чат включён. Все следующие сообщения будут отправлены модели. "
+            "Чтобы выйти, нажми кнопку ниже или отправь /exit.",
+            reply_markup=ChatMarkup.menu,
+        )
         await self.state.set_state(FSM.get_message)
 
     @override
