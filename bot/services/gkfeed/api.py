@@ -33,16 +33,10 @@ class GkfeedApi:
             yield item
 
     async def delete_item_by_id(self, item_id: int) -> None:
-        headers = {"Content-Type": "application/json"}
-        data = {"itemIds": [item_id]}
-        json_data = json.dumps(data)
         async with aiohttp.ClientSession() as session:
             auth = aiohttp.BasicAuth(login=self.__login, password=self.__password)
-            async with session.post(
-                self._api_root + "add_deleted_items",
-                data=json_data,
-                auth=auth,
-                headers=headers,
+            async with session.delete(
+                self._api_root + f"items/{item_id}", auth=auth
             ) as response:
                 await response.read()
 
