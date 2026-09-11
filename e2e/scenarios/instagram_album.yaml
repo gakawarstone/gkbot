@@ -1,0 +1,12 @@
+name: Instagram album download sends uploaded photos
+timeout: 60
+steps:
+  - send:
+      text: https://www.instagram.com/p/BoHk1haB5tM/
+  - expect:
+      method: sendMessage
+      text: Скачиваю https://www.instagram.com/p/BoHk1haB5tM/
+  - expect:
+      method: sendMediaGroup
+      media_type: photo
+      filename: instagram_1.jpg

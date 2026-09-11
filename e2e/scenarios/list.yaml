@@ -1,0 +1,8 @@
+name: list command responds through Telegram API
+timeout: 15
+steps:
+  - send:
+      text: /list
+  - expect:
+      method: sendMessage
+      text_contains: /list

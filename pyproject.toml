@@ -45,5 +45,8 @@ asyncio_default_fixture_loop_scope = "session"
 testpaths = ["bot/tests"]
 pythonpath = ["bot"]
 
+[tool.ruff]
+src = ["bot"]
+
 [tool.mypy]
 ignore_missing_imports = true

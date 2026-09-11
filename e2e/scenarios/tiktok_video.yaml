@@ -1,0 +1,12 @@
+name: TikTok video download sends uploaded video
+timeout: 30
+steps:
+  - send:
+      text: https://vm.tiktok.com/ZGdxAupkr/
+  - expect:
+      method: sendMessage
+      text: Скачиваю https://vm.tiktok.com/ZGdxAupkr/
+  - expect:
+      method: sendVideo
+      media_type: video
+      filename: video_converted.mp4

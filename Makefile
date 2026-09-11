@@ -30,6 +30,10 @@ dev: api
 test:
 	INTEGRATION_TEST=0 $(PYTHON) -m pytest --ignore services $(FILE)
 
+.PHONY: e2e
+e2e:
+	testgram run e2e/scenarios
+
 deploy: merge-to-master
 
 debug:
