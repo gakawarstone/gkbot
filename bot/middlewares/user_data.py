@@ -23,4 +23,4 @@ class UserDataMiddleware(BaseMiddleware):
             self.__data[user_id] = {}
         data["data"] = self.__data[user_id]
 
-        await handler(event, data)
+        return await handler(event, data)

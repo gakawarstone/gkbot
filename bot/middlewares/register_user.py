@@ -23,4 +23,4 @@ class RegisterUserMiddleware(BaseMiddleware):
                 user_id=user.id, user_name=getattr(user, "full_name", "")
             )
 
-        await handler(event, data)
+        return await handler(event, data)
