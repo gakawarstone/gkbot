@@ -5,8 +5,8 @@ import subprocess
 from subprocess import CompletedProcess
 from typing import Any
 
-from utils.async_wrapper import async_wrap
 from services.cache_dir import CacheDir
+from utils.async_wrapper import async_wrap
 
 
 class FfmpegService:
@@ -161,6 +161,7 @@ class FfmpegService:
 
     @classmethod
     async def _run_command(cls, command: list[str], **kwargs: Any) -> CompletedProcess:
+        kwargs.setdefault("stdin", subprocess.DEVNULL)
         async with cls._semaphore:
             return await async_wrap(subprocess.run)(command, check=True, **kwargs)
 
