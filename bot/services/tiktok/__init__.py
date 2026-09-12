@@ -1,7 +1,7 @@
 from subprocess import SubprocessError
 
 from aiogram.types import FSInputFile
-
+from configs.services.tiktok import MAX_VIDEO_SIZE_BYTES, MAX_VIDEO_WIDTH
 from services.cache_dir import CacheDir
 from services.ffmpeg import FfmpegService
 from services.http import HttpService
@@ -69,7 +69,12 @@ class TikTokService:
         cache_dir = CacheDir()
         cache_dir.save_file("video.mp4", video)
         await cache_dir.delete_after(minutes=5)
-        return FSInputFile(cache_dir.get_file_path("video.mp4"))
+        video_path = await FfmpegService.compress_video_if_needed(
+            cache_dir.get_file_path("video.mp4"),
+            max_size_bytes=MAX_VIDEO_SIZE_BYTES,
+            max_width=MAX_VIDEO_WIDTH,
+        )
+        return FSInputFile(video_path)
 
     @classmethod
     async def __resolve_video_bytes(cls, info: InfoVideoTikTok) -> bytes:

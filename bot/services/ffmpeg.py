@@ -1,9 +1,11 @@
 import asyncio
 import json
+import os
 import shutil
 import subprocess
+from pathlib import Path
 from subprocess import CompletedProcess
-from typing import Any
+from typing import Any, ClassVar
 
 from services.cache_dir import CacheDir
 from utils.async_wrapper import async_wrap
@@ -15,14 +17,14 @@ class FfmpegService:
 
     _semaphore = asyncio.Semaphore(1)
 
-    __resize_image_options = [
+    __resize_image_options: ClassVar[list[str]] = [
         "-vf",
         (
             "scale=trunc(oh*a/2)*2:720,"
             "pad=max(iw\\,ih*9/16):max(ih\\,iw*16/9):(ow-iw)/2:(oh-ih)/2:black"
         ),
     ]
-    __make_slideshow_options = [
+    __make_slideshow_options: ClassVar[list[str]] = [
         "-c:v",
         "libx264",
         "-shortest",
@@ -34,7 +36,7 @@ class FfmpegService:
         "yuv420p",
     ]
 
-    __convert_to_voice_options = ["-acodec", "libopus"]
+    __convert_to_voice_options: ClassVar[list[str]] = ["-acodec", "libopus"]
 
     @classmethod
     async def convert_music_to_voice(cls, music: bytes) -> bytes:
@@ -50,7 +52,7 @@ class FfmpegService:
 
         await cls._run_command(command)
 
-        content = open(f"{cache_dir.path}/voice.ogg", "rb").read()
+        content = await async_wrap(Path(f"{cache_dir.path}/voice.ogg").read_bytes)()
         cache_dir.delete()
         return content
 
@@ -75,6 +77,85 @@ class FfmpegService:
         await cls._run_command(command)
 
     @classmethod
+    async def compress_video_if_needed(
+        cls, input_path: str, max_size_bytes: int, max_width: int
+    ) -> str:
+        if os.path.getsize(input_path) <= max_size_bytes:
+            return input_path
+
+        base, _ = os.path.splitext(input_path)
+        output_path = f"{base}_compressed.mp4"
+        await cls._compress_video_to_size(
+            input_path, output_path, max_size_bytes, max_width
+        )
+        return output_path
+
+    @classmethod
+    async def _compress_video_to_size(
+        cls,
+        input_path: str,
+        output_path: str,
+        max_size_bytes: int,
+        max_width: int,
+    ) -> None:
+        metadata = await cls.get_video_metadata(input_path)
+        duration = metadata.get("duration", 0)
+        if duration <= 0:
+            raise ValueError("Video duration is required for size-limited encoding")
+
+        # Leave headroom for the MP4 container so the finished file stays below
+        # the configured limit rather than merely targeting it on average.
+        total_bitrate = int(max_size_bytes * 8 * 0.94 / duration)
+        audio_bitrate = min(128_000, max(32_000, total_bitrate // 10))
+        video_bitrate = max(100_000, total_bitrate - audio_bitrate)
+        passlog_path = f"{output_path}.passlog"
+        video_options = [
+            "-c:v",
+            "libx264",
+            "-preset",
+            "veryfast",
+            "-b:v",
+            str(video_bitrate),
+            "-vf",
+            f"scale='min({max_width},iw)':-2",
+            "-pix_fmt",
+            "yuv420p",
+            "-passlogfile",
+            passlog_path,
+        ]
+
+        first_pass = cls._build_command(
+            inputs=[input_path],
+            output=os.devnull,
+            props=video_options + ["-pass", "1", "-an", "-f", "null"],
+        )
+        second_pass = cls._build_command(
+            inputs=[input_path],
+            output=output_path,
+            props=video_options
+            + [
+                "-pass",
+                "2",
+                "-c:a",
+                "aac",
+                "-b:a",
+                str(audio_bitrate),
+                "-movflags",
+                "+faststart",
+            ],
+        )
+
+        try:
+            await cls._run_command(first_pass)
+            await cls._run_command(second_pass)
+        finally:
+            for suffix in ("-0.log", "-0.log.mbtree"):
+                try:
+                    os.remove(passlog_path + suffix)
+                except FileNotFoundError:
+                    pass
+
+    @classmethod
     async def get_video_metadata(cls, input_path: str) -> dict[str, int]:
         command = [
             "ffprobe",
@@ -83,13 +164,14 @@ class FfmpegService:
             "-select_streams",
             "v:0",
             "-show_entries",
-            "stream=width,height,duration",
+            "stream=width,height,duration:format=duration",
             "-of",
             "json",
             input_path,
         ]
         result = await cls._run_command(command, capture_output=True, text=True)
-        streams = json.loads(result.stdout).get("streams", [])
+        probe_data = json.loads(result.stdout)
+        streams = probe_data.get("streams", [])
         if not streams:
             return {}
 
@@ -98,7 +180,9 @@ class FfmpegService:
         for key in ("width", "height"):
             if value := stream.get(key):
                 metadata[key] = int(value)
-        if duration := stream.get("duration"):
+        if duration := stream.get("duration") or probe_data.get("format", {}).get(
+            "duration"
+        ):
             try:
                 metadata["duration"] = int(float(duration))
             except ValueError:
@@ -123,7 +207,7 @@ class FfmpegService:
 
         await cls._run_command(command)
 
-        content = open(f"{cache_dir.path}/slideshow.mp4", "rb").read()
+        content = await async_wrap(Path(f"{cache_dir.path}/slideshow.mp4").read_bytes)()
         cache_dir.delete()
         return content
 
