@@ -1,4 +1,0 @@
-# Fix BUTTON_DATA_INVALID error in vk.py
-
-- STATUS: CLOSED
-- PRIORITY: 1
