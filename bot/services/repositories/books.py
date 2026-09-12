@@ -9,10 +9,12 @@ class BooksRepository:
         return await Book.filter(user_id=user_id).all()
 
     @classmethod
-    async def get_book_by_id(cls, book_id: int) -> Book:
-        book = await Book.filter(id=book_id).first()
+    async def get_user_book_by_id(cls, book_id: int, user_id: int) -> Book:
+        book = await Book.filter(id=book_id, user_id=user_id).first()
         if book is None:
-            raise ValueError(f"Book with id={book_id} not found")
+            raise ValueError(
+                f"Book with id={book_id} not found for user with id={user_id}"
+            )
         return book
 
     @classmethod  # FIXME

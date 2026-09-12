@@ -1,0 +1,50 @@
+name: Stale book callbacks are rejected
+timeout: 15
+steps:
+  - send:
+      text: /books
+  - expect:
+      method: sendPhoto
+  - send:
+      text: 📘 Добавить
+  - expect:
+      method: sendMessage
+      text_contains: Создатель книг
+  - send:
+      text: Testgram ownership book
+  - expect:
+      method: editMessageText
+      text_contains: Testgram ownership book
+  - send:
+      text: Test author
+  - expect:
+      method: editMessageText
+      text_contains: Test author
+  - send:
+      text: "3"
+  - expect:
+      method: editMessageText
+      text_contains: Создано успешно
+  - send:
+      text: 📚 Мои книги
+  - expect:
+      method: sendMessage
+      callback_data: book:show:1
+  - send:
+      text: ❌ Удалить
+  - expect:
+      method: sendMessage
+      callback_data: book:del:1
+  - click:
+      callback_data: book:del:1
+  - expect:
+      method: sendMessage
+      text: Удалено
+  - click:
+      callback_data: book:show:1
+  - expect_none:
+      method: sendMessage
+      text_contains: Testgram ownership book
+      duration: 0.5
+  - expect_chat:
+      no_errors: true
