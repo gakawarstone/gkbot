@@ -4,7 +4,6 @@ import pytest
 
 from handlers.text.ytdlp_short import YtdlpShortVideoHandler
 from .. import integration_test
-from ..mocks.db import use_db
 from . import Event, Bot
 
 
@@ -20,7 +19,6 @@ async def _handle_url(url: str):
 
 
 @integration_test
-@use_db
 @pytest.mark.asyncio(loop_scope="session")
 async def test_download_reel():
     await _handle_url(

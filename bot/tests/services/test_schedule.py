@@ -98,7 +98,6 @@ async def test_dispatcher_survives_storage_failure(caplog):
 
 
 @pytest.mark.asyncio
-@use_db
 async def test_on_shutdown_cancels_dispatcher():
     await Schedule.on_startup()
     task = Schedule._Schedule__dispatcher_task  # type: ignore[attr-defined]
