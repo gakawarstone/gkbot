@@ -13,7 +13,8 @@
 2. Prefer paragraph and line boundaries, then split long remaining segments without producing empty chunks.
 3. Preserve valid Telegram HTML when a Markdown construct crosses a chunk boundary.
 4. Restore `FSM.get_message` in a `finally` block or an equivalent error path after streaming failures.
-5. Add tests for long paragraphs, code blocks, exact boundaries, and streaming errors.
+5. Keep this splitter as the normal-message and group-chat fallback when message drafts are introduced.
+6. Add tests for long paragraphs, code blocks, exact boundaries, and streaming errors.
 
 ## Acceptance criteria
 
@@ -22,4 +23,3 @@
 - Concatenating the logical chunks preserves the complete model response.
 - A failed stream does not leave the user stuck in `FSM.finish`.
 - Focused AI chat handler tests pass.
-

@@ -9,10 +9,10 @@ The feed keyboard advertises a Similar action, but its callback branch is a stub
 
 ## Plan
 
-1. Upgrade aiogram to version 3.31.0 or newer with typed Bot API 10.3 support.
-2. Regenerate `uv.lock` and exported requirements files through the project tooling.
-3. Render Similar as `InlineKeyboardButton(disabled=DisabledButton())`.
-4. Remove the obsolete `show_all_feed` callback value, branch, and commented implementation.
+1. Complete the aiogram 3.31 upgrade task with typed Bot API 10.3 support.
+2. Render Similar as `InlineKeyboardButton(disabled=DisabledButton())`.
+3. Replace other display-only callbacks such as carousel page indicators with disabled buttons.
+4. Remove obsolete callback values, branches, and commented implementations that only support those placeholders.
 5. Update keyboard and callback tests.
 
 ## Acceptance criteria
@@ -21,4 +21,3 @@ The feed keyboard advertises a Similar action, but its callback branch is a stub
 - No `show_all_feed` callback branch remains.
 - Dependency and lock files agree on the aiogram version.
 - The full unit test suite and static checks pass.
-
