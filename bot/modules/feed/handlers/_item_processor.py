@@ -8,7 +8,6 @@ from .views.matreshka import MatreshkaFeedItemView
 from .views.spoti import SpotiFeedItemView
 from .views.base import BaseWebFeedItemView
 from .views.vk import VKFeedItemView
-from .views.piokok import PiokokFeedItemView
 from .views.youtube import YoutubeFeedItemView
 from .views.tg import TelegramFeedItemView
 from .views.reddit import RedditFeedItemView
@@ -43,7 +42,6 @@ class GkfeedItemProcessorExtension(
     RedditFeedItemView,
     TelegramFeedItemView,
     YoutubeFeedItemView,
-    PiokokFeedItemView,
     BaseWebFeedItemView,
     KinogoFeedItemView,
     VideoFeedItemView,
@@ -55,7 +53,6 @@ class GkfeedItemProcessorExtension(
     def _processors(self) -> dict[str, _ITEM_PROCESSOR]:
         # TODO: create filters for processor matching instead of startswith prefixes.
         return {
-            "https://www.piokok": self._process_piokok_item,
             "https://stor": self._process_stories_item,
             "https://kinogo": self._process_kinogo_item,
             "https://open": self._process_spoti_item,
