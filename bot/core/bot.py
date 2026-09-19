@@ -29,6 +29,7 @@ class BotStarter:
         self.default_commands = config.default_commands
         self.tasks_on_startup_async = config.tasks_on_startup_async
         self.tasks_on_startup_sync = config.tasks_on_startup_sync
+        self.polling_tasks_concurrency_limit = config.polling_tasks_concurrency_limit
 
     async def __on_startup(self) -> None:
         await Notifier.setup(self.bot)
@@ -43,7 +44,10 @@ class BotStarter:
         middlewares.setup(self.dp)
         handlers.setup(self.dp)
         modules.setup(self.dp)
-        await self.dp.start_polling(self.bot)
+        await self.dp.start_polling(
+            self.bot,
+            tasks_concurrency_limit=self.polling_tasks_concurrency_limit,
+        )
 
     def start(self) -> None:
         uvloop.run(self.__on_startup())

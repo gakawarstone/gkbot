@@ -19,3 +19,4 @@ class BotConfig:
     parse_mode: str
     admins: list[int]
     api_url: str = "https://api.telegram.org"
+    polling_tasks_concurrency_limit: int = 10
