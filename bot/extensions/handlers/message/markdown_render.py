@@ -1,7 +1,17 @@
 import re
 
 from aiogram.utils.formatting import Bold
+
 from .base import BaseHandler
+
+
+def _escape_code_content(code: str) -> str:
+    return (
+        code.replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace("*", "&#42;")  # Prevent accidental bold processing
+    )
 
 
 class MarkdownRenderHandlerExtension(BaseHandler):
@@ -26,22 +36,12 @@ class MarkdownRenderHandlerExtension(BaseHandler):
                 if code.endswith(("\n", "\r")):
                     code = code[:-1]
 
-            code_escaped = (
-                code.replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;")
-                .replace("*", "&#42;")  # Prevent accidental bold processing
-            )
+            code_escaped = _escape_code_content(code)
             return f'<pre><code class="language-{language}">{code_escaped}</code></pre>'
 
         def replace_inline_code_func(match):
             code = match.group(1)
-            code_escaped = (
-                code.replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;")
-                .replace("*", "&#42;")  # Prevent accidental bold processing
-            )
+            code_escaped = _escape_code_content(code)
             return f"<code>{code_escaped}</code>"
 
         result = re.sub(code_pattern, replace_code_func, markdown_string)
