@@ -1,11 +1,11 @@
 from aiogram import Router
 
 from core.notifier import Notifier
-from configs.admins import ADMINS
 
 
-async def on_startup():
-    [await Notifier.notify(admin, "bot started") for admin in ADMINS]
+async def on_startup(admins: list[int]) -> None:
+    for admin in admins:
+        await Notifier.notify(admin, "bot started")
 
 
 def setup(r: Router):

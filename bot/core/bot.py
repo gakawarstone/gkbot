@@ -25,7 +25,7 @@ class BotStarter:
             default=DefaultBotProperties(parse_mode=config.parse_mode),
             session=session,
         )
-        self.dp = Dispatcher(storage=self.__storage)
+        self.dp = Dispatcher(storage=self.__storage, admins=config.admins)
         self.default_commands = config.default_commands
         self.tasks_on_startup_async = config.tasks_on_startup_async
         self.tasks_on_startup_sync = config.tasks_on_startup_sync
