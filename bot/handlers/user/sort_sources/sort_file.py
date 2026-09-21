@@ -1,14 +1,12 @@
 import re
-from io import BytesIO
 from typing import Any
-
-from aiogram.types import BufferedInputFile
 
 from ui.static import Images
 from extensions.handlers.message.file_extension import (
     FileHandlerExtension,
     NoFileException,
 )
+from extensions.handlers.message.text_document import send_text_document
 from ._states import FSM
 
 
@@ -29,7 +27,7 @@ class SortFileHandler(FileHandlerExtension):
             file_name = getattr(self.event.document, "file_name", None)
             if file_name is None:
                 raise ValueError("document.file_name is None")
-            await self._send_sorted_file(sorted_lines, file_name)
+            await send_text_document(self.event, sorted_lines, file_name)
         except NoFileException:
             await self.state.set_state(FSM.sort_file)
             await self.event.answer("Отправьте файл")
@@ -49,9 +47,3 @@ class SortFileHandler(FileHandlerExtension):
             return int(year + month + day)
 
         return 99999999
-
-    async def _send_sorted_file(self, lines: list[str], file_name: str) -> None:
-        output_file = BytesIO()
-        [output_file.write(line.encode()) for line in lines]
-        file = BufferedInputFile(output_file.getvalue(), file_name)
-        await self.event.answer_document(file)
