@@ -2,7 +2,7 @@ from typing import Any
 
 from extensions.handlers.message.base import BaseHandler
 from extensions.handlers.message.send_voice import SendVoiceHandlerExtension
-from services.tts import TextToSpeechService, TTSProviderType
+
 from ._states import FSM
 
 
@@ -11,10 +11,4 @@ class SendSpeechHandler(SendVoiceHandlerExtension, BaseHandler):
         await self.state.set_state(FSM.finish)
         await self.event.delete()
 
-        if self.event.text is None:
-            raise ValueError("event.text is None")
-
-        voice_file = await TextToSpeechService.convert_text_to_speech(
-            self.event.text, provider=TTSProviderType.EDGE
-        )
-        await self.answer_voice(voice_file)
+        await self.answer_text_as_voice(self.event.text)
