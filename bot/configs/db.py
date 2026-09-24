@@ -12,7 +12,7 @@ MODELS = [
 ]
 
 
-async def on_startup():
+async def on_startup() -> None:
     if env.DB_URL:
         await Tortoise.init(db_url=env.DB_URL, modules={"models": MODELS})
     else:
@@ -71,4 +71,3 @@ def build_db_config_from_env(schemas: list[str]) -> dict:
             }
         },
     }
-  

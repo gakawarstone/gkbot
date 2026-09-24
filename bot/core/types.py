@@ -1,6 +1,8 @@
-from enum import Enum
+from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass
-from typing import Coroutine, Callable, Sequence
+from enum import Enum
+
+type StartupHook = Callable[[], Awaitable[None] | None]
 
 
 # FIXME: aigram have this type
@@ -13,8 +15,7 @@ class ChatType(Enum):
 @dataclass
 class BotConfig:
     token: str
-    tasks_on_startup_async: Sequence[Coroutine]
-    tasks_on_startup_sync: Sequence[Callable]
+    startup_hooks: Sequence[StartupHook]
     default_commands: dict[str, str]
     parse_mode: str
     admins: list[int]

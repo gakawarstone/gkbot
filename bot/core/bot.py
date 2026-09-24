@@ -1,16 +1,26 @@
+from collections.abc import Iterable
+
 import uvloop
+from aiogram import Bot, Dispatcher
+from aiogram.client.default import DefaultBotProperties
 from aiogram.client.session.aiohttp import AiohttpSession
 from aiogram.client.telegram import TelegramAPIServer
-from aiogram.client.default import DefaultBotProperties
-from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
 
-import middlewares
 import handlers
+import middlewares
 import modules
-from .types import BotConfig
-from .notifier import Notifier
+
 from .default_commands import DefaultCommands
+from .notifier import Notifier
+from .types import BotConfig, StartupHook
+
+
+async def run_startup_hooks(hooks: Iterable[StartupHook]) -> None:
+    for hook in hooks:
+        result = hook()
+        if result is not None:
+            await result
 
 
 class BotStarter:
@@ -27,19 +37,14 @@ class BotStarter:
         )
         self.dp = Dispatcher(storage=self.__storage, admins=config.admins)
         self.default_commands = config.default_commands
-        self.tasks_on_startup_async = config.tasks_on_startup_async
-        self.tasks_on_startup_sync = config.tasks_on_startup_sync
+        self.startup_hooks = config.startup_hooks
         self.polling_tasks_concurrency_limit = config.polling_tasks_concurrency_limit
 
     async def __on_startup(self) -> None:
         await Notifier.setup(self.bot)
         await DefaultCommands(self.default_commands).set(self.bot)
 
-        for coroutine in self.tasks_on_startup_async:
-            await coroutine
-
-        for callback in self.tasks_on_startup_sync:
-            callback()
+        await run_startup_hooks(self.startup_hooks)
 
         middlewares.setup(self.dp)
         handlers.setup(self.dp)
