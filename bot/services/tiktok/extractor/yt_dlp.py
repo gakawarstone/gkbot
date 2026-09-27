@@ -1,15 +1,15 @@
 import os
 from pathlib import Path
 
-from aiogram.types import InputFile, FSInputFile
-from yt_dlp.utils import DownloadError
-
+from aiogram.types import FSInputFile, InputFile
 from configs.services.cache_dir import CACHE_DIR_PATH
 from services.ytdlp import YtdlpDownloader
 from services.ytdlp._types import VideoFileInfo
+from yt_dlp.utils import DownloadError
+
 from ..types import InfoVideoTikTok
-from .exceptions import SourceInfoExtractFailed
 from ._base import BaseExtractor
+from .exceptions import SourceInfoExtractFailed
 
 
 class YtDlp(BaseExtractor):
@@ -27,7 +27,7 @@ class YtDlp(BaseExtractor):
                     height=video_file_info.height,
                     width=video_file_info.width,
                 )
-        except (IndexError, ValueError, DownloadError):
+        except (IndexError, TypeError, ValueError, DownloadError):
             raise SourceInfoExtractFailed(self)
 
     async def _get_video_input_file(self, url: str) -> InputFile:
@@ -44,7 +44,7 @@ class YtDlp(BaseExtractor):
                 url, cleanup_delay_minutes=5
             ) as video_file_info:
                 return await self._get_video_file_url_from_info(video_file_info)
-        except (IndexError, ValueError, OSError, DownloadError):
+        except (IndexError, TypeError, ValueError, OSError, DownloadError):
             raise SourceInfoExtractFailed(self)
 
     async def _get_video_file_url_from_info(
@@ -53,7 +53,7 @@ class YtDlp(BaseExtractor):
         try:
             fs_input_file = video_file_info.input_file
             if not isinstance(fs_input_file, FSInputFile):
-                raise ValueError("Input file is not an FSInputFile instance")
+                raise TypeError("Input file is not an FSInputFile instance")
 
             serveo_url = self._get_serveo_url()
             if serveo_url is None:
@@ -61,7 +61,7 @@ class YtDlp(BaseExtractor):
 
             video_path = "/".join(str(fs_input_file.path).split("/")[-3:])
             return serveo_url + "/" + video_path
-        except (IndexError, ValueError, DownloadError):
+        except (IndexError, TypeError, ValueError, DownloadError):
             raise SourceInfoExtractFailed(self)
 
     @classmethod

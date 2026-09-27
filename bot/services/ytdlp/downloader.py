@@ -8,6 +8,7 @@ from typing import Any, cast
 
 import yt_dlp
 from aiogram.types import FSInputFile, InputFile, URLInputFile
+from configs.services.tiktok import MAX_VIDEO_SIZE_BYTES, MAX_VIDEO_WIDTH
 from services.ffmpeg import FfmpegService
 from utils.async_wrapper import async_wrap
 from workers.yt_dlp import download_video, get_info
@@ -101,7 +102,7 @@ class YtdlpDownloader:
                 raw_info = await async_wrap(ydl.extract_info)(url, download=False)
 
         if not isinstance(raw_info, dict):
-            raise ValueError("yt-dlp returned invalid metadata")
+            raise TypeError("yt-dlp returned invalid metadata")
 
         return _YtDlpInfo(
             duration=raw_info.get("duration") or 0,
@@ -130,10 +131,16 @@ class YtdlpDownloader:
                 if "preferredcodec" in postprocessor:
                     output_path += "." + postprocessor["preferredcodec"]
 
-        if "instagram.com/reel" in url or "tiktok.com" in url:
+        if "instagram.com/reel" in url:
             base, _ = os.path.splitext(output_path)
             converted_path = f"{base}_converted.mp4"
             await FfmpegService.convert_video(output_path, converted_path)
             output_path = converted_path
+        elif "tiktok.com" in url:
+            output_path = await FfmpegService.compress_video_if_needed(
+                output_path,
+                max_size_bytes=MAX_VIDEO_SIZE_BYTES,
+                max_width=MAX_VIDEO_WIDTH,
+            )
 
         return FSInputFile(output_path)
