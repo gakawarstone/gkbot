@@ -1,8 +1,4 @@
-import asyncio
-from collections.abc import Callable
-from typing import ClassVar
-
-import aiohttp
+from typing import Callable
 
 from ._types import FeedItem
 from .api import GkfeedApi
@@ -10,9 +6,9 @@ from .auth import GkfeedCredentials
 
 
 class GkfeedItemsPicker:
-    _items_pocket: ClassVar[dict[str, set[int]]] = {}
+    _items_pocket: dict[str, set[int]] = {}
 
-    def __init__(self, credentials: GkfeedCredentials) -> None:
+    def __init__(self, credentials: GkfeedCredentials):
         self.__credentials = credentials
         self._items_pocket.setdefault(credentials.login, set())
 
@@ -31,23 +27,8 @@ class GkfeedItemsPicker:
                 continue
 
             if not self._is_item_in_pocket(_item.id):
-                self._save_to_pocket(_item.id)
-                try:
-                    item = await api.get_item_by_item_id(_item.id)
-                except aiohttp.ClientResponseError as error:
-                    if error.status == 404:
-                        continue
-                    self._items_pocket[self.__credentials.login].discard(_item.id)
-                    raise
-                except (
-                    aiohttp.ClientError,
-                    TimeoutError,
-                    ValueError,
-                    KeyError,
-                    asyncio.CancelledError,
-                ):
-                    self._items_pocket[self.__credentials.login].discard(_item.id)
-                    raise
+                item = _item
+                self._save_to_pocket(item.id)
                 break
 
         if not item:
