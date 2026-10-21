@@ -1,23 +1,40 @@
 from typing import Any
+from urllib.parse import urlparse
+
 from aiogram.types import CallbackQuery
 
-from services.gkfeed import GkfeedService, FeedItem
-from services.gkfeed_auth import GkfeedAuthService
+from services.gkfeed import FeedItem, GkfeedAuthService, GkfeedCredentials
 from extensions.handlers.base import BaseHandler as _ExtensionsBaseHandler
 from ..ui.keyboards import FeedMarkup
 
 
 class BaseHandler(_ExtensionsBaseHandler):
-    async def _gkfeed(self) -> GkfeedService:
-        credentials = await GkfeedAuthService().get_credentials(self.event.from_user.id)
-        return GkfeedService(credentials.login, credentials.password)
+    @staticmethod
+    def _get_item_link_caption(item: FeedItem) -> str:
+        if item.link.startswith("https://www.tiktok") and "@" in item.link:
+            username = item.link.split("@")[1].split("/")[0]
+            return f"TikTok:{username}"
+
+        host = urlparse(item.link).hostname
+        if host is None:
+            return "Link"
+
+        domain_parts = host.removeprefix("www.").split(".")
+        if len(domain_parts) < 2:
+            return domain_parts[0]
+
+        return domain_parts[-2]
+
+    @property
+    async def _gkfeed_credentials(self) -> GkfeedCredentials:
+        return await GkfeedAuthService().get_credentials(self.event.from_user.id)
 
     async def _send_item(self, item: FeedItem):
         if self.event.from_user is None:
             raise ValueError("from_user is required to send a message")
         await self.bot.send_message(
             self.event.from_user.id,
-            f'<a href="{item.link}">{item.link.split("https://")[1].split("/")[0].split(".")[-2]}</a>',
+            f'<a href="{item.link}">{self._get_item_link_caption(item)}</a>',
             reply_markup=FeedMarkup.get_item_markup(item.id, item.feed_id),
         )
 

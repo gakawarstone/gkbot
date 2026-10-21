@@ -1,15 +1,9 @@
 from sqlalchemy.engine import URL, make_url
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
-from configs import env
-from models.base import Base
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-# Imports for models to be registered in Base.metadata
-import models.users
-import models.road
-import models.books
-import models.timezone
-import models.tasks
-import models.gkfeed
+from configs import env
+from models import books, gkfeed, road, tasks, timezone, users  # noqa: F401
+from models.base import Base
 
 DIALECT_MAP = {
     "postgres": "postgresql+asyncpg",
@@ -24,36 +18,36 @@ def get_database_url() -> str:
         url = make_url(env.DB_URL)
         backend = url.get_backend_name()
         if backend in DIALECT_MAP:
-            return str(url.set(drivername=DIALECT_MAP[backend]))
-        return str(url)
+            return url.set(drivername=DIALECT_MAP[backend]).render_as_string(
+                hide_password=False
+            )
+        return url.render_as_string(hide_password=False)
 
     dialect = env.DB_DIALECT
-    if dialect not in DIALECT_MAP:
+    if dialect is None or dialect not in DIALECT_MAP:
         raise ValueError(f"Unsupported dialect: {dialect}")
 
     if dialect == "sqlite":
         return f"{DIALECT_MAP[dialect]}:///{env.DB_NAME or ':memory:'}"
 
-    return str(
-        URL.create(
-            drivername=DIALECT_MAP[dialect],
-            username=env.DB_USER,
-            password=env.DB_PASSWORD,
-            host=env.DB_HOST,
-            port=int(env.DB_PORT) if env.DB_PORT else None,
-            database=env.DB_NAME,
-        )
-    )
+    return URL.create(
+        drivername=DIALECT_MAP[dialect],
+        username=env.DB_USER,
+        password=env.DB_PASSWORD,
+        host=env.DB_HOST,
+        port=int(env.DB_PORT) if env.DB_PORT else None,
+        database=env.DB_NAME,
+    ).render_as_string(hide_password=False)
 
 
 engine = create_async_engine(get_database_url())
 SessionLocal = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
 
 
-async def on_startup():
+async def on_startup() -> None:
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
 
-async def on_shutdown():
+async def on_shutdown() -> None:
     await engine.dispose()

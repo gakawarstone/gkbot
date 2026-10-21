@@ -11,16 +11,16 @@ from ui.buttons.delete_message import deleteMessageButton
 
 class VkMarkup:
     @staticmethod
-    def get_download_dialog(url: str) -> InlineKeyboardMarkup:
+    def get_download_dialog(vk_id: str) -> InlineKeyboardMarkup:
         builder = InlineKeyboardBuilder()
         builder.row(
             VKDownloadButtonBuilder.build(
                 button_data=VKDownloadButtonData.audio,
-                callback_data=VKDownloadButtonCallbackData(url, True),
+                callback_data=VKDownloadButtonCallbackData(vk_id, True),
             ),
             VKDownloadButtonBuilder.build(
                 button_data=VKDownloadButtonData.video,
-                callback_data=VKDownloadButtonCallbackData(url, True),
+                callback_data=VKDownloadButtonCallbackData(vk_id, True),
             ),
             deleteMessageButton,
         )

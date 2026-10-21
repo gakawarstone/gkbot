@@ -1,13 +1,10 @@
 from typing import Any
 
 from aiogram import Router
-from aiogram.exceptions import TelegramBadRequest
-
 from services.tiktok import TikTokService
 from services.tiktok.exceptions import (
     TikTokInvalidUrl,
     TikTokInfoExtractionFailed,
-    TikTokVideoUrlExtractionFailed,
 )
 from extensions.handlers.message.base import BaseHandler
 from filters.tiktok import TikTokVideoLink
@@ -37,23 +34,15 @@ class TikTokVideoHandler(BaseHandler):
         username = from_user.username if from_user.username else "user"
         caption = f'<b>{username}</b> ➤ <a href="{link.split("?")[0]}">TikTok</a>'
 
-        try:
-            url = await TikTokService.get_video_url(link)
-            await self.event.answer_video(url, caption=caption)
-        except (TelegramBadRequest, TikTokVideoUrlExtractionFailed):
-            info = await TikTokService.get_video_info(link)
+        video = await TikTokService.get_video(link)
 
-            video_file = info.video_input_file
-            if not video_file:
-                video_file = await TikTokService.get_video_as_input_file(link)
-
-            await self.event.answer_video(
-                video_file,
-                caption=caption,
-                height=info.height,
-                width=info.width,
-                duration=info.duration,
-            )
+        await self.event.answer_video(
+            video.input_file,
+            caption=caption,
+            height=video.height,
+            width=video.width,
+            duration=video.duration,
+        )
 
     @property
     def _tiktok_link(self) -> str:

@@ -48,7 +48,9 @@ class HttpService:
                 raise HttpRequestError
 
     @classmethod
-    async def extract_cookies(cls, url: str, headers: Optional[dict] = headers) -> SimpleCookie:
+    async def extract_cookies(
+        cls, url: str, headers: Optional[dict] = headers
+    ) -> SimpleCookie:
         async with aiohttp.ClientSession(conn_timeout=None) as session:
             try:
                 async with session.get(url, headers=headers) as response:
@@ -86,6 +88,34 @@ class HttpService:
                     return await response.json()
             except ClientConnectorError:
                 raise HttpRequestError
+
+    @classmethod
+    async def get_with_downloader(
+        cls, url: str, headers: Optional[dict[str, str]] = None
+    ) -> bytes:
+        cache_dir = CacheDir()
+        file_path = cache_dir.get_file_path("response")
+        command = [
+            "aria2c",
+            "--quiet=true",
+            "--allow-overwrite=true",
+            "--auto-file-renaming=false",
+        ]
+        for header_name, header_value in (headers or {}).items():
+            command.extend(["--header", f"{header_name}: {header_value}"])
+        command.extend(["--dir", cache_dir.path, "--out", "response", url])
+
+        try:
+            return_code = await async_wrap(subprocess.call)(command)
+            if return_code != 0:
+                raise HttpRequestError
+
+            with open(file_path, "rb") as response_file:
+                return response_file.read()
+        except OSError as error:
+            raise HttpRequestError from error
+        finally:
+            cache_dir.delete()
 
     @classmethod
     async def download_file(cls, url: str) -> str:

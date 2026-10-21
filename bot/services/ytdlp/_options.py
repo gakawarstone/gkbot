@@ -3,7 +3,7 @@ from ._types import DownloadOptions
 
 class AudioDownloadOptions(DownloadOptions):
     youtube = {
-        "format": "ba[ext=m4a]",
+        "format": "ba[ext=m4a]/ba/b",
         "postprocessors": [
             {"key": "SponsorBlock", "categories": ["sponsor"]},
             {"key": "ModifyChapters", "remove_sponsor_segments": ["sponsor"]},
@@ -20,13 +20,18 @@ class AudioDownloadOptions(DownloadOptions):
 class VideoDownloadOptions(DownloadOptions):
     default: dict = {}
     youtube_shorts = {
-        "format": "bv+ba",
+        "format": "bv*+ba/b",
         "external_downloader": "aria2c",
         "postprocessors": [{"key": "FFmpegVideoConvertor", "preferedformat": "mp4"}],
     }
 
     youtube = {
-        "format": "bv[ext=mp4][filesize<1G][vcodec^=avc1]+ba[ext=m4a]",
+        # Combined YouTube formats commonly omit filesize, so keep the size
+        # guard only on the adaptive-stream path.
+        "format": (
+            "bv[ext=mp4][filesize<1G][vcodec^=avc1]+ba[ext=m4a]"
+            "/b[ext=mp4]"
+        ),
         "external_downloader": "aria2c",
         "external_downloader_args": [
             "-x",
@@ -41,5 +46,11 @@ class VideoDownloadOptions(DownloadOptions):
     }
 
     tiktok = {
-        "format": "bv[ext=mp4][vcodec^=avc1]",
+        "format": "b[vcodec^=h264][acodec!=none]/b[acodec!=none]/bv*+ba/b",
+    }
+
+    vk = {
+        "format": "bv[ext=mp4]+ba[ext=m4a]/b[ext=mp4]",
+        "concurrent_fragment_downloads": 100,
+        "force_ipv4": True,
     }

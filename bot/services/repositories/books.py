@@ -1,5 +1,7 @@
 from typing import Any
-from sqlalchemy import select, delete, update
+
+from sqlalchemy import delete, select, update
+
 from configs import db
 from models.books import Book
 
@@ -13,21 +15,27 @@ class BooksRepository:
             return list(result.scalars().all())
 
     @classmethod
-    async def get_book_by_id(cls, book_id: int) -> Book:
+    async def get_user_book_by_id(cls, book_id: int, user_id: int) -> Book:
         async with db.SessionLocal() as session:
-            stmt = select(Book).where(Book.id == book_id)
+            stmt = select(Book).where(Book.id == book_id, Book.user_id == user_id)
             result = await session.execute(stmt)
             book = result.scalar_one_or_none()
             if book is None:
-                raise ValueError(f"Book with id={book_id} not found")
+                raise ValueError(
+                    f"Book with id={book_id} not found for user with id={user_id}"
+                )
             return book
 
     @classmethod
     async def edit_book_property(
         cls, book_id: int, property_name: str, new_property_value: Any
-    ):
+    ) -> None:
         async with db.SessionLocal() as session:
-            stmt = update(Book).where(Book.id == book_id).values({property_name: new_property_value})
+            stmt = (
+                update(Book)
+                .where(Book.id == book_id)
+                .values({property_name: new_property_value})
+            )
             await session.execute(stmt)
             await session.commit()
 
@@ -57,6 +65,10 @@ class BooksRepository:
         cls, book: Book, current_chapter: int
     ) -> None:
         async with db.SessionLocal() as session:
-            stmt = update(Book).where(Book.id == book.id).values(current_chapter=current_chapter)
+            stmt = (
+                update(Book)
+                .where(Book.id == book.id)
+                .values(current_chapter=current_chapter)
+            )
             await session.execute(stmt)
             await session.commit()

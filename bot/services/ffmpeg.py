@@ -1,12 +1,20 @@
+import asyncio
+import json
 import shutil
-
 import subprocess
+from subprocess import CompletedProcess
+from typing import Any
 
-from utils.async_wrapper import async_wrap
 from services.cache_dir import CacheDir
+from utils.async_wrapper import async_wrap
 
 
 class FfmpegService:
+    SLIDESHOW_WIDTH = 720
+    SLIDESHOW_HEIGHT = 1080
+
+    _semaphore = asyncio.Semaphore(1)
+
     __resize_image_options = [
         "-vf",
         (
@@ -19,7 +27,7 @@ class FfmpegService:
         "libx264",
         "-shortest",
         "-vf",
-        "scale=720:1080",
+        f"scale={SLIDESHOW_WIDTH}:{SLIDESHOW_HEIGHT}",
         "-r",
         "30",
         "-pix_fmt",
@@ -40,7 +48,7 @@ class FfmpegService:
             props=cls.__convert_to_voice_options,
         )
 
-        await async_wrap(subprocess.run)(command, check=True)
+        await cls._run_command(command)
 
         content = open(f"{cache_dir.path}/voice.ogg", "rb").read()
         cache_dir.delete()
@@ -54,13 +62,48 @@ class FfmpegService:
             props=[
                 "-c:v",
                 "libx264",
+                "-preset",
+                "veryfast",
+                "-threads",
+                "1",
                 "-c:a",
                 "aac",
                 "-pix_fmt",
                 "yuv420p",
             ],
         )
-        await async_wrap(subprocess.run)(command, check=True)
+        await cls._run_command(command)
+
+    @classmethod
+    async def get_video_metadata(cls, input_path: str) -> dict[str, int]:
+        command = [
+            "ffprobe",
+            "-v",
+            "error",
+            "-select_streams",
+            "v:0",
+            "-show_entries",
+            "stream=width,height,duration",
+            "-of",
+            "json",
+            input_path,
+        ]
+        result = await cls._run_command(command, capture_output=True, text=True)
+        streams = json.loads(result.stdout).get("streams", [])
+        if not streams:
+            return {}
+
+        stream = streams[0]
+        metadata = {}
+        for key in ("width", "height"):
+            if value := stream.get(key):
+                metadata[key] = int(value)
+        if duration := stream.get("duration"):
+            try:
+                metadata["duration"] = int(float(duration))
+            except ValueError:
+                pass
+        return metadata
 
     @classmethod
     async def make_slideshow_from_web(
@@ -78,7 +121,7 @@ class FfmpegService:
             output_path=f"{cache_dir.path}/slideshow.mp4",
         )
 
-        await async_wrap(subprocess.run)(command, check=True)
+        await cls._run_command(command)
 
         content = open(f"{cache_dir.path}/slideshow.mp4", "rb").read()
         cache_dir.delete()
@@ -96,7 +139,7 @@ class FfmpegService:
                 output=f"{work_dir_path}/{n + 1:03d}.jpg",
                 props=cls.__resize_image_options,
             )
-            await async_wrap(subprocess.run)(command, check=True)
+            await cls._run_command(command)
 
         if len(images_url) == 1:
             shutil.copy(f"{work_dir_path}/001.jpg", f"{work_dir_path}/002.jpg")
@@ -110,9 +153,17 @@ class FfmpegService:
         cls, audio_url: str, work_dir_path: str
     ) -> None:
         command = cls._build_command(
-            inputs=[audio_url], output=f"{work_dir_path}/audio.m4a", props=[]
+            inputs=[audio_url],
+            output=f"{work_dir_path}/audio.m4a",
+            props=["-vn"],
         )
-        await async_wrap(subprocess.run)(command, check=True)
+        await cls._run_command(command)
+
+    @classmethod
+    async def _run_command(cls, command: list[str], **kwargs: Any) -> CompletedProcess:
+        kwargs.setdefault("stdin", subprocess.DEVNULL)
+        async with cls._semaphore:
+            return await async_wrap(subprocess.run)(command, check=True, **kwargs)
 
     @classmethod
     def _build_command(cls, inputs: list, output: str, props: list) -> list[str]:

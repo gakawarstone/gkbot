@@ -1,5 +1,4 @@
 from bs4 import BeautifulSoup, Tag
-
 from extensions.handlers.message.http import HttpExtension
 from services.gkfeed import FeedItem
 
@@ -8,39 +7,61 @@ from . import BaseFeedItemView
 
 class ShikiFeedItemView(BaseFeedItemView, HttpExtension):
     async def _process_shiki_item(self, item: FeedItem) -> None:
-        data = await (await self._gkfeed()).get_raw_item_data(item.id)
         soup = await self._get_soup(item.link)
 
         media_url = self._get_media_url(soup)
-        description = data["item"]["text"]
+        description = item.text
         title_name = self._get_title_name(soup)
 
         await self._send_photo(item, media_url, description, title_name)
 
     def _get_media_url(self, soup: BeautifulSoup) -> str:
-        meta_tag = soup.find("meta", attrs={"property": "og:image"})
-        if not isinstance(meta_tag, Tag):
-            raise ValueError("meta tag not found")
+        poster_img = soup.select_one(".b-db_entry-poster picture img")
+        if isinstance(poster_img, Tag):
+            src = poster_img.get("src")
+            if isinstance(src, str) and src.strip():
+                return self._normalize_media_url(src)
+
+        poster_meta = soup.find("meta", attrs={"itemprop": "image"})
+        if isinstance(poster_meta, Tag):
+            content = poster_meta.get("content")
+            if isinstance(content, str) and content.strip():
+                return self._normalize_media_url(content)
 
         picture_tag = soup.find("picture")
-        if not isinstance(picture_tag, Tag):
-            raise ValueError("picture tag not found")
+        if isinstance(picture_tag, Tag):
+            source_tag = picture_tag.source
+            if isinstance(source_tag, Tag):
+                srcset = source_tag.get("srcset")
+                if isinstance(srcset, list):
+                    srcset = srcset[0]
 
-        source_tag = picture_tag.source
-        if not isinstance(source_tag, Tag):
-            raise ValueError("source tag not found")
+                if isinstance(srcset, str) and srcset.strip():
+                    candidates = srcset.rsplit(",", maxsplit=1)
+                    media_url = candidates[-1].strip().split()[0]
+                    return self._normalize_media_url(media_url)
 
-        srcset = source_tag.get("srcset")
-        if isinstance(srcset, list):
-            srcset = srcset[0]
+        meta_tag = soup.find("meta", attrs={"property": "og:image"})
+        if isinstance(meta_tag, Tag):
+            content = meta_tag.get("content")
+            if isinstance(content, str) and content.strip():
+                return self._normalize_media_url(content)
 
-        if not isinstance(srcset, str):
-            raise ValueError("srcset not found")
+        raise ValueError("media url not found")
 
-        return srcset.split(" ")[-2]
+    @staticmethod
+    def _normalize_media_url(url: str) -> str:
+        media_url = url.strip()
+        if media_url.startswith("//"):
+            return f"https:{media_url}"
+        return media_url
 
     def _get_title_name(self, soup: BeautifulSoup) -> str:
         h1_tag = soup.find("h1")
         if not isinstance(h1_tag, Tag):
-            raise ValueError("h1 tag not found")
-        return h1_tag.text.split("/")[0]
+            raise TypeError("h1 tag not found")
+
+        title = h1_tag.get_text(" ", strip=True).partition("/")[0].strip()
+        if not title:
+            raise ValueError("title name not found")
+        return title

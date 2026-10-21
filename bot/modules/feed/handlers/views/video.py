@@ -7,9 +7,6 @@ from . import BaseFeedItemView
 
 
 class VideoFeedItemView(BaseFeedItemView):
-    async def _process_video_item(self, item: FeedItem):
-        await self._send_video(item, item.link)
-
     async def _send_video(
         self, item: FeedItem, video_url: str, link_caption: str = "Link to video"
     ):

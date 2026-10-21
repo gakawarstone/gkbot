@@ -3,6 +3,9 @@ import asyncio
 
 from aiogram.types import CallbackQuery, InaccessibleMessage
 
+from services.gkfeed.api import GkfeedApi
+from services.gkfeed.picker import GkfeedItemsPicker
+
 from ..ui.keyboards import FeedMarkup
 from ._base import BaseHandler
 from ._item_processor import GkfeedItemProcessorExtension
@@ -24,10 +27,8 @@ class ItemEventHandler(GkfeedItemProcessorExtension, BaseHandler):
 
     async def handle(self) -> Any:
         event, data = await self._parse_callback()
-
-        async with asyncio.TaskGroup() as tg:
-            tg.create_task(self._send_one_feed_item())
-            tg.create_task(self._handle_event(event, data))
+        await self._handle_event(event, data)
+        await self._send_one_feed_item()
 
     async def _handle_event(self, event: str, data: int):
         if not isinstance(self.event, CallbackQuery):
@@ -38,27 +39,37 @@ class ItemEventHandler(GkfeedItemProcessorExtension, BaseHandler):
         ):
             raise ValueError("event must have message")
 
+        api = GkfeedApi(await self._gkfeed_credentials)
+
         match event:
             case FeedMarkup.data.delete:
-                await (await self._gkfeed()).delete_item_by_id(data)
                 await self.event.message.delete()
+                # BUG: can fail silently
+                asyncio.create_task(api.delete_item_by_id(data))
             case FeedMarkup.data.keep:
                 await self.event.message.delete()
+            # NOTE: Deprecated
+            # NOTE: need to be replaced with general actions button
             case FeedMarkup.data.show_all_feed:
-                await self._send_items_from_feed(data)
+                pass
+                # await self._send_items_from_feed(data)
 
     async def _send_one_feed_item(self):
-        async for item in (await self._gkfeed()).get_all_user_items():
-            print(item.id)
+        picker = GkfeedItemsPicker(await self._gkfeed_credentials)
+
+        if item := await picker.get_next_item():
             await self._process_item(item)
-            break
+        else:
+            await self.answer("На данный момент ничего нового")
 
-    async def _send_items_from_feed(self, feed_id: int, limit=10) -> None:
-        items_cnt = 0
-        async for item in (await self._gkfeed()).get_items_from_feed(feed_id):
-            if items_cnt > limit:
-                break
-
-            await self._process_item(item)
-
-            items_cnt += 1
+    # NOTE : Deprecated
+    # async def _send_items_from_feed(self, feed_id: int, limit=10) -> None:
+    #     picker = GkfeedItemsPicker(await self._gkfeed_credentials)
+    #
+    #     for _ in range(limit):
+    #         item = await picker.get_next_item(lambda i: i.feed_id == feed_id)
+    #
+    #         if not item:
+    #             break
+    #
+    #         await self._process_item(item)

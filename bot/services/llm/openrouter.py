@@ -1,21 +1,30 @@
-from typing import AsyncGenerator, Optional
-from openai import AsyncOpenAI
+from collections.abc import AsyncGenerator
 from enum import Enum
 
+from openai import AsyncOpenAI
 
 from configs.env import OPENROUTER_API_KEY
+
 from ._base import LLM, StreamChunk
 
 
 class OpenRouterModel(Enum):
-    META_LLAMA_4_SCOUT = "meta-llama/llama-4-scout:free"
-    MICROSOFT_PHI_4_REASONING = "microsoft/phi-4-reasoning:free"
-    DEEPSEEK_DEEPSEEK_R1_0528 = "deepseek/deepseek-r1-0528:free"
-    SOLAR_PRO_3 = "upstage/solar-pro-3:free"
+    GEMMA_4 = "google/gemma-4-31b-it:free"
+    GPT_5_6_LUNA = "openai/gpt-5.6-luna"
+
+    @property
+    def supports_images(self) -> bool:
+        return self in {
+            OpenRouterModel.GEMMA_4,
+            OpenRouterModel.GPT_5_6_LUNA,
+        }
+
+
+DEFAULT_MODEL = OpenRouterModel.GPT_5_6_LUNA
 
 
 class OpenRouter(LLM):
-    def __init__(self, model: OpenRouterModel) -> None:
+    def __init__(self, model: OpenRouterModel = DEFAULT_MODEL) -> None:
         self._model = model.value
 
     async def generate(self, prompt: str) -> str:
@@ -25,8 +34,8 @@ class OpenRouter(LLM):
         return result
 
     async def stream(
-        self, prompt: str, images: Optional[list[str]] = None
-    ) -> AsyncGenerator[StreamChunk, None]:
+        self, prompt: str, images: list[str] | None = None
+    ) -> AsyncGenerator[StreamChunk]:
         client = AsyncOpenAI(
             base_url="https://openrouter.ai/api/v1",
             api_key=OPENROUTER_API_KEY,
@@ -46,6 +55,8 @@ class OpenRouter(LLM):
         )
 
         async for chunk in completion:  # type: ignore
+            if not chunk.choices:
+                continue
             delta = chunk.choices[0].delta
             reasoning = getattr(delta, "reasoning", None)
             if reasoning:

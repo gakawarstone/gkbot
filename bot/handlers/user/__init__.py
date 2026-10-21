@@ -16,12 +16,14 @@ from . import platonus2indigo
 from . import download
 from . import asura
 from . import sort_sources
-from . import ask
 from . import cvision
 from . import chatgpt
+from . import exit
 
 
 def setup(r: Router):
+    # Register first so active FSM handlers cannot consume /exit as regular input.
+    exit.setup(r)
     tts.setup(r)
     tasks.setup(r)
     braintrash.setup(r)
@@ -38,6 +40,5 @@ def setup(r: Router):
     download.setup(r)
     asura.setup(r)
     sort_sources.setup(r)
-    ask.setup(r)
     cvision.setup(r)
     chatgpt.setup(r)

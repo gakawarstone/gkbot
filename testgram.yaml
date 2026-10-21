@@ -1,0 +1,6 @@
+bot:
+  command: .venv/bin/python bot/main.py
+  env:
+    BOT_TOKEN: "123456:TESTGRAM"
+    ADMIN_IDS: "1"
+    DB_URL: "sqlite://:memory:"

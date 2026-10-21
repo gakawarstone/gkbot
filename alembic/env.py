@@ -12,8 +12,9 @@ from alembic import context
 # add project root to sys.path
 sys.path.append(os.path.join(os.getcwd(), "bot"))
 
-from configs.db import get_url
+from configs.db import get_database_url
 from models.base import Base
+
 # ensure models are imported
 import models.users
 import models.road
@@ -35,6 +36,7 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 target_metadata = Base.metadata
 
+
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.
 
@@ -47,7 +49,7 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = get_url()
+    url = get_database_url()
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -58,22 +60,24 @@ def run_migrations_offline() -> None:
     with context.begin_transaction():
         context.run_migrations()
 
+
 def do_run_migrations(connection: Connection) -> None:
     context.configure(connection=connection, target_metadata=target_metadata)
 
     with context.begin_transaction():
         context.run_migrations()
 
+
 async def run_async_migrations() -> None:
     """In this scenario we need to create an Engine
     and associate a connection with the context.
 
     """
-    
+
     # We can override the url in the config
     configuration = config.get_section(config.config_ini_section, {})
-    configuration["sqlalchemy.url"] = get_url()
-    
+    configuration["sqlalchemy.url"] = get_database_url()
+
     connectable = async_engine_from_config(
         configuration,
         prefix="sqlalchemy.",
@@ -85,6 +89,7 @@ async def run_async_migrations() -> None:
 
     await connectable.dispose()
 
+
 def run_migrations_online() -> None:
     """Run migrations in 'online' mode.
 
@@ -93,6 +98,7 @@ def run_migrations_online() -> None:
 
     """
     asyncio.run(run_async_migrations())
+
 
 if context.is_offline_mode():
     run_migrations_offline()

@@ -13,11 +13,11 @@ class NotEnoughRightsMiddleware(BaseMiddleware):
         data: Dict[str, Any],
     ) -> Any:
         try:
-            await handler(event, data)
+            return await handler(event, data)
         except TelegramBadRequest as e:
             if e.message == "Bad Request: message can't be deleted" and isinstance(
                 event, Message
             ):
                 await event.answer("Bot should can delete messages")
-            else:
-                raise e
+                return None
+            raise

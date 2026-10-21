@@ -3,22 +3,18 @@ name = "gkbot"
 version = "3.0.0"
 requires-python = ">=3.13"
 dependencies = [
-    "asyncio",
     "notion-client==0.9.0",
     "python-dotenv",
     "gTTS",
     "wikipedia",
     "beautifulsoup4",
-    "translate",
     "youtube-search",
     "docx2txt",
     "varname==0.13.0",
-    "yt-dlp==2026.1.29",
-    "pytube",
-    "pure-eval",
+    "yt-dlp==2026.3.17",
+    "gallery-dl>=1.30.10",
     "edge-tts",
     "aiogram==3.26.0",
-    "google-genai",
     "uvloop>=0.21.0",
     "openai>=1.82.1",
     "asyncpg>=0.30.0",
@@ -48,6 +44,9 @@ asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "session"
 testpaths = ["bot/tests"]
 pythonpath = ["bot"]
+
+[tool.ruff]
+src = ["bot"]
 
 [tool.mypy]
 ignore_missing_imports = true

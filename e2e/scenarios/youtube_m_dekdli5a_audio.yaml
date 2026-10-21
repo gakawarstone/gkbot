@@ -1,0 +1,15 @@
+name: YouTube audio download for M-DekdLIY5A
+timeout: 240
+steps:
+  - send:
+      text: https://www.youtube.com/watch?v=M-DekdLIY5A
+  - expect:
+      method: sendMessage
+      text: https://www.youtube.com/watch?v=M-DekdLIY5A
+      callback_data: ytbtn:dlmp3:True:M-DekdLIY5A
+  - click:
+      callback_data: ytbtn:dlmp3:True:M-DekdLIY5A
+  - expect:
+      method: sendAudio
+      media_type: audio
+      filename: audio.m4a

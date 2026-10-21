@@ -1,18 +1,32 @@
+from html import escape
 from typing import Optional
+from urllib.parse import urlparse
+
+from aiogram.types import BufferedInputFile
 from bs4 import BeautifulSoup, Tag
 
 from services.gkfeed import FeedItem
+from services.http import HttpRequestError, HttpService
+from services.open_graph import OpenGraphService
 from services.telegraph import TelegraphAPI, HtmlToTelegraphContentConverter
 from extensions.handlers.message.http import HttpExtension
+from ...ui.keyboards import FeedMarkup
 from ...ui.keyboards.reddit import RedditFeedItemMarkup
 from . import BaseFeedItemView
 from .video import VideoFeedItemView
+
+_REDDIT_PREVIEW_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (compatible; Twitterbot/1.0)",
+}
 
 
 class RedditFeedItemView(VideoFeedItemView, BaseFeedItemView, HttpExtension):
     _base_url = "https://libreddit.qwik.space/"
 
     async def _process_reddit_item(self, item: FeedItem):
+        if await self._send_reddit_preview(item):
+            return
+
         url = self._base_url + "r/" + item.link.split("r/")[-1]
         soup = await self._get_soup(url)
         title_tag = soup.find("title")
@@ -33,6 +47,40 @@ class RedditFeedItemView(VideoFeedItemView, BaseFeedItemView, HttpExtension):
             await self._send_telegraph_response(title, item, soup)
         except Exception:
             await self._send_item(item)
+
+    async def _send_reddit_preview(self, item: FeedItem) -> bool:
+        try:
+            metadata = await OpenGraphService.get(
+                item.link,
+                headers=_REDDIT_PREVIEW_HEADERS,
+            )
+            if metadata.image_url is None:
+                return False
+
+            image_data = await HttpService.get(
+                metadata.image_url,
+                headers=_REDDIT_PREVIEW_HEADERS,
+            )
+        except HttpRequestError:
+            return False
+
+        await self.answer_photo(
+            BufferedInputFile(image_data, filename="reddit.jpg"),
+            caption=(
+                f'<a href="{escape(item.link, quote=True)}">'
+                f"{escape(self._get_subreddit_caption(item.link))}</a>"
+            ),
+            reply_markup=FeedMarkup.get_item_markup(item.id, item.feed_id),
+        )
+        return True
+
+    @staticmethod
+    def _get_subreddit_caption(link: str) -> str:
+        path_parts = urlparse(link).path.strip("/").split("/")
+        for index, path_part in enumerate(path_parts[:-1]):
+            if path_part.lower() == "r":
+                return f"r/{path_parts[index + 1]}"
+        return "Reddit"
 
     def _find_post_image_url(self, soup: BeautifulSoup) -> Optional[str]:
         post = soup.find(class_="post")

@@ -25,10 +25,14 @@ api:
 	docker compose -f services/bot-api/docker-compose.yml up -d
 
 dev: api
-	watchexec -r -e py $(PYTHON) bot/main.py
+	watchexec -r -w bot -e py $(PYTHON) bot/main.py
 
 test:
 	INTEGRATION_TEST=0 $(PYTHON) -m pytest --ignore services $(FILE)
+
+.PHONY: e2e
+e2e:
+	testgram run e2e/scenarios
 
 deploy: merge-to-master
 

@@ -19,7 +19,7 @@ class Snaptik(BaseExtractor):
                 images_urls=[],
             )
             return response
-        except IndexError:
+        except (IndexError, ValueError):
             raise SourceInfoExtractFailed(self)
 
     async def get_video_file_url(self, url: str) -> str:

@@ -6,13 +6,18 @@ from models.books import Book
 from services.repositories.books import BooksRepository
 from ui.components.books import BookComponent
 from ui.keyboards.books import EventsMarkup, WidgetMarkup
-from .base import BaseHandler
+
 from ..messages.edit_property.choose_property import choose_property_to_edit
+from .base import BaseHandler
 
 
 class EventsHandler(BaseHandler):
     async def handle(self) -> Any:
-        event, book = await self._parse_callback()
+        callback_data = await self._parse_callback()
+        if callback_data is None:
+            return None
+
+        event, book = callback_data
         message = self.event.message
 
         if message is None or not isinstance(message, Message):

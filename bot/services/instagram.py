@@ -1,65 +1,158 @@
-from typing import cast
+import asyncio
+import json
+import re
+from typing import ClassVar
+
+import aiohttp
+from aiogram.types import BufferedInputFile, InputMediaPhoto
 from bs4 import BeautifulSoup, Tag
-from aiogram.types import InputMediaPhoto, FSInputFile
-
-from services.http import HttpService
-from services.cache_dir import CacheDir
 
 
-# NOTE: deprecated dumpoir.com is not accessible anymore.
+class InstagramDownloadError(Exception):
+    """An Instagram post could not be extracted or downloaded."""
+
+
 class InstagramService:
-    _download_endpoint = "https://dumpoir.com/download"
-    _headers = {
-        "User-Agent": (
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
-            "AppleWebKit/537.36 (KHTML, like Gecko)"
-            "Chrome/106.0.0.0 Safari/537.36"
-        ),
-        "Referer": "https://dumpoir.com/download",
-    }
+    _headers: ClassVar[dict[str, str]] = {"User-Agent": "Mozilla/5.0"}
+    _post_shortcode_pattern = re.compile(r"/p/([^/?#]+)")
 
     @classmethod
     async def get_photos_album(cls, url: str) -> list[InputMediaPhoto]:
-        links = await cls._extract_links(url)
-        return [
-            InputMediaPhoto(media=file) for file in await cls._download_photos(links)
+        try:
+            links = await cls._extract_photo_links(url)
+            photos = await cls._download_photos(links, referer=url)
+        except (aiohttp.ClientError, json.JSONDecodeError, TimeoutError) as error:
+            raise InstagramDownloadError(url) from error
+
+        return [InputMediaPhoto(media=photo) for photo in photos]
+
+    @classmethod
+    async def _extract_photo_links(cls, url: str) -> list[str]:
+        shortcode_match = cls._post_shortcode_pattern.search(url)
+        if shortcode_match is None:
+            raise InstagramDownloadError(url)
+
+        embed_url = (
+            f"https://www.instagram.com/p/{shortcode_match.group(1)}/embed/captioned/"
+        )
+        timeout = aiohttp.ClientTimeout(total=30)
+        async with aiohttp.ClientSession(
+            headers=cls._headers, timeout=timeout
+        ) as session, session.get(embed_url) as response:
+            response.raise_for_status()
+            html = await response.text()
+
+        post = cls._extract_post_data(html, shortcode_match.group(1))
+        sidecar = post.get("edge_sidecar_to_children")
+        nodes: list[dict[str, object]] = []
+        if isinstance(sidecar, dict) and isinstance(sidecar.get("edges"), list):
+            for edge in sidecar["edges"]:
+                if not isinstance(edge, dict):
+                    continue
+                node = edge.get("node")
+                if isinstance(node, dict):
+                    nodes.append(node)
+        else:
+            nodes = [post]
+
+        links = [
+            display_url
+            for node in nodes
+            if not node.get("is_video")
+            and isinstance(display_url := node.get("display_url"), str)
         ]
+        if not links:
+            raise InstagramDownloadError(url)
+        return links
 
     @classmethod
-    async def _extract_links(cls, url: str) -> list[str]:
-        cookie = await HttpService.extract_cookies(
-            cls._download_endpoint, headers=cls._headers
-        )
-        if "Cookie" not in cls._headers:
-            cls._headers["Cookie"] = str(cookie).split(": ")[1].split(";")[0]
-
-        data = await cls._prepare_payload(url)
-        resp = await HttpService.post(
-            cls._download_endpoint, body=data, headers=cls._headers
-        )
-
-        soup = BeautifulSoup(resp, "html.parser")
-        imgs = [el for el in soup.find_all("img")[1:-1] if isinstance(el, Tag)]
-        return [cast(str, img.get("src", "")) for img in imgs if img.get("src")]
-
-    @classmethod
-    async def _prepare_payload(cls, url: str) -> dict[str, str]:
-        html = await HttpService.get(cls._download_endpoint, headers=cls._headers)
+    def _extract_post_data(cls, html: str, shortcode: str) -> dict[str, object]:
         soup = BeautifulSoup(html, "html.parser")
-        inputs = [el for el in soup.find_all("input") if isinstance(el, Tag)]
-        csrf = cast(str, inputs[1].get("value", "")) if len(inputs) > 1 else ""
+        for script in soup.find_all("script"):
+            if not isinstance(script, Tag):
+                continue
+            script_text = script.string or script.get_text()
+            if "contextJSON" not in script_text or shortcode not in script_text:
+                continue
 
-        return {
-            "_csrf_token": csrf,
-            "download_form[url]": url,
-        }
+            server_data = cls._extract_server_data(script_text)
+            for context_json in cls._find_values(server_data, "contextJSON"):
+                if not isinstance(context_json, str):
+                    continue
+                context = json.loads(context_json)
+                post = context.get("gql_data", {}).get("shortcode_media")
+                if isinstance(post, dict) and post.get("shortcode") == shortcode:
+                    return post
+
+        raise InstagramDownloadError(shortcode)
+
+    @staticmethod
+    def _extract_server_data(script: str) -> object:
+        marker = "s.handle("
+        marker_index = script.find(marker)
+        if marker_index < 0:
+            raise InstagramDownloadError("Instagram embed data is missing")
+
+        start = marker_index + len(marker)
+        depth = 0
+        in_string = False
+        escaped = False
+        for index, character in enumerate(script[start:], start=start):
+            if in_string:
+                if escaped:
+                    escaped = False
+                elif character == "\\":
+                    escaped = True
+                elif character == '"':
+                    in_string = False
+                continue
+
+            if character == '"':
+                in_string = True
+            elif character == "{":
+                depth += 1
+            elif character == "}":
+                depth -= 1
+                if depth == 0:
+                    return json.loads(script[start : index + 1])
+
+        raise InstagramDownloadError("Instagram embed data is incomplete")
 
     @classmethod
-    async def _download_photos(cls, links: list[str]) -> list[FSInputFile]:
-        cache_dir = CacheDir()
+    def _find_values(cls, data: object, key: str) -> list[object]:
+        values: list[object] = []
+        if isinstance(data, dict):
+            if key in data:
+                values.append(data[key])
+            for value in data.values():
+                values.extend(cls._find_values(value, key))
+        elif isinstance(data, list):
+            for value in data:
+                values.extend(cls._find_values(value, key))
+        return values
 
-        for n, link in enumerate(links):
-            content = await HttpService.get(link, headers=cls._headers)
-            cache_dir.save_file(f"{n}.jpg", content)
+    @classmethod
+    async def _download_photos(
+        cls, links: list[str], referer: str
+    ) -> list[BufferedInputFile]:
+        timeout = aiohttp.ClientTimeout(total=30)
+        headers = {**cls._headers, "Referer": referer}
+        async with aiohttp.ClientSession(headers=headers, timeout=timeout) as session:
+            return await asyncio.gather(
+                *(
+                    cls._download_photo(session, link, index)
+                    for index, link in enumerate(links, start=1)
+                )
+            )
 
-        return [FSInputFile(f"{cache_dir.path}/{n}.jpg") for n, _ in enumerate(links)]
+    @staticmethod
+    async def _download_photo(
+        session: aiohttp.ClientSession, link: str, index: int
+    ) -> BufferedInputFile:
+        async with session.get(link) as response:
+            response.raise_for_status()
+            content = await response.read()
+
+        if not content:
+            raise InstagramDownloadError(link)
+        return BufferedInputFile(content, filename=f"instagram_{index}.jpg")

@@ -1,0 +1,15 @@
+name: YouTube audio download sends converted audio
+timeout: 180
+steps:
+  - send:
+      text: https://www.youtube.com/watch?v=TVC_SzZr96Q
+  - expect:
+      method: sendMessage
+      text: https://www.youtube.com/watch?v=TVC_SzZr96Q
+      callback_data: ytbtn:dlmp3:True:TVC_SzZr96Q
+  - click:
+      callback_data: ytbtn:dlmp3:True:TVC_SzZr96Q
+  - expect:
+      method: sendAudio
+      media_type: audio
+      filename: audio.m4a

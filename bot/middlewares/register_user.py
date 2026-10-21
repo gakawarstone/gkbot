@@ -31,4 +31,4 @@ class RegisterUserMiddleware(BaseMiddleware):
                 session.add(new_user)
                 await session.commit()
 
-        await handler(event, data)
+        return await handler(event, data)

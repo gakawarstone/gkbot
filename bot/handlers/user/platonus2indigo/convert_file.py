@@ -1,12 +1,10 @@
 from typing import Any
-from io import BytesIO
-
-from aiogram.types import BufferedInputFile
 
 from extensions.handlers.message.file_extension import (
     FileHandlerExtension,
     NoFileException,
 )
+from extensions.handlers.message.text_document import send_text_document
 from services.docx import DocxReader
 from services.converters.tests.platonus2indigo import Platonus2Indigo
 from ._states import FSM
@@ -29,10 +27,4 @@ class ConvertFileHandler(FileHandlerExtension):
             text.splitlines(), 25
         )  # FIXME hardcore
         for n, part in enumerate(chunks):
-            await self._send_lines_file(part, f"quest_{n}.txt")
-
-    async def _send_lines_file(self, lines: list[str], file_name: str) -> None:
-        output_file = BytesIO()
-        [output_file.write(line.encode()) for line in lines]
-        file = BufferedInputFile(output_file.getvalue(), file_name)
-        await self.event.answer_document(file)
+            await send_text_document(self.event, part, f"quest_{n}.txt")

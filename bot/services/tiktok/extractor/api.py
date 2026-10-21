@@ -1,8 +1,10 @@
 import re
+from typing import Any
 
-from services.http import HttpService, HttpRequestError
-from ..types import InfoVideoTikTok
+from services.http import HttpRequestError, HttpService
+
 from ..exceptions import SerializationError
+from ..types import InfoVideoTikTok
 from ._base import BaseExtractor
 from .exceptions import SourceInfoExtractFailed
 
@@ -28,19 +30,23 @@ class ApiExtractor(BaseExtractor):
         return video_info.video_url
 
     @staticmethod
-    def _serialize_api_data(data: dict) -> InfoVideoTikTok:
+    def _serialize_api_data(data: dict[str, Any]) -> InfoVideoTikTok:
         try:
+            api_data = data["data"]
+            if not isinstance(api_data, dict):
+                raise SerializationError
+
             video_url = ""
-            images_urls = []
+            images_urls: list[str] = []
             height = None
             width = None
             duration = None
 
-            if "image_post_info" in data["data"]:
-                for img in data["data"]["image_post_info"]["images"]:
+            if "image_post_info" in api_data:
+                for img in api_data["image_post_info"]["images"]:
                     images_urls.append(img["display_image"]["url_list"][0])
-            if "video" in data["data"]:
-                video_data = data["data"]["video"]
+            if "video" in api_data:
+                video_data = api_data["video"]
                 video_url = video_data["play_addr"]["url_list"][0]
                 height = video_data.get("height")
                 width = video_data.get("width")
@@ -48,7 +54,7 @@ class ApiExtractor(BaseExtractor):
                 if duration:
                     duration = duration // 1000
 
-            music_url = data["data"]["music"]["play_url"]["url_list"][0]
+            music_url = api_data["music"]["play_url"]["url_list"][0]
 
             if re.search(r"\bmusic\b|\bmime_type=audio_mpeg\b", video_url):
                 video_url = ""
@@ -62,5 +68,5 @@ class ApiExtractor(BaseExtractor):
                 width=width,
                 duration=duration,
             )
-        except (KeyError, ValueError):
-            raise SerializationError
+        except (AttributeError, IndexError, KeyError, TypeError, ValueError) as error:
+            raise SerializationError from error

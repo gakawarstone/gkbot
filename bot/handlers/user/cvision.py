@@ -1,9 +1,7 @@
 from typing import Any
 import time
-import re
 
 from aiogram import Router
-from aiogram.utils.formatting import Bold
 from aiogram.filters import Command
 from aiogram.filters.state import StateFilter
 from aiogram.fsm.state import State, StatesGroup
@@ -53,18 +51,6 @@ class AnswerHandler(MarkdownRenderHandlerExtension, FileHandlerExtension):
                 )
                 last_update = now
         await _message.edit_text(self._render_markdown(text))
-
-    @staticmethod
-    def _render(markdown_string: str) -> str:
-        bold_pattern = r"\*\*([^*]+)\*\*"
-
-        def replace_bold_func(match):
-            text = match.group(1)
-            return Bold(text).as_html()
-
-        result = re.sub(bold_pattern, replace_bold_func, markdown_string)
-
-        return result
 
 
 def setup(r: Router):

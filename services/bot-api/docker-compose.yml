@@ -2,6 +2,7 @@ version: '3.7'
 
 services:
   telegram-bot-api:
+    restart: always
     image: aiogram/telegram-bot-api:latest
     env_file: .env
     network_mode: bridge

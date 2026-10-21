@@ -1,0 +1,43 @@
+name: AI chat exposes and handles explicit exit
+timeout: 15
+steps:
+  - send:
+      text: /chat
+  - expect:
+      method: sendMessage
+      text_contains: AI-чат включён
+  - send:
+      text: 🚪 Выйти из AI-чата
+  - expect:
+      method: sendMessage
+      text_contains: Режим завершён
+  - send:
+      text: /tts
+  - expect:
+      method: sendMessage
+      text_contains: Отправь мне сообщение
+  - send:
+      text: /exit
+  - expect:
+      method: sendMessage
+      text_contains: Режим завершён
+  - send:
+      text: /chat
+  - expect:
+      method: sendMessage
+      text_contains: AI-чат включён
+  - send:
+      text: q
+  - expect:
+      method: sendMessage
+      text_contains: Режим завершён
+  - send:
+      text: /chat
+  - expect:
+      method: sendMessage
+      text_contains: AI-чат включён
+  - send:
+      text: /exit
+  - expect:
+      method: sendMessage
+      text_contains: Режим завершён
