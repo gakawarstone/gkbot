@@ -1,0 +1,16 @@
+name: Reported TikTok size regression sends the selected source video
+timeout: 120
+steps:
+  - send:
+      text: https://vt.tiktok.com/ZS4cDkR61/
+  - expect:
+      method: sendMessage
+      text: Скачиваю https://vt.tiktok.com/ZS4cDkR61/
+  - expect:
+      method: sendVideo
+      media_type: video
+      filename: video_compressed.mp4
+      caption: '<b>test_user</b> ➤ <a href="https://vt.tiktok.com/ZS4cDkR61/">TikTok</a>'
+      parse_mode: HTML
+  - expect_chat:
+      no_errors: true
