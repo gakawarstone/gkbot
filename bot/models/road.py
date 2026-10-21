@@ -1,22 +1,29 @@
-from tortoise import fields
-from tortoise.models import Model
+import datetime
+from sqlalchemy import BigInteger, Integer, Text, Time
+from sqlalchemy.orm import Mapped, mapped_column
+from models.base import Base
 
 
-class PomodoroStats(Model):
-    user_id = fields.IntField(primary_key=True)
-    today_cnt = fields.IntField(default=0)
-    total_cnt = fields.IntField(default=0)
+class PomodoroStats(Base):
+    __tablename__ = "pomodorostats"
+
+    user_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    today_cnt: Mapped[int] = mapped_column(Integer, default=0)
+    total_cnt: Mapped[int] = mapped_column(Integer, default=0)
 
 
-class RoadSettings(Model):
-    user_id = fields.IntField(primary_key=True)
-    time_focused = fields.TimeField()
-    time_relax = fields.TimeField()
+class RoadSettings(Base):
+    __tablename__ = "roadsettings"
+
+    user_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    time_focused: Mapped[datetime.time] = mapped_column(Time)
+    time_relax: Mapped[datetime.time] = mapped_column(Time)
 
 
-# NOTE: unused
-class Habits(Model):
-    habit_id = fields.IntField(primary_key=True)
-    user_id = fields.IntField()
-    name = fields.TextField()
-    notify_time = fields.TimeField()
+class Habits(Base):
+    __tablename__ = "habits"
+
+    habit_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(BigInteger)
+    name: Mapped[str] = mapped_column(Text)
+    notify_time: Mapped[datetime.time] = mapped_column(Time)

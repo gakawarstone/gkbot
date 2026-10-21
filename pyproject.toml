@@ -9,7 +9,6 @@ dependencies = [
     "wikipedia",
     "beautifulsoup4",
     "youtube-search",
-    "tortoise-orm==0.21.6",
     "docx2txt",
     "varname==0.13.0",
     "yt-dlp==2026.3.17",
@@ -20,6 +19,11 @@ dependencies = [
     "openai>=1.82.1",
     "asyncpg>=0.30.0",
     "aiohttp>=3.11.13",
+    "sqlalchemy[asyncio]>=2.0.48",
+    "alembic>=1.18.4",
+    "aiosqlite>=0.17.0",
+    "aiomysql>=0.3.2",
+    "google-generativeai>=0.8.6",
 ]
 
 [dependency-groups]

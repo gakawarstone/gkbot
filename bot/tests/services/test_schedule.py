@@ -1,11 +1,13 @@
 import asyncio
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime, timedelta, timezone
 
 import pytest
+from sqlalchemy import func, select
+
+from configs import db
 from models.tasks import Task as TaskModel
 from services.schedule import Schedule, Task
 from tests.mocks.db import use_db
-
 
 _probe_results: list[str] = []
 
@@ -34,6 +36,13 @@ async def add_due_task(probe: TaskProbe) -> None:
     await Schedule.add_task(Task(probe), due)
 
 
+async def count_stored_tasks() -> int:
+    async with db.SessionLocal() as session:
+        count = await session.scalar(select(func.count()).select_from(TaskModel))
+        assert count is not None
+        return count
+
+
 def count_calls(name: str) -> int:
     return _probe_results.count(name)
 
@@ -46,7 +55,7 @@ async def test_successful_task_is_removed_after_run():
     await Schedule._Schedule__run_due_tasks()  # type: ignore[attr-defined]
 
     assert count_calls("ok") == 1
-    assert await TaskModel.all().count() == 0
+    assert await count_stored_tasks() == 0
 
 
 @pytest.mark.asyncio
@@ -59,7 +68,7 @@ async def test_failed_task_does_not_block_other_tasks():
 
     assert count_calls("succeeding") == 1
     assert count_calls("failing") == 1
-    stored = await TaskModel.all().count()
+    stored = await count_stored_tasks()
     assert stored == 1
 
 
@@ -72,7 +81,7 @@ async def test_failed_task_is_removed_after_max_attempts():
         await Schedule._Schedule__run_due_tasks()  # type: ignore[attr-defined]
 
     assert count_calls("failing") == Schedule._Schedule__max_task_attempts  # type: ignore[attr-defined]
-    assert await TaskModel.all().count() == 0
+    assert await count_stored_tasks() == 0
     assert Schedule._Schedule__attempts == {}  # type: ignore[attr-defined]
 
 
@@ -117,7 +126,7 @@ class TestScheduleTimezone:
 
     def test_to_local_tz_preserves_instant(self):
         """Ensure to_local_tz preserves the same instant in time."""
-        utc_time = datetime(2026, 2, 6, 12, 0, 0, tzinfo=timezone.utc)
+        utc_time = datetime(2026, 2, 6, 12, 0, 0, tzinfo=UTC)
         local_time = Schedule.to_local_tz(utc_time)
 
         # The timestamp should be the same (same instant in time)

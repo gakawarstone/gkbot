@@ -1,8 +1,12 @@
-from tortoise import fields
-from tortoise.models import Model
+import datetime as dt
+from sqlalchemy import DateTime, Integer, LargeBinary
+from sqlalchemy.orm import Mapped, mapped_column
+from models.base import Base
 
 
-class Task(Model):
-    id = fields.IntField(pk=True)
-    datetime = fields.DatetimeField()
-    callback = fields.BinaryField()
+class Task(Base):
+    __tablename__ = "task"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    datetime: Mapped[dt.datetime] = mapped_column(DateTime)
+    callback: Mapped[bytes] = mapped_column(LargeBinary)

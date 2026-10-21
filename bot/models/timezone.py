@@ -1,7 +1,11 @@
-from tortoise import fields
-from tortoise.models import Model
+import datetime as dt
+from sqlalchemy import BigInteger, Interval
+from sqlalchemy.orm import Mapped, mapped_column
+from models.base import Base
 
 
-class TimeZone(Model):
-    user_id = fields.IntField(primary_key=True)
-    tz = fields.TimeDeltaField()
+class TimeZone(Base):
+    __tablename__ = "timezone"
+
+    user_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    tz: Mapped[dt.timedelta] = mapped_column(Interval)

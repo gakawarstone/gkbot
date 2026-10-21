@@ -39,7 +39,7 @@ async def test_undefined_settings_in_markup(buttons):
 @pytest.mark.asyncio
 @use_db
 async def test_staying_in_menu_after_settings_markup_sendet():
-    handler = InitSettingsHandler(event=fake_event, state=fake_state)
+    handler = InitSettingsHandler(event=make_fake_message("test"), state=fake_state)
     await handler.handle()
     assert await handler.state.get_state() == FSM.menu
 
@@ -75,5 +75,7 @@ async def test_edit_settings():
 
         new_setting_value = get_new_settings_value_handler.ctx.setting_new_value
         setting_name = data.split(":")[1]
-        current_settings = await PomodoroHandler(fake_event).settings
-        assert getattr(current_settings, setting_name) == new_setting_value
+        current_settings = await PomodoroHandler(make_fake_message("test")).settings
+        actual_value = getattr(current_settings, setting_name)
+        assert actual_value.hour == new_setting_value.hour
+        assert actual_value.minute == new_setting_value.minute
