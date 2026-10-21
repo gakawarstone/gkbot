@@ -1,5 +1,8 @@
+import asyncio
 import json
-from typing import AsyncGenerator, Optional
+from collections.abc import AsyncGenerator
+from time import monotonic
+from typing import ClassVar
 
 import aiohttp
 from bs4 import BeautifulSoup
@@ -9,27 +12,46 @@ from ._types import FeedItem, GkfeedCredentials
 
 class GkfeedApi:
     _api_root = "https://feed.gws.freemyip.com/api/v1/"
+    _items_lock: ClassVar[asyncio.Lock] = asyncio.Lock()
+    _items_cache: ClassVar[
+        dict[tuple[str, str, int, int | None], tuple[float, list[FeedItem]]]
+    ] = {}
 
     def __init__(self, credentials: GkfeedCredentials) -> None:
         self.__login = credentials.login
         self.__password = credentials.password
 
     async def get_user_items(
-        self, limit: int = 1000, cursor: Optional[int] = None
-    ) -> AsyncGenerator[FeedItem, None]:
-        url = self._api_root + f"get_items?limit={limit}"
-        if cursor:
-            url += f"&cursor={cursor}"
+        self, limit: int = 1000, cursor: int | None = None
+    ) -> AsyncGenerator[FeedItem]:
+        cache_key = (self.__login, self.__password, limit, cursor)
+        async with self._items_lock:
+            now = monotonic()
+            expired_keys = [
+                key
+                for key, (expires_at, _) in self._items_cache.items()
+                if expires_at <= now
+            ]
+            for key in expired_keys:
+                del self._items_cache[key]
 
-        resp = await self._get_html(url)
-        data = json.loads(resp)
+            cached = self._items_cache.get(cache_key)
+            if cached is None:
+                url = self._api_root + f"get_items?limit={limit}"
+                if cursor:
+                    url += f"&cursor={cursor}"
+                data = json.loads(await self._get_html(url))
+                items = [
+                    self._convert_raw_data_to_feed_item(raw_item)
+                    for raw_item in data["items"]
+                    if raw_item["link"]
+                ]
+                del data
+                self._items_cache[cache_key] = (monotonic() + 300, items)
+            else:
+                items = cached[1]
 
-        for raw_item in data.get("items") or []:
-            if not raw_item["link"]:
-                print(raw_item)
-                continue
-
-            item = self._convert_raw_data_to_feed_item(raw_item)
+        for item in items:
             yield item
 
     async def delete_item_by_id(self, item_id: int) -> None:
@@ -45,9 +67,11 @@ class GkfeedApi:
         body = {"url": feed_url}
         json_data = json.dumps(body)
         auth = aiohttp.BasicAuth(login=self.__login, password=self.__password)
-        async with aiohttp.ClientSession(conn_timeout=None) as session:
-            async with session.post(url, auth=auth, data=json_data) as response:
-                resp = await response.content.read()
+        async with (
+            aiohttp.ClientSession(conn_timeout=None) as session,
+            session.post(url, auth=auth, data=json_data) as response,
+        ):
+            resp = await response.content.read()
         resp = json.loads(resp)
         if not resp["created"]:
             raise ValueError
@@ -76,8 +100,9 @@ class GkfeedApi:
         html = await self._get_html(url)
         return BeautifulSoup(html, "xml")
 
-    async def _get_html(self, url: str, body={}) -> bytes:
+    async def _get_html(self, url: str) -> bytes:
         async with aiohttp.ClientSession() as session:
             auth = aiohttp.BasicAuth(login=self.__login, password=self.__password)
             async with session.get(url, auth=auth) as response:
+                response.raise_for_status()
                 return await response.read()
