@@ -3,33 +3,14 @@ import re
 import requests
 
 from utils.async_wrapper import async_wrap
-from ..types import InfoVideoTikTok
-from .exceptions import SourceInfoExtractFailed
-from ._base import BaseExtractor
+
+from ._base import BaseExtractor, VideoUrlExtractor
 
 
-class TTDownloader(BaseExtractor, requests.Session):
+class TTDownloader(VideoUrlExtractor, requests.Session):
+    _expected_errors = (*BaseExtractor._expected_errors, requests.RequestException)
+    _normalize_url = True
     _base_url = "https://ttdownloader.com/"
-
-    async def get_video_info(self, url: str) -> InfoVideoTikTok:
-        try:
-            full_url = await self._extract_full_url(url)
-            response = InfoVideoTikTok(
-                video_url=await self.get_video_file_url(full_url),
-                video_input_file=None,
-                music_url="",
-                images_urls=[],
-            )
-            return response
-        except (IndexError, ValueError):
-            raise SourceInfoExtractFailed(self)
-
-    async def get_video_file_url(self, url: str) -> str:
-        try:
-            links = await self._get_video_links(url)
-            return links[0]
-        except (IndexError, ValueError):
-            raise SourceInfoExtractFailed(self)
 
     async def _get_video_links(self, url: str) -> list[str]:
         return await async_wrap(self.__get_video_links_sync)(url)

@@ -1,36 +1,25 @@
 import re
 from typing import Any
 
-from services.http import HttpRequestError, HttpService
+from services.http import HttpService
 
 from ..exceptions import SerializationError
-from ..types import InfoVideoTikTok
-from ._base import BaseExtractor
-from .exceptions import SourceInfoExtractFailed
+from ._base import BaseExtractor, ExtractedVideoData
 
 
 class ApiExtractor(BaseExtractor):
+    _expected_errors = (*BaseExtractor._expected_errors, SerializationError)
+
     def __init__(self, api_root: str) -> None:
         self.api_root = api_root
 
-    async def get_video_info(self, url: str) -> InfoVideoTikTok:
-        try:
-            request_url = f"{self.api_root}/api/hybrid/video_data?url={url}"
-            data = await HttpService.get_json(request_url)
-            return self._serialize_api_data(data)
-        except (HttpRequestError, SerializationError):
-            raise SourceInfoExtractFailed(self)
-
-    async def get_video_file_url(self, url: str) -> str:
-        video_info = await self.get_video_info(url)
-
-        if video_info.video_url is None:
-            raise ValueError("Video URL is None")
-
-        return video_info.video_url
+    async def _extract_video_data(self, url: str) -> ExtractedVideoData:
+        request_url = f"{self.api_root}/api/hybrid/video_data?url={url}"
+        data = await HttpService.get_json(request_url)
+        return self._serialize_api_data(data)
 
     @staticmethod
-    def _serialize_api_data(data: dict[str, Any]) -> InfoVideoTikTok:
+    def _serialize_api_data(data: dict[str, Any]) -> ExtractedVideoData:
         try:
             api_data = data["data"]
             if not isinstance(api_data, dict):
@@ -59,14 +48,13 @@ class ApiExtractor(BaseExtractor):
             if re.search(r"\bmusic\b|\bmime_type=audio_mpeg\b", video_url):
                 video_url = ""
 
-            return InfoVideoTikTok(
-                video_url=video_url,
-                video_input_file=None,
-                music_url=music_url,
-                images_urls=images_urls,
-                height=height,
-                width=width,
-                duration=duration,
-            )
+            return {
+                "video_url": video_url,
+                "music_url": music_url,
+                "images_urls": images_urls,
+                "height": height,
+                "width": width,
+                "duration": duration,
+            }
         except (AttributeError, IndexError, KeyError, TypeError, ValueError) as error:
             raise SerializationError from error
