@@ -7,12 +7,14 @@ from typing import ClassVar
 import aiohttp
 from bs4 import BeautifulSoup
 
+from ._decoder import FeedDecoder, feed_item_from_raw_data
 from ._types import FeedItem, GkfeedCredentials
 
 
 class GkfeedApi:
     _api_root = "https://feed.gws.freemyip.com/api/v1/"
     _items_lock: ClassVar[asyncio.Lock] = asyncio.Lock()
+    _items_decoder: ClassVar[FeedDecoder] = FeedDecoder()
     _items_cache: ClassVar[
         dict[tuple[str, str, int, int | None], tuple[float, list[FeedItem]]]
     ] = {}
@@ -40,19 +42,21 @@ class GkfeedApi:
                 url = self._api_root + f"get_items?limit={limit}"
                 if cursor:
                     url += f"&cursor={cursor}"
-                data = json.loads(await self._get_html(url))
-                items = [
-                    self._convert_raw_data_to_feed_item(raw_item)
-                    for raw_item in data["items"]
-                    if raw_item["link"]
-                ]
-                del data
+                items = await self._items_decoder.decode(await self._get_html(url))
                 self._items_cache[cache_key] = (monotonic() + 300, items)
             else:
                 items = cached[1]
 
         for item in items:
             yield item
+
+    @classmethod
+    async def on_startup(cls) -> None:
+        await cls._items_decoder.start()
+
+    @classmethod
+    async def on_shutdown(cls) -> None:
+        await cls._items_decoder.close()
 
     async def delete_item_by_id(self, item_id: int) -> None:
         async with aiohttp.ClientSession() as session:
@@ -88,13 +92,7 @@ class GkfeedApi:
 
     @staticmethod
     def _convert_raw_data_to_feed_item(raw_data: dict) -> FeedItem:
-        return FeedItem(
-            id=raw_data["id"],
-            feed_id=raw_data["feed_id"],
-            link=raw_data["link"],
-            title=raw_data["title"],
-            text=raw_data["text"],
-        )
+        return feed_item_from_raw_data(raw_data)
 
     async def _get_soup(self, url: str) -> BeautifulSoup:
         html = await self._get_html(url)
