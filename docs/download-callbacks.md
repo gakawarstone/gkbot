@@ -12,7 +12,8 @@ awaits `prepare_request(raw_callback_data)`. The adapter returns a typed
 `DownloadRequest` with these fields:
 
 - `url`: resolved download URL. Porno365 resolves its page URL before creating
-  the status message. VK accepts both identifiers and complete URLs.
+  the status message. VK uses `reference.download_url` from the prerequisite
+  `VKReference` model.
 - `media_type`: `"audio"`, `"video"`, or `None`. `None` preserves the legacy
   status-only path for an unknown event.
 - `use_callback_message_as_status`: edit and later delete the callback message
@@ -38,7 +39,7 @@ return without work for these callbacks.
 | Source | URL and options |
 | --- | --- |
 | YouTube | `https://www.youtube.com/watch?v=<code>`; video caption uses the downloaded title and the channel name with emoji removed; thumbnail comes from `YoutubeApiService` |
-| VK | `reconstruct_vk_url(identifier)`; no extra video options |
+| VK | `reference.download_url`; no extra video options |
 | Pornhub | `https://www.pornhub.com/view_video.php?viewkey=<code>`; video spoiler enabled |
 | Porno365 | `Porno365Service.get_best_video_url(page_url)`; video spoiler enabled |
 
@@ -48,7 +49,8 @@ VK support audio.
 
 ## Callback compatibility and migration
 
-This refactor leaves button builders, serializers and deserializers unchanged.
+This PR is stacked on the VK reference model PR. Relative to that base, this
+refactor leaves button builders, serializers and deserializers unchanged.
 Existing payloads remain:
 
 | Source | Payload |

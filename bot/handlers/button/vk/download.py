@@ -10,7 +10,6 @@ from ui.buttons.vk import (
     VKDownloadButtonData,
     VKDownloadButtonDataSerializer,
 )
-from utils.vk import reconstruct_vk_url
 
 
 async def _prepare_request(callback_data: str) -> DownloadRequest:
@@ -25,7 +24,7 @@ async def _prepare_request(callback_data: str) -> DownloadRequest:
     ):
         media_type = "video"
     return DownloadRequest(
-        url=reconstruct_vk_url(data.vk_id),
+        url=data.reference.download_url,
         media_type=media_type,
         use_callback_message_as_status=data.use_callback_message_as_status,
     )
