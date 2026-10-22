@@ -10,9 +10,7 @@ The digest prevents the image from changing when its tag is republished.
 
 The [aiogram 3.31.0 changelog](https://docs.aiogram.dev/en/latest/changelog.html)
 and [Telegram Bot API 10.3 changelog](https://core.telegram.org/bots/api#august-24-2026)
-confirm support for these interfaces. The installed wheel also exposes them,
-and `bot/tests/handlers/test_aiogram_compatibility.py` checks their HTTP encoding
-or update routing against a local test server:
+confirm support for these interfaces. The installed wheel also exposes them:
 
 - `InlineKeyboardButton(disabled=DisabledButton())` sends `"disabled": {}`.
   `disabled=True` is not the API contract. A disabled button needs no
@@ -25,8 +23,8 @@ or update routing against a local test server:
 - `ephemeral_message_parameters=EphemeralMessageParameters(...)` describes the
   recipient and callback relationship for ephemeral messages.
 - `ChatMemberAdministrator` and `ChatAdministratorRights` require
-  `can_send_welcome_messages`. The `/admins` smoke test includes this field in
-  its server response.
+  `can_send_welcome_messages` in administrator responses, including those
+  requested by `/admins`.
 
 This upgrade supplies library and server support. Application handlers retain
 their existing behavior; enabling new features belongs to their own changes.
@@ -70,25 +68,17 @@ not performed for this change.
 
 ```bash
 uv sync --locked
-make test FILE=bot/tests/handlers/test_aiogram_compatibility.py
-make lint FILE=bot/tests/handlers/test_aiogram_compatibility.py
 make test
 make lint
 docker compose -f services/bot-api/docker-compose.yml config --no-env-resolution --images
 ```
 
-The HTTP smoke tests exercise aiogram's real `AiohttpSession`, request
-serialization, response validation, polling, and existing application handlers.
-They use dummy credentials and a loopback server and do not contact Telegram or
-OpenRouter. They do not establish live Telegram behavior.
-
 The clean starting commit `dfdecceb2e97824e924538bf7720c2547a7156a7` has
 105 passing tests and 13 skipped integration tests. Its `make lint` stops at
 391 existing Ruff findings. The upgrade does not clean up those unrelated
-findings; the new smoke-test file must pass all four targeted lint stages.
+findings.
 
-After the upgrade, `make test` reports **112 passed, 13 skipped**. All seven
-HTTP smoke tests and all four targeted lint stages pass. The full `make lint`
+After the upgrade, `make test` reports **105 passed, 13 skipped**. The full `make lint`
 output is byte-for-byte identical to the starting commit's output and stops at
 the same 391 Ruff findings, before the other lint stages run.
 

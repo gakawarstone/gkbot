@@ -7,7 +7,6 @@
 
 The client dependency files now pin aiogram 3.31.0, and the Bot API Compose
 image pins 10.3 by immutable digest. The pinned binary reports Bot API 10.3.
-HTTP smoke tests cover existing flows and the new request/update contracts.
 See [verification and rollout notes](../../services/bot-api/README.md).
 
 This task remains open pending operational acceptance. The running server was
