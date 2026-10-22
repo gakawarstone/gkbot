@@ -2,6 +2,7 @@ import asyncio
 import json
 import shutil
 import subprocess
+from pathlib import Path
 from subprocess import CompletedProcess
 from typing import Any
 
@@ -110,22 +111,30 @@ class FfmpegService:
         cls, images_urls: list[str], audio_url: str | None
     ) -> bytes:
         cache_dir = CacheDir()
+        try:
+            output_path = cache_dir.get_file_path("slideshow.mp4")
+            await cls.make_slideshow_file_from_web(images_urls, audio_url, output_path)
+            return await asyncio.to_thread(Path(output_path).read_bytes)
+        finally:
+            await asyncio.to_thread(cache_dir.delete)
 
-        await cls.download_and_prepare_images(images_urls, cache_dir.path)
+    @classmethod
+    async def make_slideshow_file_from_web(
+        cls, images_urls: list[str], audio_url: str | None, output_path: str
+    ) -> None:
+        """Write into a caller-owned directory, kept alive for the later upload."""
+        work_dir = str(Path(output_path).parent)
+        await cls.download_and_prepare_images(images_urls, work_dir)
         if audio_url:
-            await cls.download_and_prepare_audio(audio_url, cache_dir.path)
+            await cls.download_and_prepare_audio(audio_url, work_dir)
 
         command = cls._build_slideshow_command(
-            images_input=f"{cache_dir.path}/*.jpg",
-            audio_input=f"{cache_dir.path}/audio.m4a" if audio_url else None,
-            output_path=f"{cache_dir.path}/slideshow.mp4",
+            images_input=f"{work_dir}/*.jpg",
+            audio_input=f"{work_dir}/audio.m4a" if audio_url else None,
+            output_path=output_path,
         )
 
         await cls._run_command(command)
-
-        content = open(f"{cache_dir.path}/slideshow.mp4", "rb").read()
-        cache_dir.delete()
-        return content
 
     @classmethod
     async def download_and_prepare_images(
