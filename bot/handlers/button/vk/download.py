@@ -1,14 +1,13 @@
-from aiogram import Router, F
-from aiogram.types import CallbackQuery, Message, InaccessibleMessage
+from aiogram import F, Router
+from aiogram.types import CallbackQuery, InaccessibleMessage, Message
 
 from services.ytdlp import YtdlpDownloader
 from ui.buttons.vk import (
-    VKDownloadButtonData,
-    VKDownloadButtonCallbackDataDeserializer,
-    VKDownloadButtonDataSerializer,
     PREFIX,
+    VKDownloadButtonCallbackDataDeserializer,
+    VKDownloadButtonData,
+    VKDownloadButtonDataSerializer,
 )
-from utils.vk import reconstruct_vk_url
 
 
 def _is_button_callback(
@@ -22,7 +21,7 @@ def _is_button_callback(
     )
 
 
-async def download(callback: CallbackQuery):
+async def download(callback: CallbackQuery) -> None:
     if callback.message is None or isinstance(callback.message, InaccessibleMessage):
         raise ValueError("Callback message is inaccessible or None")
 
@@ -31,7 +30,7 @@ async def download(callback: CallbackQuery):
         raise ValueError("Callback data cannot be None")
 
     data = deserializer.deserialize(callback.data)
-    url = reconstruct_vk_url(data.vk_id)
+    url = data.reference.download_url
 
     if not data.use_callback_message_as_status:
         status_message = await callback.message.answer("Cкачиваю " + url)
@@ -63,5 +62,5 @@ async def download(callback: CallbackQuery):
         await status_message.delete()
 
 
-def setup(r: Router):
+def setup(r: Router) -> None:
     r.callback_query.register(download, F.data.startswith(PREFIX))
