@@ -1,6 +1,6 @@
-from typing import Type
+from abc import ABC, abstractmethod
 
-from aiogram.types import InlineKeyboardButton
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 
 class CarouselMarkupButtons:
@@ -13,10 +13,18 @@ class CarouselMarkupData:
     show_next_media = "pknext"
 
 
-class BaseCarouselMarkup[T: CarouselMarkupButtons, S: CarouselMarkupData]:
+class BaseCarouselMarkup[T: CarouselMarkupButtons, S: CarouselMarkupData](ABC):
     prefix: str
-    buttons: Type[T]
-    data: Type[S]
+    buttons: type[T]
+    data: type[S]
+
+    @classmethod
+    @abstractmethod
+    def get_item_markup(
+        cls, item_id: str, media_len: int, media_current_num: int
+    ) -> InlineKeyboardMarkup:
+        """Build the widget markup while preserving the opaque item ID."""
+        raise NotImplementedError
 
     @classmethod
     def _get_carousel_navs_row(

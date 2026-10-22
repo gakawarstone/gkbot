@@ -1,15 +1,7 @@
 from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass
-from enum import Enum
 
 type StartupHook = Callable[[], Awaitable[None] | None]
-
-
-# FIXME: aigram have this type
-class ChatType(Enum):
-    private = "private"
-    group = "group"
-    super_group = "supergroup"
 
 
 @dataclass
