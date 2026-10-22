@@ -107,23 +107,27 @@ class TikTokService:
         prepared = asyncio.create_task(cls.__prepare_video(info, cache_dir, video))
         scheduled = False
         try:
-            try:
-                await asyncio.shield(prepared)
-            except asyncio.CancelledError:
-                # A running file write/subprocess must finish before rmtree.
-                while not prepared.done():
-                    try:
-                        await asyncio.shield(prepared)
-                    except asyncio.CancelledError:
-                        continue
-                prepared.result()
-                raise
+            await cls.__wait_for_preparation(prepared)
             await cache_dir.delete_after(minutes=5)
             scheduled = True
             return _TikTokInputFile(cache_dir)
         finally:
             if not scheduled:
                 await cache_dir._delete()
+
+    @staticmethod
+    async def __wait_for_preparation(prepared: asyncio.Task[None]) -> None:
+        """Finish file writes and ffmpeg before allowing cancellation to clean up."""
+        cancellation: asyncio.CancelledError | None = None
+        while not prepared.done():
+            try:
+                await asyncio.shield(prepared)
+            except asyncio.CancelledError as error:
+                if cancellation is None:
+                    cancellation = error
+        prepared.result()
+        if cancellation is not None:
+            raise cancellation
 
     @classmethod
     async def __prepare_video(
