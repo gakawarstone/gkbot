@@ -26,8 +26,8 @@ confirm support for these interfaces. The installed wheel also exposes them:
   `can_send_welcome_messages` in administrator responses, including those
   requested by `/admins`.
 
-This upgrade supplies library and server support. Application handlers retain
-their existing behavior; enabling new features belongs to their own changes.
+The dependency upgrade supplies library and server support. Feature changes
+that use these interfaces must follow the server rollout order below.
 
 ## Server verification and rollout order
 
@@ -63,6 +63,31 @@ After the server and bot rollout, verify polling, an existing delete callback,
 HTML text, photo upload, AI chat, and `/admins` in a controlled Telegram chat.
 Live Telegram smoke tests require deployment access and credentials and were
 not performed for this change.
+
+## Disabled inline placeholders
+
+The feed's `Похожие` button and carousel page indicators use native
+`DisabledButton()` objects. They remain visible but send no callback. Keep,
+Delete, and available previous/next buttons retain their existing actions.
+Callbacks from old Similar buttons and unknown feed actions are ignored and
+do not advance the feed.
+
+Deploy these keyboard changes only after the server rollout to Bot API 10.3
+and the aiogram upgrade. The current Bot API 9.5 deployment cannot accept this
+button type. Keeping the PR in draft does not enforce deployment order at
+runtime; operators must confirm server compatibility before deploying it.
+
+After rollout, check in a controlled Telegram chat that Similar and carousel
+page numbers do nothing when tapped, Keep/Delete still advance the feed, and
+carousel arrows navigate correctly at the first and last pages.
+
+Local regression checks use serialized keyboard payloads and mocked feed
+dependencies, without Telegram credentials:
+
+```bash
+make test FILE='bot/tests/ui/keyboards/test_disabled_buttons.py bot/tests/handlers/test_feed_callbacks.py'
+make lint FILE='bot/modules/feed/ui/keyboards/__init__.py bot/modules/feed/handlers/callbacks.py bot/ui/keyboards/carousel.py bot/tests/ui/keyboards/test_disabled_buttons.py bot/tests/handlers/test_feed_callbacks.py'
+```
 
 ## Reproducing local checks
 

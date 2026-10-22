@@ -1,6 +1,4 @@
-from typing import Type
-
-from aiogram.types import InlineKeyboardButton
+from aiogram.types import DisabledButton, InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 _PREFIX = "fd"
@@ -9,22 +7,21 @@ _PREFIX = "fd"
 class FeedMarkupButtons:
     delete = "Убрать"
     keep = "Оставить"
-    show_all_feed = "Похожие"
+    similar = "Похожие"
 
 
 class FeedMarkupData:
     delete = "del"
     keep = "keep"
-    show_all_feed = "show_all_feed"
 
 
 class BaseFeedMarkup[T: FeedMarkupButtons, S: FeedMarkupData]:
     prefix: str
-    buttons: Type[T]
-    data: Type[S]
+    buttons: type[T]
+    data: type[S]
 
     # NOTE: do not support custom handler for feed row
-    #       it would be handled with handler ossosiated with FeedMarkup
+    #       it would be handled with handler associated with FeedMarkup
     @classmethod
     def _get_feed_buttons_row(cls, item_id: int) -> list[InlineKeyboardButton]:
         return [
@@ -45,13 +42,14 @@ class FeedMarkup(BaseFeedMarkup[FeedMarkupButtons, FeedMarkupData]):
     data = FeedMarkupData
 
     @classmethod
-    def get_item_markup(cls, item_id: int, feed_id: int):
+    def get_item_markup(cls, item_id: int, feed_id: int) -> InlineKeyboardMarkup:
+        """Build item actions, retaining feed_id for compatibility with callers."""
         return InlineKeyboardBuilder(
             [
                 [
                     InlineKeyboardButton(
-                        text=cls.buttons.show_all_feed,
-                        callback_data=f"{cls.prefix}:{cls.data.show_all_feed}:{feed_id}",
+                        text=cls.buttons.similar,
+                        disabled=DisabledButton(),
                     ),
                 ],
                 cls._get_feed_buttons_row(item_id),
