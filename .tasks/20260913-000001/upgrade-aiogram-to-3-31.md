@@ -3,6 +3,19 @@
 - STATUS: OPEN
 - PRIORITY: 1
 
+## Implementation progress, 2026-10-22
+
+The client dependency files now pin aiogram 3.31.0, and the Bot API Compose
+image pins 10.3 by immutable digest. The pinned binary reports Bot API 10.3.
+HTTP smoke tests cover existing flows and the new request/update contracts.
+See [verification and rollout notes](../../services/bot-api/README.md).
+
+This task remains open pending operational acceptance. The running server was
+observed at Bot API 9.5 and was not changed; an operator must roll out the pinned
+10.3 server before the upgraded client, then run live Telegram smoke tests.
+The full lint criterion also remains unmet because the clean starting commit
+has 391 unrelated Ruff findings. These findings are outside this upgrade's scope.
+
 ## Problem
 
 The project pins `aiogram==3.26.0`. Message draft stop controls, rich messages, ephemeral messages, and native disabled buttons require newer aiogram releases and Telegram Bot API versions up to 10.3. The local Bot API image uses a floating `latest` tag, so package support and server support can drift apart.
