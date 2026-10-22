@@ -1,6 +1,6 @@
 # Comment debt audit, 2026-10-22
 
-The starting commit is `dfdecceb2e97824e924538bf7720c2547a7156a7`. A scan of `bot/` found 18 TODO/FIXME markers. This change resolves six, leaving 12. The table accounts for every starting marker. Remaining markers stay in the code until their follow-up work is done.
+The starting commit is `dfdecceb2e97824e924538bf7720c2547a7156a7`. A scan of `bot/` found 18 TODO/FIXME markers. This change resolves six, leaving 12 in this branch. The table accounts for every starting marker. Remaining markers stay in this branch until their follow-up changes are integrated.
 
 The referenced `review.md` is absent from this checkout and tracked files. There is no `ask.py` to deprecate or restore. TTS already has providers in `bot/services/tts/providers.py`, a service, and provider tests; the task's example of a missing TTS provider does not describe the current code.
 
@@ -26,7 +26,7 @@ The enum and upsert APIs were checked against the installed aiogram 3.26.0 and T
 | `bot/handlers/user/road/pomodoro/restart.py`: 1 | [Restart confirmation extraction](../.tasks/20261022-todo-followups/pomodoro-restart-extension.md). The current helper captures a handler and depends on road FSM and cleanup keys; moving the file is insufficient. |
 | `bot/handlers/user/platonus2indigo/convert_file.py`: 1 | [Export batch size](../.tasks/20261022-todo-followups/platonus-export-batch-size.md). Preserve 25 as the current default; do not invent an external format restriction or a settings flow. |
 | `bot/tests/handlers/test_feed.py`, `bot/tests/handlers/test_pomodoro.py`: 3 | [Explicit handler test fixtures](../.tasks/20261022-todo-followups/handler-test-fixtures.md). Parameterize URLs and setting values and remove assumptions about button row layout. |
-| `bot/services/tiktok/extractor/_base.py`: 2 | Already covered by [the extractor contract task](../.tasks/code-smell-cleanup/05-consolidate-tiktok-extractor-contract.md). Removing a deprecated abstract method or changing redirect normalization needs provider-wide compatibility tests. |
+| `bot/services/tiktok/extractor/_base.py`: 2 | Implemented separately in [PR #17](https://github.com/gakawarstone/gkbot/pull/17), commit `40d9f9c1f4a8fdbe67b1ecec84c31ab80abbbc26`, open and awaiting merge as of 2026-10-22. It removes both markers, preserves `get_video_file_url` as a shared compatibility entry point, and limits redirect normalization to replacing `/photo/` with `/video/` while preserving the domain and creator and removing query and fragment. The implementation thread reports shared contract coverage for all eight provider entries. These changes are not included in this branch's marker count. |
 | `bot/modules/feed/handlers/_item_processor.py`: 1 | Already covered by [the processor registry](../.tasks/code-smell-cleanup/10-add-feed-processor-registry.md) and [filter relocation](../.tasks/code-smell-cleanup/13-remove-feed-processor-inheritance.md). Keep prefix routing until those migrations replace it. |
 
 ## Reproduce the scan
