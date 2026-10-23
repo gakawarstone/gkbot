@@ -232,9 +232,13 @@ async def test_reddit_telegraph_programming_error_is_not_hidden(
     soup = BeautifulSoup('<div class="post"></div>', "html.parser")
     error = AttributeError("missing telegraph method")
     with (
-        patch.object(handler, "_send_reddit_preview", return_value=False),
-        patch.object(handler, "_get_soup", return_value=soup),
-        patch.object(handler, "_send_telegraph_response", side_effect=error),
+        patch(
+            "services.open_graph.OpenGraphService.get", side_effect=HttpRequestError()
+        ),
+        patch("services.http.HttpService.get", return_value=str(soup).encode()),
+        patch(
+            "services.telegraph.TelegraphAPI.create_telegraph_page", side_effect=error
+        ),
         patch.object(handler, "_send_item", new_callable=AsyncMock) as send,
         pytest.raises(AttributeError) as raised,
     ):

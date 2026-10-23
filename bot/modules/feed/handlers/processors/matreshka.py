@@ -2,16 +2,17 @@ from services.gkfeed import FeedItem
 from services.matreshka import MatreshkaService
 
 from ...ui.keyboards.matreshka import MatreshkaFeedItemMarkup
-from . import BaseFeedItemView
+from .registry import FeedProcessor
+from .rendering import FeedRendering
 
 
-class MatreshkaFeedItemView(BaseFeedItemView):
-    async def _process_matreshka_item(self, item: FeedItem) -> None:
+def create_matreshka_processor(rendering: FeedRendering) -> FeedProcessor:
+    async def process(item: FeedItem) -> None:
         video = await MatreshkaService.get_video(item.link)
         if video.image_url is None:
-            return await self._send_item(item)
+            return await rendering.send_item(item)
 
-        await self._send_photo(
+        await rendering.send_photo(
             item=item,
             media_url=video.image_url,
             description=video.title,
@@ -21,3 +22,9 @@ class MatreshkaFeedItemView(BaseFeedItemView):
                 video.id,
             ),
         )
+
+    return FeedProcessor(
+        "matreshka",
+        lambda item: item.link.startswith(("https://matreshka.tv/video/",)),
+        process,
+    )
