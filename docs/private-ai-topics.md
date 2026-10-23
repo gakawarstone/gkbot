@@ -153,8 +153,7 @@ user-facing response.
 aiogram upgrade [PR #11](https://github.com/gakawarstone/gkbot/pull/11) is already
 merged into this worktree's base `fc19464`. Do not reapply it.
 
-The following prerequisites had no published implementation commits or PR when
-this proposal was prepared on 2026-10-23:
+Prerequisite status as reported on 2026-10-23:
 
 - Draft streaming, thread `mcp:4bc598c3-6de2-4025-8740-daf05aaaaae7`, branch
   `task-20261023-stream-ai-with-message-drafts`. Consume its streaming/fallback
@@ -165,8 +164,17 @@ this proposal was prepared on 2026-10-23:
   `max_entries`, active-handler pins, and `Hashable` keys. This task owns replacing
   its initial user-ID key with the FSM key.
 - Context design, thread `mcp:566c7237-8a29-4c77-84c0-7f2700fa9a76`, branch
-  `task-20261022-replace-handler-context-manager`. Its task requires owner
-  approval of the replacement design. Do not preempt that decision here.
+  `task-20261022-replace-handler-context-manager`, published documentation-only
+  [PR #29](https://github.com/gakawarstone/gkbot/pull/29), commit
+  `6451efa9c5360ff84fdac212f82e911826eec185`. The PR is open and the design
+  awaits explicit owner approval. Its proposed contract keeps `BaseContextManager`,
+  `props`, typed `ctx`, the injected mutable `data["data"]` mapping, flat keys,
+  and live `Message` identity. Writes become `set("field", value)` and cleanup
+  uses `clean_context(*preserve: str)`, with recursive list/dict/union validation
+  without coercion. The manager does not choose session identity. This is a
+  proposed interface, not an approved or implemented runtime prerequisite.
+  Do not import the documentation commit as a substitute for implementation or
+  preempt the owner's decision.
 
 All three authors have this downstream thread ID,
 `mcp:93bebd65-7048-4378-84db-871a65c8e253`, and were asked to send their published
