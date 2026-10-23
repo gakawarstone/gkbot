@@ -1,7 +1,10 @@
-from urllib.parse import urlparse
+from html import escape
 from typing import Any
+from urllib.parse import urlparse
 
 from services.gkfeed import GkfeedApi, GkfeedAuthService
+
+from ...ui.keyboards.feed_added import FeedAddedMarkup
 from ._base import BaseHandler
 from ._states import FSM
 
@@ -27,4 +30,7 @@ class AddFeedHandler(BaseHandler):
         gkfeed = GkfeedApi(credentials)
 
         await gkfeed.add_feed_lazy(self.event.text)
-        await self.event.answer(f"Feed added: {self.event.text}")
+        await self.event.answer(
+            f"Feed added: {escape(self.event.text)}",
+            reply_markup=FeedAddedMarkup.as_markup(self.event.text),
+        )
