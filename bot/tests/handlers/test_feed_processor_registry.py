@@ -226,7 +226,7 @@ async def test_matching_errors_are_outside_execution_boundary(
 async def test_registry_takes_precedence_over_legacy_dispatch(
     handler: ShowFeedItemsHandler, item: FeedItem, bot: MagicMock
 ) -> None:
-    item = replace(item, link="https://www.twitch.tv/channel")
+    item = replace(item, link="https://www.youtube.com/watch?v=1")
     process = AsyncMock()
     entry = FeedProcessor("registered", lambda _: True, process)
     with (
@@ -236,7 +236,9 @@ async def test_registry_takes_precedence_over_legacy_dispatch(
             new_callable=PropertyMock,
             return_value=FeedProcessorRegistry((entry,)),
         ),
-        patch.object(handler, "_process_twitch_item", new_callable=AsyncMock) as legacy,
+        patch.object(
+            handler, "_process_youtube_item", new_callable=AsyncMock
+        ) as legacy,
         patch.object(handler, "_process_base_item", new_callable=AsyncMock) as base,
     ):
         await handler._process_item(item)
@@ -250,15 +252,9 @@ async def test_registry_takes_precedence_over_legacy_dispatch(
     ("link", "method"),
     [
         ("https://stories.example/1", "_process_stories_item"),
-        ("https://kinogo.example/1", "_process_kinogo_item"),
-        ("https://open.spotify.com/1", "_process_spoti_item"),
         ("https://vk.com/1", "_process_vk_item"),
         ("https://www.youtube.com/1", "_process_youtube_item"),
-        ("https://t.me/1", "_process_telegram_item"),
         ("https://www.reddit.com/1", "_process_reddit_item"),
-        ("https://hdrezka.me/1", "_process_rezka_item"),
-        ("https://shikimori.one/1", "_process_shiki_item"),
-        ("https://www.twitch.tv/1", "_process_twitch_item"),
         ("https://www.tiktok.com/1", "_process_tiktok_item"),
         ("https://www.pornhub.com/1", "_process_pornhub_item"),
         ("https://de.pornhub.org/1", "_process_pornhub_item"),
@@ -266,7 +262,6 @@ async def test_registry_takes_precedence_over_legacy_dispatch(
         ("http://porno365.broker/1", "_process_porno365_item"),
         ("https://instagram.com/1", "_process_instagram_item"),
         ("https://www.instagram.com/1", "_process_instagram_item"),
-        ("https://www.hltv.org/1", "_process_hltv_item"),
         ("https://sasflix.ru/1", "_process_sasflix_item"),
         ("https://matreshka.tv/video/1", "_process_matreshka_item"),
         ("https://example.invalid", "_process_base_item"),

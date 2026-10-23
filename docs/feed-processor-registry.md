@@ -49,9 +49,11 @@ second processor or generic web extraction, and fallback sender errors propagate
 
 ## Migration behavior
 
-Only `discours` currently uses the registry. Its inherited view and legacy entry
-have been removed. It retains the existing endpoint, image URL, caption and
-keyboard behavior. A registry miss uses the remaining legacy dispatch; a legacy
+`discours`, `kinogo`, `spoti`, `telegram`, `rezka`, `shiki`, `twitch` and `hltv`
+use the registry. Their inherited views and legacy entries have been removed.
+They retain the existing requests, captions, media and keyboard behavior. See
+[simple source migration](feed-simple-processors.md) for callback contracts and
+regression cases. A registry miss uses the remaining legacy dispatch; a legacy
 miss uses the generic web view. All remaining prefix routes keep their order.
 
 Discours matching retains the original `https://discours.io` prefix semantics,
