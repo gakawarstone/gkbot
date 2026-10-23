@@ -1,0 +1,233 @@
+# Private AI topics
+
+Status: implementation proposal, blocked on prerequisite results. This document
+does not enable `/topic`. The task remains open until the application tests below
+pass against the integrated implementation.
+
+## User behavior
+
+`/topic <name>` creates a new private topic for a separate conversation. With no
+name, use `AI-чат`. Reject a supplied name longer than 128 characters before
+calling Telegram. Do not collect the name through another FSM step.
+
+Send the new topic a welcome message explaining `/chat` and `/exit`. Opening the
+topic and sending `/chat` starts an empty AI history there, using the existing AI
+chat initialization. Creating a topic does not reset, copy, or switch the source
+conversation. Users select existing conversations through Telegram's topic list.
+There is no application-level selected-topic pointer.
+
+Topics created directly in Telegram behave the same way: `/chat` starts AI mode
+in that topic. Plain text in a topic does not automatically enable AI mode.
+`/chat` restarts only that topic's AI history; `/exit` exits only that topic's flow.
+The ordinary private conversation remains a separate session. A Telegram topic
+can outlive its in-memory AI history, which follows the retention policy and is
+lost when the process restarts.
+
+Register `/topic` before handlers that consume state-specific text, including the
+AI prompt handler. Otherwise a command sent during AI mode could reach the model.
+Add the command to both the user command registry and the advertised command list
+only when the implementation and rejection paths are ready.
+
+## Confirmed Telegram capabilities
+
+Private topics require enabling the bot's topic mode in BotFather. Users can also
+organize conversations into topics when allowed by the bot configuration.
+[Telegram's private topics guide](https://core.telegram.org/bots/features#topics-in-private-chats).
+
+`getMe` exposes `has_topics_enabled` and `allows_users_to_create_topics`.
+`createForumTopic` supports private chats and accepts names of 1 to 128 characters.
+The user-creation flag describes the user's ability to create/delete topics; it
+is not a requirement for the bot's create command.
+[User capabilities](https://core.telegram.org/bots/api#user),
+[createForumTopic](https://core.telegram.org/bots/api#createforumtopic).
+
+Use `message_thread_id` for these conversations. Channel direct messages use a
+different mechanism, `direct_messages_topic_id`, and are outside this command's
+scope. Sending text, drafts, and chat actions accepts `message_thread_id`.
+[Message](https://core.telegram.org/bots/api#message),
+[sendMessage](https://core.telegram.org/bots/api#sendmessage),
+[sendMessageDraft](https://core.telegram.org/bots/api#sendmessagedraft),
+[sendChatAction](https://core.telegram.org/bots/api#sendchataction).
+
+The deployed bot's topic setting has not been checked or changed. Do not read
+the root checkout's `.env`, enable BotFather settings, or deploy as part of this
+change. The configured server requirement and separate rollout procedure remain
+in [Bot API compatibility](../services/bot-api/README.md).
+
+## Reject unsupported requests before changing state
+
+Accept `/topic` only in an ordinary private chat with the bot. Groups, forum
+supergroups, channels, channel direct messages, and business connections receive
+a clear explanation that this command creates topics in a private bot chat.
+Do not create a group forum topic as a fallback.
+
+Check the bot's topic capability before creation. If unavailable, respond:
+`Темы в личном чате сейчас недоступны. Используй /chat для обычного AI-чата.`
+An absent capability flag is not proof of support. Older servers can reject the
+method even if the client exposes it. Handle the creation request's concrete
+Telegram exceptions without treating every network error as unsupported topics.
+For a transient failure, ask the user to retry. For a rejected or inaccessible
+request, explain that the topic could not be created. Keep all existing session
+state and history unchanged in either case.
+
+Topic creation itself does not enter AI FSM state. If creation succeeds but the
+welcome message fails, leave the topic available, report that it was created
+but could not be initialized, and explain that `/chat` can be sent inside it.
+Do not automatically retry creation after an ambiguous transport failure, which
+could create duplicate topics.
+
+## FSM and middleware storage
+
+Configure the dispatcher with `FSMStrategy.USER_IN_TOPIC`. It separates state by
+user, chat, and topic, unlike the current default `USER_IN_CHAT`, which drops the
+topic from the key.
+[aiogram FSM strategies](https://docs.aiogram.dev/en/latest/dispatcher/finite_state_machine/strategy.html).
+
+Use the resolved `FSMContext.key` as the middleware store key. `StorageKey`
+includes bot, chat, user, thread, business connection, and destiny, avoiding a
+second hand-written key algorithm. The retention store will accept a `Hashable`
+key. Every topic counts toward the same store capacity; do not introduce a second
+unbounded topic-to-context mapping. Both message and callback middleware must
+use the same store instance and the same resolved key.
+
+An unthreaded chat uses `thread_id=None`. Callback queries use the original
+message's topic and the callback sender, rather than the original message's bot
+sender. For inline callbacks or inaccessible messages without a resolvable topic,
+do not substitute a known topic or load another conversation's history.
+
+The existing context manager reads `data["data"]`. It can continue doing so after
+the dictionary is scoped to the resolved FSM key. Apply the approved context
+manager design when available; do not implement its replacement here. AI history,
+delete queues, temporary flow properties, and cached timezone data all become
+scoped to that same session dictionary. The database remains the source of truth
+for user settings.
+
+Use event isolation keyed by the FSM storage key so overlapping updates in one
+topic cannot mutate the same history or reset a running generation. Different
+topics must be able to progress concurrently. A draft stop event must be able to
+cancel a running generation without waiting for its message-handler lock.
+
+Expiry must not leave `FSM.get_message` pointing to missing history. Integrate
+the prerequisite's expired-session reset behavior and require a new `/chat`
+where necessary. `FSM.finish` is the current AI busy state during generation,
+not evidence that a conversation is complete. Evaluate retention after the
+handler's final state restoration, while preserving its active pin.
+
+Storage remains in memory. A restart starts new FSM and middleware storage
+together. No persistent database migration or import of other worktrees' live
+session objects is needed.
+
+## Replies, progress, and cancellation
+
+Use the source topic throughout initialization, AI replies, fallback splitting,
+status messages, command validation, and user-visible errors. A welcome message
+after creation targets the new topic explicitly, rather than using the source
+command's `answer()` shortcut.
+
+The installed aiogram 3.31.0 `Message.answer()` includes the thread only when
+`is_topic_message` is true. Split responses must not rely on a test double or an
+API response silently preserving that flag. Carry the source topic explicitly
+through the streaming implementation, including subsequent split messages.
+Existing media status actions in `handlers/text/{tiktok,instagram,ytdlp_short}.py`
+also need the originating `message_thread_id` because these handlers can receive
+messages after the user exits AI mode inside a topic.
+
+Edits address an existing message by its chat and message ID. New sends, drafts,
+and chat actions must use the source thread. If the topic disappears during a
+generation, fail within that conversation and restore/clear its own state. Do
+not retry the reply in the unthreaded private chat.
+
+The installed `MessageGenerationStopped` has `chat`, `draft_id`, and
+`message_thread_id`, but no `from_user`. With `USER_IN_TOPIC`, aiogram therefore
+does not automatically resolve its user-scoped FSM context. The drafts
+prerequisite must retain the source context with the active generation. Cancel
+using bot/chat/thread/draft identity and that saved context. A stop in topic A
+must not cancel or restore the state of topic B.
+
+User-facing AI failures go to the source topic. Existing traceback delivery to
+administrator chats stays an operational notification, independent of the
+user-facing response.
+
+## Prerequisites and integration order
+
+aiogram upgrade [PR #11](https://github.com/gakawarstone/gkbot/pull/11) is already
+merged into this worktree's base `fc19464`. Do not reapply it.
+
+The following prerequisites had no published implementation commits or PR when
+this proposal was prepared on 2026-10-23:
+
+- Draft streaming, thread `mcp:4bc598c3-6de2-4025-8740-daf05aaaaae7`, branch
+  `task-20261023-stream-ai-with-message-drafts`. Consume its streaming/fallback
+  and cancellation contracts before updating topic routing.
+- Bounded retention, thread `mcp:45f94e95-1569-4cd9-9f99-6fc68dc05eb8`, branch
+  `task-20261022-bound-middleware-user-data-retention`. Its announced interface is
+  an instance-owned `UserDataStore` with acquire/release/cleanup, idle TTL,
+  `max_entries`, active-handler pins, and `Hashable` keys. This task owns replacing
+  its initial user-ID key with the FSM key.
+- Context design, thread `mcp:566c7237-8a29-4c77-84c0-7f2700fa9a76`, branch
+  `task-20261022-replace-handler-context-manager`. Its task requires owner
+  approval of the replacement design. Do not preempt that decision here.
+
+All three authors have this downstream thread ID,
+`mcp:93bebd65-7048-4378-84db-871a65c8e253`, and were asked to send their published
+result. Resume integration after their notifications. Use published commits only,
+resolve any integration conflicts in this worktree, and select a stacked PR base
+that does not duplicate prerequisite changes. Do not merge those PRs automatically.
+
+## Required application tests
+
+These are implementation acceptance tests to add after the prerequisites land;
+the offline library probe below does not satisfy them.
+
+1. Feed `/chat` updates for one user in topics A and B through the real dispatcher
+   and middleware. Assert different FSM and history objects. Hold the model
+   stream in A, complete a prompt in B, then finish A. Each history contains only
+   its own prompt/reply and each flow returns to `get_message`.
+2. Include an unthreaded private conversation, a second user, another chat, and
+   another bot. Assert no context collisions. Feed callbacks from A and B and
+   assert they use their respective message contexts. Inaccessible/inline
+   callbacks must not load another topic's data.
+3. Restart `/chat` and run `/exit` in A. Assert B's history, delete queue, active
+   generation, and state survive unchanged. Exercise TTL expiry, entry pressure,
+   active pins, and topic-local cleanup using the retention store's contract.
+4. Record actual outgoing method objects with a fake Bot session. Assert the
+   source thread on welcome, prompt validation, status, draft updates, final
+   response, long-response splits, compatibility fallback, and errors. Do not use
+   the existing `MockedMessage.answer`, which drops topic metadata.
+5. Stop generation in A using a real `MessageGenerationStopped` update while B
+   streams. Assert only A's upstream generator closes and only A's FSM recovers.
+   Include matching draft IDs across different chats/topics to expose registry
+   keys that omit chat or thread identity.
+6. Test `/topic` before and during AI mode, default/Unicode/overlong names, and
+   creating a second topic without changing source history. Verify `/chat` works
+   in bot-created and user-created topics.
+7. Reject unsupported chat types, disabled/missing topic capability, API method
+   rejection, inaccessible chat, network failure, and welcome-send failure. Assert
+   a clear response, no new partial FSM flow, no source-state mutation, and no
+   automatic duplicate creation or cross-topic fallback.
+8. Run focused tests/static checks for every changed file, then the full suite.
+   Record pre-existing unrelated lint failures separately.
+
+After unit verification, an operator can enable topics on a controlled test bot
+and exercise two private topics with concurrent AI prompts, cancellation, and
+`/exit`. This has not been performed with live Telegram credentials.
+
+## Evidence from this worktree
+
+Prepared against `fc19464` on 2026-10-23 using `uv sync --all-extras`, without
+accessing production credentials or modifying a running server.
+
+- The installed wheel is aiogram 3.31.0. It exposes `USER_IN_TOPIC`, topic
+  capability fields, and the expected message/draft/action thread parameters.
+- An offline probe constructed real private `Message` and `CallbackQuery`
+  objects for thread IDs 11, 22, and `None`, resolved them through aiogram's
+  `UserContextMiddleware` and `FSMContextMiddleware`, and wrote distinct states
+  into `MemoryStorage`. All states remained distinct; clearing thread 11 left
+  thread 22 unchanged. `Message.answer()` preserved each source thread. The
+  probe used `is_topic_message=True` for topic messages and made no HTTP requests.
+- Baseline `make test`: **122 passed, 13 skipped**.
+- Baseline `make lint`: **383 existing Ruff findings**, stopping before the other
+  stages. No runtime files were changed for this proposal.
+
+The `/topic` implementation, middleware migration, application acceptance tests,
+and task-file removal remain pending. This proposal is not a completed feature.

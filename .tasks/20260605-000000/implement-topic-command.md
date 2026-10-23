@@ -3,6 +3,14 @@
 - STATUS: OPEN
 - PRIORITY: 2
 
+## Progress, 2026-10-23
+
+The [implementation proposal](../../docs/private-ai-topics.md) defines the
+command behavior, verified Telegram/aiogram contract, storage migration, and
+application test scenarios. Runtime integration is waiting for the published
+draft-streaming and retention prerequisites and the context-design approval
+result. The acceptance criteria below remain pending; the task stays open.
+
 ## Problem
 
 Telegram private topics could isolate several AI conversations for one user. The current FSM and middleware data are keyed by user, so adding `/topic` without thread-aware storage would mix conversation state between topics.
