@@ -37,17 +37,12 @@ class BotStarter:
             session=session,
         )
         self.dp = Dispatcher(storage=self.__storage, admins=config.admins)
+        self.dp.shutdown.register(HttpService.close)
         self.default_commands = config.default_commands
         self.startup_hooks = config.startup_hooks
         self.polling_tasks_concurrency_limit = config.polling_tasks_concurrency_limit
 
     async def __on_startup(self) -> None:
-        try:
-            await self.__run()
-        finally:
-            await HttpService.close()
-
-    async def __run(self) -> None:
         await Notifier.setup(self.bot)
         await DefaultCommands(self.default_commands).set(self.bot)
 
