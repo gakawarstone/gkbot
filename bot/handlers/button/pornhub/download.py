@@ -1,13 +1,14 @@
-from aiogram import Router, F
-from aiogram.types import CallbackQuery, Message, InaccessibleMessage
+from aiogram import F, Router
+from aiogram.types import CallbackQuery, InaccessibleMessage, Message
 
 from services.ytdlp import YtdlpDownloader
 from ui.buttons.pornhub.download import (
+    PREFIX,
+    PornhubDownloadButtonCallbackDataDeserializer,
     PornhubDownloadButtonData,
     PornhubDownloadButtonDataSerializer,
-    PornhubDownloadButtonCallbackDataDeserializer,
-    PREFIX,
 )
+from ui.video import send_video
 
 
 def _get_video_url(ph_video_code: str) -> str:
@@ -45,8 +46,10 @@ async def download(callback: CallbackQuery):
 
     if _is_button_callback(callback, PornhubDownloadButtonData.video):
         async with YtdlpDownloader.download_video(url) as video:
-            await callback.message.answer_video(
+            await send_video(
+                callback.message.answer_video,
                 video.input_file,
+                metadata=video,
                 height=video.height,
                 width=video.width,
                 duration=video.duration,

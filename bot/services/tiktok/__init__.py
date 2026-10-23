@@ -71,6 +71,8 @@ class TikTokService:
             height=info.height,
             width=info.width,
             duration=info.duration,
+            cover=info.cover,
+            start_timestamp=info.start_timestamp,
         )
 
     @classmethod

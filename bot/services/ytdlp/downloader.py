@@ -2,13 +2,15 @@ import os
 import re
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from subprocess import SubprocessError
 from typing import Any, cast
 
 import yt_dlp
 from aiogram.types import FSInputFile, InputFile, URLInputFile
+
 from services.ffmpeg import FfmpegService
+from services.video import cover_url, start_timestamp
 from utils.async_wrapper import async_wrap
 from workers.yt_dlp import download_video, get_info
 
@@ -22,6 +24,8 @@ class _YtDlpInfo:
     title: str
     height: int | None
     width: int | None
+    cover: str | None = None
+    start_timestamp: int | None = None
 
 
 class YtdlpDownloader:
@@ -55,6 +59,12 @@ class YtdlpDownloader:
         info = await cls._get_info(url)
         opts, cache_dir = YtDlpOptionsManager.choose_video_options(url)
         try:
+            if any(
+                processor.get("remove_sponsor_segments")
+                for processor in opts.get("postprocessors", [])
+            ):
+                # Source timestamps no longer refer to the edited timeline.
+                info = replace(info, start_timestamp=None)
             file = await cls._download_file(url, opts)
             info = await cls._fill_missing_metadata(info, file)
 
@@ -64,6 +74,8 @@ class YtdlpDownloader:
                 title=info.title,
                 height=info.height,
                 width=info.width,
+                cover=info.cover,
+                start_timestamp=info.start_timestamp,
             )
         finally:
             if cleanup_delay_minutes is None:
@@ -85,9 +97,9 @@ class YtdlpDownloader:
         except SubprocessError:
             return info
 
-        return _YtDlpInfo(
+        return replace(
+            info,
             duration=info.duration or metadata.get("duration", 0),
-            title=info.title,
             height=info.height or metadata.get("height"),
             width=info.width or metadata.get("width"),
         )
@@ -108,7 +120,36 @@ class YtdlpDownloader:
             title=raw_info["title"],
             height=raw_info.get("height") or 0,
             width=raw_info.get("width") or 0,
+            cover=cls._get_cover(raw_info),
+            start_timestamp=start_timestamp(
+                raw_info.get("start_time"), raw_info.get("duration")
+            ),
         )
+
+    @staticmethod
+    def _get_cover(raw_info: dict[str, Any]) -> str | None:
+        # Telegram fetches cover URLs itself, without yt-dlp cookies/headers.
+        # yt-dlp orders thumbnails from worst to best. A JPEG fallback is
+        # useful when the preferred image is WebP or a storyboard.
+        thumbnails = raw_info.get("thumbnails")
+        preferred = raw_info.get("thumbnail")
+        candidates = []
+        if isinstance(thumbnails, list):
+            if not any(
+                isinstance(thumbnail, dict)
+                and thumbnail.get("url") == preferred
+                and thumbnail.get("http_headers")
+                for thumbnail in thumbnails
+            ):
+                candidates.append(preferred)
+            candidates.extend(
+                thumbnail.get("url")
+                for thumbnail in reversed(thumbnails)
+                if isinstance(thumbnail, dict) and not thumbnail.get("http_headers")
+            )
+        else:
+            candidates.append(preferred)
+        return next((url for value in candidates if (url := cover_url(value))), None)
 
     @classmethod
     async def _download_file(cls, url: str, opts: dict[str, Any]) -> InputFile:
