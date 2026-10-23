@@ -3,7 +3,7 @@ from typing import override
 import pytest
 
 from handlers.text.ytdlp_short import YtdlpShortVideoHandler
-from .. import integration_test
+from .. import requires_integration
 from . import Event, Bot
 
 
@@ -15,10 +15,12 @@ class MockedHandler(YtdlpShortVideoHandler):
 
 
 async def _handle_url(url: str):
-    await MockedHandler(event=Event(text=url, breakpoint_at_delete=False)).handle()  # type: ignore[arg-type]
+    await MockedHandler(event=Event(text=url)).handle()  # type: ignore[arg-type]
 
 
-@integration_test
+@requires_integration(
+    "Telegram Bot API credentials, ADMIN_IDS and Instagram network access, yt-dlp and ffmpeg"
+)
 @pytest.mark.asyncio(loop_scope="session")
 async def test_download_reel():
     await _handle_url(

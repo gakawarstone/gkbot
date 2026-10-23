@@ -78,7 +78,7 @@ class VKFeedItemView(BaseFeedItemView):
     def _parse_title(self, soup: BeautifulSoup) -> tuple[str, str]:
         tag = soup.find("title")
         if not isinstance(tag, Tag):
-            raise ValueError("title tag not found")
+            raise TypeError("title tag not found")
 
         raw_title = tag.text
         parts = raw_title.split(" | ")

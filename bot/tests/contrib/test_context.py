@@ -1,3 +1,4 @@
+from typing import ClassVar
 from dataclasses import dataclass
 from typing import Any
 
@@ -14,7 +15,7 @@ class FakeContext(BaseContext):
 
 class FakeContextManager(BaseContextManager[FakeContext]):
     props = FakeContext
-    __user_data: dict[str, Any] = {}
+    __user_data: ClassVar[dict[str, Any]] = {}
 
     async def handle(self) -> Any:
         pass

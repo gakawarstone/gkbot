@@ -6,21 +6,15 @@ from aiogram.types import (
     Message,
     BufferedInputFile,
     InputMediaPhoto,
-    InputMediaAudio,
-    InputMediaDocument,
-    InputMediaVideo,
 )
+from aiogram.types.media_union import MediaUnion
 
 from filters.command import CommandWithPrompt
 from services.agents.image_prompt_enhancer import ImagePromptEnhancer
 from services.http import HttpService
 
-_MEDIA_GROUP = list[
-    InputMediaAudio | InputMediaDocument | InputMediaPhoto | InputMediaVideo
-]
 
-
-async def generate_image(m: Message):
+async def generate_image(m: Message) -> None:
     await m.delete()
 
     if not m.text:
@@ -35,7 +29,7 @@ async def generate_image(m: Message):
             img_url = _generate_url(prompt)
             tasks.append(tg.create_task(HttpService.get(img_url)))
 
-    media_group: _MEDIA_GROUP = [
+    media_group: list[MediaUnion] = [
         InputMediaPhoto(media=BufferedInputFile(task.result(), "image.jpg"))
         for task in tasks
     ]
@@ -56,5 +50,5 @@ def _generate_url(prompt: str) -> str:
     return img_url
 
 
-def setup(r: Router):
+def setup(r: Router) -> None:
     r.message.register(generate_image, CommandWithPrompt("img"))

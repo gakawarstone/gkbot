@@ -1,34 +1,32 @@
 import os
-from unittest.mock import AsyncMock, MagicMock, patch
+from pathlib import Path
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
+from services.cache_dir import CacheDir
 from services.tts import TextToSpeechService, TTSProviderType
 
 
 @pytest.mark.asyncio
-async def test_convert_text_to_speech_edge():
-    with patch("services.tts.providers.edge_tts.Communicate") as mock_communicate:
-        mock_instance = MagicMock()
-        mock_communicate.return_value = mock_instance
-        mock_instance.save = AsyncMock()
+async def test_convert_text_to_speech_edge(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(CacheDir, "_CacheDir__base_path", str(tmp_path))
 
-        with patch("services.tts.providers.CacheDir") as mock_cache_dir:
-            mock_cache_instance = MagicMock()
-            mock_cache_dir.return_value = mock_cache_instance
-            mock_cache_instance.get_file_path.return_value = "dummy.mp3"
+    async def save(path: str) -> None:
+        Path(path).write_bytes(b"audio content")
 
-            with patch("builtins.open", MagicMock()) as mock_open:
-                mock_file = MagicMock()
-                mock_open.return_value.__enter__.return_value = mock_file
-                mock_file.read.return_value = b"audio content"
+    with patch("services.tts.providers.edge_tts.Communicate") as communicate:
+        communicate.return_value.save = AsyncMock(side_effect=save)
+        result = await TextToSpeechService.convert_text_to_speech(
+            "hello", provider=TTSProviderType.EDGE
+        )
 
-                result = await TextToSpeechService.convert_text_to_speech(
-                    "hello", provider=TTSProviderType.EDGE
-                )
-
-                assert result == b"audio content"
-                mock_communicate.assert_called_once_with("hello", "ru-RU-DmitryNeural")
+    assert result == b"audio content"
+    communicate.assert_called_once_with("hello", "ru-RU-DmitryNeural")
+    communicate.return_value.save.assert_awaited_once()
+    assert list(tmp_path.iterdir()) == []
 
 
 @pytest.mark.asyncio
@@ -46,7 +44,8 @@ async def test_convert_text_to_speech_gtts():
 
 @pytest.mark.asyncio
 @pytest.mark.skipif(
-    os.environ.get("INTEGRATION_TEST") != "1", reason="Requires INTEGRATION_TEST=1"
+    os.environ.get("INTEGRATION_TEST") != "1",
+    reason="Requires INTEGRATION_TEST=1 and network access to Microsoft Edge TTS",
 )
 async def test_convert_text_to_speech_edge_integration():
     # Real call to Edge TTS
@@ -63,7 +62,8 @@ async def test_convert_text_to_speech_edge_integration():
 
 @pytest.mark.asyncio
 @pytest.mark.skipif(
-    os.environ.get("INTEGRATION_TEST") != "1", reason="Requires INTEGRATION_TEST=1"
+    os.environ.get("INTEGRATION_TEST") != "1",
+    reason="Requires INTEGRATION_TEST=1 and network access to Google Translate TTS",
 )
 async def test_convert_text_to_speech_gtts_integration():
     # Real call to gTTS

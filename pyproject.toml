@@ -29,6 +29,7 @@ dev = [
     "pytest>=8.3.5",
     "pytest-asyncio>=0.25.3",
     "types-requests>=2.32.4.20250611",
+    "types-yt-dlp>=2026.8.19.20261008",
 ]
 
 [tool.pyright]
@@ -45,4 +46,11 @@ pythonpath = ["bot"]
 src = ["bot"]
 
 [tool.mypy]
+mypy_path = "$MYPY_CONFIG_FILE_DIR/bot"
+explicit_package_bases = true
+
+# These installed dependencies ship neither stubs nor a py.typed marker.
+# Keep missing internal imports and typed third-party imports as errors.
+[[tool.mypy.overrides]]
+module = ["gallery_dl", "gallery_dl.*", "gtts", "gtts.*", "varname", "varname.*", "youtube_search"]
 ignore_missing_imports = true

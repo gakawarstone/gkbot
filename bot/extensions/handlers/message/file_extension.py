@@ -1,4 +1,6 @@
 from io import BytesIO
+import asyncio
+from pathlib import Path
 
 from configs.api_server import API_SERVER_URL, BOT_API_DIR
 from .base import BaseHandler
@@ -22,7 +24,7 @@ class FileHandlerExtension(BaseHandler):
         else:
             bot_token = self.bot.token
             file_path = f"{BOT_API_DIR}/{bot_token}/{file_path}"
-            file_io = BytesIO(open(file_path, "rb").read())
+            file_io = BytesIO(await asyncio.to_thread(Path(file_path).read_bytes))
 
         return file_io
 

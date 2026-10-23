@@ -15,6 +15,6 @@ class BaseHandler(_BaseHandler, ABC):
         return self.data["state"]
 
     def _try_get_from_user_data(self, prop: str) -> Any | None:
-        if prop not in self.user_data.keys():
+        if prop not in self.user_data:
             return None
         return self.user_data[prop]

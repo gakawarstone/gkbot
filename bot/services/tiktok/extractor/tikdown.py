@@ -1,3 +1,4 @@
+from typing import ClassVar
 import re
 import json
 
@@ -9,11 +10,10 @@ from ._base import BaseExtractor
 
 class Tikdown(BaseExtractor):
     _base_url = "https://tikdown.org/"
-    _headers: dict[str, str] = {
+    _headers: ClassVar[dict[str, str]] = {
         "origin": "https://tikdown.org",
         "referer": "https://tikdown.org/",
-        "sec-ch-ua": '"Chromium";v="94", '
-        '"Google Chrome";v="94", ";Not A Brand";v="99"',
+        "sec-ch-ua": '"Chromium";v="94", "Google Chrome";v="94", ";Not A Brand";v="99"',
         "sec-ch-ua-mobile": "?0",
         "sec-ch-ua-platform": '"Linux"',
         "sec-fetch-dest": "empty",

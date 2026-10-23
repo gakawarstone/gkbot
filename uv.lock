@@ -559,6 +559,7 @@ dev = [
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "types-requests" },
+    { name = "types-yt-dlp" },
 ]
 
 [package.metadata]
@@ -589,6 +590,7 @@ dev = [
     { name = "pytest", specifier = ">=8.3.5" },
     { name = "pytest-asyncio", specifier = ">=0.25.3" },
     { name = "types-requests", specifier = ">=2.32.4.20250611" },
+    { name = "types-yt-dlp", specifier = ">=2026.8.19.20261008" },
 ]
 
 [[package]]
@@ -1301,6 +1303,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/0f/f3/a0663907082280664d745929205a89d41dffb29e89a50f753af7d57d0a96/types_requests-2.32.4.20260107.tar.gz", hash = "sha256:018a11ac158f801bfa84857ddec1650750e393df8a004a8a9ae2a9bec6fcb24f", size = 23165, upload-time = "2026-01-07T03:20:54.091Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/1c/12/709ea261f2bf91ef0a26a9eed20f2623227a8ed85610c1e54c5805692ecb/types_requests-2.32.4.20260107-py3-none-any.whl", hash = "sha256:b703fe72f8ce5b31ef031264fe9395cac8f46a04661a79f7ed31a80fb308730d", size = 20676, upload-time = "2026-01-07T03:20:52.929Z" },
+]
+
+[[package]]
+name = "types-yt-dlp"
+version = "2026.8.19.20261008"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/01/21/1d20665bc21051978d7d0e7c885c7273df5e4d96202b7b10899aa9684d53/types_yt_dlp-2026.8.19.20261008.tar.gz", hash = "sha256:f63bd6aaf9f05ec03ca908b3b14cbcc2c30d7d03bbce742c28d5ea6789c1b00d", size = 42388, upload-time = "2026-10-08T08:06:36.106Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/36/e6/703a5893845fb5514270e462ce39124ebc4029eecd2fac87d5627636ca30/types_yt_dlp-2026.8.19.20261008-py3-none-any.whl", hash = "sha256:0b34b248d02cdf5e5010dbb56688b1ea38ff17894dbb99a01601cfb82502cdd8", size = 55294, upload-time = "2026-10-08T08:06:34.263Z" },
 ]
 
 [[package]]

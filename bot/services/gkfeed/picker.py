@@ -1,3 +1,4 @@
+from typing import ClassVar
 from collections.abc import Callable
 
 from ._types import FeedItem
@@ -6,7 +7,7 @@ from .auth import GkfeedCredentials
 
 
 class GkfeedItemsPicker:
-    _items_pocket: dict[str, set[int]] = {}
+    _items_pocket: ClassVar[dict[str, set[int]]] = {}
 
     def __init__(self, credentials: GkfeedCredentials):
         self.__credentials = credentials

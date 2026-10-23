@@ -1,4 +1,6 @@
 import subprocess
+import asyncio
+from pathlib import Path
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from http.cookies import SimpleCookie
@@ -39,9 +41,7 @@ class HttpService:
                 raise HttpRequestError
 
     @classmethod
-    async def get_redirected_url(
-        cls, url: str, headers: dict | None = headers
-    ) -> str:
+    async def get_redirected_url(cls, url: str, headers: dict | None = headers) -> str:
         async with aiohttp.ClientSession(conn_timeout=None) as session:
             try:
                 async with session.get(url, headers=headers) as response:
@@ -70,9 +70,7 @@ class HttpService:
                 raise HttpRequestError
 
     @classmethod
-    async def post(
-        cls, url: str, body: dict, headers: dict | None = headers
-    ) -> bytes:
+    async def post(cls, url: str, body: dict, headers: dict | None = headers) -> bytes:
         async with aiohttp.ClientSession(conn_timeout=None) as session:
             try:
                 async with session.post(url, data=body, headers=headers) as response:
@@ -112,8 +110,9 @@ class HttpService:
             if return_code != 0:
                 raise HttpRequestError
 
-            with open(file_path, "rb") as response_file:
-                return response_file.read()
+            return await wait_for_completion(
+                asyncio.to_thread(Path(file_path).read_bytes)
+            )
         except OSError as error:
             raise HttpRequestError from error
         finally:

@@ -101,7 +101,7 @@ class YtdlpDownloader:
                 raw_info = await async_wrap(ydl.extract_info)(url, download=False)
 
         if not isinstance(raw_info, dict):
-            raise ValueError("yt-dlp returned invalid metadata")
+            raise TypeError("yt-dlp returned invalid metadata")
 
         return _YtDlpInfo(
             duration=raw_info.get("duration") or 0,

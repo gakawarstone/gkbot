@@ -1,3 +1,4 @@
+from typing import ClassVar
 from typing import Any
 from collections.abc import Callable, Awaitable
 
@@ -6,7 +7,7 @@ from aiogram.types import TelegramObject
 
 
 class UserDataMiddleware(BaseMiddleware):
-    __data: dict[int, dict[str, Any]] = {}
+    __data: ClassVar[dict[int, dict[str, Any]]] = {}
 
     async def __call__(
         self,

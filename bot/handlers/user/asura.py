@@ -1,3 +1,4 @@
+from typing import ClassVar
 from typing import Any
 
 from aiogram import Router
@@ -10,7 +11,7 @@ from configs.commands import USER_COMMANDS
 
 
 class DownloadAsura(BaseHandler):
-    _headers = {
+    _headers: ClassVar[dict] = {
         "User-Agent": (
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
             "AppleWebKit/537.36 (KHTML, like Gecko) "

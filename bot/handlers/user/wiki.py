@@ -31,7 +31,7 @@ async def get_data(message: Message, state: FSMContext):
     try:
         quote = WikiApi.get_quote(message.text)
         await message.answer(
-            "Нашел кое-что по запросу <b>%s</b> 👇\n\n" % message.text + quote
+            f"Нашел кое-что по запросу <b>{message.text}</b> 👇\n\n" + quote
         )
     except QuoteNotFound:
         await message.answer("Я ничего не нашел 🙂")

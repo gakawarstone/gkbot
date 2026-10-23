@@ -9,13 +9,13 @@ from aiogram.types import CallbackQuery
 class BaseHandler(_BaseHandler[CallbackQuery], ABC):
     @property
     def user_data(self) -> dict:
-        return self.data['data']
+        return self.data["data"]
 
     @property
     def state(self) -> FSMContext:
-        return self.data['state']
+        return self.data["state"]
 
     def _try_get_from_user_data(self, prop: str) -> Any | None:
-        if prop not in self.user_data.keys():
+        if prop not in self.user_data:
             return None
         return self.user_data[prop]

@@ -82,7 +82,7 @@ class GkfeedItemProcessorExtension(
 
     async def _process_item(self, item: FeedItem) -> None:
         try:
-            for proc_key in self._processors.keys():
+            for proc_key in self._processors:
                 if item.link.startswith(proc_key):
                     await self._processors[proc_key](item)
                     return

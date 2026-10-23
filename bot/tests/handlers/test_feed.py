@@ -1,3 +1,4 @@
+from typing import ClassVar
 from typing import override
 from collections.abc import Callable
 from unittest.mock import patch
@@ -10,13 +11,13 @@ from services.gkfeed import (
     GkfeedCredentials,
 )
 from modules.feed import ShowFeedItemsHandler
-from .. import integration_test
+from .. import requires_integration
 from . import Bot, Event
 
 
 class MockedGkfeedItemsPicker(GkfeedItemsPicker):
     # TODO: use Event(text=link) and get_next_item this link
-    LINKS = [
+    LINKS: ClassVar[list[str]] = [
         "https://trashbox.ru/link/2025-03-10-iphone-17-air-iphone-17-pro",
         "https://www.youtube.com/watch?v=5WMmPoHbQOo",
         "https://ranobe.me/ranobe24/6117",
@@ -59,7 +60,9 @@ class MockedHandler(ShowFeedItemsHandler):
         return Bot()
 
 
-@integration_test
+@requires_integration(
+    "Telegram Bot API credentials, ADMIN_IDS and live article/YouTube endpoints and the yt-dlp worker"
+)
 @pytest.mark.asyncio(loop_scope="session")
 async def test_handler():
     with (

@@ -9,10 +9,12 @@ from ui.buttons.vk import (
 )
 from utils.vk import get_vk_id
 
-from .... import integration_test
+from .... import requires_integration
 
 
-@integration_test
+@requires_integration(
+    "Telegram Bot API credentials, ADMIN_IDS and VK network access, yt-dlp and ffmpeg"
+)
 @pytest.mark.asyncio(loop_scope="session")
 async def test_download_video():
     url = "https://vk.com/video-50883936_456244451"

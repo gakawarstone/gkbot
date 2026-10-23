@@ -44,7 +44,7 @@ class RedditFeedItemView(VideoFeedItemView, BaseFeedItemView, HttpExtension):
             return await self._send_link_response(title, link, item)
         try:
             await self._send_telegraph_response(title, item, soup)
-        except Exception:
+        except (HttpRequestError, KeyError, TypeError, ValueError):
             await self._send_item(item)
 
     async def _send_reddit_preview(self, item: FeedItem) -> bool:

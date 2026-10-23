@@ -32,7 +32,7 @@ class PomodoroHandler(BaseHandler):
             user_id=self.event.from_user.id
         )
         await self.event.answer(
-            "<b>Поздравляю</b> вы получили <b>[<i>%s</i>🍅]</b>" % cnt
+            f"<b>Поздравляю</b> вы получили <b>[<i>{cnt}</i>🍅]</b>"
         )
 
         await ask_to_restart(self, "Хотите начать новый помидор?")

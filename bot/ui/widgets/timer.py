@@ -5,9 +5,14 @@ from aiogram.types import Message
 
 
 class Timer:
-    def __init__(self, message: Message, seconds: int,
-                 text: str = 'Start', delay: int = 1,
-                 format_: str = '%M:%S') -> None:
+    def __init__(
+        self,
+        message: Message,
+        seconds: int,
+        text: str = "Start",
+        delay: int = 1,
+        format_: str = "%M:%S",
+    ) -> None:
         self.__message = message
         self.__duration = seconds
         self.__text = text
@@ -24,8 +29,7 @@ class Timer:
         return self.__finish_time - self.__now
 
     def __render_remain_time(self) -> str:
-        return self.__text + ' <b>%s</b>' % datetime.fromtimestamp(
-            self.__remain_time).strftime(self.__format)
+        return self.__text + f" <b>{datetime.fromtimestamp(self.__remain_time).strftime(self.__format)}</b>"
 
     async def run(self):
         msg = await self.__message.answer(self.__text)

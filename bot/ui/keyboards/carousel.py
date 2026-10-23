@@ -1,5 +1,6 @@
+from abc import abstractmethod
 
-from aiogram.types import InlineKeyboardButton
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 
 class CarouselMarkupButtons:
@@ -16,6 +17,13 @@ class BaseCarouselMarkup[T: CarouselMarkupButtons, S: CarouselMarkupData]:
     prefix: str
     buttons: type[T]
     data: type[S]
+
+    @classmethod
+    @abstractmethod
+    def get_item_markup(
+        cls, item_id: int, media_len: int, media_current_num: int
+    ) -> InlineKeyboardMarkup:
+        raise NotImplementedError
 
     @classmethod
     def _get_carousel_navs_row(

@@ -1,3 +1,4 @@
+from typing import ClassVar
 import asyncio
 import json
 import shutil
@@ -17,14 +18,14 @@ class FfmpegService:
 
     _semaphore = asyncio.Semaphore(1)
 
-    __resize_image_options = [
+    __resize_image_options: ClassVar[list[str]] = [
         "-vf",
         (
             "scale=trunc(oh*a/2)*2:720,"
             "pad=max(iw\\,ih*9/16):max(ih\\,iw*16/9):(ow-iw)/2:(oh-ih)/2:black"
         ),
     ]
-    __make_slideshow_options = [
+    __make_slideshow_options: ClassVar[list[str]] = [
         "-c:v",
         "libx264",
         "-shortest",
@@ -36,7 +37,7 @@ class FfmpegService:
         "yuv420p",
     ]
 
-    __convert_to_voice_options = ["-acodec", "libopus"]
+    __convert_to_voice_options: ClassVar[list[str]] = ["-acodec", "libopus"]
 
     @classmethod
     async def convert_music_to_voice(cls, music: bytes) -> bytes:

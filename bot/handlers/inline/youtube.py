@@ -9,7 +9,7 @@ from aiogram.types import InlineQueryResultArticle, InputTextMessageContent
 async def youtube_search(query: InlineQuery):
     raw_links = YoutubeSearch(query.query, max_results=10).to_dict()
     if not isinstance(raw_links, list):
-        raise ValueError("Invalid response from YoutubeSearch")
+        raise TypeError("Invalid response from YoutubeSearch")
 
     links: list[dict[str, Any]] = raw_links
 

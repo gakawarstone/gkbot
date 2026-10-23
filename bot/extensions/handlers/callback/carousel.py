@@ -53,7 +53,7 @@ class CarouselWidgetEventHandlerExtension[T: BaseCarouselMarkup](BaseHandler):
             raise ValueError("No message to edit")
 
         if not isinstance(self.event.message, Message):
-            raise ValueError("Callback message is not of type Message")
+            raise TypeError("Callback message is not of type Message")
 
         message = self.event.message
         await message.edit_media(media)

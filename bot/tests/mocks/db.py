@@ -10,11 +10,8 @@ def use_db(func):
 
         try:
             result = await func(*args, **kwargs)
-        except Exception as e:
+        finally:
             await Tortoise.close_connections()
-            raise e
-
-        await Tortoise.close_connections()
 
         return result
 

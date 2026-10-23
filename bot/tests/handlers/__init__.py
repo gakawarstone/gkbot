@@ -1,10 +1,10 @@
-from typing import Optional
+from typing import Any
+from unittest.mock import AsyncMock, MagicMock
+
+from aiogram.types import Message
 
 from configs.admins import ADMINS
 from .. import INTEGRATION_TEST
-
-BREAKPOINTS_ON_DELETE = 1
-
 
 if INTEGRATION_TEST:
     from aiogram import Bot as _AiogramBot
@@ -13,10 +13,8 @@ if INTEGRATION_TEST:
     from aiogram.client.default import DefaultBotProperties
     from configs.env import BOT_TOKEN, API_SERVER_URL
 
-    # Ensure BOT_TOKEN and API_SERVER_URL are not None for integration tests
     if BOT_TOKEN is None:
         raise ValueError("BOT_TOKEN is required for integration tests")
-
     if API_SERVER_URL is None:
         raise ValueError("API_SERVER_URL is required for integration tests")
 
@@ -27,34 +25,40 @@ if INTEGRATION_TEST:
     )
 
 
+def make_sent_message() -> MagicMock:
+    return MagicMock(spec=Message, delete=AsyncMock(), edit_text=AsyncMock())
+
+
 class Bot:
-    _messages: list = []
-
-    async def send_message(self, *args, **kwargs):
+    def __init__(self) -> None:
+        self.send_message = AsyncMock(side_effect=self._send_message)
+        self.send_video = AsyncMock(side_effect=self._send_video)
+        self.send_photo = AsyncMock(side_effect=self._send_photo)
+        self.send_audio = AsyncMock(side_effect=self._send_audio)
+        self.send_chat_action = AsyncMock(return_value=True)
         if INTEGRATION_TEST:
-            m = await bot.send_message(*args, **kwargs)
-            if BREAKPOINTS_ON_DELETE:
-                breakpoint()
-            await m.delete()
+            self.send_chat_action.side_effect = bot.send_chat_action
 
-    async def send_video(self, *args, **kwargs):
+    async def _send(self, method: str, *args: Any, **kwargs: Any) -> Any:
         if INTEGRATION_TEST:
-            m = await bot.send_video(*args, **kwargs)
-            if BREAKPOINTS_ON_DELETE:
-                breakpoint()
-            await m.delete()
+            message = await getattr(bot, method)(*args, **kwargs)
+            # Keep integration chats clean without an interactive debugger.
+            if method != "send_message":
+                await message.delete()
+            return message
+        return make_sent_message()
 
-    async def send_photo(self, *args, **kwargs):
-        if INTEGRATION_TEST:
-            m = await bot.send_photo(*args, **kwargs)
-            if BREAKPOINTS_ON_DELETE:
-                breakpoint()
-            await m.delete()
+    async def _send_message(self, *args: Any, **kwargs: Any) -> Any:
+        return await self._send("send_message", *args, **kwargs)
 
-    async def send_chat_action(self, *args, **kwargs):
-        if INTEGRATION_TEST:
-            if not await bot.send_chat_action(*args, **kwargs):
-                raise ValueError("failed to send action")
+    async def _send_video(self, *args: Any, **kwargs: Any) -> Any:
+        return await self._send("send_video", *args, **kwargs)
+
+    async def _send_photo(self, *args: Any, **kwargs: Any) -> Any:
+        return await self._send("send_photo", *args, **kwargs)
+
+    async def _send_audio(self, *args: Any, **kwargs: Any) -> Any:
+        return await self._send("send_audio", *args, **kwargs)
 
 
 class _FromUser:
@@ -70,59 +74,30 @@ class Event:
     from_user = _FromUser()
     chat = _Chat()
 
-    def __init__(
-        self,
-        text: str | None = None,
-        breakpoint_at_delete: bool = bool(BREAKPOINTS_ON_DELETE),
-    ) -> None:
+    def __init__(self, text: str | None = None) -> None:
         self.text = text
-        self._breakpoint_at_delete = breakpoint_at_delete
+        self.bot = Bot()
+        self.delete = AsyncMock()
+        self.answer = AsyncMock(side_effect=self._answer)
+        self.answer_photo = AsyncMock(side_effect=self._answer_photo)
+        self.answer_audio = AsyncMock(side_effect=self._answer_audio)
+        self.answer_video = AsyncMock(side_effect=self._answer_video)
 
-    async def delete(self):
-        if self._breakpoint_at_delete:
-            breakpoint()
+    async def _answer(self, *args: Any, **kwargs: Any) -> Any:
+        return await self.bot.send_message(ADMINS[0], *args, **kwargs)
 
-    async def answer_photo(self, *args, **kwargs):
-        if INTEGRATION_TEST:
-            _args = list(args)
-            _args.insert(0, ADMINS[0])
-            m = await bot.send_photo(*_args, **kwargs)
-            if BREAKPOINTS_ON_DELETE:
-                breakpoint()
-            return await m.delete()
+    async def _answer_photo(self, *args: Any, **kwargs: Any) -> Any:
+        return await self.bot.send_photo(ADMINS[0], *args, **kwargs)
 
-    async def answer_audio(self, *args, **kwargs):
-        if INTEGRATION_TEST:
-            _args = list(args)
-            _args.insert(0, ADMINS[0])
-            m = await bot.send_audio(*_args, **kwargs)
-            if BREAKPOINTS_ON_DELETE:
-                breakpoint()
-            return await m.delete()
+    async def _answer_audio(self, *args: Any, **kwargs: Any) -> Any:
+        return await self.bot.send_audio(ADMINS[0], *args, **kwargs)
 
-    async def answer_video(self, *args, **kwargs):
-        if INTEGRATION_TEST:
-            _args = list(args)
-            _args.insert(0, ADMINS[0])
-            m = await bot.send_video(*_args, **kwargs)
-            if BREAKPOINTS_ON_DELETE:
-                breakpoint()
-            return await m.delete()
-
-    async def answer(self, *args, **kwargs):
-        if INTEGRATION_TEST:
-            _args = list(args)
-            _args.insert(0, ADMINS[0])
-            return await bot.send_message(*_args, **kwargs)
-            # await m.delete()
+    async def _answer_video(self, *args: Any, **kwargs: Any) -> Any:
+        return await self.bot.send_video(ADMINS[0], *args, **kwargs)
 
 
 class CallbackEvent(Event):
-    def __init__(
-        self,
-        callback_data: str,
-        breakpoint_at_delete: bool = bool(BREAKPOINTS_ON_DELETE),
-    ) -> None:
+    def __init__(self, callback_data: str) -> None:
+        super().__init__()
         self.data = callback_data
         self.message = Event()
-        super().__init__(breakpoint_at_delete=breakpoint_at_delete)
