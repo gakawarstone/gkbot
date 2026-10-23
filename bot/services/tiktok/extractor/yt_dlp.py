@@ -1,15 +1,16 @@
 import os
 from pathlib import Path
 
-from aiogram.types import InputFile, FSInputFile
+from aiogram.types import FSInputFile, InputFile
 from yt_dlp.utils import DownloadError
 
 from configs.services.cache_dir import CACHE_DIR_PATH
 from services.ytdlp import YtdlpDownloader
 from services.ytdlp._types import VideoFileInfo
+
 from ..types import InfoVideoTikTok
-from .exceptions import SourceInfoExtractFailed
 from ._base import BaseExtractor
+from .exceptions import SourceInfoExtractFailed
 
 
 class YtDlp(BaseExtractor):
@@ -26,6 +27,8 @@ class YtDlp(BaseExtractor):
                     duration=video_file_info.duration,
                     height=video_file_info.height,
                     width=video_file_info.width,
+                    cover=video_file_info.cover,
+                    start_timestamp=video_file_info.start_timestamp,
                 )
         except (IndexError, ValueError, DownloadError):
             raise SourceInfoExtractFailed(self)

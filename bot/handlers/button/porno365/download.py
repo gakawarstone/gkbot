@@ -9,6 +9,7 @@ from ui.buttons.porno365 import (
     Porno365DownloadButtonData,
     Porno365DownloadButtonDataSerializer,
 )
+from ui.video import send_video
 
 
 def _is_button_callback(
@@ -42,8 +43,10 @@ async def download(callback: CallbackQuery):
 
     if _is_button_callback(callback, Porno365DownloadButtonData.video):
         async with YtdlpDownloader.download_video(url) as video:
-            await callback.message.answer_video(
+            await send_video(
+                callback.message.answer_video,
                 video.input_file,
+                metadata=video,
                 height=video.height,
                 width=video.width,
                 duration=video.duration,

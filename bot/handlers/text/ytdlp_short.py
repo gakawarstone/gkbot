@@ -1,11 +1,12 @@
 from typing import Any
 
-from aiogram import Router, F
+from aiogram import F, Router
 from aiogram.filters import or_f
 
-from services.ytdlp import YtdlpDownloader
 from extensions.handlers.message.base import BaseHandler
 from filters.x import XVideoLink
+from services.ytdlp import YtdlpDownloader
+from ui.video import send_video
 
 
 class YtdlpShortVideoHandler(BaseHandler):
@@ -22,8 +23,10 @@ class YtdlpShortVideoHandler(BaseHandler):
         await self.bot.send_chat_action(self.event.chat.id, "upload_video")
         async with YtdlpDownloader.download_video(self.event.text) as video:
             caption = f"<b>{self.event.from_user.username}</b> {self.event.text}"
-            await self.event.answer_video(
+            await send_video(
+                self.event.answer_video,
                 video.input_file,
+                metadata=video,
                 height=video.height,
                 width=video.width,
                 duration=int(video.duration),
