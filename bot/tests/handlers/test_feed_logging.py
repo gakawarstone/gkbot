@@ -6,6 +6,7 @@ from aiogram.types import Message
 
 from modules.feed.handlers.messages import ShowFeedItemsHandler
 from services.gkfeed import FeedItem, GkfeedCredentials
+from services.http import HttpRequestError
 
 
 class LoggingHandler(ShowFeedItemsHandler):
@@ -25,9 +26,12 @@ def item() -> FeedItem:
     )
 
 
-def assert_metadata_only(record: logging.LogRecord, item: FeedItem) -> None:
-    assert record.args == (item.id, item.feed_id, len(item.text))
-    assert len(record.getMessage()) < 120
+def assert_metadata_only(
+    record: logging.LogRecord, item: FeedItem, processor_name: str | None = None
+) -> None:
+    metadata = (item.id, item.feed_id, len(item.text))
+    assert record.args == (metadata + (processor_name,) if processor_name else metadata)
+    assert len(record.getMessage()) < 220
     assert item.link not in record.getMessage()
     assert "private" not in record.getMessage()
     assert "base64" not in record.getMessage()
@@ -76,7 +80,8 @@ async def test_processor_logs_traceback_and_preserves_fallback(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     handler = LoggingHandler(event=MagicMock(spec=Message))
-    processing_error = ValueError("processor failed")
+    processing_error = HttpRequestError(item.link + item.text)
+    processing_error.__cause__ = ValueError("private chained exception")
     fallback_error = RuntimeError("fallback failed")
     with (
         patch.object(
@@ -99,11 +104,14 @@ async def test_processor_logs_traceback_and_preserves_fallback(
     send.assert_awaited_once_with(item)
     assert len(caplog.records) == 1
     record = caplog.records[0]
-    assert_metadata_only(record, item)
+    assert_metadata_only(record, item, "_process_base_item")
     assert record.levelno == logging.ERROR
     assert record.exc_info is not None
-    assert record.exc_info[1] is processing_error
-    assert record.exc_info[2] is not None
-    assert "ValueError: processor failed" in caplog.text
+    assert str(record.exc_info[1]) == "HttpRequestError"
+    assert record.exc_info[2] is processing_error.__traceback__
+    assert "HttpRequestError" in caplog.text
+    assert "secret" not in caplog.text
+    assert "private" not in caplog.text
+    assert len(caplog.text) < 3000
     assert "private-payload" not in caplog.text
     assert capsys.readouterr().out == ""
