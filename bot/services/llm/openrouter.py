@@ -2,6 +2,7 @@ from collections.abc import AsyncGenerator
 from enum import Enum
 
 from openai import AsyncOpenAI
+from openai.types.chat import ChatCompletionContentPartParam
 
 from configs.env import OPENROUTER_API_KEY
 
@@ -36,11 +37,7 @@ class OpenRouter(LLM):
     async def stream(
         self, prompt: str, images: list[str] | None = None
     ) -> AsyncGenerator[StreamChunk]:
-        client = AsyncOpenAI(
-            base_url="https://openrouter.ai/api/v1",
-            api_key=OPENROUTER_API_KEY,
-        )
-        content: list[dict[str, str | dict[str, str]]] = [
+        content: list[ChatCompletionContentPartParam] = [
             {"type": "text", "text": prompt}
         ]
 
@@ -48,19 +45,26 @@ class OpenRouter(LLM):
             for image_url in images:
                 content.append({"type": "image_url", "image_url": {"url": image_url}})
 
-        completion = await client.chat.completions.create(
-            model=self._model,
-            messages=[{"role": "user", "content": content}],  # type: ignore
-            stream=True,
-        )
+        async with AsyncOpenAI(
+            base_url="https://openrouter.ai/api/v1",
+            api_key=OPENROUTER_API_KEY,
+        ) as client:
+            completion = await client.chat.completions.create(
+                model=self._model,
+                messages=[{"role": "user", "content": content}],
+                stream=True,
+            )
 
-        async for chunk in completion:  # type: ignore
-            if not chunk.choices:
-                continue
-            delta = chunk.choices[0].delta
-            reasoning = getattr(delta, "reasoning", None)
-            if reasoning:
-                yield StreamChunk(reasoning, "reason")
-            content_piece = getattr(delta, "content", None)
-            if content_piece:
-                yield StreamChunk(content_piece, "content")
+            # Closing our generator on stop/error must also close the HTTP
+            # response, including when suspended at yield rather than reading.
+            async with completion:
+                async for chunk in completion:
+                    if not chunk.choices:
+                        continue
+                    delta = chunk.choices[0].delta
+                    reasoning = getattr(delta, "reasoning", None)
+                    if reasoning:
+                        yield StreamChunk(reasoning, "reason")
+                    content_piece = getattr(delta, "content", None)
+                    if content_piece:
+                        yield StreamChunk(content_piece, "content")
