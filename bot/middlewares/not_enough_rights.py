@@ -1,16 +1,19 @@
-from typing import Awaitable, Callable, Dict, Any
+from typing import Any
 
 from aiogram.dispatcher.middlewares.base import BaseMiddleware
-from aiogram.types import TelegramObject, Message
 from aiogram.exceptions import TelegramBadRequest
+from aiogram.types import Message, TelegramObject
+
+from .data import MiddlewareData, MiddlewareHandler
 
 
 class NotEnoughRightsMiddleware(BaseMiddleware):
-    async def __call__(
+    async def __call__(  # type: ignore[override]  # pyright: ignore[reportIncompatibleMethodOverride]
+        # Aiogram accepts dict[str, Any]; its docs recommend a TypedDict here.
         self,
-        handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
+        handler: MiddlewareHandler,
         event: TelegramObject,
-        data: Dict[str, Any],
+        data: MiddlewareData,
     ) -> Any:
         try:
             return await handler(event, data)
