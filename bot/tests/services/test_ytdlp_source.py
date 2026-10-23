@@ -1,0 +1,62 @@
+import pytest
+
+from services.ytdlp.source import DownloadSource, classify_source
+
+
+@pytest.mark.parametrize(
+    ("url", "expected"),
+    [
+        ("https://www.youtube.com/watch?v=abc&t=10", DownloadSource.YOUTUBE),
+        ("http://youtube.com/watch?list=xyz&v=abc", DownloadSource.YOUTUBE),
+        ("https://m.youtube.com/watch?v=abc", DownloadSource.YOUTUBE),
+        ("https://music.youtube.com/watch?v=abc", DownloadSource.YOUTUBE),
+        ("https://youtu.be/abc?si=xyz", DownloadSource.YOUTUBE),
+        ("https://www.youtu.be/abc", DownloadSource.YOUTUBE),
+        ("HTTPS://WWW.YOUTUBE.COM/watch?v=abc", DownloadSource.YOUTUBE),
+        ("https://youtube.com/embed/abc", DownloadSource.YOUTUBE),
+        (
+            "https://www.youtube.com/shorts/abc?feature=share",
+            DownloadSource.YOUTUBE_SHORTS,
+        ),
+        ("http://m.youtube.com/shorts/abc", DownloadSource.YOUTUBE_SHORTS),
+        ("https://youtube.com/watch?v=abc&next=/shorts/abc", DownloadSource.YOUTUBE),
+        ("https://www.tiktok.com/@user/video/123", DownloadSource.TIKTOK),
+        ("https://tiktok.com/@user/video/123", DownloadSource.TIKTOK),
+        ("https://m.tiktok.com/v/123.html", DownloadSource.TIKTOK),
+        ("https://vm.tiktok.com/abc/", DownloadSource.TIKTOK),
+        ("http://vt.tiktok.com/abc/?share=1", DownloadSource.TIKTOK),
+        ("https://vr.tiktok.com/abc/", DownloadSource.TIKTOK),
+        ("https://www.instagram.com/reel/abc/?igsh=123", DownloadSource.INSTAGRAM_REEL),
+        ("https://instagram.com/reels/abc/", DownloadSource.INSTAGRAM_REEL),
+        ("http://m.instagram.com/reel/abc/", DownloadSource.INSTAGRAM_REEL),
+        ("https://www.instagram.com/p/abc/", DownloadSource.INSTAGRAM),
+        ("https://instagram.com/reelish/abc/", DownloadSource.INSTAGRAM),
+        ("https://vk.com/video-123_456", DownloadSource.VK),
+        ("https://www.vk.com/wall-123_456", DownloadSource.VK),
+        ("http://m.vk.com/video123_456", DownloadSource.VK),
+        ("https://vkvideo.ru/video-123_456?list=xyz", DownloadSource.VK),
+        ("https://www.vkvideo.ru/video123_456", DownloadSource.VK),
+        ("https://vk.com/clip-123_456?list=xyz", DownloadSource.VK_CLIP),
+        ("https://m.vk.com/clip123_456/", DownloadSource.VK_CLIP),
+        ("https://vkvideo.ru/clip-123_456", DownloadSource.VK_CLIP),
+        ("https://m.vkvideo.ru/clip123_456", DownloadSource.VK_CLIP),
+        ("https://vk.com/clips", DownloadSource.VK),
+        ("https://vk.com/clips-123", DownloadSource.VK),
+        ("https://vk.com/clip-invalid", DownloadSource.VK),
+        ("https://vk.com/video123_456?next=/clip-123_456", DownloadSource.VK),
+        ("https://example.org/video", DownloadSource.UNKNOWN),
+        ("https://youtube.com.evil.example/watch?v=abc", DownloadSource.UNKNOWN),
+        ("https://youtubeevil.example/watch?v=abc", DownloadSource.UNKNOWN),
+        ("https://vk.com.evil.example/clip-123_456", DownloadSource.UNKNOWN),
+        ("https://wwwXtiktok.com/@user/video/123", DownloadSource.UNKNOWN),
+        ("https://example.org/tiktok.com/video", DownloadSource.UNKNOWN),
+        ("https://example.org/instagram.com/reel/abc", DownloadSource.UNKNOWN),
+        ("https://youtube.com@example.org/watch?v=abc", DownloadSource.UNKNOWN),
+        ("ftp://youtube.com/watch?v=abc", DownloadSource.UNKNOWN),
+        ("youtube.com/watch?v=abc", DownloadSource.UNKNOWN),
+        ("", DownloadSource.UNKNOWN),
+        ("https://[invalid", DownloadSource.UNKNOWN),
+    ],
+)
+def test_classify_source(url: str, expected: DownloadSource) -> None:
+    assert classify_source(url) is expected
