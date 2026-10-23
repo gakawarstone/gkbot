@@ -7,10 +7,11 @@ does not sort imports.
 
 ## Configuration and tools
 
-The audit on 2026-10-23 used `uvx ruff` 0.17.2. The Makefile invokes an
-unpinned `uvx ruff` for both `make lint` and `make format`; Ruff is not in the
-project's dependency groups or lockfile. The pre-commit hooks separately pin
-Ruff 0.16.7. Both versions pass the import check after this rewrite.
+The audit on 2026-10-23 used `uvx ruff` 0.17.2 and also checked the import
+rewrite with pre-commit's previous Ruff 0.16.7. The later quality-gates change
+pins Ruff 0.17.2 in the development dependencies, lockfile, and pre-commit;
+`make lint` and `make format` now use `uv run ruff`. See
+[quality-gates.md](quality-gates.md) for the complete verification workflow.
 
 Before this change, `[tool.ruff]` contained only `src = ["bot"]`. There was no
 `select`, `ignore`, `extend`, formatter override, or nested Ruff configuration.
@@ -21,8 +22,7 @@ external configuration. Ruff expanded its default rule set in 0.16.0.
 
 The project now explicitly uses `lint.extend-select = ["I001"]` to retain this
 decision even if the defaults change. Other lint rules still use the installed
-Ruff version's defaults. This review does not change their selection or pin the
-Makefile's tools.
+Ruff version's defaults. The import review did not change their selection.
 
 Resolved settings were Python 3.13, inferred from `requires-python`, a line
 length of 88, four spaces, double quotes, automatic line endings, respected
@@ -33,9 +33,9 @@ furthest-to-closest relative imports, and blank lines between sections.
 To inspect the effective configuration or check imports alone:
 
 ```bash
-uvx ruff --version
-uvx ruff check bot/main.py --show-settings
-uvx ruff check . --select I001
+uv run ruff --version
+uv run ruff check bot/main.py --show-settings
+uv run ruff check . --select I001
 uvx --from ruff==0.16.7 ruff check . --select I001
 ```
 
@@ -93,7 +93,7 @@ tests were not run against external services. The focused command
 `make test FILE=bot/tests/handlers/test_pomodoro.py` passed all four tests.
 `make lint FILE=bot/core/default_commands.py` passed Ruff, typos, mypy and pyright.
 
-`uvx ruff check . --select I001` passes across the repository on both reviewed
+`uv run ruff check . --select I001` passes across the repository on both reviewed
 Ruff versions. The full `make lint` still stops at Ruff, with **204 existing
 non-import findings**, down from 383 findings including 179 `I001` reports.
 Counts by file and rule are unchanged for the other rules. Three `UP035`
