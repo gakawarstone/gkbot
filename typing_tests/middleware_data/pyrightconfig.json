@@ -1,0 +1,5 @@
+{
+  "extraPaths": ["../../bot"],
+  "venvPath": "../..",
+  "venv": ".venv"
+}
