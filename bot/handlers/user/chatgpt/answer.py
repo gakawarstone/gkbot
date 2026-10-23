@@ -5,11 +5,13 @@ from typing import Any
 
 from aiogram.types import Message
 from aiogram.utils.formatting import BlockQuote
+
 from extensions.handlers.message.file_extension import FileHandlerExtension
 from extensions.handlers.message.markdown_render import MarkdownRenderHandlerExtension
 from services.agents.image_explainer import ImageExplainer
 from services.llm import OpenRouter
 from services.llm.openrouter import DEFAULT_MODEL, StreamChunk
+from utils.status_message import StatusMessage, temporary_status
 
 from ._base import BaseHandler
 from ._states import FSM
@@ -30,13 +32,13 @@ class AnswerHandler(BaseHandler, MarkdownRenderHandlerExtension, FileHandlerExte
 
         self.ctx.messages.append(prompt)
 
-        _message = await self.event.answer("Подождите")
-        text = await self._stream_to_message(
-            _message,
-            OpenRouter(self._MODEL).stream(
-                " | ".join(self.ctx.messages), await self._get_images()
-            ),
-        )
+        async with temporary_status(self.event, "Подождите") as status:
+            text = await self._stream_to_message(
+                status,
+                OpenRouter(self._MODEL).stream(
+                    " | ".join(self.ctx.messages), await self._get_images()
+                ),
+            )
 
         self.ctx.messages.append(text)
         await self.state.set_state(FSM.get_message)
@@ -71,8 +73,17 @@ class AnswerHandler(BaseHandler, MarkdownRenderHandlerExtension, FileHandlerExte
         return text
 
     async def _stream_to_message(
-        self, message: Message, stream: AsyncGenerator[StreamChunk]
+        self, status: StatusMessage, stream: AsyncGenerator[StreamChunk]
     ) -> str:
+        message: Message | None = None
+
+        async def update(text: str) -> None:
+            nonlocal message
+            if message is None:
+                message = await status.publish(text)
+            else:
+                await message.edit_text(text, disable_web_page_preview=True)
+
         reason = ""
         text = ""
         full_text = ""
@@ -98,16 +109,17 @@ class AnswerHandler(BaseHandler, MarkdownRenderHandlerExtension, FileHandlerExte
 
                 if len(_message_text) > 1500:
                     text_chunks = text.split("\n\n")
-                    await message.edit_text(
-                        self._render_markdown("\n\n".join(text_chunks[:-1]))
-                    )
+                    await update(self._render_markdown("\n\n".join(text_chunks[:-1])))
                     full_text += "\n\n".join(text_chunks[:-1])
                     text = text_chunks[-1]
-                    message = await message.answer(text)
+                    message = await self.event.answer(text)
                     continue
 
-                await message.edit_text(_message_text, disable_web_page_preview=True)
+                if _message_text:
+                    await update(_message_text)
 
         full_text += text
-        await message.edit_text(self._render_markdown(text))
+        await update(
+            self._render_markdown(text) if text else "Не удалось получить ответ."
+        )
         return full_text

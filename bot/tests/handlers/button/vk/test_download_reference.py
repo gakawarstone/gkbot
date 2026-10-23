@@ -4,7 +4,7 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import CallbackQuery, Chat, Message, User
 
 from handlers.button.vk.download import download
 from services.ytdlp import YtdlpDownloader
@@ -38,9 +38,13 @@ async def test_download_uses_reference_url(
 
     method = "download_audio" if action == "dlmp3" else "download_video"
     monkeypatch.setattr(YtdlpDownloader, method, fake_download)
-    status_message = MagicMock(spec=Message, delete=AsyncMock())
+    status_message = MagicMock(
+        spec=Message, delete=AsyncMock(), ephemeral_message_id=None
+    )
     message = MagicMock(
         spec=Message,
+        chat=Chat(id=42, type="private"),
+        ephemeral_message_id=None,
         answer=AsyncMock(return_value=status_message),
         edit_text=AsyncMock(),
         delete=AsyncMock(),
@@ -49,6 +53,7 @@ async def test_download_uses_reference_url(
     )
     callback = MagicMock(
         spec=CallbackQuery,
+        from_user=User(id=7, is_bot=False, first_name="Requester"),
         message=message,
         data=f"vkbtn:{action}:{use_status}:{value}",
     )

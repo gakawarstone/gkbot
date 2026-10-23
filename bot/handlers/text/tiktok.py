@@ -1,13 +1,15 @@
 from typing import Any
 
 from aiogram import Router
-from services.tiktok import TikTokService
-from services.tiktok.exceptions import (
-    TikTokInvalidUrl,
-    TikTokInfoExtractionFailed,
-)
+
 from extensions.handlers.message.base import BaseHandler
 from filters.tiktok import TikTokVideoLink
+from services.tiktok import TikTokService
+from services.tiktok.exceptions import (
+    TikTokInfoExtractionFailed,
+    TikTokInvalidUrl,
+)
+from utils.status_message import temporary_status
 
 
 class TikTokVideoHandler(BaseHandler):
@@ -15,16 +17,17 @@ class TikTokVideoHandler(BaseHandler):
         await self.event.delete()
 
         link = self._tiktok_link
-        status_message = await self.event.answer(f"Скачиваю {link}")
-        await self.bot.send_chat_action(self.event.chat.id, "upload_video")
+        async with temporary_status(self.event, f"Скачиваю {link}") as status_message:
+            await self.bot.send_chat_action(self.event.chat.id, "upload_video")
 
-        try:
-            await self._send_tiktok_video(link)
-            await status_message.delete()
-        except TikTokInvalidUrl:
-            await status_message.edit_text(f"Неправильная ссылка {link}")
-        except TikTokInfoExtractionFailed:
-            await status_message.edit_text(f"Не получилось скачать {link}")
+            try:
+                await self._send_tiktok_video(link)
+            except TikTokInvalidUrl:
+                await status_message.edit_text(f"Неправильная ссылка {link}")
+                status_message.keep()
+            except TikTokInfoExtractionFailed:
+                await status_message.edit_text(f"Не получилось скачать {link}")
+                status_message.keep()
 
     async def _send_tiktok_video(self, link: str) -> None:
         if not self.event.from_user:
@@ -51,5 +54,5 @@ class TikTokVideoHandler(BaseHandler):
         return self.event.text
 
 
-def setup(r: Router):
+def setup(r: Router) -> None:
     r.message.register(TikTokVideoHandler, TikTokVideoLink())

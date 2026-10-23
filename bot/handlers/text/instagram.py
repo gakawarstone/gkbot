@@ -5,6 +5,7 @@ from aiogram.types import InputMediaPhoto, MediaUnion
 
 from extensions.handlers.message.base import BaseHandler
 from services.instagram import InstagramDownloadError, InstagramService
+from utils.status_message import temporary_status
 
 
 class InstagramPostDownloadHandler(BaseHandler):
@@ -16,14 +17,14 @@ class InstagramPostDownloadHandler(BaseHandler):
             await self.event.answer("Не удалось распознать ссылку на пост Instagram")
             return None
 
-        status_message = await self.event.answer(f"Скачиваю {text}")
-        await self.bot.send_chat_action(self.event.chat.id, "upload_photo")
-        try:
-            photos = await InstagramService.get_photos_album(text)
-            await self._send_photos(photos)
-            await status_message.delete()
-        except InstagramDownloadError:
-            await status_message.edit_text(f"Не получилось скачать {text}")
+        async with temporary_status(self.event, f"Скачиваю {text}") as status_message:
+            await self.bot.send_chat_action(self.event.chat.id, "upload_photo")
+            try:
+                photos = await InstagramService.get_photos_album(text)
+                await self._send_photos(photos)
+            except InstagramDownloadError:
+                await status_message.edit_text(f"Не получилось скачать {text}")
+                status_message.keep()
 
     async def _send_photos(self, photos: list[InputMediaPhoto]) -> None:
         for start in range(0, len(photos), 10):

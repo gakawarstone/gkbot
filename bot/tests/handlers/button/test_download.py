@@ -10,6 +10,7 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 from aiogram import Router
+from aiogram.methods import DeleteEphemeralMessage, SendMessage
 from aiogram.types import (
     CallbackQuery,
     Chat,
@@ -24,6 +25,7 @@ from services.youtube import YoutubeApiService, YoutubeVideoData
 from services.ytdlp._types import AudioFileInfo, VideoFileInfo
 from tests.handlers import CallbackEvent
 from tests.mocks.message import make_fake_callback
+from tests.mocks.status import StatusHarness
 
 from ... import integration_test
 
@@ -74,9 +76,11 @@ CASES = VIDEO_CASES + AUDIO_CASES
 
 class DownloadHarness:
     def __init__(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        self.status = Mock(spec=Message, delete=AsyncMock())
+        self.status = Mock(spec=Message, delete=AsyncMock(), ephemeral_message_id=None)
         self.message = Mock(
             spec=Message,
+            chat=Chat(id=42, type="private"),
+            ephemeral_message_id=None,
             answer=AsyncMock(return_value=self.status),
             edit_text=AsyncMock(),
             delete=AsyncMock(),
@@ -366,3 +370,31 @@ async def test_download_integration(case: DownloadCase) -> None:
     """Keep the existing opt-in YouTube/VK Telegram smoke coverage."""
     handler = import_module(f"handlers.button.{case.source}.download")
     await handler.download(cast(CallbackQuery, CallbackEvent(case.payload())))
+
+
+@pytest.mark.parametrize(
+    "case", CASES, ids=lambda case: f"{case.source}-{case.media_type}"
+)
+@pytest.mark.parametrize("reuse_status", [False, True])
+async def test_group_download_status_is_visible_only_to_callback_user(
+    case: DownloadCase,
+    reuse_status: bool,
+    harness: DownloadHarness,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    transport = StatusHarness(monkeypatch)
+    callback = transport.callback.model_copy(
+        update={"data": case.payload(reuse_status), "message": transport.response(1)}
+    )
+    handler = import_module(f"handlers.button.{case.source}.download")
+    await handler.download(callback)
+    send, media, delete = transport.methods
+    assert isinstance(send, SendMessage)
+    assert send.ephemeral_message_parameters is not None
+    assert send.ephemeral_message_parameters.receiver_user_id == transport.user.id
+    assert send.ephemeral_message_parameters.callback_query_id == callback.id
+    assert media.__api_method__ == (
+        "sendAudio" if case.media_type == "audio" else "sendVideo"
+    )
+    assert isinstance(delete, DeleteEphemeralMessage)
+    assert delete.receiver_user_id == transport.user.id
