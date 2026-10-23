@@ -1,0 +1,14 @@
+/tmp/gkbot-ruff-baseline/bot/handlers/prompt/generate_image.py
+  /tmp/gkbot-ruff-baseline/bot/handlers/prompt/generate_image.py:43:32 - error: Argument of type "_MEDIA_GROUP" cannot be assigned to parameter "media" of type "list[MediaUnion]" in function "answer_media_group"
+    "list[InputMediaAudio | InputMediaDocument | InputMediaPhoto | InputMediaVideo]" is not assignable to "list[MediaUnion]"
+      Type parameter "_T@list" is invariant, but "InputMediaAudio | InputMediaDocument | InputMediaPhoto | InputMediaVideo" is not the same as "MediaUnion"
+      Consider switching from "list" to "Sequence" which is covariant (reportArgumentType)
+/tmp/gkbot-ruff-baseline/bot/tests/middlewares/test_downstream_results.py
+  /tmp/gkbot-ruff-baseline/bot/tests/middlewares/test_downstream_results.py:26:11 - error: Cannot assign to attribute "__class__" for class "MagicMock"
+    Argument of type "type[Message]" cannot be assigned to parameter "value" of type "type[MagicMock]" in function "__set__"
+      "type[Message]" is not assignable to "type[MagicMock]"
+      Type "type[Message]" is not assignable to type "type[MagicMock]" (reportAttributeAccessIssue)
+2 errors, 0 warnings, 0 informations
+WARNING: there is a new pyright version available (v1.1.408 -> v1.1.414).
+Please install the new version or set PYRIGHT_PYTHON_FORCE_VERSION to `latest`
+
