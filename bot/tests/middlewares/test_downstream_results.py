@@ -1,11 +1,11 @@
 from datetime import timedelta
-from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import Message
 
+from middlewares.data import MiddlewareData, require_user_data
 from middlewares.delete_queue import DeleteQueueMiddleware
 from middlewares.not_enough_rights import NotEnoughRightsMiddleware
 from middlewares.register_user import RegisterUserMiddleware
@@ -86,7 +86,7 @@ async def test_timezone_non_message_returns_downstream_result() -> None:
     middleware = TimeZoneMiddleware()
     handler = AsyncMock(return_value="ok")
 
-    result = await middleware(handler, MagicMock(), {"data": {}})
+    result = await middleware(handler, MagicMock(), {"data": {"delete_queue": []}})
 
     assert result == "ok"
     handler.assert_awaited_once()
@@ -98,7 +98,7 @@ async def test_timezone_without_flag_returns_downstream_result() -> None:
     event = make_message_event()
 
     with patch("middlewares.timezone.get_flag", return_value=None):
-        result = await middleware(handler, event, {"data": {}})
+        result = await middleware(handler, event, {"data": {"delete_queue": []}})
 
     assert result == "ok"
     handler.assert_awaited_once()
@@ -108,7 +108,7 @@ async def test_timezone_with_tz_returns_downstream_result() -> None:
     middleware = TimeZoneMiddleware()
     handler = AsyncMock(return_value="ok")
     event = make_message_event()
-    data: dict[str, Any] = {"data": {}}
+    data: MiddlewareData = {"data": {"delete_queue": []}}
 
     with (
         patch("middlewares.timezone.get_flag", return_value=True),
@@ -120,7 +120,7 @@ async def test_timezone_with_tz_returns_downstream_result() -> None:
         result = await middleware(handler, event, data)
 
     assert result == "ok"
-    assert data["data"]["tz"] == timedelta(hours=3)
+    assert require_user_data(data).get("tz") == timedelta(hours=3)
     handler.assert_awaited_once()
 
 
@@ -136,7 +136,7 @@ async def test_timezone_short_circuit_returns_none() -> None:
             side_effect=UserDontHaveTimeZone,
         ),
     ):
-        result = await middleware(handler, event, {"data": {}})
+        result = await middleware(handler, event, {"data": {"delete_queue": []}})
 
     assert result is None
     handler.assert_not_awaited()

@@ -1,10 +1,10 @@
-from collections.abc import Awaitable, Callable
 from typing import Any
 
 from aiogram.dispatcher.middlewares.base import BaseMiddleware
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message, TelegramObject
 
+from .data import MiddlewareData, MiddlewareHandler
 from .user_data_store import UserDataCapacityError, UserDataStore
 
 
@@ -26,11 +26,12 @@ class UserDataMiddleware(BaseMiddleware):
     async def close(self) -> None:
         self.store.clear()
 
-    async def __call__(
+    async def __call__(  # type: ignore[override]  # pyright: ignore[reportIncompatibleMethodOverride]
+        # Aiogram accepts dict[str, Any]; its docs recommend a TypedDict here.
         self,
-        handler: Callable[[TelegramObject, dict[str, Any]], Awaitable[Any]],
+        handler: MiddlewareHandler,
         event: TelegramObject,
-        data: dict[str, Any],
+        data: MiddlewareData,
     ) -> Any:
         user = getattr(event, "from_user", None)
         if user is None:

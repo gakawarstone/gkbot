@@ -3,7 +3,8 @@ import math
 from collections.abc import Callable, Hashable
 from dataclasses import dataclass, field
 from time import monotonic
-from typing import Any
+
+from .data import UserData
 
 
 class UserDataCapacityError(RuntimeError):
@@ -12,7 +13,7 @@ class UserDataCapacityError(RuntimeError):
 
 @dataclass
 class UserDataEntry:
-    values: dict[str, Any] = field(default_factory=dict)
+    values: UserData = field(default_factory=lambda: UserData(delete_queue=[]))
     active_handlers: int = 0
     session_active: bool = False
     cleanup_pending: bool = False
@@ -74,7 +75,7 @@ class UserDataStore:
             self.cleanup(key)
             return
         if not session_active:
-            queue = entry.values.get("delete_queue")
+            queue = entry.values["delete_queue"]
             if not queue:
                 self.cleanup(key)
                 return

@@ -1,11 +1,13 @@
 from datetime import datetime
 
 from aiogram import Router
-from aiogram.types import Message, ReplyKeyboardRemove
-from aiogram.fsm.context import FSMContext
 from aiogram.filters import StateFilter
+from aiogram.fsm.context import FSMContext
+from aiogram.types import Message, ReplyKeyboardRemove
 
+from middlewares.data import UserData
 from models.road import Habits  # FIXME
+
 from ..states import FSM
 
 
@@ -23,7 +25,7 @@ async def habit_tracker(message: Message, state: FSMContext):
     )
 
 
-async def get_habit_name(message: Message, state: FSMContext, data: dict):
+async def get_habit_name(message: Message, state: FSMContext, data: UserData) -> None:
     await state.set_state(FSM.get_habit_notify_time)
     data["habit_name"] = message.text
     await message.answer(
@@ -31,7 +33,9 @@ async def get_habit_name(message: Message, state: FSMContext, data: dict):
     )
 
 
-async def get_habit_notify_time(message: Message, state: FSMContext, data: dict):
+async def get_habit_notify_time(
+    message: Message, state: FSMContext, data: UserData
+) -> None:
     await state.set_state(FSM.finish)
 
     if message.text is None:
@@ -40,12 +44,16 @@ async def get_habit_notify_time(message: Message, state: FSMContext, data: dict)
     if message.from_user is None:
         raise ValueError("message.from_user must not be None")
 
+    habit_name = data.get("habit_name")
+    if habit_name is None:
+        raise ValueError("habit_name must be set before choosing the notify time")
+
     time = datetime.strptime(message.text, "%H:%M").time()
     data["habit_notify_time"] = time
 
     await Habits.create(
         user_id=message.from_user.id,
-        name=data["habit_name"],
+        name=habit_name,
         notify_time=data["habit_notify_time"],
     )
     await message.answer("Привычка добавлена")

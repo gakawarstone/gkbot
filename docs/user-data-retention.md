@@ -1,7 +1,9 @@
 # Middleware user data retention
 
 `UserDataMiddleware` supplies the existing mutable `data["data"]` dictionary to
-handlers. One `UserDataStore` belongs to each dispatcher and is shared by message
+handlers using the `UserData` type from [the middleware contract](middleware-data.md).
+Every new entry includes the required `delete_queue: []`. One `UserDataStore`
+belongs to each dispatcher and is shared by message
 and callback middleware. Separate dispatchers have separate stores. The current
 middleware key remains the Telegram user ID. This change does not introduce chat
 or topic isolation or change handler context classes.
@@ -92,7 +94,7 @@ session status after all handler work finishes. `entry.values` is the dictionary
 to inject into `data["data"]`; a missing entry with a nonterminal FSM requires
 the reset described above before invoking its selected handler.
 
-The [aiogram 3.26 FSM documentation](https://docs.aiogram.dev/en/v3.26.0/dispatcher/finite_state_machine/index.html)
+The [aiogram 3.31 FSM documentation](https://docs.aiogram.dev/en/v3.31.0/dispatcher/finite_state_machine/index.html)
 describes `FSMContext` state access and `clear()`. The implementation uses those
 public methods and the
-[middleware handler contract](https://docs.aiogram.dev/en/v3.26.0/dispatcher/middlewares.html).
+[middleware handler contract](https://docs.aiogram.dev/en/v3.31.0/dispatcher/middlewares.html).
