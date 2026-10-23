@@ -1,62 +1,48 @@
-from aiogram import Router, F
-from aiogram.types import CallbackQuery, Message, InaccessibleMessage
+from aiogram import F, Router
+from aiogram.types import CallbackQuery
 
-from services.ytdlp import YtdlpDownloader
+from handlers.button.download import (
+    DownloadRequest,
+    VideoOptions,
+    get_media_type,
+)
+from handlers.button.download import (
+    download as download_media,
+)
+from services.ytdlp._types import VideoFileInfo
 from ui.buttons.pornhub.download import (
+    PREFIX,
+    PornhubDownloadButtonCallbackDataDeserializer,
     PornhubDownloadButtonData,
     PornhubDownloadButtonDataSerializer,
-    PornhubDownloadButtonCallbackDataDeserializer,
-    PREFIX,
 )
 
 
-def _get_video_url(ph_video_code: str) -> str:
-    return f"https://www.pornhub.com/view_video.php?viewkey={ph_video_code}"
-
-
-def _is_button_callback(
-    callback: CallbackQuery, button_data: PornhubDownloadButtonData
-) -> bool:
-    if callback.data is None:
-        return False
-
-    return callback.data.startswith(
-        PornhubDownloadButtonDataSerializer.get_full_prefix(button_data)
+async def _prepare_request(callback_data: str) -> DownloadRequest:
+    data = PornhubDownloadButtonCallbackDataDeserializer.deserialize(callback_data)
+    return DownloadRequest(
+        url=f"https://www.pornhub.com/view_video.php?viewkey={data.ph_video_code}",
+        use_callback_message_as_status=data.use_callback_message_as_status,
+        media_type=get_media_type(
+            callback_data,
+            video_prefix=PornhubDownloadButtonDataSerializer.get_full_prefix(
+                PornhubDownloadButtonData.video
+            ),
+        ),
     )
 
 
-async def download(callback: CallbackQuery):
-    if callback.message is None or isinstance(callback.message, InaccessibleMessage):
-        return
-
-    deserializer = PornhubDownloadButtonCallbackDataDeserializer()
-    if callback.data is None:
-        return
-
-    data = deserializer.deserialize(callback.data)
-    url = _get_video_url(data.ph_video_code)
-
-    if not data.use_callback_message_as_status:
-        status_message = await callback.message.answer("Cкачиваю " + url)
-    else:
-        status_message = callback.message
-        if isinstance(status_message, Message):
-            await status_message.edit_text("Cкачиваю " + url)
-
-    if _is_button_callback(callback, PornhubDownloadButtonData.video):
-        async with YtdlpDownloader.download_video(url) as video:
-            await callback.message.answer_video(
-                video.input_file,
-                height=video.height,
-                width=video.width,
-                duration=video.duration,
-                supports_streaming=True,
-                has_spoiler=True,
-            )
-
-    if isinstance(status_message, Message):
-        await status_message.delete()
+async def _video_options(url: str, video: VideoFileInfo) -> VideoOptions:
+    return {"has_spoiler": True}
 
 
-def setup(r: Router):
+async def download(callback: CallbackQuery) -> None:
+    await download_media(
+        callback,
+        prepare_request=_prepare_request,
+        video_options=_video_options,
+    )
+
+
+def setup(r: Router) -> None:
     r.callback_query.register(download, F.data.startswith(PREFIX))
