@@ -1,10 +1,10 @@
 import asyncio
-import json
 import shutil
 from pathlib import Path
 from subprocess import CompletedProcess
 from typing import Any
 
+from services.audio import AudioService
 from services.cache_dir import CacheDir
 from services.ffmpeg_runner import FfmpegRunner
 from utils.async_cleanup import wait_for_completion
@@ -33,77 +33,6 @@ class FfmpegService:
         "yuv420p",
     ]
 
-    __convert_to_voice_options = ["-acodec", "libopus"]
-
-    @classmethod
-    async def convert_music_to_voice(cls, music: bytes) -> bytes:
-        cache_dir = CacheDir()
-        try:
-            cache_dir.save_file("music.mp3", music)
-
-            command = cls._build_command(
-                inputs=[cache_dir.get_file_path("music.mp3")],
-                output=cache_dir.get_file_path("voice.ogg"),
-                props=cls.__convert_to_voice_options,
-            )
-
-            await wait_for_completion(cls._run_command(command))
-            return Path(cache_dir.get_file_path("voice.ogg")).read_bytes()
-        finally:
-            cache_dir.delete()
-
-    @classmethod
-    async def convert_video(cls, input_path: str, output_path: str) -> None:
-        command = cls._build_command(
-            inputs=[input_path],
-            output=output_path,
-            props=[
-                "-c:v",
-                "libx264",
-                "-preset",
-                "veryfast",
-                "-threads",
-                "1",
-                "-c:a",
-                "aac",
-                "-pix_fmt",
-                "yuv420p",
-            ],
-        )
-        await cls._run_command(command)
-
-    @classmethod
-    async def get_video_metadata(cls, input_path: str) -> dict[str, int]:
-        command = FfmpegRunner.build_probe_command(
-            input_path,
-            props=[
-                "-v",
-                "error",
-                "-select_streams",
-                "v:0",
-                "-show_entries",
-                "stream=width,height,duration",
-                "-of",
-                "json",
-            ],
-        )
-        result = await cls._run_command(command, capture_output=True, text=True)
-        streams = json.loads(result.stdout).get("streams", [])
-        if not streams:
-            return {}
-
-        stream = streams[0]
-        metadata = {}
-        for key in ("width", "height"):
-            if value := stream.get(key):
-                metadata[key] = int(value)
-        if duration := stream.get("duration"):
-            try:
-                metadata["duration"] = int(float(duration))
-            except ValueError:
-                pass
-        return metadata
-
     @classmethod
     async def make_slideshow_from_web(
         cls, images_urls: list[str], audio_url: str | None
@@ -128,7 +57,7 @@ class FfmpegService:
         work_dir = str(Path(output_path).parent)
         await cls.download_and_prepare_images(images_urls, work_dir)
         if audio_url:
-            await cls.download_and_prepare_audio(audio_url, work_dir)
+            await AudioService.download_and_prepare_audio(audio_url, work_dir)
 
         command = cls._build_slideshow_command(
             images_input=f"{work_dir}/*.jpg",
@@ -158,17 +87,6 @@ class FfmpegService:
 
         if len(images_url) == 2:
             shutil.copy(f"{work_dir_path}/002.jpg", f"{work_dir_path}/003.jpg")
-
-    @classmethod
-    async def download_and_prepare_audio(
-        cls, audio_url: str, work_dir_path: str
-    ) -> None:
-        command = cls._build_command(
-            inputs=[audio_url],
-            output=f"{work_dir_path}/audio.m4a",
-            props=["-vn"],
-        )
-        await cls._run_command(command)
 
     @classmethod
     async def _run_command(cls, command: list[str], **kwargs: Any) -> CompletedProcess:
