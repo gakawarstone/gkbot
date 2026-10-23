@@ -102,6 +102,16 @@ delete queues, temporary flow properties, and cached timezone data all become
 scoped to that same session dictionary. The database remains the source of truth
 for user settings.
 
+Preserve the published middleware typing contract from PR #40 when changing
+mapping ownership. The outer `MiddlewareData` extends aiogram's injection data;
+its `data` and `admins` fields are optional before injection. The nested mapping
+is `UserData`, with a required `delete_queue: list[Message]`, optional flow fields,
+and nullable `tz`. New session entries must start with `{"delete_queue": []}`,
+including entries first acquired by a callback. Keep `require_user_data` and the
+typed class/function handler boundaries. A topic-key migration must not replace
+these types with unrestricted dictionaries or confuse the outer context with
+the injected session data.
+
 Use event isolation keyed by the FSM storage key so overlapping updates in one
 topic cannot mutate the same history or reset a running generation. Different
 topics must be able to progress concurrently. A draft stop event must be able to
@@ -210,6 +220,17 @@ draft acceptance alone does not prove stop-control support. Draft previews can
 expire if the model stalls for more than 30 seconds. These reported limitations
 must remain visible in the integrated documentation.
 
+The related middleware typing result is ready/open
+[PR #40](https://github.com/gakawarstone/gkbot/pull/40), base `dev-3.0`, branch
+`task-20261023-type-aiogram-middleware-data`, commit
+`1813b3e9079a70b4a086193fc8a0cfc87e757a36`. Approval and merge are pending. Its
+source thread `mcp:b95416bd-21c7-4fca-beff-5b0c940d7960` and published
+`docs/middleware-data.md` have been read. It keeps the shared user-ID cache and
+does not implement eviction, retention, or topic isolation. Integrate its
+published types and consumer updates together with retention when the remaining
+dependencies are ready; do not repeat its typing migration here. The author
+reports 134 passed, 13 skipped and all four scoped lint tools passing for 21 files.
+
 ## Required application tests
 
 These are implementation acceptance tests to add after the prerequisites land;
@@ -226,6 +247,8 @@ the offline library probe below does not satisfy them.
 3. Restart `/chat` and run `/exit` in A. Assert B's history, delete queue, active
    generation, and state survive unchanged. Exercise TTL expiry, entry pressure,
    active pins, and topic-local cleanup using the retention store's contract.
+   Verify every fresh message/callback session has the required typed deletion
+   queue and rerun the middleware runtime/static contract tests from PR #40.
 4. Record actual outgoing method objects with a fake Bot session. Assert the
    source thread on welcome, prompt validation, status, draft updates, final
    response, long-response splits, compatibility fallback, and errors. Do not use
