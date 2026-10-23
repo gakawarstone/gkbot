@@ -1,17 +1,20 @@
-from typing import Callable, Dict, Awaitable, Any
+from typing import Any, ClassVar
 
 from aiogram.dispatcher.middlewares.base import BaseMiddleware
 from aiogram.types import TelegramObject
 
+from .data import MiddlewareData, MiddlewareHandler, UserData
+
 
 class UserDataMiddleware(BaseMiddleware):
-    __data: Dict[int, Dict[str, Any]] = {}
+    __data: ClassVar[dict[int, UserData]] = {}
 
-    async def __call__(
+    async def __call__(  # type: ignore[override]  # pyright: ignore[reportIncompatibleMethodOverride]
+        # Aiogram accepts dict[str, Any]; its docs recommend a TypedDict here.
         self,
-        handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
+        handler: MiddlewareHandler,
         event: TelegramObject,
-        data: Dict[str, Any],
+        data: MiddlewareData,
     ) -> Any:
         user = getattr(event, "from_user", None)
         user_id = user.id if user else None
@@ -20,7 +23,7 @@ class UserDataMiddleware(BaseMiddleware):
             raise ValueError("Event does not contain a user.")
 
         if user_id not in self.__data:
-            self.__data[user_id] = {}
+            self.__data[user_id] = {"delete_queue": []}
         data["data"] = self.__data[user_id]
 
         return await handler(event, data)
