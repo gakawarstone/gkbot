@@ -139,10 +139,10 @@ not retry the reply in the unthreaded private chat.
 
 The installed `MessageGenerationStopped` has `chat`, `draft_id`, and
 `message_thread_id`, but no `from_user`. With `USER_IN_TOPIC`, aiogram therefore
-does not automatically resolve its user-scoped FSM context. The drafts
-prerequisite must retain the source context with the active generation. Cancel
-using bot/chat/thread/draft identity and that saved context. A stop in topic A
-must not cancel or restore the state of topic B.
+does not automatically resolve its user-scoped FSM context. The published drafts
+implementation retains the source context with the active generation and cancels
+by bot/chat/thread/draft identity. Integration tests must verify that a stop in
+topic A cannot cancel or restore the state of topic B.
 
 User-facing AI failures go to the source topic. Existing traceback delivery to
 administrator chats stays an operational notification, independent of the
@@ -156,8 +156,16 @@ merged into this worktree's base `fc19464`. Do not reapply it.
 Prerequisite status as reported on 2026-10-23:
 
 - Draft streaming, thread `mcp:4bc598c3-6de2-4025-8740-daf05aaaaae7`, branch
-  `task-20261023-stream-ai-with-message-drafts`. Consume its streaming/fallback
-  and cancellation contracts before updating topic routing.
+  `task-20261023-stream-ai-with-message-drafts`, published ready/open
+  [PR #39](https://github.com/gakawarstone/gkbot/pull/39), implementation/head
+  commit `e24bebba1d1b697768cd72f0496472a63427e7d2`. Approval and merge remain
+  pending. It is stacked on branch `task-20261022-split-long-ai-chat-responses`,
+  [PR #20](https://github.com/gakawarstone/gkbot/pull/20), head
+  `6c734b1b4d7ee7d49313c8a6b0cc870c6ec0848d`, integrated by an ordinary merge.
+  Preserve both prerequisite commit sets when choosing the integration base.
+  The author reports 78 focused tests and 200 full-suite tests passed, with 13
+  skipped. Ruff, typos, and pyright pass for the changed files; targeted mypy
+  stops at the existing imported `generate_image.py:43` error.
 - Bounded retention, thread `mcp:45f94e95-1569-4cd9-9f99-6fc68dc05eb8`, branch
   `task-20261022-bound-middleware-user-data-retention`. Its announced interface is
   an instance-owned `UserDataStore` with acquire/release/cleanup, idle TTL,
@@ -178,9 +186,29 @@ Prerequisite status as reported on 2026-10-23:
 
 All three authors have this downstream thread ID,
 `mcp:93bebd65-7048-4378-84db-871a65c8e253`, and were asked to send their published
-result. Resume integration after their notifications. Use published commits only,
+result. Draft streaming's result has been read in its source thread and in its
+published `docs/ai-chat-streaming.md`; retention and the context approval remain
+required. Resume integration after their notifications. Use published commits only,
 resolve any integration conflicts in this worktree, and select a stacked PR base
 that does not duplicate prerequisite changes. Do not merge those PRs automatically.
+
+The streaming contract to reuse is `_stream_to_draft(stream, draft_id) -> str`,
+`_send_draft(draft_id, html) -> bool`, and `_private_response(stream) -> str | None`,
+where `None` means the user stopped generation. Its registry key is
+`(bot_id, chat_id, message_thread_id, draft_id)`; stop routing does not require
+`from_user` or injected FSM state. `_answer` and new fallback chunks explicitly
+preserve the source topic. Draft errors replay accumulated content/reason into
+the existing edit/split fallback without another model request. Groups use the
+1500-unit fallback; successful draft responses finalize as safe HTML chunks of
+4096 UTF-16 units while retaining the full raw Markdown history. FSM recovery
+does not undo a concurrent `/exit`. Global topic FSM/middleware isolation remains
+this task's work. Reuse these paths rather than implementing another streamer.
+
+The author verified the running server image as Bot API 9.5 and the pinned binary
+as 10.3 without deployment. Native stop controls require server rollout to 10.3;
+draft acceptance alone does not prove stop-control support. Draft previews can
+expire if the model stalls for more than 30 seconds. These reported limitations
+must remain visible in the integrated documentation.
 
 ## Required application tests
 
