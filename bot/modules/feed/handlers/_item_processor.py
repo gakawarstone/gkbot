@@ -6,8 +6,9 @@ from services.gkfeed import FeedItem
 
 from ._base import BaseHandler
 from ._exceptions import RECOVERABLE_FEED_ERRORS
+from .processors import FeedProcessorRegistry
+from .processors.discours import create_discours_processor
 from .views.base import BaseWebFeedItemView
-from .views.discours import DiscoursFeedItemView
 from .views.hltv import HltvFeedItemView
 from .views.instagram import InstagramFeedItemView
 from .views.kinogo import KinogoFeedItemView
@@ -40,7 +41,6 @@ class GkfeedItemProcessorExtension(
     HltvFeedItemView,
     MatreshkaFeedItemView,
     InstagramFeedItemView,
-    DiscoursFeedItemView,
     Porno365FeedItemView,
     PornhubFeedItemView,
     TikTokFeedItemView,
@@ -58,6 +58,10 @@ class GkfeedItemProcessorExtension(
     VKFeedItemView,
     BaseHandler,
 ):
+    @property
+    def _processor_registry(self) -> FeedProcessorRegistry:
+        return FeedProcessorRegistry((create_discours_processor(self._send_photo),))
+
     @property
     def _processors(self) -> dict[str, _ITEM_PROCESSOR]:
         # TODO: create filters for processor matching instead of startswith prefixes.
@@ -77,7 +81,6 @@ class GkfeedItemProcessorExtension(
             "https://de.pornhub.org": self._process_pornhub_item,
             "https://pornhub.org": self._process_pornhub_item,
             "http://porno365.broker": self._process_porno365_item,
-            "https://discours.io": self._process_discours_item,
             "https://instagram.com": self._process_instagram_item,
             "https://www.instagram.com": self._process_instagram_item,
             "https://www.hltv.org": self._process_hltv_item,
@@ -86,6 +89,11 @@ class GkfeedItemProcessorExtension(
         }
 
     async def _process_item(self, item: FeedItem) -> None:
+        entry = self._processor_registry.resolve(item)
+        if entry is not None:
+            await self._run_processor(item, entry.process, entry.source_id)
+            return
+
         for prefix, processor in self._processors.items():
             if item.link.startswith(prefix):
                 processor_name = getattr(
