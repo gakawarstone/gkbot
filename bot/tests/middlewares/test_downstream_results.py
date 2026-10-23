@@ -22,18 +22,10 @@ def make_event(user_id: int = 1) -> MagicMock:
 
 
 def make_message_event(user_id: int = 1) -> MagicMock:
-    event = MagicMock()
-    event.__class__ = Message
-    event.from_user.id = user_id
+    event = MagicMock(spec=Message)
+    event.from_user = MagicMock(id=user_id)
     event.answer = AsyncMock()
     return event
-
-
-@pytest.fixture(autouse=True)
-def _clear_user_data() -> Any:
-    UserDataMiddleware._UserDataMiddleware__data.clear()  # type: ignore[attr-defined]
-    yield
-    UserDataMiddleware._UserDataMiddleware__data.clear()  # type: ignore[attr-defined]
 
 
 async def test_register_user_returns_downstream_result() -> None:

@@ -60,3 +60,8 @@ Optional integrations:
 - `TELEGRAPH_API_KEY`
 - `OPENROUTER_API_KEY`
 - `API_SERVER_URL`
+
+Middleware user data defaults to at most 4096 entries and a one-hour idle timeout.
+Set `USER_DATA_MAX_ENTRIES` and `USER_DATA_IDLE_TTL_SECONDS` to override them.
+See [the retention contract](docs/user-data-retention.md) for session cleanup,
+capacity handling, and the stored values.
