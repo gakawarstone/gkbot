@@ -541,7 +541,6 @@ dependencies = [
     { name = "edge-tts" },
     { name = "gallery-dl" },
     { name = "gtts" },
-    { name = "notion-client" },
     { name = "openai" },
     { name = "python-dotenv" },
     { name = "tortoise-orm" },
@@ -571,7 +570,6 @@ requires-dist = [
     { name = "edge-tts" },
     { name = "gallery-dl", specifier = ">=1.30.10" },
     { name = "gtts" },
-    { name = "notion-client", specifier = "==0.9.0" },
     { name = "openai", specifier = ">=1.82.1" },
     { name = "python-dotenv" },
     { name = "tortoise-orm", specifier = "==0.21.6" },
@@ -908,18 +906,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/24/bf/d1bda4f6168e0b2e9e5958945e01910052158313224ada5ce1fb2e1113b8/nodeenv-1.10.0.tar.gz", hash = "sha256:996c191ad80897d076bdfba80a41994c2b47c68e224c542b48feba42ba00f8bb", size = 55611, upload-time = "2025-12-20T14:08:54.006Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/88/b2/d0896bdcdc8d28a7fc5717c305f1a861c26e18c05047949fb371034d98bd/nodeenv-1.10.0-py2.py3-none-any.whl", hash = "sha256:5bb13e3eed2923615535339b3c620e76779af4cb4c6a90deccc9e36b274d3827", size = 23438, upload-time = "2025-12-20T14:08:52.782Z" },
-]
-
-[[package]]
-name = "notion-client"
-version = "0.9.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "httpx" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/4c/23/2eb6e9136a8ea348089bd17363013be988a39064dc36161cc0f659a9b609/notion-client-0.9.0.tar.gz", hash = "sha256:7438848aa0de81bf2183524ba5cc6caf5b9cba84e1da5051c822ecb31de89b00", size = 14519, upload-time = "2022-02-05T19:59:25.436Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/22/b1/856b4a542611c908768db2cac7a145711706c122f494c16244f95dc09357/notion_client-0.9.0-py2.py3-none-any.whl", hash = "sha256:5a11b5fdbf00210ff256c507a7b0c7aa2842c076b22636dbb779ed9240e40e0d", size = 14179, upload-time = "2022-02-05T19:59:22.086Z" },
 ]
 
 [[package]]

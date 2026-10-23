@@ -23,3 +23,24 @@ The `/add_tasks`, `/trash`, and `/get_trash` flows depend on Notion and should b
 - Notion configuration and dependency entries are gone.
 - The full test suite and static checks pass.
 
+## Implementation and validation, 2026-10-23
+
+The handlers, router registrations, command registry entries, service, token
+configuration, environment template entry, dependency, and README references have
+been removed. The default command descriptions already omitted these commands.
+The lockfile and both requirements files have been regenerated.
+
+- Full tests: 109 passed, 13 skipped, compared with 105 passed, 13 skipped before
+  this change. Four new tests exercise dispatch of the retired commands and the
+  `/list` response without the removed dependency installed.
+- `make lint FILE='bot/configs/commands.py bot/configs/env.py bot/handlers/user/__init__.py bot/tests/handlers/test_retired_commands.py'`
+  passes Ruff, typos, mypy, and pyright.
+- `uv lock --check` and `git diff --check` pass.
+- Full `make lint` still stops at existing Ruff findings: 379 after this change,
+  compared with 391 on the unchanged starting commit. Unrelated lint cleanup is
+  outside this task's scope.
+
+This task remains open because its full static-check acceptance criterion is not
+yet met. The feature removal is implemented and can be used by the command
+registry follow-up.
+
