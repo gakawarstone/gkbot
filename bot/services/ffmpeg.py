@@ -1,21 +1,18 @@
 import asyncio
 import json
 import shutil
-import subprocess
 from pathlib import Path
 from subprocess import CompletedProcess
 from typing import Any
 
 from services.cache_dir import CacheDir
+from services.ffmpeg_runner import FfmpegRunner
 from utils.async_cleanup import wait_for_completion
-from utils.async_wrapper import async_wrap
 
 
 class FfmpegService:
     SLIDESHOW_WIDTH = 720
     SLIDESHOW_HEIGHT = 1080
-
-    _semaphore = asyncio.Semaphore(1)
 
     __resize_image_options = [
         "-vf",
@@ -77,18 +74,19 @@ class FfmpegService:
 
     @classmethod
     async def get_video_metadata(cls, input_path: str) -> dict[str, int]:
-        command = [
-            "ffprobe",
-            "-v",
-            "error",
-            "-select_streams",
-            "v:0",
-            "-show_entries",
-            "stream=width,height,duration",
-            "-of",
-            "json",
+        command = FfmpegRunner.build_probe_command(
             input_path,
-        ]
+            props=[
+                "-v",
+                "error",
+                "-select_streams",
+                "v:0",
+                "-show_entries",
+                "stream=width,height,duration",
+                "-of",
+                "json",
+            ],
+        )
         result = await cls._run_command(command, capture_output=True, text=True)
         streams = json.loads(result.stdout).get("streams", [])
         if not streams:
@@ -174,28 +172,19 @@ class FfmpegService:
 
     @classmethod
     async def _run_command(cls, command: list[str], **kwargs: Any) -> CompletedProcess:
-        kwargs.setdefault("stdin", subprocess.DEVNULL)
-        async with cls._semaphore:
-            return await async_wrap(subprocess.run)(command, check=True, **kwargs)
+        return await FfmpegRunner.run(command, **kwargs)
 
     @classmethod
-    def _build_command(cls, inputs: list, output: str, props: list) -> list[str]:
-        command = ["ffmpeg", "-y"]
-        for input in inputs:
-            command += ["-i", input]
-        return (
-            command
-            + props
-            + [
-                output,
-            ]
-        )
+    def _build_command(
+        cls, inputs: list[str], output: str, props: list[str]
+    ) -> list[str]:
+        return FfmpegRunner.build_command(inputs, output, props)
 
     @classmethod
     def _build_slideshow_command(
         cls, images_input: str, audio_input: str | None, output_path: str
     ) -> list[str]:
-        command = ["ffmpeg", "-y", "-framerate", "1/3"]
+        command = ["-framerate", "1/3"]
         command += ["-pattern_type", "glob", "-i", images_input]
 
         if audio_input:
@@ -206,7 +195,4 @@ class FfmpegService:
             opts.remove("-shortest")
             command += opts
 
-        command += [
-            output_path,
-        ]
-        return command
+        return cls._build_command(inputs=[], output=output_path, props=command)
