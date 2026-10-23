@@ -63,3 +63,9 @@ Optional integrations:
 - `TELEGRAPH_API_KEY`
 - `OPENROUTER_API_KEY`
 - `API_SERVER_URL`
+
+Polling concurrency:
+- `POLLING_TASKS_CONCURRENCY_LIMIT` defaults to `10`. Set a positive integer in
+  `.env` or the process environment and restart the bot to change it.
+- See [polling concurrency](docs/polling-concurrency.md) for measurements,
+  memory planning, and production tuning.
