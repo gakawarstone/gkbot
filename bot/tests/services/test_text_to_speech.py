@@ -75,3 +75,21 @@ async def test_convert_text_to_speech_gtts_integration():
     assert len(result) > 0
     # gTTS also returns MP3
     assert result[:3] == b"ID3" or b"\xff" in result[:10]
+
+
+async def test_edge_failure_cleans_temporary_files(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(CacheDir, "_CacheDir__base_path", str(tmp_path))
+
+    async def save(path: str) -> None:
+        Path(path).write_bytes(b"partial")
+        raise OSError("synthesis failed")
+
+    with patch("services.tts.providers.edge_tts.Communicate") as communicate:
+        communicate.return_value.save = AsyncMock(side_effect=save)
+        with pytest.raises(OSError, match="synthesis failed"):
+            await TextToSpeechService.convert_text_to_speech(
+                "hello", provider=TTSProviderType.EDGE
+            )
+    assert list(tmp_path.iterdir()) == []

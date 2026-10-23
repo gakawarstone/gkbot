@@ -29,7 +29,10 @@ class Timer:
         return self.__finish_time - self.__now
 
     def __render_remain_time(self) -> str:
-        return self.__text + f" <b>{datetime.fromtimestamp(self.__remain_time).strftime(self.__format)}</b>"
+        return (
+            self.__text
+            + f" <b>{datetime.fromtimestamp(self.__remain_time).strftime(self.__format)}</b>"
+        )
 
     async def run(self):
         msg = await self.__message.answer(self.__text)

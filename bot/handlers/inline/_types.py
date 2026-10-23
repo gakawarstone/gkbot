@@ -1,4 +1,3 @@
-
 from aiogram.types import (
     InlineQueryResultArticle,
     InlineQueryResultAudio,
@@ -23,5 +22,24 @@ from aiogram.types import (
 )
 
 ResultsType = list[
-    InlineQueryResultCachedAudio | InlineQueryResultCachedDocument | InlineQueryResultCachedGif | InlineQueryResultCachedMpeg4Gif | InlineQueryResultCachedPhoto | InlineQueryResultCachedSticker | InlineQueryResultCachedVideo | InlineQueryResultCachedVoice | InlineQueryResultArticle | InlineQueryResultAudio | InlineQueryResultContact | InlineQueryResultGame | InlineQueryResultDocument | InlineQueryResultGif | InlineQueryResultLocation | InlineQueryResultMpeg4Gif | InlineQueryResultPhoto | InlineQueryResultVenue | InlineQueryResultVideo | InlineQueryResultVoice
+    InlineQueryResultCachedAudio
+    | InlineQueryResultCachedDocument
+    | InlineQueryResultCachedGif
+    | InlineQueryResultCachedMpeg4Gif
+    | InlineQueryResultCachedPhoto
+    | InlineQueryResultCachedSticker
+    | InlineQueryResultCachedVideo
+    | InlineQueryResultCachedVoice
+    | InlineQueryResultArticle
+    | InlineQueryResultAudio
+    | InlineQueryResultContact
+    | InlineQueryResultGame
+    | InlineQueryResultDocument
+    | InlineQueryResultGif
+    | InlineQueryResultLocation
+    | InlineQueryResultMpeg4Gif
+    | InlineQueryResultPhoto
+    | InlineQueryResultVenue
+    | InlineQueryResultVideo
+    | InlineQueryResultVoice
 ]

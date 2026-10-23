@@ -23,18 +23,21 @@ class ShowFeedItemsHandler(GkfeedItemProcessorExtension, BaseHandler):
 
         picker = GkfeedItemsPicker(await self._gkfeed_credentials)
 
-        async with asyncio.TaskGroup() as tg:
-            for _ in range(self._items_limit):
-                item = await picker.get_next_item()
+        try:
+            async with asyncio.TaskGroup() as tg:
+                for _ in range(self._items_limit):
+                    item = await picker.get_next_item()
 
-                if not item:
-                    await self.answer("На данный момент ничего нового")
-                    break
+                    if not item:
+                        await self.answer("На данный момент ничего нового")
+                        break
 
-                logger.info(
-                    "Processing feed item id=%s feed_id=%s text_length=%s",
-                    item.id,
-                    item.feed_id,
-                    len(item.text),
-                )
-                tg.create_task(self._process_item(item))
+                    logger.info(
+                        "Processing feed item id=%s feed_id=%s text_length=%s",
+                        item.id,
+                        item.feed_id,
+                        len(item.text),
+                    )
+                    tg.create_task(self._process_item(item))
+        except ExceptionGroup as error:
+            raise error.exceptions[0]

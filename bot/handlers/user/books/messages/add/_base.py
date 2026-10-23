@@ -1,4 +1,3 @@
-
 from aiogram.exceptions import TelegramBadRequest
 
 from ui.components.book_creator import BookCreatorComponent

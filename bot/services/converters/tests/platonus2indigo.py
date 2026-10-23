@@ -9,7 +9,7 @@ from .parsers.platonus import PlatonusParser
 class Platonus2Indigo:
     @classmethod
     def get_lines_with_max_questions(
-            cls, data: list[str], max_questions: int
+        cls, data: list[str], max_questions: int
     ) -> Generator[list[str]]:
         questions = PlatonusParser.parse_lines(data)
         for chunk in chunks(questions, max_questions):

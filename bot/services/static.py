@@ -27,8 +27,8 @@ class StaticFile:
 
     async def as_str(self) -> str:
         if not self.__should_cache:
-            return await asyncio.to_thread(
-                Path(self.__path).read_text, encoding="utf-8"
+            return (await asyncio.to_thread(Path(self.__path).read_bytes)).decode(
+                "utf-8"
             )
         return (await HttpService.get(await self._cache_url)).decode("utf-8")
 
