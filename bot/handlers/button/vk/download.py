@@ -1,67 +1,46 @@
-from aiogram import Router, F
-from aiogram.types import CallbackQuery, Message, InaccessibleMessage
+from aiogram import F, Router
+from aiogram.types import CallbackQuery
 
-from services.ytdlp import YtdlpDownloader
+from handlers.button.download import (
+    DownloadRequest,
+    get_media_type,
+)
+from handlers.button.download import (
+    download as download_media,
+)
 from ui.buttons.vk import (
-    VKDownloadButtonData,
-    VKDownloadButtonCallbackDataDeserializer,
-    VKDownloadButtonDataSerializer,
     PREFIX,
+    VKDownloadButtonCallbackDataDeserializer,
+    VKDownloadButtonData,
+    VKDownloadButtonDataSerializer,
 )
 from utils.vk import reconstruct_vk_url
 
 
-def _is_button_callback(
-    callback: CallbackQuery, button_data: VKDownloadButtonData
-) -> bool:
-    if callback.data is None:
-        raise ValueError("Callback data cannot be None")
-
-    return callback.data.startswith(
-        VKDownloadButtonDataSerializer.get_full_prefix(button_data)
+async def _prepare_request(callback_data: str) -> DownloadRequest:
+    data = VKDownloadButtonCallbackDataDeserializer.deserialize(callback_data)
+    return DownloadRequest(
+        url=reconstruct_vk_url(data.vk_id),
+        use_callback_message_as_status=data.use_callback_message_as_status,
+        media_type=get_media_type(
+            callback_data,
+            video_prefix=VKDownloadButtonDataSerializer.get_full_prefix(
+                VKDownloadButtonData.video
+            ),
+            audio_prefix=VKDownloadButtonDataSerializer.get_full_prefix(
+                VKDownloadButtonData.audio
+            ),
+        ),
     )
 
 
-async def download(callback: CallbackQuery):
-    if callback.message is None or isinstance(callback.message, InaccessibleMessage):
-        raise ValueError("Callback message is inaccessible or None")
-
-    deserializer = VKDownloadButtonCallbackDataDeserializer()
-    if callback.data is None:
-        raise ValueError("Callback data cannot be None")
-
-    data = deserializer.deserialize(callback.data)
-    url = reconstruct_vk_url(data.vk_id)
-
-    if not data.use_callback_message_as_status:
-        status_message = await callback.message.answer("Cкачиваю " + url)
-    else:
-        status_message = callback.message
-        if isinstance(status_message, Message):
-            await status_message.edit_text("Cкачиваю " + url)
-
-    if _is_button_callback(callback, VKDownloadButtonData.audio):
-        async with YtdlpDownloader.download_audio(url) as audio:
-            await callback.message.answer_audio(
-                audio=audio.input_file,
-                title=audio.title,
-                performer="GKBOT",
-                duration=audio.duration,
-            )
-
-    if _is_button_callback(callback, VKDownloadButtonData.video):
-        async with YtdlpDownloader.download_video(url) as video:
-            await callback.message.answer_video(
-                video.input_file,
-                height=video.height,
-                width=video.width,
-                duration=video.duration,
-                supports_streaming=True,
-            )
-
-    if isinstance(status_message, Message):
-        await status_message.delete()
+async def download(callback: CallbackQuery) -> None:
+    await download_media(
+        callback,
+        prepare_request=_prepare_request,
+        require_callback=True,
+    )
 
 
-def setup(r: Router):
+def setup(r: Router) -> None:
     r.callback_query.register(download, F.data.startswith(PREFIX))
