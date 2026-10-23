@@ -8,22 +8,22 @@ from ._base import BaseHandler
 from ._exceptions import RECOVERABLE_FEED_ERRORS
 from .processors import FeedProcessorRegistry
 from .processors.discours import create_discours_processor
+from .processors.hltv import create_hltv_processor
+from .processors.kinogo import create_kinogo_processor
+from .processors.rezka import create_rezka_processor
+from .processors.shiki import create_shiki_processor
+from .processors.spoti import create_spoti_processor
+from .processors.telegram import create_telegram_processor
+from .processors.twitch import create_twitch_processor
 from .views.base import BaseWebFeedItemView
-from .views.hltv import HltvFeedItemView
 from .views.instagram import InstagramFeedItemView
-from .views.kinogo import KinogoFeedItemView
 from .views.matreshka import MatreshkaFeedItemView
 from .views.pornhub import PornhubFeedItemView
 from .views.porno365 import Porno365FeedItemView
 from .views.reddit import RedditFeedItemView
-from .views.rezka import RezkaFeedItemView
 from .views.sasflix import SasflixFeedItemView
-from .views.shiki import ShikiFeedItemView
-from .views.spoti import SpotiFeedItemView
 from .views.stories import StoriesFeedItemView
-from .views.tg import TelegramFeedItemView
 from .views.tiktok import TikTokFeedItemView
-from .views.twitch import TwitchFeedItemView
 from .views.video import VideoFeedItemView
 from .views.vk import VKFeedItemView
 from .views.youtube import YoutubeFeedItemView
@@ -38,44 +38,42 @@ class _RedactedFeedError(Exception):
 
 class GkfeedItemProcessorExtension(
     SasflixFeedItemView,
-    HltvFeedItemView,
     MatreshkaFeedItemView,
     InstagramFeedItemView,
     Porno365FeedItemView,
     PornhubFeedItemView,
     TikTokFeedItemView,
-    TwitchFeedItemView,
     StoriesFeedItemView,
-    ShikiFeedItemView,
-    RezkaFeedItemView,
     RedditFeedItemView,
-    TelegramFeedItemView,
     YoutubeFeedItemView,
     BaseWebFeedItemView,
-    KinogoFeedItemView,
     VideoFeedItemView,
-    SpotiFeedItemView,
     VKFeedItemView,
     BaseHandler,
 ):
     @property
     def _processor_registry(self) -> FeedProcessorRegistry:
-        return FeedProcessorRegistry((create_discours_processor(self._send_photo),))
+        return FeedProcessorRegistry(
+            (
+                create_discours_processor(self._send_photo),
+                create_kinogo_processor(self._send_photo, self._send_item),
+                create_spoti_processor(self._send_photo, self._send_item),
+                create_telegram_processor(self._send_photo, self._send_item),
+                create_rezka_processor(self._send_photo, self._send_item),
+                create_shiki_processor(self._send_photo),
+                create_twitch_processor(self._send_photo),
+                create_hltv_processor(self.answer_photo, self._send_item),
+            )
+        )
 
     @property
     def _processors(self) -> dict[str, _ITEM_PROCESSOR]:
         # TODO: create filters for processor matching instead of startswith prefixes.
         return {
             "https://stor": self._process_stories_item,
-            "https://kinogo": self._process_kinogo_item,
-            "https://open": self._process_spoti_item,
             "https://vk": self._process_vk_item,
             "https://www.youtube": self._process_youtube_item,
-            "https://t.me": self._process_telegram_item,
             "https://www.reddit.com": self._process_reddit_item,
-            "https://hdrezka.me": self._process_rezka_item,
-            "https://shikimori": self._process_shiki_item,
-            "https://www.twitch": self._process_twitch_item,
             "https://www.tiktok": self._process_tiktok_item,
             "https://www.pornhub.com": self._process_pornhub_item,
             "https://de.pornhub.org": self._process_pornhub_item,
@@ -83,7 +81,6 @@ class GkfeedItemProcessorExtension(
             "http://porno365.broker": self._process_porno365_item,
             "https://instagram.com": self._process_instagram_item,
             "https://www.instagram.com": self._process_instagram_item,
-            "https://www.hltv.org": self._process_hltv_item,
             "https://sasflix.ru/": self._process_sasflix_item,
             "https://matreshka.tv/video/": self._process_matreshka_item,
         }
