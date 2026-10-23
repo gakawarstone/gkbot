@@ -3,22 +3,22 @@ from aiogram.types import Message
 
 from filters.vk import VkVideoLink
 from ui.keyboards.vk import VkMarkup
-from utils.vk import get_vk_id
+from utils.vk import parse_vk_reference
 
 
-async def add_download_markup(message: Message):
+async def add_download_markup(message: Message) -> None:
     await message.delete()
 
     if not message.text:
         raise ValueError("Message text is empty")
 
     url = message.text
-    vk_id = get_vk_id(url)
+    reference = parse_vk_reference(url)
     await message.answer(
         url,
-        reply_markup=VkMarkup.get_download_dialog(vk_id),
+        reply_markup=VkMarkup.get_download_dialog(reference),
     )
 
 
-def setup(r: Router):
+def setup(r: Router) -> None:
     r.message.register(add_download_markup, VkVideoLink())
