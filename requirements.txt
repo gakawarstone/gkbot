@@ -65,9 +65,7 @@ h11==0.16.0
 httpcore==1.0.9
     # via httpx
 httpx==0.28.1
-    # via
-    #   notion-client
-    #   openai
+    # via openai
 idna==3.11
     # via
     #   anyio
@@ -84,8 +82,6 @@ multidict==6.7.1
     # via
     #   aiohttp
     #   yarl
-notion-client==0.9.0
-    # via gkbot
 openai==2.26.0
     # via gkbot
 propcache==0.4.1

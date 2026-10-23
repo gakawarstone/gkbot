@@ -7,7 +7,6 @@ GKBot is an async Telegram bot with a modular feed system, media tooling, and op
 - Feed integration with [gkfeed](https://github.com/gakawarstone/gkfeed).
 - Media downloading via `yt-dlp`, with async workers and `ffmpeg` support.
 - LLM integrations via OpenRouter.
-- Notion database/page integration.
 - Text-to-speech via Edge TTS.
 - Wikipedia quote lookup.
 
@@ -17,7 +16,6 @@ GKBot is an async Telegram bot with a modular feed system, media tooling, and op
 - `tortoise-orm` with `asyncpg` (Postgres) and SQLite support
 - `yt-dlp` and `ffmpeg`
 - OpenAI SDK (OpenRouter)
-- `notion-client`
 - `edge-tts`
 - `uv` and `ruff` for tooling
 
@@ -55,7 +53,6 @@ Required:
 - Database config via `DB_URL` or `SQLDIALECT` plus `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT`, `DB_NAME`
 
 Optional integrations:
-- `NOTION_API_TOKEN`
 - `YOUTUBE_API_KEY`
 - `TELEGRAPH_API_KEY`
 - `OPENROUTER_API_KEY`
