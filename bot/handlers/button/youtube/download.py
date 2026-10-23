@@ -1,17 +1,13 @@
-from typing import Literal
+from functools import partial
 
-from aiogram import F, Router
+from aiogram import Router
 from aiogram.types import CallbackQuery, URLInputFile
 
 from handlers.button.download import DownloadRequest, VideoOptions, handle_download
 from services.youtube import YoutubeApiService
 from services.ytdlp._types import VideoFileInfo
-from ui.buttons.youtube.download import (
-    PREFIX,
-    YoutubeDownloadButtonCallbackDataDeserializer,
-    YoutubeDownloadButtonData,
-    YoutubeDownloadButtonDataSerializer,
-)
+from ui.buttons.compatibility import unpack_callback
+from ui.buttons.youtube.download import YoutubeDownloadButtonCallbackData
 from utils.strings import remove_emoji
 
 
@@ -24,32 +20,25 @@ async def _prepare_video(url: str, video: VideoFileInfo) -> VideoOptions:
     }
 
 
-async def _prepare_request(callback_data: str) -> DownloadRequest:
-    data = YoutubeDownloadButtonCallbackDataDeserializer.deserialize(callback_data)
-    media_type: Literal["audio", "video"] | None = None
-    if callback_data.startswith(
-        YoutubeDownloadButtonDataSerializer.get_full_prefix(
-            YoutubeDownloadButtonData.audio
-        )
-    ):
-        media_type = "audio"
-    elif callback_data.startswith(
-        YoutubeDownloadButtonDataSerializer.get_full_prefix(
-            YoutubeDownloadButtonData.video
-        )
-    ):
-        media_type = "video"
+async def _prepare_request(
+    callback_data: str, *, data: YoutubeDownloadButtonCallbackData | None = None
+) -> DownloadRequest:
+    if data is None:
+        data = unpack_callback(YoutubeDownloadButtonCallbackData, callback_data)
     return DownloadRequest(
         url="https://www.youtube.com/watch?v=" + data.yt_video_code,
-        media_type=media_type,
+        media_type=data.action.media_type,
         use_callback_message_as_status=data.use_callback_message_as_status,
         prepare_video=_prepare_video,
     )
 
 
-async def download(callback: CallbackQuery) -> None:
-    await handle_download(callback, _prepare_request)
+async def download(
+    callback: CallbackQuery,
+    callback_data: YoutubeDownloadButtonCallbackData | None = None,
+) -> None:
+    await handle_download(callback, partial(_prepare_request, data=callback_data))
 
 
 def setup(r: Router) -> None:
-    r.callback_query.register(download, F.data.startswith(PREFIX))
+    r.callback_query.register(download, YoutubeDownloadButtonCallbackData.filter())

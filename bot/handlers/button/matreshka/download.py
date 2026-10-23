@@ -1,15 +1,17 @@
-from aiogram import F, Router
+from aiogram import Router
 from aiogram.types import CallbackQuery, InaccessibleMessage
 
 from configs.timeouts import AUDIO_TRANSFER_TIMEOUT_SECONDS
 from services.matreshka import MatreshkaService
 from ui.buttons.matreshka import (
-    PREFIX,
-    MatreshkaDownloadButtonCallbackDataDeserializer,
+    MatreshkaDownloadButtonCallbackData,
 )
 
 
-async def download(callback: CallbackQuery) -> None:
+async def download(
+    callback: CallbackQuery,
+    callback_data: MatreshkaDownloadButtonCallbackData | None = None,
+) -> None:
     if callback.message is None or isinstance(callback.message, InaccessibleMessage):
         raise ValueError("Callback message is inaccessible or None")
     if callback.data is None:
@@ -17,9 +19,8 @@ async def download(callback: CallbackQuery) -> None:
     if callback.bot is None:
         raise ValueError("Callback bot is not configured")
 
-    callback_data = MatreshkaDownloadButtonCallbackDataDeserializer.deserialize(
-        callback.data
-    )
+    if callback_data is None:
+        callback_data = MatreshkaDownloadButtonCallbackData.unpack(callback.data)
     video_url = f"https://matreshka.tv/video/{callback_data.video_id}"
     status_message = await callback.message.answer("Cкачиваю " + video_url)
 
@@ -39,4 +40,6 @@ async def download(callback: CallbackQuery) -> None:
 
 
 def setup(router: Router) -> None:
-    router.callback_query.register(download, F.data.startswith(PREFIX))
+    router.callback_query.register(
+        download, MatreshkaDownloadButtonCallbackData.filter()
+    )

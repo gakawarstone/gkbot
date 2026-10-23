@@ -1,62 +1,33 @@
-from . import generate_yt_code
+import pytest
 
+from ui.buttons.download import DownloadAction
 from ui.buttons.youtube.download import (
     YoutubeDownloadButtonBuilder,
     YoutubeDownloadButtonCallbackData,
-    YoutubeDownloadButtonCallbackDataDeserializer,
-    YoutubeDownloadButtonData,
 )
 
 
-def _create_audio_button():
-    yt_video_code = generate_yt_code()
-    return YoutubeDownloadButtonBuilder.build(
-        button_data=YoutubeDownloadButtonData.audio,
-        callback_data=YoutubeDownloadButtonCallbackData(yt_video_code),
+@pytest.mark.parametrize("action", list(DownloadAction))
+@pytest.mark.parametrize("status", [False, True])
+def test_button_roundtrip(action: DownloadAction, status: bool) -> None:
+    data = YoutubeDownloadButtonCallbackData(
+        action=action,
+        use_callback_message_as_status=status,
+        yt_video_code="000opaque_id",
     )
+    button = YoutubeDownloadButtonBuilder.build(data)
+    assert button.callback_data is not None
+    assert button.callback_data == f"ytbtn:{action.value}:{int(status)}:000opaque_id"
+    assert button.text == action.label
+    assert YoutubeDownloadButtonCallbackData.unpack(button.callback_data) == data
 
 
-def _create_video_button():
-    yt_video_code = generate_yt_code()
-    return YoutubeDownloadButtonBuilder.build(
-        button_data=YoutubeDownloadButtonData.video,
-        callback_data=YoutubeDownloadButtonCallbackData(yt_video_code),
-    )
+def test_different_targets_have_different_callbacks() -> None:
+    def build(code: str) -> str:
+        return YoutubeDownloadButtonCallbackData(
+            action=DownloadAction.video,
+            use_callback_message_as_status=False,
+            yt_video_code=code,
+        ).pack()
 
-
-def test_youtube_button_creation():
-    _create_audio_button()
-    _create_video_button()
-
-
-def test_callback_deserialization():
-    yt_video_code = generate_yt_code()
-    expected_callback_data = YoutubeDownloadButtonCallbackData(yt_video_code)
-
-    btn = YoutubeDownloadButtonBuilder.build(
-        button_data=YoutubeDownloadButtonData.audio,
-        callback_data=YoutubeDownloadButtonCallbackData(yt_video_code),
-    )
-
-    callback_data_str = btn.callback_data  # type: ignore[assignment]
-    desirialized_callback_data = (
-        YoutubeDownloadButtonCallbackDataDeserializer.deserialize(callback_data_str)  # type: ignore[arg-type]
-    )
-
-    assert expected_callback_data == desirialized_callback_data
-
-
-def test_not_constant_callback():
-    btn1 = _create_audio_button()
-    btn2 = _create_audio_button()
-
-    assert btn1.callback_data != btn2.callback_data
-
-    btn1 = _create_video_button()
-    btn2 = _create_video_button()
-    assert btn1.callback_data != btn2.callback_data
-
-    btn1 = _create_audio_button()
-    btn2 = _create_video_button()
-    assert btn1.callback_data != btn2.callback_data
-
+    assert build("first") != build("second")

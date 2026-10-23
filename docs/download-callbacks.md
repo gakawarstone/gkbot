@@ -1,7 +1,7 @@
 # Download callback lifecycle
 
 YouTube, VK, Pornhub and Porno365 use `handlers.button.download.handle_download`.
-Their existing `download(callback)` entry points and router prefixes stay in
+Their `download(callback, callback_data=None)` entry points stay in
 `handlers.button.<source>.download`.
 
 ## Adapter contract
@@ -49,25 +49,16 @@ VK support audio.
 
 ## Callback compatibility and migration
 
-This PR is stacked on the VK reference model PR. Relative to that base, this
-refactor leaves button builders, serializers and deserializers unchanged.
-Existing payloads remain:
+The six download button families now use typed aiogram CallbackData filters.
+Adapters accept the injected model and retain raw-payload validation for direct
+`download(callback)` callers. New VK/Porno365 buttons use a pipe separator;
+existing messages remain supported through a strict legacy filter. All boolean
+and action fields are validated before URL resolution or status creation.
+Unknown events no longer reach the former status-only path. The generic helper
+still accepts `media_type=None` for other callers.
 
-| Source | Payload |
-| --- | --- |
-| YouTube | `ytbtn:dlmp3:<status>:<code>` or `ytbtn:dlmp4:<status>:<code>` |
-| VK | `vkbtn:dlmp3:<status>:<identifier>` or `vkbtn:dlmp4:<status>:<identifier>` |
-| Pornhub | `phbtn:dlmp4:<status>:<code>` |
-| Porno365 | `p365btn:dlmp4:<status>:<page_url>` |
-
-The serializers emit `True` or `False`. The legacy deserializers interpret only
-`False` as false. VK and Porno365 split at most three colons, retaining colons in
-complete URLs. This task does not tighten parsing or change router matching.
-
-A later CallbackData migration can change adapter parsing and registration while
-continuing to produce `DownloadRequest` for this helper. Legacy payload support
-belongs in those adapters/deserializers, not in the shared lifecycle. Carousel
-callbacks are outside this contract.
+See [callback data](callback-data.md) for prefixes, fields and compatibility.
+Carousel callbacks are outside this contract.
 
 ## Tests
 

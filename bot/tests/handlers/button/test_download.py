@@ -24,6 +24,7 @@ from services.youtube import YoutubeApiService, YoutubeVideoData
 from services.ytdlp._types import AudioFileInfo, VideoFileInfo
 from tests.handlers import CallbackEvent
 from tests.mocks.message import make_fake_callback
+from ui.buttons.compatibility import unpack_callback
 
 from ... import integration_test
 
@@ -135,8 +136,9 @@ def harness(monkeypatch: pytest.MonkeyPatch) -> DownloadHarness:
     "case", CASES, ids=lambda case: f"{case.source}-{case.media_type}"
 )
 @pytest.mark.parametrize("reuse_status", [False, True])
+@pytest.mark.parametrize("wire_format", ["native", "legacy"])
 async def test_download_contract(
-    case: DownloadCase, reuse_status: bool, harness: DownloadHarness
+    case: DownloadCase, reuse_status: bool, wire_format: str, harness: DownloadHarness
 ) -> None:
     async def assert_context_active(*args: object, **kwargs: object) -> None:
         harness.exit_audio.assert_not_awaited()
@@ -145,7 +147,19 @@ async def test_download_contract(
     harness.message.answer_audio.side_effect = assert_context_active
     harness.message.answer_video.side_effect = assert_context_active
     handler = import_module(f"handlers.button.{case.source}.download")
-    await handler.download(harness.callback(case.payload(reuse_status)))
+    payload = case.payload(reuse_status)
+    if wire_format == "native":
+        model_name = {
+            "youtube": "Youtube",
+            "vk": "VK",
+            "pornhub": "Pornhub",
+            "porno365": "Porno365",
+        }[case.source]
+        model = getattr(handler, model_name + "DownloadButtonCallbackData")
+        payload = unpack_callback(model, payload).pack()
+    router = Router()
+    handler.setup(router)
+    await router.propagate_event("callback_query", harness.callback(payload))
 
     status_text = "Cкачиваю " + case.url
     if reuse_status:
@@ -238,7 +252,7 @@ async def test_malformed_payload_fails_before_status(
     case: DownloadCase, harness: DownloadHarness
 ) -> None:
     handler = import_module(f"handlers.button.{case.source}.download")
-    with pytest.raises(ValueError):
+    with pytest.raises((TypeError, ValueError)):
         await handler.download(harness.callback(case.prefix + ":dlmp4"))
     harness.message.answer.assert_not_awaited()
     harness.message.edit_text.assert_not_awaited()
@@ -246,13 +260,15 @@ async def test_malformed_payload_fails_before_status(
 
 
 @pytest.mark.parametrize("case", VIDEO_CASES, ids=lambda case: case.source)
-async def test_unknown_event_preserves_status_only_path(
+async def test_unknown_event_fails_before_status(
     case: DownloadCase, harness: DownloadHarness
 ) -> None:
     handler = import_module(f"handlers.button.{case.source}.download")
-    await handler.download(harness.callback(case.payload(event="unknown")))
-    harness.message.answer.assert_awaited_once_with("Cкачиваю " + case.url)
-    harness.status.delete.assert_awaited_once_with()
+    with pytest.raises(ValueError):
+        await handler.download(harness.callback(case.payload(event="unknown")))
+    harness.message.answer.assert_not_awaited()
+    harness.status.delete.assert_not_awaited()
+    harness.resolve_url.assert_not_awaited()
     harness.start_audio.assert_not_awaited()
     harness.start_video.assert_not_awaited()
 
@@ -349,10 +365,16 @@ async def test_router_registration(
     handler = import_module(f"handlers.button.{case.source}.download")
     router = Router()
     handler.setup(router)
-    registered = router.callback_query.handlers[0]
-    assert registered.callback is handler.download
-    assert (await registered.check(harness.callback(case.payload())))[0]
-    assert not (await registered.check(harness.callback("unrelated:dlmp4:False:id")))[0]
+    matches = []
+    for registered in router.callback_query.handlers:
+        assert registered.callback is handler.download
+        matched, data = await registered.check(harness.callback(case.payload()))
+        if matched:
+            matches.append(data["callback_data"])
+        assert not (
+            await registered.check(harness.callback("unrelated:dlmp4:False:id"))
+        )[0]
+    assert len(matches) == 1
 
 
 @integration_test

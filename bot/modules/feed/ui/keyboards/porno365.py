@@ -1,10 +1,11 @@
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+from ui.buttons.download import DownloadAction
 from ui.buttons.porno365 import (
     Porno365DownloadButtonBuilder,
     Porno365DownloadButtonCallbackData,
-    Porno365DownloadButtonData,
 )
+
 from . import BaseFeedMarkup, FeedMarkupButtons, FeedMarkupData
 
 
@@ -18,8 +19,11 @@ class Porno365FeedItemMarkup(BaseFeedMarkup):
             [
                 [
                     Porno365DownloadButtonBuilder.build(
-                        Porno365DownloadButtonData.video,
-                        Porno365DownloadButtonCallbackData(link),
+                        Porno365DownloadButtonCallbackData(
+                            action=DownloadAction.video,
+                            use_callback_message_as_status=False,
+                            page_url=link,
+                        ),
                     ),
                 ],
                 cls._get_feed_buttons_row(item_id),

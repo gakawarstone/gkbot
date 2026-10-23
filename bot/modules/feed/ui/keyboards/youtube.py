@@ -1,10 +1,11 @@
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+from ui.buttons.download import DownloadAction
 from ui.buttons.youtube.download import (
     YoutubeDownloadButtonBuilder,
     YoutubeDownloadButtonCallbackData,
-    YoutubeDownloadButtonData,
 )
+
 from . import BaseFeedMarkup, FeedMarkupButtons, FeedMarkupData
 
 
@@ -19,12 +20,18 @@ class YoutubeFeedItemMarkup(BaseFeedMarkup):
             [
                 [
                     YoutubeDownloadButtonBuilder.build(
-                        YoutubeDownloadButtonData.audio,
-                        YoutubeDownloadButtonCallbackData(yt_code),
+                        YoutubeDownloadButtonCallbackData(
+                            action=DownloadAction.audio,
+                            use_callback_message_as_status=False,
+                            yt_video_code=yt_code,
+                        ),
                     ),
                     YoutubeDownloadButtonBuilder.build(
-                        YoutubeDownloadButtonData.video,
-                        YoutubeDownloadButtonCallbackData(yt_code),
+                        YoutubeDownloadButtonCallbackData(
+                            action=DownloadAction.video,
+                            use_callback_message_as_status=False,
+                            yt_video_code=yt_code,
+                        ),
                     ),
                 ],
                 cls._get_feed_buttons_row(item_id),
