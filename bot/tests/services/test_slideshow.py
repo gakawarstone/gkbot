@@ -8,7 +8,8 @@ import pytest
 
 from services.audio import AudioService
 from services.cache_dir import CacheDir
-from services.ffmpeg import FfmpegService
+from services.ffmpeg_runner import FfmpegRunner
+from services.slideshow import SlideshowRenderer
 
 
 @pytest.fixture
@@ -24,12 +25,12 @@ async def test_slideshow_file_uses_owned_output_directory(
     images = AsyncMock()
     audio = AsyncMock()
     run = AsyncMock()
-    monkeypatch.setattr(FfmpegService, "download_and_prepare_images", images)
+    monkeypatch.setattr(SlideshowRenderer, "download_and_prepare_images", images)
     monkeypatch.setattr(AudioService, "download_and_prepare_audio", audio)
-    monkeypatch.setattr(FfmpegService, "_run_command", run)
+    monkeypatch.setattr(FfmpegRunner, "run", run)
     output_path = str(cache_root / "video.mp4")
     urls = ["https://example.invalid/image"]
-    await FfmpegService.make_slideshow_file_from_web(urls, audio_url, output_path)
+    await SlideshowRenderer.make_slideshow_file_from_web(urls, audio_url, output_path)
     images.assert_awaited_once_with(urls, str(cache_root))
     assert run.await_args is not None
     command = run.await_args.args[0]
@@ -44,6 +45,67 @@ async def test_slideshow_file_uses_owned_output_directory(
         assert "-shortest" not in command
 
 
+@pytest.mark.parametrize("image_count", [1, 2, 3, 4])
+async def test_images_keep_order_and_repeat_last_frame_to_at_least_three(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, image_count: int
+) -> None:
+    urls = [f"https://example.invalid/image/{index}" for index in range(image_count)]
+    commands: list[list[str]] = []
+
+    async def prepare(command: list[str]) -> None:
+        commands.append(command)
+        Path(command[-1]).write_text(command[3])
+
+    monkeypatch.setattr(FfmpegRunner, "run", prepare)
+    await SlideshowRenderer.download_and_prepare_images(urls, str(tmp_path))
+
+    assert commands == [
+        [
+            "ffmpeg",
+            "-y",
+            "-i",
+            url,
+            "-vf",
+            (
+                "scale=trunc(oh*a/2)*2:720,"
+                "pad=max(iw\\,ih*9/16):max(ih\\,iw*16/9):(ow-iw)/2:(oh-ih)/2:black"
+            ),
+            str(tmp_path / f"{index:03d}.jpg"),
+        ]
+        for index, url in enumerate(urls, start=1)
+    ]
+    assert [path.read_text() for path in sorted(tmp_path.iterdir())] == (
+        urls + [urls[-1]] * max(0, 3 - image_count)
+    )
+
+
+@pytest.mark.parametrize("failure_stage", ["images", "audio", "render"])
+async def test_file_render_propagates_errors_and_leaves_caller_directory(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, failure_stage: str
+) -> None:
+    error = CalledProcessError(1, "ffmpeg")
+    images = AsyncMock(side_effect=error if failure_stage == "images" else None)
+    audio = AsyncMock(side_effect=error if failure_stage == "audio" else None)
+    run = AsyncMock(side_effect=error if failure_stage == "render" else None)
+    monkeypatch.setattr(SlideshowRenderer, "download_and_prepare_images", images)
+    monkeypatch.setattr(AudioService, "download_and_prepare_audio", audio)
+    monkeypatch.setattr(FfmpegRunner, "run", run)
+    existing_file = tmp_path / "caller.txt"
+    existing_file.write_bytes(b"keep")
+
+    with pytest.raises(CalledProcessError) as raised:
+        await SlideshowRenderer.make_slideshow_file_from_web(
+            ["image"], "audio", str(tmp_path / "video.mp4")
+        )
+
+    assert raised.value is error
+    assert existing_file.read_bytes() == b"keep"
+    if failure_stage == "images":
+        audio.assert_not_awaited()
+    if failure_stage != "render":
+        run.assert_not_awaited()
+
+
 @pytest.mark.parametrize("fail", [False, True])
 async def test_slideshow_bytes_compatibility_and_cleanup(
     cache_root: Path, monkeypatch: pytest.MonkeyPatch, fail: bool
@@ -53,13 +115,14 @@ async def test_slideshow_bytes_compatibility_and_cleanup(
         if fail:
             raise CalledProcessError(1, "ffmpeg")
 
-    monkeypatch.setattr(FfmpegService, "make_slideshow_file_from_web", generate)
+    monkeypatch.setattr(SlideshowRenderer, "make_slideshow_file_from_web", generate)
     if fail:
         with pytest.raises(CalledProcessError):
-            await FfmpegService.make_slideshow_from_web(["image"], None)
+            await SlideshowRenderer.make_slideshow_from_web(["image"], None)
     else:
         assert (
-            await FfmpegService.make_slideshow_from_web(["image"], None) == b"slideshow"
+            await SlideshowRenderer.make_slideshow_from_web(["image"], None)
+            == b"slideshow"
         )
     assert list(cache_root.iterdir()) == []
 
@@ -69,7 +132,9 @@ def test_slideshow_command_preserves_input_option_order(
     audio_input: str | None,
 ) -> None:
     audio_options = ["-stream_loop", "-1", "-i", audio_input] if audio_input else []
-    assert FfmpegService._build_slideshow_command("*.jpg", audio_input, "out.mp4") == [
+    assert SlideshowRenderer._build_slideshow_command(
+        "*.jpg", audio_input, "out.mp4"
+    ) == [
         "ffmpeg",
         "-y",
         "-framerate",
@@ -107,9 +172,11 @@ async def test_cancelled_slideshow_finishes_before_cleanup(
     async def run(command: list[str]) -> None:
         await asyncio.to_thread(write, command[-1])
 
-    monkeypatch.setattr(FfmpegService, "_run_command", run)
-    monkeypatch.setattr(FfmpegService, "download_and_prepare_images", AsyncMock())
-    task = asyncio.create_task(FfmpegService.make_slideshow_from_web(["image"], None))
+    monkeypatch.setattr(FfmpegRunner, "run", run)
+    monkeypatch.setattr(SlideshowRenderer, "download_and_prepare_images", AsyncMock())
+    task = asyncio.create_task(
+        SlideshowRenderer.make_slideshow_from_web(["image"], None)
+    )
     try:
         assert await asyncio.to_thread(started.wait, 5)
         task.cancel()
@@ -131,7 +198,7 @@ async def test_slideshow_bytes_cleanup_when_output_is_missing(
         if remove_directory:
             Path(output).parent.rmdir()
 
-    monkeypatch.setattr(FfmpegService, "make_slideshow_file_from_web", generate)
+    monkeypatch.setattr(SlideshowRenderer, "make_slideshow_file_from_web", generate)
     with pytest.raises(FileNotFoundError):
-        await FfmpegService.make_slideshow_from_web(["image"], None)
+        await SlideshowRenderer.make_slideshow_from_web(["image"], None)
     assert list(cache_root.iterdir()) == []
