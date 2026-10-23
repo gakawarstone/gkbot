@@ -69,6 +69,8 @@ class HttpService:
     ) -> AsyncIterator[aiohttp.ClientResponse]:
         try:
             request_url = URL(url, encoded=encoded)
+            # Encoded URLs defer port validation until this property is read.
+            _ = request_url.port
         except ValueError as error:
             raise HttpRequestError(f"Invalid request URL: {error}") from error
         try:

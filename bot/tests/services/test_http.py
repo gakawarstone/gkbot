@@ -174,7 +174,9 @@ async def test_timeout_and_redirect_loop(
 
 
 @pytest.mark.parametrize("method", METHODS)
-@pytest.mark.parametrize("failure", ["invalid_url", "invalid_host", "connection"])
+@pytest.mark.parametrize(
+    "failure", ["invalid_url", "invalid_host", "invalid_port", "connection"]
+)
 async def test_connection_errors(method: str, failure: str) -> None:
     expected: type[Exception]
     if failure == "invalid_url":
@@ -182,6 +184,9 @@ async def test_connection_errors(method: str, failure: str) -> None:
         expected = aiohttp.InvalidURL
     elif failure == "invalid_host":
         url = "http://["
+        expected = ValueError
+    elif failure == "invalid_port":
+        url = "http://127.0.0.1:invalid"
         expected = ValueError
     else:
         # Reserve a local port without listening, so refusal does not use DNS.
