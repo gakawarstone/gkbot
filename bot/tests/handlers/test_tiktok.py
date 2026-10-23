@@ -3,8 +3,9 @@ from typing import override
 import pytest
 
 from handlers.text.tiktok import TikTokVideoHandler
+
 from .. import requires_integration
-from . import Event, Bot
+from . import Bot, Event
 
 
 class MockedHandler(TikTokVideoHandler):

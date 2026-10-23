@@ -1,11 +1,12 @@
-from typing import ClassVar
-import re
 import json
+import re
+from typing import ClassVar
 
 from services.http import HttpService
+
 from ..types import InfoVideoTikTok
-from .exceptions import SourceInfoExtractFailed
 from ._base import BaseExtractor
+from .exceptions import SourceInfoExtractFailed
 
 
 class Tikdown(BaseExtractor):

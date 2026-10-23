@@ -1,8 +1,9 @@
 from dataclasses import dataclass
+
 from aiogram.types import BufferedInputFile
 from bs4 import BeautifulSoup, Tag
 
-from services.http import HttpService, HttpRequestError
+from services.http import HttpRequestError, HttpService
 
 type _Link = str
 type _Pixel = int

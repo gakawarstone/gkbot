@@ -43,7 +43,16 @@ testpaths = ["bot/tests"]
 pythonpath = ["bot"]
 
 [tool.ruff]
+# Runtime imports are rooted at bot/; see docs/import-ordering.md.
 src = ["bot"]
+
+[tool.ruff.lint]
+# Keep import ordering explicit while preserving Ruff's other default checks.
+extend-select = ["I001"]
+
+[tool.ruff.lint.isort]
+# src detects core/configs/services/etc.; also recognize package-qualified imports.
+known-first-party = ["bot"]
 
 [tool.mypy]
 mypy_path = "$MYPY_CONFIG_FILE_DIR/bot"

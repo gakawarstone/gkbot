@@ -4,14 +4,16 @@ from unittest.mock import AsyncMock, MagicMock
 from aiogram.types import Message
 
 from configs.admins import ADMINS
+
 from .. import INTEGRATION_TEST
 
 if INTEGRATION_TEST:
     from aiogram import Bot as _AiogramBot
+    from aiogram.client.default import DefaultBotProperties
     from aiogram.client.session.aiohttp import AiohttpSession
     from aiogram.client.telegram import TelegramAPIServer
-    from aiogram.client.default import DefaultBotProperties
-    from configs.env import BOT_TOKEN, API_SERVER_URL
+
+    from configs.env import API_SERVER_URL, BOT_TOKEN
 
     if BOT_TOKEN is None:
         raise ValueError("BOT_TOKEN is required for integration tests")

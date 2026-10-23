@@ -1,5 +1,5 @@
-from typing import ClassVar
 from collections.abc import Callable
+from typing import ClassVar
 
 from ._types import FeedItem
 from .api import GkfeedApi

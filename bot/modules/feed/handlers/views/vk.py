@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup, Tag
 
 from services.gkfeed import FeedItem
 from services.open_graph import OpenGraphMetadata, OpenGraphService
+
 from ...ui.keyboards import FeedMarkup
 from ...ui.keyboards.vk import VKFeedVideoItemMarkup
 from . import BaseFeedItemView

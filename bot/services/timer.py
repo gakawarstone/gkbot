@@ -1,8 +1,8 @@
-from typing import ClassVar
 from datetime import datetime
 from email import utils
+from typing import ClassVar
 
-from .exceptions import TimerNotStartedException, TimerNotFinishedException
+from .exceptions import TimerNotFinishedException, TimerNotStartedException
 
 
 class Timer:

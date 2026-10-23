@@ -1,9 +1,11 @@
 from typing import ClassVar
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from models.books import Book
-from .types import _BookProperty, _BookProperties
+
+from .types import _BookProperties, _BookProperty
 
 
 class PropertiesMarkup:

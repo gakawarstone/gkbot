@@ -1,13 +1,12 @@
-from typing import ClassVar
-from typing import Any
+from typing import Any, ClassVar
 
 from aiogram import Router
 from aiogram.filters import Command
 from aiogram.types import BufferedInputFile
 
+from configs.commands import USER_COMMANDS
 from extensions.handlers.message.base import BaseHandler
 from services.http import HttpService
-from configs.commands import USER_COMMANDS
 
 
 class DownloadAsura(BaseHandler):

@@ -1,8 +1,10 @@
 import base64
-from bs4 import BeautifulSoup, Tag
+
 from aiogram.types import BufferedInputFile
+from bs4 import BeautifulSoup, Tag
 
 from services.gkfeed import FeedItem
+
 from ...ui.keyboards import FeedMarkup
 from . import BaseFeedItemView
 

@@ -1,8 +1,7 @@
-from typing import ClassVar
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, ClassVar
 
-from extensions.handlers.context_manager import BaseContextManager, BaseContext
+from extensions.handlers.context_manager import BaseContext, BaseContextManager
 from tests.mocks.message import fake_event
 
 

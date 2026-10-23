@@ -1,4 +1,5 @@
 from typing import ClassVar
+
 from ._types import DownloadOptions
 
 

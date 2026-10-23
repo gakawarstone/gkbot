@@ -1,16 +1,16 @@
-from typing import ClassVar
-from typing import override
 from collections.abc import Callable
+from typing import ClassVar, override
 from unittest.mock import patch
 
 import pytest
 
+from modules.feed import ShowFeedItemsHandler
 from services.gkfeed import (
     FeedItem,
-    GkfeedItemsPicker,
     GkfeedCredentials,
+    GkfeedItemsPicker,
 )
-from modules.feed import ShowFeedItemsHandler
+
 from .. import requires_integration
 from . import Bot, Event
 

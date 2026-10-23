@@ -1,9 +1,9 @@
-import subprocess
 import asyncio
-from pathlib import Path
+import subprocess
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from http.cookies import SimpleCookie
+from pathlib import Path
 
 import aiohttp
 from aiohttp.client_exceptions import ClientConnectorError, ContentTypeError, InvalidURL

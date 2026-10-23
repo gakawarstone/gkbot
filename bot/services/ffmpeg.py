@@ -1,11 +1,10 @@
-from typing import ClassVar
 import asyncio
 import json
 import shutil
 import subprocess
 from pathlib import Path
 from subprocess import CompletedProcess
-from typing import Any
+from typing import Any, ClassVar
 
 from services.cache_dir import CacheDir
 from utils.async_cleanup import wait_for_completion

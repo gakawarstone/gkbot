@@ -1,14 +1,14 @@
 import pytest
 
 from handlers.button.youtube.download import download
+from tests.handlers import CallbackEvent
 from ui.buttons.youtube.download import (
+    YoutubeDownloadButtonCallbackData,
     YoutubeDownloadButtonCallbackDataSerializer,
     YoutubeDownloadButtonData,
-    YoutubeDownloadButtonCallbackData,
 )
 
 from .... import requires_integration
-from tests.handlers import CallbackEvent
 
 
 @requires_integration(

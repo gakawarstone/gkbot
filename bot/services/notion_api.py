@@ -1,5 +1,6 @@
-from notion_client import AsyncClient
 from datetime import datetime
+
+from notion_client import AsyncClient
 
 from configs.env import NOTION_API_TOKEN
 

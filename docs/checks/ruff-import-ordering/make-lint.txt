@@ -1,0 +1,208 @@
+uvx ruff check bot/ 
+bot/configs/env.py:27:13: UP045 [*] Use `X | None` for type annotations
+bot/configs/env.py:28:10: UP045 [*] Use `X | None` for type annotations
+bot/configs/env.py:29:14: UP045 [*] Use `X | None` for type annotations
+bot/configs/env.py:30:10: UP045 [*] Use `X | None` for type annotations
+bot/configs/env.py:31:10: UP045 [*] Use `X | None` for type annotations
+bot/configs/env.py:32:10: UP045 [*] Use `X | None` for type annotations
+bot/core/commands.py:1:1: UP035 [*] Import from `collections.abc` instead: `Generator`
+bot/core/commands.py:5:26: UP043 [*] Unnecessary default type arguments
+bot/core/keyboard_builder.py:14:22: UP045 [*] Use `X | None` for type annotations
+bot/extensions/handlers/base.py:17:53: UP045 [*] Use `X | None` for type annotations
+bot/extensions/handlers/base.py:18:12: SIM118 Use `key not in dict` instead of `key not in dict.keys()`
+bot/extensions/handlers/callback/base.py:18:53: UP045 [*] Use `X | None` for type annotations
+bot/extensions/handlers/callback/base.py:19:12: SIM118 Use `key not in dict` instead of `key not in dict.keys()`
+bot/extensions/handlers/callback/carousel.py:2:1: UP035 `typing.Type` is deprecated, use `type` instead
+bot/extensions/handlers/callback/carousel.py:12:14: UP006 [*] Use `type` instead of `Type` for type annotation
+bot/extensions/handlers/callback/carousel.py:57:13: TRY004 Prefer `TypeError` exception for invalid type
+bot/extensions/handlers/callback/carousel.py:63:27: B009 [*] Do not call `getattr` with a constant attribute value. It is not any safer than normal property access.
+bot/extensions/handlers/context_manager/__init__.py:4:11: RUF022 [*] `__all__` is not sorted
+bot/extensions/handlers/context_manager/_base.py:2:1: UP035 `typing.Type` is deprecated, use `type` instead
+bot/extensions/handlers/context_manager/_base.py:11:25: PYI059 `Generic[]` should always be the last base class
+bot/extensions/handlers/context_manager/_base.py:11:40: UP046 Generic class `BaseContextManager` uses `Generic` subclass instead of type parameters
+bot/extensions/handlers/context_manager/_base.py:12:12: UP006 [*] Use `type` instead of `Type` for type annotation
+bot/extensions/handlers/context_manager/_base.py:56:48: UP045 [*] Use `X | None` for type annotations
+bot/extensions/handlers/context_manager/_utils.py:1:1: UP035 `typing.Type` is deprecated, use `type` instead
+bot/extensions/handlers/context_manager/_utils.py:8:21: UP006 [*] Use `type` instead of `Type` for type annotation
+bot/extensions/handlers/context_manager/_utils.py:8:30: UP006 [*] Use `type` instead of `Type` for type annotation
+bot/extensions/handlers/context_manager/_utils.py:12:49: UP006 [*] Use `type` instead of `Type` for type annotation
+bot/extensions/handlers/context_manager/_utils.py:25:18: UP031 Use format specifiers instead of percent format
+bot/extensions/handlers/message/base.py:18:53: UP045 [*] Use `X | None` for type annotations
+bot/extensions/handlers/message/base.py:19:12: SIM118 Use `key not in dict` instead of `key not in dict.keys()`
+bot/extensions/handlers/message/file_extension.py:26:31: ASYNC230 Async functions should not open files with blocking methods like `open`
+bot/extensions/handlers/message/file_extension.py:26:31: SIM115 Use a context manager for opening files
+bot/extensions/handlers/query/failed.py:3:1: UP035 [*] Import from `collections.abc` instead: `Awaitable`, `Callable`
+bot/extensions/handlers/query/failed.py:3:1: UP035 `typing.Type` is deprecated, use `type` instead
+bot/extensions/handlers/query/failed.py:18:32: UP006 [*] Use `type` instead of `Type` for type annotation
+bot/handlers/button/delete_message.py:9:9: TRY004 Prefer `TypeError` exception for invalid type
+bot/handlers/inline/_types.py:27:5: UP007 [*] Use `X | Y` for type annotations
+bot/handlers/inline/youtube.py:12:9: TRY004 Prefer `TypeError` exception for invalid type
+bot/handlers/user/asura.py:13:16: RUF012 Mutable default value for class attribute
+bot/handlers/user/books/messages/add/_base.py:18:51: UP045 [*] Use `X | None` for type annotations
+bot/handlers/user/books/messages/add/_context.py:11:11: UP045 [*] Use `X | None` for type annotations
+bot/handlers/user/books/messages/add/_context.py:12:13: UP045 [*] Use `X | None` for type annotations
+bot/handlers/user/books/messages/add/_context.py:13:18: UP045 [*] Use `X | None` for type annotations
+bot/handlers/user/books/messages/add/_context.py:14:14: UP045 [*] Use `X | None` for type annotations
+bot/handlers/user/books/messages/edit_property/_context.py:10:20: UP045 [*] Use `X | None` for type annotations
+bot/handlers/user/books/messages/edit_property/_context.py:11:16: UP045 [*] Use `X | None` for type annotations
+bot/handlers/user/books/messages/edit_property/_context.py:12:14: UP045 [*] Use `X | None` for type annotations
+bot/handlers/user/chatgpt/_context.py:9:15: UP045 [*] Use `X | None` for type annotations
+bot/handlers/user/download/_context.py:9:16: UP045 [*] Use `X | None` for type annotations
+bot/handlers/user/list.py:11:17: UP031 Use format specifiers instead of percent format
+bot/handlers/user/reminder/_base.py:19:51: UP045 [*] Use `X | None` for type annotations
+bot/handlers/user/reminder/_context.py:14:11: UP045 [*] Use `X | None` for type annotations
+bot/handlers/user/reminder/_context.py:15:9: UP045 [*] Use `X | None` for type annotations
+bot/handlers/user/reminder/_context.py:16:11: UP045 [*] Use `X | None` for type annotations
+bot/handlers/user/reminder/_context.py:17:11: UP045 [*] Use `X | None` for type annotations
+bot/handlers/user/reminder/_context.py:18:14: UP045 [*] Use `X | None` for type annotations
+bot/handlers/user/reminder/get_date.py:28:40: UP034 [*] Avoid extraneous parentheses
+bot/handlers/user/reminder/get_date.py:33:17: UP034 [*] Avoid extraneous parentheses
+bot/handlers/user/reminder/get_text.py:19:13: UP034 [*] Avoid extraneous parentheses
+bot/handlers/user/reminder/get_time.py:28:40: UP034 [*] Avoid extraneous parentheses
+bot/handlers/user/road/pomodoro/pomodoro.py:36:13: UP031 Use format specifiers instead of percent format
+bot/handlers/user/road/settings/_context.py:9:19: UP045 [*] Use `X | None` for type annotations
+bot/handlers/user/road/settings/_context.py:10:24: UP045 [*] Use `X | None` for type annotations
+bot/handlers/user/road/settings/edit/get_new_setting_value.py:42:22: UP017 [*] Use `datetime.UTC` alias
+bot/handlers/user/road/start.py:23:17: UP031 Use format specifiers instead of percent format
+bot/handlers/user/tasks.py:71:12: BLE001 Do not catch blind exception: `Exception`
+bot/handlers/user/wiki.py:33:13: UP031 Use format specifiers instead of percent format
+bot/middlewares/delete_queue.py:2:1: UP035 [*] Import from `collections.abc` instead: `Awaitable`, `Callable`
+bot/middlewares/delete_queue.py:2:1: UP035 `typing.Dict` is deprecated, use `dict` instead
+bot/middlewares/delete_queue.py:35:44: UP006 [*] Use `dict` instead of `Dict` for type annotation
+bot/middlewares/delete_queue.py:37:15: UP006 [*] Use `dict` instead of `Dict` for type annotation
+bot/middlewares/delete_queue.py:44:29: UP006 [*] Use `dict` instead of `Dict` for type annotation
+bot/middlewares/not_enough_rights.py:1:1: UP035 [*] Import from `collections.abc` instead: `Awaitable`, `Callable`
+bot/middlewares/not_enough_rights.py:1:1: UP035 `typing.Dict` is deprecated, use `dict` instead
+bot/middlewares/not_enough_rights.py:11:44: UP006 [*] Use `dict` instead of `Dict` for type annotation
+bot/middlewares/not_enough_rights.py:13:15: UP006 [*] Use `dict` instead of `Dict` for type annotation
+bot/middlewares/register_user.py:1:1: UP035 [*] Import from `collections.abc` instead: `Awaitable`, `Callable`
+bot/middlewares/register_user.py:1:1: UP035 `typing.Dict` is deprecated, use `dict` instead
+bot/middlewares/register_user.py:12:44: UP006 [*] Use `dict` instead of `Dict` for type annotation
+bot/middlewares/register_user.py:14:15: UP006 [*] Use `dict` instead of `Dict` for type annotation
+bot/middlewares/timezone.py:1:1: UP035 [*] Import from `collections.abc` instead: `Awaitable`, `Callable`
+bot/middlewares/timezone.py:1:1: UP035 `typing.Dict` is deprecated, use `dict` instead
+bot/middlewares/timezone.py:13:44: UP006 [*] Use `dict` instead of `Dict` for type annotation
+bot/middlewares/timezone.py:15:15: UP006 [*] Use `dict` instead of `Dict` for type annotation
+bot/middlewares/user_data.py:1:1: UP035 [*] Import from `collections.abc` instead: `Awaitable`, `Callable`
+bot/middlewares/user_data.py:1:1: UP035 `typing.Dict` is deprecated, use `dict` instead
+bot/middlewares/user_data.py:8:13: UP006 [*] Use `dict` instead of `Dict` for type annotation
+bot/middlewares/user_data.py:8:23: UP006 [*] Use `dict` instead of `Dict` for type annotation
+bot/middlewares/user_data.py:8:41: RUF012 Mutable default value for class attribute
+bot/middlewares/user_data.py:12:44: UP006 [*] Use `dict` instead of `Dict` for type annotation
+bot/middlewares/user_data.py:14:15: UP006 [*] Use `dict` instead of `Dict` for type annotation
+bot/modules/feed/handlers/_item_processor.py:85:17: SIM118 Use `key in dict` instead of `key in dict.keys()`
+bot/modules/feed/handlers/callbacks.py:19:13: TRY004 Prefer `TypeError` exception for invalid type
+bot/modules/feed/handlers/callbacks.py:35:13: TRY004 Prefer `TypeError` exception for invalid type
+bot/modules/feed/handlers/messages.py:20:13: TRY004 Prefer `TypeError` exception for invalid type
+bot/modules/feed/handlers/messages.py:42:17: BLE001 Do not catch blind exception: `Exception`
+bot/modules/feed/handlers/views/instagram.py:18:13: TRY004 Prefer `TypeError` exception for invalid type
+bot/modules/feed/handlers/views/instagram.py:22:13: TRY004 Prefer `TypeError` exception for invalid type
+bot/modules/feed/handlers/views/reddit.py:49:16: BLE001 Do not catch blind exception: `Exception`
+bot/modules/feed/handlers/views/reddit.py:86:60: UP045 [*] Use `X | None` for type annotations
+bot/modules/feed/handlers/views/reddit.py:106:60: UP045 [*] Use `X | None` for type annotations
+bot/modules/feed/handlers/views/reddit.py:112:55: UP045 [*] Use `X | None` for type annotations
+bot/modules/feed/handlers/views/reddit.py:161:57: UP045 [*] Use `X | None` for type annotations
+bot/modules/feed/handlers/views/vk.py:82:13: TRY004 Prefer `TypeError` exception for invalid type
+bot/modules/feed/ui/keyboards/__init__.py:1:1: UP035 `typing.Type` is deprecated, use `type` instead
+bot/modules/feed/ui/keyboards/__init__.py:23:14: UP006 [*] Use `type` instead of `Type` for type annotation
+bot/modules/feed/ui/keyboards/__init__.py:24:11: UP006 [*] Use `type` instead of `Type` for type annotation
+bot/services/converters/tests/parsers/platonus.py:56:9: PLW0120 [*] `else` clause on loop without a `break` statement; remove the `else` and dedent its contents
+bot/services/converters/tests/platonus2indigo.py:1:1: UP035 [*] Import from `collections.abc` instead: `Generator`
+bot/services/converters/tests/platonus2indigo.py:13:10: UP043 [*] Unnecessary default type arguments
+bot/services/ffmpeg.py:20:30: RUF012 Mutable default value for class attribute
+bot/services/ffmpeg.py:27:32: RUF012 Mutable default value for class attribute
+bot/services/ffmpeg.py:39:34: RUF012 Mutable default value for class attribute
+bot/services/gkfeed/__init__.py:6:11: RUF022 [*] `__all__` is not sorted
+bot/services/gkfeed/picker.py:1:1: UP035 [*] Import from `collections.abc` instead: `Callable`
+bot/services/gkfeed/picker.py:9:42: RUF012 Mutable default value for class attribute
+bot/services/http.py:32:43: UP045 [*] Use `X | None` for type annotations
+bot/services/http.py:44:33: UP045 [*] Use `X | None` for type annotations
+bot/services/http.py:55:33: UP045 [*] Use `X | None` for type annotations
+bot/services/http.py:75:45: UP045 [*] Use `X | None` for type annotations
+bot/services/http.py:86:45: UP045 [*] Use `X | None` for type annotations
+bot/services/http.py:97:33: UP045 [*] Use `X | None` for type annotations
+bot/services/http.py:116:18: ASYNC230 Async functions should not open files with blocking methods like `open`
+bot/services/jutsu.py:9:1: UP040 Type alias `_Link` uses `TypeAlias` annotation instead of the `type` keyword
+bot/services/jutsu.py:10:1: UP040 Type alias `_Pixel` uses `TypeAlias` annotation instead of the `type` keyword
+bot/services/litterbox.py:9:16: ASYNC230 Async functions should not open files with blocking methods like `open`
+bot/services/litterbox.py:9:16: SIM115 Use a context manager for opening files
+bot/services/llm/_base.py:2:1: UP035 [*] Import from `collections.abc` instead: `AsyncGenerator`
+bot/services/llm/_base.py:17:36: UP045 [*] Use `X | None` for type annotations
+bot/services/llm/_base.py:18:10: UP043 [*] Unnecessary default type arguments
+bot/services/notion_api.py:83:38: UP045 [*] Use `X | None` for type annotations
+bot/services/schedule.py:5:1: UP035 [*] Import from `collections.abc` instead: `Awaitable`, `Callable`
+bot/services/schedule.py:78:24: BLE001 Do not catch blind exception: `Exception`
+bot/services/static.py:28:20: ASYNC230 Async functions should not open files with blocking methods like `open`
+bot/services/telegraph.py:11:1: UP040 Type alias `TelegraphContent` uses `TypeAlias` annotation instead of the `type` keyword
+bot/services/telegraph.py:36:21: RUF012 Mutable default value for class attribute
+bot/services/telegraph.py:62:22: RUF012 Mutable default value for class attribute
+bot/services/tiktok/extractor/mdown.py:14:16: RUF012 Mutable default value for class attribute
+bot/services/tiktok/extractor/tikdown.py:13:32: RUF012 Mutable default value for class attribute
+bot/services/tiktok/extractor/yt_dlp.py:57:17: TRY004 Prefer `TypeError` exception for invalid type
+bot/services/tiktok/types.py:9:16: UP045 [*] Use `X | None` for type annotations
+bot/services/tiktok/types.py:10:23: UP045 [*] Use `X | None` for type annotations
+bot/services/tiktok/types.py:11:16: UP045 [*] Use `X | None` for type annotations
+bot/services/tiktok/types.py:12:18: UP045 [*] Use `X | None` for type annotations
+bot/services/tiktok/types.py:13:13: UP045 [*] Use `X | None` for type annotations
+bot/services/tiktok/types.py:14:12: UP045 [*] Use `X | None` for type annotations
+bot/services/tiktok/types.py:15:15: UP045 [*] Use `X | None` for type annotations
+bot/services/timer.py:51:34: RUF012 Mutable default value for class attribute
+bot/services/timezone.py:26:56: UP045 [*] Use `X | None` for type annotations
+bot/services/timezone.py:41:16: PLR1716 [*] Contains chained boolean comparison that can be simplified
+bot/services/tts/__init__.py:4:11: RUF022 [*] `__all__` is not sorted
+bot/services/tts/providers.py:22:14: ASYNC230 Async functions should not open files with blocking methods like `open`
+bot/services/wiki.py:14:47: UP045 [*] Use `X | None` for type annotations
+bot/services/youtube.py:34:12: SIM118 Use `key not in dict` instead of `key not in dict.keys()`
+bot/services/ytdlp/_options.py:5:15: RUF012 Mutable default value for class attribute
+bot/services/ytdlp/_options.py:13:10: RUF012 Mutable default value for class attribute
+bot/services/ytdlp/_options.py:21:21: RUF012 Mutable default value for class attribute
+bot/services/ytdlp/_options.py:22:22: RUF012 Mutable default value for class attribute
+bot/services/ytdlp/_options.py:28:15: RUF012 Mutable default value for class attribute
+bot/services/ytdlp/_options.py:48:14: RUF012 Mutable default value for class attribute
+bot/services/ytdlp/_options.py:52:10: RUF012 Mutable default value for class attribute
+bot/services/ytdlp/downloader.py:105:13: TRY004 Prefer `TypeError` exception for invalid type
+bot/tests/__init__.py:5:54: PLW1508 Invalid type for environment variable default; expected `str` or `None`
+bot/tests/contrib/test_context.py:10:15: UP045 [*] Use `X | None` for type annotations
+bot/tests/contrib/test_context.py:11:14: UP045 [*] Use `X | None` for type annotations
+bot/tests/contrib/test_context.py:12:10: UP045 [*] Use `X | None` for type annotations
+bot/tests/contrib/test_context.py:17:35: RUF012 Mutable default value for class attribute
+bot/tests/contrib/test_make_prop.py:9:15: UP045 [*] Use `X | None` for type annotations
+bot/tests/contrib/test_make_prop.py:10:14: UP045 [*] Use `X | None` for type annotations
+bot/tests/handlers/__init__.py:33:23: RUF012 Mutable default value for class attribute
+bot/tests/handlers/__init__.py:39:17: T100 Trace found: `breakpoint` used
+bot/tests/handlers/__init__.py:46:17: T100 Trace found: `breakpoint` used
+bot/tests/handlers/__init__.py:53:17: T100 Trace found: `breakpoint` used
+bot/tests/handlers/__init__.py:57:9: SIM102 Use a single `if` statement instead of nested `if` statements
+bot/tests/handlers/__init__.py:77:15: UP045 [*] Use `X | None` for type annotations
+bot/tests/handlers/__init__.py:85:13: T100 Trace found: `breakpoint` used
+bot/tests/handlers/__init__.py:93:17: T100 Trace found: `breakpoint` used
+bot/tests/handlers/__init__.py:102:17: T100 Trace found: `breakpoint` used
+bot/tests/handlers/__init__.py:111:17: T100 Trace found: `breakpoint` used
+bot/tests/handlers/test_feed.py:1:1: UP035 [*] Import from `collections.abc` instead: `Callable`
+bot/tests/handlers/test_feed.py:19:13: RUF012 Mutable default value for class attribute
+bot/tests/mocks/db.py:15:19: TRY201 Use `raise` without specifying exception name
+bot/tests/mocks/user_data.py:5:35: RUF012 Mutable default value for class attribute
+bot/tests/services/repositories/test_road_settings.py:23:44: UP017 [*] Use `datetime.UTC` alias
+bot/tests/services/repositories/test_road_settings.py:24:43: UP017 [*] Use `datetime.UTC` alias
+bot/tests/services/repositories/test_road_settings.py:36:47: UP017 [*] Use `datetime.UTC` alias
+bot/tests/services/test_schedule.py:120:58: UP017 [*] Use `datetime.UTC` alias
+bot/ui/components/book_creator.py:9:16: UP045 [*] Use `X | None` for type annotations
+bot/ui/components/book_creator.py:10:17: UP045 [*] Use `X | None` for type annotations
+bot/ui/components/book_creator.py:11:23: UP045 [*] Use `X | None` for type annotations
+bot/ui/components/book_creator.py:12:25: UP045 [*] Use `X | None` for type annotations
+bot/ui/components/remind_creator.py:10:15: UP045 [*] Use `X | None` for type annotations
+bot/ui/components/remind_creator.py:11:15: UP045 [*] Use `X | None` for type annotations
+bot/ui/components/remind_creator.py:12:15: UP045 [*] Use `X | None` for type annotations
+bot/ui/components/remind_creator.py:13:25: UP045 [*] Use `X | None` for type annotations
+bot/ui/keyboards/books/__init__.py:6:11: RUF022 [*] `__all__` is not sorted
+bot/ui/keyboards/books/edit_properties.py:11:34: RUF012 Mutable default value for class attribute
+bot/ui/keyboards/books/widget.py:25:32: RUF010 [*] Use explicit conversion flag
+bot/ui/keyboards/carousel.py:1:1: UP035 `typing.Type` is deprecated, use `type` instead
+bot/ui/keyboards/carousel.py:18:14: UP006 [*] Use `type` instead of `Type` for type annotation
+bot/ui/keyboards/carousel.py:19:11: UP006 [*] Use `type` instead of `Type` for type annotation
+bot/ui/widgets/timer.py:27:30: UP031 Use format specifiers instead of percent format
+bot/utils/async_for_first_success.py:5:54: B006 Do not use mutable data structures for argument defaults
+bot/workers/yt_dlp.py:3:1: UP035 [*] Import from `collections.abc` instead: `Sequence`
+Found 204 errors.
+[*] 121 fixable with `--fix` (18 unsafe fixes available with `--fix --unsafe-fixes`).
+make: *** [Makefile:52: lint] Error 1

@@ -1,5 +1,4 @@
-from typing import ClassVar
-from typing import Any
+from typing import Any, ClassVar
 
 
 class MockedUserDataExtension:

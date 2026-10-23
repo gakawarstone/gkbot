@@ -1,6 +1,5 @@
-from typing import ClassVar
-from typing import Any
-from collections.abc import Callable, Awaitable
+from collections.abc import Awaitable, Callable
+from typing import Any, ClassVar
 
 from aiogram.dispatcher.middlewares.base import BaseMiddleware
 from aiogram.types import TelegramObject

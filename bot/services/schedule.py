@@ -1,9 +1,9 @@
 import asyncio
 import logging
+import pickle
+from collections.abc import Awaitable, Callable
 from datetime import datetime, timedelta, timezone
 from typing import Any, ClassVar
-from collections.abc import Awaitable, Callable
-import pickle
 
 from models.tasks import Task as _Model
 

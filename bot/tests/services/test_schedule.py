@@ -1,11 +1,11 @@
 import asyncio
-from datetime import datetime, timezone, timedelta, UTC
+from datetime import UTC, datetime, timedelta, timezone
 
 import pytest
+
 from models.tasks import Task as TaskModel
 from services.schedule import Schedule, Task
 from tests.mocks.db import use_db
-
 
 _probe_results: list[str] = []
 

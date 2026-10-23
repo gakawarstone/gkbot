@@ -1,9 +1,9 @@
-from typing import Any
 from collections.abc import Awaitable, Callable
+from typing import Any
 
 from aiogram.dispatcher.middlewares.base import BaseMiddleware
-from aiogram.types import TelegramObject, Message
 from aiogram.exceptions import TelegramBadRequest
+from aiogram.types import Message, TelegramObject
 
 
 class NotEnoughRightsMiddleware(BaseMiddleware):

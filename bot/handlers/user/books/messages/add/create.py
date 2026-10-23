@@ -1,8 +1,9 @@
 from typing import Any
 
 from models.books import Book  # FIXME should service
-from ._base import BaseHandler
+
 from ...states import FSM
+from ._base import BaseHandler
 
 
 class CreateBookHandler(BaseHandler):

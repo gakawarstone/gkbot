@@ -3,9 +3,9 @@ import random
 
 from aiogram import Router
 from aiogram.types import (
-    Message,
     BufferedInputFile,
     InputMediaPhoto,
+    Message,
 )
 from aiogram.types.media_union import MediaUnion
 

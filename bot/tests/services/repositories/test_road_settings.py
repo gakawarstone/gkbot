@@ -5,7 +5,7 @@ import pytest
 from tortoise.exceptions import IntegrityError
 
 from services.entities.road_settings import RoadSettings
-from services.repositories.road_settings import RoadSettingsRepository, DEFAULT_SETTINGS
+from services.repositories.road_settings import DEFAULT_SETTINGS, RoadSettingsRepository
 from tests.mocks.db import use_db
 
 

@@ -1,7 +1,7 @@
-from typing import ClassVar
 import asyncio
 from io import BytesIO
 from pathlib import Path
+from typing import ClassVar
 
 import edge_tts
 from gtts import gTTS

@@ -1,13 +1,14 @@
 from typing import Any
 
 from aiogram import Router
-from services.tiktok import TikTokService
-from services.tiktok.exceptions import (
-    TikTokInvalidUrl,
-    TikTokInfoExtractionFailed,
-)
+
 from extensions.handlers.message.base import BaseHandler
 from filters.tiktok import TikTokVideoLink
+from services.tiktok import TikTokService
+from services.tiktok.exceptions import (
+    TikTokInfoExtractionFailed,
+    TikTokInvalidUrl,
+)
 
 
 class TikTokVideoHandler(BaseHandler):

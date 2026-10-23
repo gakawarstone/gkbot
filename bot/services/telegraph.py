@@ -1,7 +1,7 @@
-from typing import ClassVar
 import json
+from typing import ClassVar
 
-from bs4 import BeautifulSoup, Tag, Comment
+from bs4 import BeautifulSoup, Comment, Tag
 from bs4.element import NavigableString, PageElement
 
 from configs.env import TELEGRAPH_API_KEY

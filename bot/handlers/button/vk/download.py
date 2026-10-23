@@ -1,12 +1,12 @@
-from aiogram import Router, F
-from aiogram.types import CallbackQuery, Message, InaccessibleMessage
+from aiogram import F, Router
+from aiogram.types import CallbackQuery, InaccessibleMessage, Message
 
 from services.ytdlp import YtdlpDownloader
 from ui.buttons.vk import (
-    VKDownloadButtonData,
-    VKDownloadButtonCallbackDataDeserializer,
-    VKDownloadButtonDataSerializer,
     PREFIX,
+    VKDownloadButtonCallbackDataDeserializer,
+    VKDownloadButtonData,
+    VKDownloadButtonDataSerializer,
 )
 from utils.vk import reconstruct_vk_url
 

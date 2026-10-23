@@ -1,6 +1,6 @@
 from typing import Any, get_args, get_type_hints
 
-from varname import nameof, argname
+from varname import argname, nameof
 
 from ._types import Property
 

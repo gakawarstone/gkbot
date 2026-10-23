@@ -1,8 +1,8 @@
 from typing import Any
 
 from ..base import BaseHandler as _BaseHandler
-from ._types import Property, BaseContext
-from ._utils import get_hint, make_prop, make_args_names_list
+from ._types import BaseContext, Property
+from ._utils import get_hint, make_args_names_list, make_prop
 
 
 class BaseContextManager[T: BaseContext](_BaseHandler):

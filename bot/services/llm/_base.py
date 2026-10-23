@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import NamedTuple, Literal
 from collections.abc import AsyncGenerator
+from typing import Literal, NamedTuple
 
 
 class StreamChunk(NamedTuple):

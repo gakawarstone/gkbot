@@ -1,7 +1,7 @@
-from typing import Any
-from collections.abc import Sequence
 import asyncio
 import json
+from collections.abc import Sequence
+from typing import Any
 
 from configs.env import BROKER_URL
 from services.http import HttpService
