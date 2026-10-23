@@ -1,7 +1,6 @@
 from aiogram import Router
 
-from . import wait
-from . import generate_image
+from . import generate_image, wait
 
 
 def setup(r: Router):

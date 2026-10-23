@@ -5,6 +5,7 @@ from typing import Any
 
 from aiogram.types import Message
 from aiogram.utils.formatting import BlockQuote
+
 from extensions.handlers.message.file_extension import FileHandlerExtension
 from extensions.handlers.message.markdown_render import MarkdownRenderHandlerExtension
 from services.agents.image_explainer import ImageExplainer

@@ -1,10 +1,6 @@
 from aiogram import Router
 
-from . import habits
-from . import menu
-from . import pomodoro
-from . import start
-from . import settings
+from . import habits, menu, pomodoro, settings, start
 
 
 def setup(r: Router):
