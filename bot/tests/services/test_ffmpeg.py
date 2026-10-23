@@ -1,15 +1,14 @@
 import asyncio
-import json
 import threading
 from pathlib import Path
-from subprocess import CalledProcessError, CompletedProcess
+from subprocess import CalledProcessError
 from unittest.mock import AsyncMock
 
 import pytest
 
+from services.audio import AudioService
 from services.cache_dir import CacheDir
 from services.ffmpeg import FfmpegService
-from services.ffmpeg_runner import FfmpegRunner
 
 
 @pytest.fixture
@@ -26,7 +25,7 @@ async def test_slideshow_file_uses_owned_output_directory(
     audio = AsyncMock()
     run = AsyncMock()
     monkeypatch.setattr(FfmpegService, "download_and_prepare_images", images)
-    monkeypatch.setattr(FfmpegService, "download_and_prepare_audio", audio)
+    monkeypatch.setattr(AudioService, "download_and_prepare_audio", audio)
     monkeypatch.setattr(FfmpegService, "_run_command", run)
     output_path = str(cache_root / "video.mp4")
     urls = ["https://example.invalid/image"]
@@ -65,83 +64,6 @@ async def test_slideshow_bytes_compatibility_and_cleanup(
     assert list(cache_root.iterdir()) == []
 
 
-async def test_video_conversion_delegates_to_runner(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    run = AsyncMock()
-    monkeypatch.setattr(FfmpegRunner, "run", run)
-    await FfmpegService.convert_video("input file.mp4", "output.mp4")
-    run.assert_awaited_once_with(
-        [
-            "ffmpeg",
-            "-y",
-            "-i",
-            "input file.mp4",
-            "-c:v",
-            "libx264",
-            "-preset",
-            "veryfast",
-            "-threads",
-            "1",
-            "-c:a",
-            "aac",
-            "-pix_fmt",
-            "yuv420p",
-            "output.mp4",
-        ]
-    )
-
-
-@pytest.mark.parametrize(
-    ("probe_output", "expected"),
-    [
-        ({"streams": []}, {}),
-        ({}, {}),
-        (
-            {"streams": [{"width": 720, "height": "1080", "duration": "12.9"}]},
-            {"width": 720, "height": 1080, "duration": 12},
-        ),
-        ({"streams": [{"width": 720, "duration": "N/A"}]}, {"width": 720}),
-    ],
-)
-async def test_metadata_delegates_to_runner_and_preserves_parsing(
-    monkeypatch: pytest.MonkeyPatch,
-    probe_output: dict,
-    expected: dict[str, int],
-) -> None:
-    run = AsyncMock(
-        return_value=CompletedProcess([], 0, stdout=json.dumps(probe_output))
-    )
-    monkeypatch.setattr(FfmpegRunner, "run", run)
-    assert await FfmpegService.get_video_metadata("input file.mp4") == expected
-    run.assert_awaited_once_with(
-        [
-            "ffprobe",
-            "-v",
-            "error",
-            "-select_streams",
-            "v:0",
-            "-show_entries",
-            "stream=width,height,duration",
-            "-of",
-            "json",
-            "input file.mp4",
-        ],
-        capture_output=True,
-        text=True,
-    )
-
-
-async def test_service_preserves_runner_failure(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    error = CalledProcessError(3, ["ffmpeg"], stderr=b"conversion failed")
-    monkeypatch.setattr(FfmpegRunner, "run", AsyncMock(side_effect=error))
-    with pytest.raises(CalledProcessError) as raised:
-        await FfmpegService.convert_video("input.mp4", "output.mp4")
-    assert raised.value is error
-
-
 @pytest.mark.parametrize("audio_input", [None, "audio.m4a"])
 def test_slideshow_command_preserves_input_option_order(
     audio_input: str | None,
@@ -170,53 +92,8 @@ def test_slideshow_command_preserves_input_option_order(
     ]
 
 
-async def test_voice_conversion_still_returns_bytes(
+async def test_cancelled_slideshow_finishes_before_cleanup(
     cache_root: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    async def run(command: list[str]) -> None:
-        assert Path(command[command.index("-i") + 1]).read_bytes() == b"music"
-        assert "libopus" in command
-        Path(command[-1]).write_bytes(b"voice")
-
-    monkeypatch.setattr(FfmpegService, "_run_command", run)
-    assert await FfmpegService.convert_music_to_voice(b"music") == b"voice"
-    assert list(cache_root.iterdir()) == []
-
-
-@pytest.mark.parametrize("failure", ["save", "command", "read", "removed"])
-async def test_voice_conversion_cleans_up_on_failure(
-    cache_root: Path, monkeypatch: pytest.MonkeyPatch, failure: str
-) -> None:
-    error = CalledProcessError(1, "ffmpeg")
-
-    async def run(command: list[str]) -> None:
-        if failure == "removed":
-            Path(command[command.index("-i") + 1]).unlink()
-            Path(command[-1]).parent.rmdir()
-        if failure in ("command", "removed"):
-            raise error
-        # No output file: reading the converted audio must fail.
-
-    def fail_save(cache: CacheDir, name: str, content: bytes) -> None:
-        Path(cache.get_file_path(name)).write_bytes(content[:1])
-        raise OSError("write failed")
-
-    monkeypatch.setattr(FfmpegService, "_run_command", run)
-    if failure == "save":
-        monkeypatch.setattr(CacheDir, "save_file", fail_save)
-    expected_error = (
-        CalledProcessError if failure in ("command", "removed") else OSError
-    )
-    with pytest.raises(expected_error) as raised:
-        await FfmpegService.convert_music_to_voice(b"music")
-    if failure in ("command", "removed"):
-        assert raised.value is error
-    assert list(cache_root.iterdir()) == []
-
-
-@pytest.mark.parametrize("conversion", ["voice", "slideshow"])
-async def test_cancelled_conversion_finishes_before_cleanup(
-    cache_root: Path, monkeypatch: pytest.MonkeyPatch, conversion: str
 ) -> None:
     started = threading.Event()
     release = threading.Event()
@@ -232,12 +109,7 @@ async def test_cancelled_conversion_finishes_before_cleanup(
 
     monkeypatch.setattr(FfmpegService, "_run_command", run)
     monkeypatch.setattr(FfmpegService, "download_and_prepare_images", AsyncMock())
-    operation = (
-        FfmpegService.convert_music_to_voice(b"music")
-        if conversion == "voice"
-        else FfmpegService.make_slideshow_from_web(["image"], None)
-    )
-    task = asyncio.create_task(operation)
+    task = asyncio.create_task(FfmpegService.make_slideshow_from_web(["image"], None))
     try:
         assert await asyncio.to_thread(started.wait, 5)
         task.cancel()

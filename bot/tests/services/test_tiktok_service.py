@@ -9,6 +9,7 @@ import pytest
 from aiogram import Bot
 from aiogram.types import FSInputFile
 
+from services.audio import AudioService
 from services.cache_dir import CacheDir
 from services.ffmpeg import FfmpegService
 from services.http import HttpService
@@ -17,6 +18,7 @@ from services.tiktok import TikTokService, _TikTokCacheDir
 from services.tiktok.exceptions import TikTokInfoExtractionFailed
 from services.tiktok.extractor import TikTokInfoExtractor
 from services.tiktok.types import InfoVideoTikTok
+from services.video_metadata import VideoMetadataService
 
 
 @pytest.fixture
@@ -44,7 +46,7 @@ async def get_video(
         TikTokInfoExtractor, "get_video_info", AsyncMock(return_value=info)
     )
     monkeypatch.setattr(
-        FfmpegService,
+        VideoMetadataService,
         "get_video_metadata",
         AsyncMock(return_value={"height": 1080, "width": 720, "duration": 9}),
     )
@@ -105,7 +107,7 @@ async def test_slideshow_keeps_ffmpeg_output_without_bytes_round_trip(
 
     monkeypatch.setattr(CacheDir, "save_file", unexpected_save)
     monkeypatch.setattr(FfmpegService, "download_and_prepare_images", AsyncMock())
-    monkeypatch.setattr(FfmpegService, "download_and_prepare_audio", AsyncMock())
+    monkeypatch.setattr(AudioService, "download_and_prepare_audio", AsyncMock())
     monkeypatch.setattr(FfmpegService, "_run_command", run)
     info = InfoVideoTikTok(None, None, audio_url, ["https://example.invalid/image"])
     input_file = await get_video(info, monkeypatch)
@@ -225,7 +227,7 @@ async def test_existing_input_file_and_metadata_are_preserved(
         TikTokInfoExtractor, "get_video_info", AsyncMock(return_value=info)
     )
     metadata = AsyncMock()
-    monkeypatch.setattr(FfmpegService, "get_video_metadata", metadata)
+    monkeypatch.setattr(VideoMetadataService, "get_video_metadata", metadata)
     video = await TikTokService.get_video("https://example.invalid/tiktok")
     assert video.input_file is input_file
     assert (video.height, video.width, video.duration) == (480, 640, 12)
@@ -286,7 +288,7 @@ async def test_metadata_probe_failure_keeps_uploadable_file(
     monkeypatch.setattr(FfmpegService, "download_and_prepare_images", AsyncMock())
     monkeypatch.setattr(FfmpegService, "_run_command", run)
     monkeypatch.setattr(
-        FfmpegService,
+        VideoMetadataService,
         "get_video_metadata",
         AsyncMock(side_effect=CalledProcessError(1, "ffprobe")),
     )
