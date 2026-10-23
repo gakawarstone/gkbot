@@ -1,31 +1,43 @@
 import base64
-from bs4 import BeautifulSoup, Tag
+import binascii
+
 from aiogram.types import BufferedInputFile
+from bs4 import BeautifulSoup, Tag
 
 from services.gkfeed import FeedItem
+
 from ...ui.keyboards import FeedMarkup
+from .._exceptions import FeedMediaExtractionError
 from . import BaseFeedItemView
 
 
 class InstagramFeedItemView(BaseFeedItemView):
-    async def _process_instagram_item(self, item: FeedItem):
+    async def _process_instagram_item(self, item: FeedItem) -> None:
         soup = BeautifulSoup(item.text, "html.parser")
 
         img_tag = soup.find("img")
         if not isinstance(img_tag, Tag):
-            raise ValueError("No image tag found in the item content")
+            raise FeedMediaExtractionError("No image tag found in the item content")
 
         src = img_tag.get("src")
         if not isinstance(src, str):
-            raise ValueError("No src attribute found in the image tag")
+            raise FeedMediaExtractionError("No src attribute found in the image tag")
 
-        caption = item.title.split("/")[-1].split(":")[1]
+        caption_parts = item.title.split("/")[-1].split(":")
+        if len(caption_parts) < 2:
+            raise FeedMediaExtractionError("Image caption not found")
+        caption = caption_parts[1]
 
         if not src.startswith("data:image"):
-            raise ValueError("Image src is not a base64 data URL")
+            raise FeedMediaExtractionError("Image src is not a base64 data URL")
 
-        _, encoded = src.split(",", 1)
-        photo_data = base64.b64decode(encoded)
+        _, separator, encoded = src.partition(",")
+        if not separator:
+            raise FeedMediaExtractionError("Image data URL has no payload")
+        try:
+            photo_data = base64.b64decode(encoded, validate=True)
+        except (binascii.Error, ValueError) as error:
+            raise FeedMediaExtractionError("Invalid base64 image") from error
         photo = BufferedInputFile(photo_data, filename="image.jpg")
 
         await self.answer_photo(

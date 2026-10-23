@@ -1,15 +1,15 @@
 from html import escape
-from typing import Optional
 from urllib.parse import urlparse
 
 from aiogram.types import BufferedInputFile
 from bs4 import BeautifulSoup, Tag
 
+from extensions.handlers.message.http import HttpExtension
 from services.gkfeed import FeedItem
 from services.http import HttpRequestError, HttpService
 from services.open_graph import OpenGraphService
-from services.telegraph import TelegraphAPI, HtmlToTelegraphContentConverter
-from extensions.handlers.message.http import HttpExtension
+from services.telegraph import HtmlToTelegraphContentConverter, TelegraphAPI
+
 from ...ui.keyboards import FeedMarkup
 from ...ui.keyboards.reddit import RedditFeedItemMarkup
 from . import BaseFeedItemView
@@ -23,7 +23,7 @@ _REDDIT_PREVIEW_HEADERS = {
 class RedditFeedItemView(VideoFeedItemView, BaseFeedItemView, HttpExtension):
     _base_url = "https://libreddit.qwik.space/"
 
-    async def _process_reddit_item(self, item: FeedItem):
+    async def _process_reddit_item(self, item: FeedItem) -> None:
         if await self._send_reddit_preview(item):
             return
 
@@ -42,11 +42,9 @@ class RedditFeedItemView(VideoFeedItemView, BaseFeedItemView, HttpExtension):
             return await self._send_video(item, video_url)
 
         if link := self._find_post_link(soup):
-            return await self._send_link_response(title, link, item)
-        try:
-            await self._send_telegraph_response(title, item, soup)
-        except Exception:
-            await self._send_item(item)
+            await self._send_link_response(title, link, item)
+            return
+        await self._send_telegraph_response(title, item, soup)
 
     async def _send_reddit_preview(self, item: FeedItem) -> bool:
         try:
@@ -82,7 +80,7 @@ class RedditFeedItemView(VideoFeedItemView, BaseFeedItemView, HttpExtension):
                 return f"r/{path_parts[index + 1]}"
         return "Reddit"
 
-    def _find_post_image_url(self, soup: BeautifulSoup) -> Optional[str]:
+    def _find_post_image_url(self, soup: BeautifulSoup) -> str | None:
         post = soup.find(class_="post")
 
         if not post or not isinstance(post, Tag):
@@ -102,13 +100,13 @@ class RedditFeedItemView(VideoFeedItemView, BaseFeedItemView, HttpExtension):
 
         return None
 
-    def _find_post_video_url(self, soup: BeautifulSoup) -> Optional[str]:
+    def _find_post_video_url(self, soup: BeautifulSoup) -> str | None:
         video = soup.find("meta", attrs={"property": "og:video"})
         if video and isinstance(video, Tag) and video.get("content"):
             return self._normalize_link(str(video.get("content")))
         return None
 
-    def _find_post_link(self, soup: BeautifulSoup) -> Optional[str]:
+    def _find_post_link(self, soup: BeautifulSoup) -> str | None:
         post = soup.find(class_="post")
 
         if not post or not isinstance(post, Tag):
@@ -157,7 +155,7 @@ class RedditFeedItemView(VideoFeedItemView, BaseFeedItemView, HttpExtension):
             return self._base_url + link
         return link
 
-    def _get_post_content(self, soup: BeautifulSoup) -> Optional[Tag]:
+    def _get_post_content(self, soup: BeautifulSoup) -> Tag | None:
         post_body = soup.find(class_="post_body")
 
         if not post_body:
