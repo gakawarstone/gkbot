@@ -1,5 +1,4 @@
 import re
-from typing import Optional
 
 import wikipedia  # type: ignore
 from wikipedia import DisambiguationError, PageError  # type: ignore
@@ -11,7 +10,7 @@ class QuoteNotFound(Exception):
 
 class WikiApi:
     @classmethod
-    def __search_for_topic(cls, text: str) -> Optional[list[str]]:
+    def __search_for_topic(cls, text: str) -> list[str] | None:
         '''search primary in en wiki then in ru'''
         wikipedia.set_lang('en')
         if re.search('[а-яА-Я]', text):

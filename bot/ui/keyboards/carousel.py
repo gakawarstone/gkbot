@@ -1,4 +1,3 @@
-from typing import Type
 
 from aiogram.types import InlineKeyboardButton
 
@@ -15,8 +14,8 @@ class CarouselMarkupData:
 
 class BaseCarouselMarkup[T: CarouselMarkupButtons, S: CarouselMarkupData]:
     prefix: str
-    buttons: Type[T]
-    data: Type[S]
+    buttons: type[T]
+    data: type[S]
 
     @classmethod
     def _get_carousel_navs_row(

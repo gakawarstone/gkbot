@@ -72,7 +72,7 @@ class Event:
 
     def __init__(
         self,
-        text: Optional[str] = None,
+        text: str | None = None,
         breakpoint_at_delete: bool = bool(BREAKPOINTS_ON_DELETE),
     ) -> None:
         self.text = text

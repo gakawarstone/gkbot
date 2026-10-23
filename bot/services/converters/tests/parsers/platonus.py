@@ -53,5 +53,4 @@ class PlatonusParser:
         for tag in tags:
             if line.startswith(tag):
                 return line.split(tag)[1]
-        else:
-            return line
+        return line

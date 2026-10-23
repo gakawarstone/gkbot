@@ -21,7 +21,7 @@ class WidgetMarkup(BaseMarkup):
                         callback_data=(
                             f'{PropertiesMarkup.prefix}:'
                             f'{_BookProperties.PROGRESS.value.name_in_db}:'
-                            f'{str(book.id)}'
+                            f'{book.id!s}'
                         )
                     ),
                     InlineKeyboardButton(

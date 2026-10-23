@@ -24,7 +24,7 @@ class TimeInputHandler(BaseHandler, OneTimeMessageHandlerExtension):
         except InvalidTimeInput:
             await self.state.set_state(FSM.get_time)
             await self.render_widget(status_message=self.status.invalid_time)
-            self._set_one_time_message((await self.event.answer("Введите время")))
+            self._set_one_time_message(await self.event.answer("Введите время"))
 
     def _validate_time(self, _time: str) -> time:
         try:

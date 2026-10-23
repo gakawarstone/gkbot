@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import AsyncGenerator, Optional, NamedTuple, Literal
+from typing import NamedTuple, Literal
+from collections.abc import AsyncGenerator
 
 
 class StreamChunk(NamedTuple):
@@ -14,6 +15,6 @@ class LLM(ABC):
 
     # @abstractmethod # BUG: commented because of fn linter
     async def stream(
-        self, prompt: str, images: Optional[list[str]] = None
-    ) -> AsyncGenerator[StreamChunk, None]:
+        self, prompt: str, images: list[str] | None = None
+    ) -> AsyncGenerator[StreamChunk]:
         yield StreamChunk("say tx for linter", "content")

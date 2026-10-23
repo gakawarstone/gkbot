@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional, Any
+from typing import Any
 
 from extensions.handlers.context_manager import BaseContextManager, BaseContext
 from tests.mocks.message import fake_event
@@ -7,9 +7,9 @@ from tests.mocks.message import fake_event
 
 @dataclass
 class FakeContext(BaseContext):
-    str_data: Optional[str] = None
-    integer: Optional[int] = None
-    any: Optional[Any] = None
+    str_data: str | None = None
+    integer: int | None = None
+    any: Any | None = None
 
 
 class FakeContextManager(BaseContextManager[FakeContext]):

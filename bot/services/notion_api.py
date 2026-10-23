@@ -1,5 +1,4 @@
 from notion_client import AsyncClient
-from typing import Optional
 from datetime import datetime
 
 from configs.env import NOTION_API_TOKEN
@@ -79,7 +78,7 @@ class Database(Page):
         )
         return Page(response["id"])
 
-    async def get_data(self, filter: Optional[dict] = None) -> dict:
+    async def get_data(self, filter: dict | None = None) -> dict:
         if filter:
             return await client.databases.query(database_id=self.id, filter=filter)
         else:

@@ -1,4 +1,3 @@
-from typing import Optional
 from dataclasses import dataclass
 
 from aiogram.types import Message
@@ -8,10 +7,10 @@ from extensions.handlers.context_manager import BaseContextManager, BaseContext
 
 @dataclass
 class _AddBookContext(BaseContext):
-    name: Optional[str] = None
-    author: Optional[str] = None
-    chapter_cnt: Optional[int] = None
-    message: Optional[Message] = None
+    name: str | None = None
+    author: str | None = None
+    chapter_cnt: int | None = None
+    message: Message | None = None
 
 
 class AddBookContextManager(BaseContextManager[_AddBookContext]):

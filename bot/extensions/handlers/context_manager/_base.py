@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import TypeVar, Type, Generic, Any, Optional
+from typing import TypeVar, Generic, Any
 
 from ..base import BaseHandler as _BaseHandler
 from ._types import Property, BaseContext
@@ -9,7 +9,7 @@ _T = TypeVar("_T", bound=BaseContext)
 
 
 class BaseContextManager(_BaseHandler, Generic[_T], ABC):
-    props: Type[_T]
+    props: type[_T]
 
     @property
     def ctx(self) -> _T:
@@ -53,7 +53,7 @@ class BaseContextManager(_BaseHandler, Generic[_T], ABC):
     def _reset_prop(self, prop: Property) -> None:
         self.user_data[prop.name] = None
 
-    def _try_get_prop(self, prop: Property) -> Optional[Any]:
+    def _try_get_prop(self, prop: Property) -> Any | None:
         value = self._try_get_from_user_data(prop.name)
 
         if value is not None and type(value) is not prop.type and prop.type is not Any:

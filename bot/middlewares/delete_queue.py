@@ -1,5 +1,6 @@
 import logging
-from typing import Awaitable, Callable, Dict, Any
+from typing import Any
+from collections.abc import Awaitable, Callable
 
 from aiogram.dispatcher.middlewares.base import BaseMiddleware
 from aiogram.exceptions import (
@@ -32,16 +33,16 @@ class DeleteQueueMiddleware(BaseMiddleware):
 
     async def __call__(
         self,
-        handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
+        handler: Callable[[TelegramObject, dict[str, Any]], Awaitable[Any]],
         event: TelegramObject,
-        data: Dict[str, Any],
+        data: dict[str, Any],
     ) -> Any:
         for message in self._detach_batch(data):
             await self._try_delete(message)
         return await handler(event, data)
 
     @staticmethod
-    def _detach_batch(data: Dict[str, Any]) -> list[Message]:
+    def _detach_batch(data: dict[str, Any]) -> list[Message]:
         """Take ownership of pending deletions, leaving a fresh queue behind."""
         queue = data["data"].setdefault("delete_queue", [])
         batch = list(queue)

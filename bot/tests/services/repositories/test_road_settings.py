@@ -20,8 +20,8 @@ async def test_get_default_value():
 @use_db
 async def test_set_settings():
     settings = RoadSettings(
-        time_focused=time(minute=5, tzinfo=datetime.timezone.utc),
-        time_relax=time(minute=10, tzinfo=datetime.timezone.utc),
+        time_focused=time(minute=5, tzinfo=datetime.UTC),
+        time_relax=time(minute=10, tzinfo=datetime.UTC),
     )
     await RoadSettingsRepository.set_user_settings(1, settings)
     received_settings = await RoadSettingsRepository.get_user_settings(1)
@@ -33,7 +33,7 @@ async def test_set_settings():
 @use_db
 async def test_set_setting_by_name():
     setting_name = "time_focused"
-    setting_new_value = time(minute=5, tzinfo=datetime.timezone.utc)
+    setting_new_value = time(minute=5, tzinfo=datetime.UTC)
 
     with pytest.raises(IntegrityError):
         await RoadSettingsRepository.update_user_setting(1, setting_name, 10)

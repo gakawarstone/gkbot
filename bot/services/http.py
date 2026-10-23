@@ -2,7 +2,6 @@ import subprocess
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from http.cookies import SimpleCookie
-from typing import Optional
 
 import aiohttp
 from aiohttp.client_exceptions import ClientConnectorError, ContentTypeError, InvalidURL
@@ -29,7 +28,7 @@ class HttpService:
     headers = _headers
 
     @classmethod
-    async def get(cls, url: str, headers: Optional[dict] = headers) -> bytes:
+    async def get(cls, url: str, headers: dict | None = headers) -> bytes:
         async with aiohttp.ClientSession(conn_timeout=None) as session:
             try:
                 async with session.get(
@@ -41,7 +40,7 @@ class HttpService:
 
     @classmethod
     async def get_redirected_url(
-        cls, url: str, headers: Optional[dict] = headers
+        cls, url: str, headers: dict | None = headers
     ) -> str:
         async with aiohttp.ClientSession(conn_timeout=None) as session:
             try:
@@ -52,7 +51,7 @@ class HttpService:
 
     @classmethod
     async def extract_cookies(
-        cls, url: str, headers: Optional[dict] = headers
+        cls, url: str, headers: dict | None = headers
     ) -> SimpleCookie:
         async with aiohttp.ClientSession(conn_timeout=None) as session:
             try:
@@ -72,7 +71,7 @@ class HttpService:
 
     @classmethod
     async def post(
-        cls, url: str, body: dict, headers: Optional[dict] = headers
+        cls, url: str, body: dict, headers: dict | None = headers
     ) -> bytes:
         async with aiohttp.ClientSession(conn_timeout=None) as session:
             try:
@@ -83,7 +82,7 @@ class HttpService:
 
     @classmethod
     async def post_json(
-        cls, url: str, body: dict, headers: Optional[dict] = headers
+        cls, url: str, body: dict, headers: dict | None = headers
     ) -> dict:
         async with aiohttp.ClientSession(conn_timeout=None) as session:
             try:
@@ -94,7 +93,7 @@ class HttpService:
 
     @classmethod
     async def get_with_downloader(
-        cls, url: str, headers: Optional[dict[str, str]] = None
+        cls, url: str, headers: dict[str, str] | None = None
     ) -> bytes:
         cache_dir = CacheDir()
         file_path = cache_dir.get_file_path("response")

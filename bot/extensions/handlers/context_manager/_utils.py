@@ -1,15 +1,15 @@
-from typing import Type, Any, get_type_hints
+from typing import Any, get_type_hints
 
 from varname import nameof, argname
 
 from ._types import Property
 
 
-def uncast_opt(obj: Type) -> Type:
+def uncast_opt(obj: type) -> type:
     return obj.__args__[0]
 
 
-def get_hint(obj_parent: Any, obj_name: str) -> Type:
+def get_hint(obj_parent: Any, obj_name: str) -> type:
     return uncast_opt(get_type_hints(obj_parent)[obj_name])
 
 
