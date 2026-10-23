@@ -7,9 +7,10 @@
 
 The [implementation proposal](../../docs/private-ai-topics.md) defines the
 command behavior, verified Telegram/aiogram contract, storage migration, and
-application test scenarios. Runtime integration is waiting for the published
-draft-streaming and retention prerequisites and the context-design approval
-result. The acceptance criteria below remain pending; the task stays open.
+application test scenarios. Draft streaming PR #39 and final retention PR #37
+are published; retention already integrates typing PR #40. Runtime integration
+is waiting for explicit owner approval of context-design PR #29. The acceptance
+criteria below remain pending; the task stays open.
 
 ## Problem
 

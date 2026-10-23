@@ -177,10 +177,24 @@ Prerequisite status as reported on 2026-10-23:
   skipped. Ruff, typos, and pyright pass for the changed files; targeted mypy
   stops at the existing imported `generate_image.py:43` error.
 - Bounded retention, thread `mcp:45f94e95-1569-4cd9-9f99-6fc68dc05eb8`, branch
-  `task-20261022-bound-middleware-user-data-retention`. Its announced interface is
-  an instance-owned `UserDataStore` with acquire/release/cleanup, idle TTL,
-  `max_entries`, active-handler pins, and `Hashable` keys. This task owns replacing
-  its initial user-ID key with the FSM key.
+  `task-20261022-bound-middleware-user-data-retention`, published ready/open
+  [PR #37](https://github.com/gakawarstone/gkbot/pull/37), final head
+  `b4a1a4684e257dca6fed98fb6813c49d6c046de3`. Approval and merge are pending.
+  It is stacked on typing #40 at `1813b3e9079a70b4a086193fc8a0cfc87e757a36`.
+  Use the entire published head, not the pre-integration `dd6264c` alone. Its
+  source thread, `docs/user-data-retention.md`, and store/middleware code have
+  been read. The author reports 61 middleware tests and 164 full-suite tests
+  passed, with 13 skipped, and all four scoped lint tools passing.
+  The instance-owned `UserDataStore` accepts `Hashable` keys, defaults to 4096
+  entries and 3600 seconds idle TTL, pins active handlers, and initializes typed
+  `UserData` with the required queue. Each successful acquire must have a matching
+  release in `finally`, after final FSM lookup. Expiry/cleanup defer deletion of
+  pinned dictionaries. Completed flows retain only a nonempty deletion queue;
+  missing context with a nonterminal FSM clears that FSM and skips the selected
+  handler after explaining the restart. One middleware/store serves messages and
+  callbacks and closes on dispatcher shutdown. This task owns changing its
+  initial user-ID key consistently in both acquire and release, using the same
+  bounded store with no auxiliary mapping.
 - Context design, thread `mcp:566c7237-8a29-4c77-84c0-7f2700fa9a76`, branch
   `task-20261022-replace-handler-context-manager`, published documentation-only
   [PR #29](https://github.com/gakawarstone/gkbot/pull/29), commit
@@ -196,9 +210,11 @@ Prerequisite status as reported on 2026-10-23:
 
 All three authors have this downstream thread ID,
 `mcp:93bebd65-7048-4378-84db-871a65c8e253`, and were asked to send their published
-result. Draft streaming's result has been read in its source thread and in its
-published `docs/ai-chat-streaming.md`; retention and the context approval remain
-required. Resume integration after their notifications. Use published commits only,
+result. Draft streaming and final retention results have now been read. Explicit
+owner approval of the context design remains outstanding in the source thread;
+neither documentation PR publication nor these other ready results replaces that
+decision. Resume runtime integration after the decision is recorded. Use published
+commits only,
 resolve any integration conflicts in this worktree, and select a stacked PR base
 that does not duplicate prerequisite changes. Do not merge those PRs automatically.
 
@@ -226,9 +242,9 @@ The related middleware typing result is ready/open
 `1813b3e9079a70b4a086193fc8a0cfc87e757a36`. Approval and merge are pending. Its
 source thread `mcp:b95416bd-21c7-4fca-beff-5b0c940d7960` and published
 `docs/middleware-data.md` have been read. It keeps the shared user-ID cache and
-does not implement eviction, retention, or topic isolation. Integrate its
-published types and consumer updates together with retention when the remaining
-dependencies are ready; do not repeat its typing migration here. The author
+does not implement eviction, retention, or topic isolation. Retention's final
+head already integrates its published types and consumer updates; do not apply
+the typing commit a second time or repeat its migration here. The author
 reports 134 passed, 13 skipped and all four scoped lint tools passing for 21 files.
 
 ## Required application tests
