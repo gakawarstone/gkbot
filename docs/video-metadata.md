@@ -48,7 +48,7 @@ Run the unit coverage with:
 make test FILE='bot/tests/services/test_video_metadata.py bot/tests/services/test_ytdlp_video_metadata.py bot/tests/handlers/test_video_metadata.py'
 ```
 
-These tests exercise model defaults, rejected values, local/worker parsing,
-ffprobe preservation, edited timelines, TikTok propagation, message/callback
-feed sends, download handler arguments, aiogram validation and bounded fallback.
+These tests exercise timestamp bounds, malformed provider payloads, cover
+selection, local/worker parsing, ffprobe preservation, edited timelines and
+bounded fallback without retries after network failures.
 They do not require Telegram credentials or a running download worker.

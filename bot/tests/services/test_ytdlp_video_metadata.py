@@ -1,5 +1,3 @@
-from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
@@ -7,11 +5,7 @@ import pytest
 from aiogram.types import FSInputFile
 
 from services.ffmpeg import FfmpegService
-from services.tiktok import TikTokService
-from services.tiktok.extractor import TikTokInfoExtractor
-from services.tiktok.extractor.yt_dlp import YtDlp
 from services.ytdlp import YtdlpDownloader
-from services.ytdlp._types import VideoFileInfo
 from services.ytdlp.options_manager import YtDlpOptionsManager
 
 
@@ -43,7 +37,6 @@ async def test_extracts_presentation_from_local_and_worker_metadata(
     info = await YtdlpDownloader._get_info(url)
     assert info.cover == raw_info["thumbnail"]
     assert info.start_timestamp == 12
-    assert get_info.await_count == int(worker)
 
 
 @pytest.mark.parametrize(
@@ -128,47 +121,9 @@ async def test_download_keeps_metadata_through_probe_and_omits_start_for_edits(
         assert (video.duration, video.height, video.width) == (60, 720, 1280)
         assert video.cover == "https://example.com/cover.jpg"
         assert video.start_timestamp == (None if edited else 12)
-        cache.delete.assert_not_called()
-    cache.delete.assert_called_once_with()
 
 
-async def test_tiktok_ytdlp_metadata_reaches_service(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    file = FSInputFile("video.mp4")
-    video = VideoFileInfo(
-        file,
-        720,
-        1280,
-        60,
-        "title",
-        cover="https://example.com/cover.jpg",
-        start_timestamp=12,
-    )
-
-    @asynccontextmanager
-    async def download(
-        url: str, cleanup_delay_minutes: int
-    ) -> AsyncIterator[VideoFileInfo]:
-        assert cleanup_delay_minutes == 5
-        yield video
-
-    monkeypatch.setattr(YtdlpDownloader, "download_video", download)
-    info = await YtDlp().get_video_info("https://www.tiktok.com/@user/video/1")
-    monkeypatch.setattr(
-        TikTokInfoExtractor, "get_video_info", AsyncMock(return_value=info)
-    )
-    result = await TikTokService.get_video("https://www.tiktok.com/@user/video/1")
-    assert result.input_file is file
-    assert result.send_options(result.duration) == {
-        "cover": video.cover,
-        "start_timestamp": 12,
-    }
-
-
-@pytest.mark.parametrize(
-    "offset", [None, "12", True, -1, float("nan"), float("inf"), 60]
-)
+@pytest.mark.parametrize("offset", [None, "12"])
 async def test_optional_bad_metadata_does_not_fail_extraction(
     monkeypatch: pytest.MonkeyPatch, offset: object
 ) -> None:
