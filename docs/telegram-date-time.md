@@ -50,8 +50,8 @@ make test FILE='bot/tests/ui/test_date_time.py bot/tests/handlers/test_reminder_
 ```
 
 These check UTC offsets from -12 to +14, fractional offsets, crossing midnight,
-the stored timestamp, Cyrillic and emoji offsets, literal user text, status
-formatting, incomplete forms, and fallback limits. No test connects to Telegram.
+the stored timestamp, Cyrillic and emoji offsets, literal user text, incomplete
+forms, and fallback limits. No test connects to Telegram.
 
 For a manual client check, create a reminder for `01.01.2027 00:15` with stored
 offset `UTC+05:30`. In Russian and English clients, verify that the date uses the

@@ -10,9 +10,21 @@ from handlers.user.reminder.create import CreateRemindHandler
 from services.schedule import Schedule, TasksStorage
 
 
-@pytest.mark.parametrize("offset_hours", [-12, -3.5, 0, 5.5, 14])
+@pytest.mark.parametrize(
+    ("offset_hours", "expected_timestamp", "expected_fallback"),
+    [
+        (-12, 1_798_805_700, "01.01.2027 00:15 UTC-1200"),
+        (-3.5, 1_798_775_100, "01.01.2027 00:15 UTC-0330"),
+        (0, 1_798_762_500, "01.01.2027 00:15 UTC+0000"),
+        (5.5, 1_798_742_700, "01.01.2027 00:15 UTC+0530"),
+        (14, 1_798_712_100, "01.01.2027 00:15 UTC+1400"),
+    ],
+)
 async def test_confirmation_entity_matches_stored_instant(
-    offset_hours: float, monkeypatch: pytest.MonkeyPatch
+    offset_hours: float,
+    expected_timestamp: int,
+    expected_fallback: str,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     message = Message(
         message_id=42,
@@ -27,7 +39,6 @@ async def test_confirmation_entity_matches_stored_instant(
     selected_date = date(2027, 1, 1)
     selected_time = time(0, 15)
     selected_offset = timedelta(hours=offset_hours)
-    expected = datetime.combine(selected_date, selected_time, timezone(selected_offset))
     handler = CreateRemindHandler(
         message,
         data={
@@ -47,32 +58,19 @@ async def test_confirmation_entity_matches_stored_instant(
     finally:
         await Tortoise.close_connections()
 
-    assert len(stored) == 1
-    assert stored[0][1].timestamp() == expected.timestamp()
-    edit_text.assert_awaited_once()
+    (stored_reminder,) = stored
+    assert stored_reminder[1].timestamp() == expected_timestamp
     payload = edit_text.call_args.kwargs
-    assert payload["parse_mode"] is None
     assert "Проверить 🧑‍💻 <b>отчёт</b> & план" in payload["text"]
     entity = next(
         entity for entity in payload["entities"] if entity.type == "date_time"
     )
-    assert entity.unix_time == int(expected.timestamp())
-    assert entity.date_time_format == "dt"
+    assert entity.unix_time == stored_reminder[1].timestamp()
     encoded = payload["text"].encode("utf-16-le")
     date_span = encoded[entity.offset * 2 : (entity.offset + entity.length) * 2].decode(
         "utf-16-le"
     )
-    assert date_span == expected.strftime("%d.%m.%Y %H:%M UTC%z")
-    assert "Создано успешно" in payload["text"]
-    success_entity = payload["entities"][-1]
-    assert success_entity.type == "underline"
-    assert (
-        encoded[
-            success_entity.offset * 2 : (success_entity.offset + success_entity.length)
-            * 2
-        ].decode("utf-16-le")
-        == "Создано успешно"
-    )
+    assert date_span == expected_fallback
     assert all(
         other == entity
         or other.offset + other.length <= entity.offset

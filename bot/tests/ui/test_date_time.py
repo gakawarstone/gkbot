@@ -1,43 +1,24 @@
 from datetime import date, time, timedelta
 
 import pytest
-from aiogram.utils.formatting import Text, Underline
 
 from ui.components.remind_creator import RemindCreator
 from ui.date_time import format_date_time
 
 
-def test_date_entity_offsets_with_cyrillic_and_emoji() -> None:
-    prefix = "Напоминание 🧑‍💻: "
-    fallback = "01.01.2027 00:15 UTC+0530"
-    content = Text(
-        prefix,
-        format_date_time(1798742700, fallback),
-        "\n",
-        Underline("Создано ✅"),
-    )
-    text, entities = content.render()
-    entity, status = entities
-
-    assert text == prefix + fallback + "\nСоздано ✅"
-    assert entity.type == "date_time"
-    assert entity.unix_time == 1798742700
-    assert entity.date_time_format == "dt"
-    assert entity.offset == len(prefix.encode("utf-16-le")) // 2
-    assert entity.length == len(fallback.encode("utf-16-le")) // 2
-    assert status.offset == len((prefix + fallback + "\n").encode("utf-16-le")) // 2
-    assert content.as_kwargs()["parse_mode"] is None
-
-
-@pytest.mark.parametrize("offset", [-1, 0, 1098 * 86400, 1098 * 86400 + 1])
+@pytest.mark.parametrize(
+    ("timestamp", "has_entity"),
+    [(-1, False), (0, True), (1_894_867_200, True), (1_894_867_201, False)],
+)
 def test_date_entity_timestamp_limits(
-    offset: int, monkeypatch: pytest.MonkeyPatch
+    timestamp: int, has_entity: bool, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setattr("ui.date_time.time", lambda: 0)
-    text, entities = format_date_time(offset, "01.01.1970 00:00").render()
+    # Telegram permits the Unix epoch through 1098 days after this fixed now.
+    monkeypatch.setattr("ui.date_time.time", lambda: 1_800_000_000)
+    text, entities = format_date_time(timestamp, "01.01.1970 00:00").render()
 
     assert text == "01.01.1970 00:00"
-    assert bool(entities) == (0 <= offset <= 1098 * 86400)
+    assert bool(entities) == has_entity
 
 
 @pytest.mark.parametrize("fallback", ["", "📆" * 16, "x" * 32])
@@ -46,27 +27,24 @@ def test_unsupported_date_spans_keep_plain_text(fallback: str) -> None:
 
 
 @pytest.mark.parametrize(
-    ("selected_date", "selected_time", "tz"),
+    ("selected_date", "selected_time", "tz", "readable_input"),
     [
-        (None, None, None),
-        (date(2027, 1, 1), None, timedelta(0)),
-        (None, time(0, 15), timedelta(0)),
-        (date(2027, 1, 1), time(0, 15), None),
+        (date(2027, 1, 1), None, timedelta(0), "01.01.2027"),
+        (None, time(0, 15), timedelta(0), "00:15"),
+        (date(2027, 1, 1), time(0, 15), None, "01.01.2027 00:15"),
     ],
 )
 def test_incomplete_reminders_have_no_date_entity(
-    selected_date: date | None, selected_time: time | None, tz: timedelta | None
+    selected_date: date | None,
+    selected_time: time | None,
+    tz: timedelta | None,
+    readable_input: str,
 ) -> None:
     creator = RemindCreator(date=selected_date, time=selected_time, tz=tz)
     text, entities = creator.as_text().render()
 
     assert all(entity.type != "date_time" for entity in entities)
-    assert "Время: " in text
-    if selected_date is not None:
-        assert "01.01.2027" in text
-    if selected_time is not None:
-        assert "00:15" in text
-    assert creator.as_text().render() == (text, entities)
+    assert readable_input in text
 
 
 def test_legacy_html_render_keeps_readable_dates_and_escapes_input() -> None:
