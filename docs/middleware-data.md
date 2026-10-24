@@ -56,11 +56,13 @@ can also be reset to `None`.
   conversation stores its selected setting and parsed time value.
 
 These remain ordinary dictionaries at runtime. Message and callback middleware
-instances share the existing cache keyed by Telegram user ID, across chats.
-This change does not add eviction or alter cache ownership. Tests can replace
-`UserDataMiddleware._UserDataMiddleware__data` with a fresh dictionary using
-pytest's `monkeypatch.setattr`; `test_data.py` demonstrates isolation without
-clearing another dispatcher's cache.
+share one bounded, dispatcher-owned `UserDataStore`, currently keyed by Telegram
+user ID across chats. New entries include `delete_queue: []`; the dictionary
+stays pinned while handlers use it. Final FSM completion releases context,
+retaining only pending deletions, and idle expiry releases abandoned entries.
+See [the retention contract](user-data-retention.md) for limits and stale FSM
+reset. Tests inject a fresh store instead of patching class-level storage;
+`test_data.py` demonstrates sharing within one active session.
 
 ## Handler access and boundaries
 

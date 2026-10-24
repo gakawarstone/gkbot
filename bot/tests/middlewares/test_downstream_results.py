@@ -1,5 +1,4 @@
 from datetime import timedelta
-from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -27,13 +26,6 @@ def make_message_event(user_id: int = 1) -> MagicMock:
     event.from_user.id = user_id
     event.answer = AsyncMock()
     return event
-
-
-@pytest.fixture(autouse=True)
-def _clear_user_data() -> Any:
-    UserDataMiddleware._UserDataMiddleware__data.clear()  # type: ignore[attr-defined]
-    yield
-    UserDataMiddleware._UserDataMiddleware__data.clear()  # type: ignore[attr-defined]
 
 
 async def test_register_user_returns_downstream_result() -> None:

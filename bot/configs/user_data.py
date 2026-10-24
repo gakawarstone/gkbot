@@ -1,0 +1,4 @@
+from os import getenv
+
+USER_DATA_MAX_ENTRIES = int(getenv("USER_DATA_MAX_ENTRIES", "4096"))
+USER_DATA_IDLE_TTL_SECONDS = float(getenv("USER_DATA_IDLE_TTL_SECONDS", "3600"))
