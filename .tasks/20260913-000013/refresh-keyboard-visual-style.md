@@ -22,3 +22,14 @@ Newer Bot API versions support button styles and custom emoji icons. The current
 - Accepted styles use shared helpers instead of per-handler constants.
 - The task records a keep or reject decision.
 
+## Evaluation update, 2026-10-23
+
+See [the experiment report](../../docs/keyboard-visual-style-experiment.md).
+The bounded candidate adds `danger` only to the YouTube dialog's `убрать`
+button and preserves all labels and callbacks. Production styling is rejected
+for now; custom emoji eligibility is unverified and no icons are enabled.
+The report contains a locally checked serialization comparison and a client
+test procedure. Real before/after screenshots and accessibility/fallback
+rendering checks remain blocked by unavailable Telegram client access.
+Keep this task OPEN until that evidence exists.
+
