@@ -3,9 +3,7 @@ import pytest
 from utils.vk import (
     VKReference,
     VKReferenceKind,
-    get_vk_id,
     parse_vk_reference,
-    reconstruct_vk_url,
 )
 
 
@@ -92,19 +90,3 @@ def test_unsupported_references(value: str) -> None:
 def test_invalid_reference_state(kind: VKReferenceKind, value: str) -> None:
     with pytest.raises(ValueError, match="Invalid VK reference"):
         VKReference(kind, value)
-
-
-@pytest.mark.parametrize(
-    "value",
-    [
-        "wall-123_456",
-        "video-123_456",
-        "https://vk.com/video-123_456",
-        "https://vkvideo.ru/video-123_456",
-        "https://vk.cc/abc-123",
-    ],
-)
-def test_compatibility_adapters(value: str) -> None:
-    reference = parse_vk_reference(value)
-    assert get_vk_id(value) == reference.value
-    assert reconstruct_vk_url(get_vk_id(value)) == reference.download_url
