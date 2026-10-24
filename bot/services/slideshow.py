@@ -1,8 +1,7 @@
 import asyncio
 import shutil
 from pathlib import Path
-from subprocess import CompletedProcess
-from typing import Any
+from typing import ClassVar
 
 from services.audio import AudioService
 from services.cache_dir import CacheDir
@@ -10,18 +9,20 @@ from services.ffmpeg_runner import FfmpegRunner
 from utils.async_cleanup import wait_for_completion
 
 
-class FfmpegService:
+class SlideshowRenderer:
+    """Prepare web images and audio, then render a slideshow with fixed options."""
+
     SLIDESHOW_WIDTH = 720
     SLIDESHOW_HEIGHT = 1080
 
-    __resize_image_options = [
+    __resize_image_options: ClassVar[list[str]] = [
         "-vf",
         (
             "scale=trunc(oh*a/2)*2:720,"
             "pad=max(iw\\,ih*9/16):max(ih\\,iw*16/9):(ow-iw)/2:(oh-ih)/2:black"
         ),
     ]
-    __make_slideshow_options = [
+    __make_slideshow_options: ClassVar[list[str]] = [
         "-c:v",
         "libx264",
         "-shortest",
@@ -37,6 +38,7 @@ class FfmpegService:
     async def make_slideshow_from_web(
         cls, images_urls: list[str], audio_url: str | None
     ) -> bytes:
+        """Return MP4 bytes and clean up owned files after rendering finishes."""
         cache_dir = CacheDir()
         try:
             output_path = cache_dir.get_file_path("slideshow.mp4")
@@ -53,7 +55,11 @@ class FfmpegService:
     async def make_slideshow_file_from_web(
         cls, images_urls: list[str], audio_url: str | None, output_path: str
     ) -> None:
-        """Write into a caller-owned directory, kept alive for the later upload."""
+        """Write output and intermediates into an existing caller-owned directory.
+
+        The caller keeps this directory alive through rendering and upload,
+        including waiting for rendering to finish before cancellation cleanup.
+        """
         work_dir = str(Path(output_path).parent)
         await cls.download_and_prepare_images(images_urls, work_dir)
         if audio_url:
@@ -65,21 +71,21 @@ class FfmpegService:
             output_path=output_path,
         )
 
-        await cls._run_command(command)
+        await FfmpegRunner.run(command)
 
     @classmethod
     async def download_and_prepare_images(
         cls, images_url: list[str], work_dir_path: str
     ) -> None:
         for n, url in enumerate(images_url):
-            command = cls._build_command(
+            command = FfmpegRunner.build_command(
                 inputs=[
                     url,
                 ],
                 output=f"{work_dir_path}/{n + 1:03d}.jpg",
                 props=cls.__resize_image_options,
             )
-            await cls._run_command(command)
+            await FfmpegRunner.run(command)
 
         if len(images_url) == 1:
             shutil.copy(f"{work_dir_path}/001.jpg", f"{work_dir_path}/002.jpg")
@@ -87,16 +93,6 @@ class FfmpegService:
 
         if len(images_url) == 2:
             shutil.copy(f"{work_dir_path}/002.jpg", f"{work_dir_path}/003.jpg")
-
-    @classmethod
-    async def _run_command(cls, command: list[str], **kwargs: Any) -> CompletedProcess:
-        return await FfmpegRunner.run(command, **kwargs)
-
-    @classmethod
-    def _build_command(
-        cls, inputs: list[str], output: str, props: list[str]
-    ) -> list[str]:
-        return FfmpegRunner.build_command(inputs, output, props)
 
     @classmethod
     def _build_slideshow_command(
@@ -113,4 +109,4 @@ class FfmpegService:
             opts.remove("-shortest")
             command += opts
 
-        return cls._build_command(inputs=[], output=output_path, props=command)
+        return FfmpegRunner.build_command(inputs=[], output=output_path, props=command)
