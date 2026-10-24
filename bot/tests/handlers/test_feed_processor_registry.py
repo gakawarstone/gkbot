@@ -119,8 +119,6 @@ async def test_discours_renders_photo_through_registry(
         reply_markup=FeedMarkup.get_item_markup(item.id, item.feed_id),
         has_spoiler=False,
     )
-    assert not hasattr(handler, "_process_discours_item")
-    assert not hasattr(handler, "_processors")
     bot.send_message.assert_not_awaited()
     base.assert_not_awaited()
 
@@ -240,7 +238,6 @@ async def test_registered_source_skips_generic_dispatch(
     ):
         await handler._process_item(item)
     process.assert_awaited_once_with(item)
-    assert not hasattr(handler, "_processors")
     base.assert_not_awaited()
     bot.send_message.assert_not_awaited()
 

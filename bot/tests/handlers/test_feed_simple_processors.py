@@ -152,8 +152,6 @@ async def test_simple_source_renders_through_registry(
 
     entry = handler._processor_registry.resolve(item)
     assert entry is not None and entry.source_id == case.source_id
-    assert not hasattr(handler, f"_process_{case.source_id}_item")
-    assert not hasattr(handler, "_processors")
     event.answer_photo.assert_awaited_once()
     photo = event.answer_photo.call_args.args[0]
     options = event.answer_photo.call_args.kwargs

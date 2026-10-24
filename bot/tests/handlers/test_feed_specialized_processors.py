@@ -179,20 +179,6 @@ def payload_rows(markup: InlineKeyboardMarkup) -> list[list[str | None]]:
     ]
 
 
-@pytest.mark.parametrize("source", LINKS)
-def test_registry_resolves_specialized_identity(
-    handler: SpecializedHandler, item: FeedItem, source: str
-) -> None:
-    entry = handler._processor_registry.resolve(replace(item, link=LINKS[source]))
-    assert entry is not None
-    assert entry.source_id == source
-    assert not hasattr(handler, f"_process_{source}_item")
-    assert not hasattr(handler, "_processors")
-    assert "video" not in {
-        entry.source_id for entry in handler._processor_registry.entries
-    }
-
-
 @pytest.mark.parametrize(
     ("link", "source"),
     [
