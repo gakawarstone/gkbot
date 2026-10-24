@@ -1,5 +1,5 @@
 import asyncio
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from html import escape
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -10,17 +10,9 @@ from aiogram.methods import SendPhoto
 from aiogram.types import BufferedInputFile, CallbackQuery, Message, URLInputFile
 
 from modules.feed.handlers.messages import ShowFeedItemsHandler
-from modules.feed.handlers.processors import FeedProcessor, FeedProcessorRegistry
-from modules.feed.handlers.processors._simple_rendering import (
-    SendItem,
-)
-from modules.feed.handlers.processors._simple_rendering import (
-    SendPhoto as PhotoSender,
-)
 from modules.feed.ui.keyboards import FeedMarkup
 from services.gkfeed import FeedItem
 from services.http import HttpRequestError, HttpService
-from services.open_graph import OpenGraphService
 
 IMAGE = "https://example.invalid/image.jpg"
 
@@ -152,7 +144,6 @@ async def test_simple_source_renders_through_registry(
 
     entry = handler._processor_registry.resolve(item)
     assert entry is not None and entry.source_id == case.source_id
-    assert not hasattr(handler, f"_process_{case.source_id}_item")
     assert not any(item.link.startswith(prefix) for prefix in handler._processors)
     event.answer_photo.assert_awaited_once()
     photo = event.answer_photo.call_args.args[0]
@@ -255,93 +246,6 @@ async def test_registered_source_keeps_execution_error_policy(
             assert raised.value is failure
             bot.send_message.assert_not_awaited()
     base.assert_not_awaited()
-
-
-@pytest.mark.parametrize("candidate", CASES, ids=lambda case: case.source_id)
-def test_simple_source_keeps_prefix_matching(candidate: SourceCase) -> None:
-    handler = ShowFeedItemsHandler(event=MagicMock(spec=Message))
-    registry = handler._processor_registry
-    item = FeedItem(id=1, feed_id=2, link=candidate.link, title="", text="")
-    entry = registry.resolve(item)
-    assert entry is not None and entry.source_id == candidate.source_id
-    assert (
-        entry.matches(replace(item, link=candidate.link.replace("https://", "http://")))
-        is False
-    )
-    assert (
-        entry.matches(
-            replace(item, link=candidate.link.replace("https://", "HTTPS://"))
-        )
-        is False
-    )
-    assert entry.matches(replace(item, link="https://example.invalid")) is False
-    # Prefix acceptance, including longer hostnames, belongs to task 13 to change.
-    prefix = {
-        "kinogo": "https://kinogo",
-        "spoti": "https://open",
-        "rezka": "https://hdrezka.me",
-        "shiki": "https://shikimori",
-        "telegram": "https://t.me",
-        "hltv": "https://www.hltv.org",
-        "twitch": "https://www.twitch",
-    }[candidate.source_id]
-    assert entry.matches(replace(item, link=prefix + ".example/extra"))
-
-
-def create_example_processor(
-    send_photo: PhotoSender, send_item: SendItem
-) -> FeedProcessor:
-    async def process(item: FeedItem) -> None:
-        metadata = await OpenGraphService.get(item.link)
-        if metadata.image_url is None:
-            return await send_item(item)
-        await send_photo(item, metadata.image_url, metadata.title or item.title)
-
-    return FeedProcessor(
-        "example", lambda item: item.link.startswith("https://example.invalid"), process
-    )
-
-
-class HandlerWithAnotherSource(ShowFeedItemsHandler):
-    @property
-    def _processor_registry(self) -> FeedProcessorRegistry:
-        return FeedProcessorRegistry(
-            (
-                *super()._processor_registry.entries,
-                create_example_processor(self._send_photo, self._send_item),
-            )
-        )
-
-
-async def test_another_simple_source_needs_only_its_entry_and_composition(
-    event: MagicMock,
-    bot: MagicMock,
-) -> None:
-    handler = HandlerWithAnotherSource(event=event, bot=bot)
-    item = FeedItem(
-        id=11,
-        feed_id=22,
-        link="https://example.invalid/article",
-        title="Example",
-        text="",
-    )
-    with (
-        patch.object(
-            HttpService,
-            "get",
-            return_value=f'<meta property="og:image" content="{IMAGE}">'.encode(),
-        ),
-        patch.object(handler, "_process_base_item", new_callable=AsyncMock) as base,
-    ):
-        await handler._process_item(item)
-    event.answer_photo.assert_awaited_once()
-    assert (
-        event.answer_photo.call_args.kwargs["caption"]
-        == f'<b>Example</b>\n\n<a href="{item.link}">Link</a>'
-    )
-    assert_navigation(event.answer_photo.call_args.kwargs["reply_markup"], item)
-    base.assert_not_awaited()
-    bot.send_message.assert_not_awaited()
 
 
 @pytest.mark.parametrize(

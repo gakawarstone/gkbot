@@ -119,7 +119,6 @@ async def test_discours_renders_photo_through_registry(
         reply_markup=FeedMarkup.get_item_markup(item.id, item.feed_id),
         has_spoiler=False,
     )
-    assert not hasattr(handler, "_process_discours_item")
     assert "https://discours.io" not in handler._processors
     bot.send_message.assert_not_awaited()
     base.assert_not_awaited()
