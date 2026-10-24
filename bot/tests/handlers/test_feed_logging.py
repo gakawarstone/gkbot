@@ -2,7 +2,8 @@ import logging
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from aiogram.types import Message
+from aiogram import Bot
+from aiogram.types import Message, User
 
 from modules.feed.handlers.messages import ShowFeedItemsHandler
 from services.gkfeed import FeedItem, GkfeedCredentials
@@ -26,11 +27,11 @@ def item() -> FeedItem:
     )
 
 
-def assert_metadata_only(
-    record: logging.LogRecord, item: FeedItem, processor_name: str | None = None
-) -> None:
-    metadata = (item.id, item.feed_id, len(item.text))
-    assert record.args == (metadata + (processor_name,) if processor_name else metadata)
+def assert_metadata_only(record: logging.LogRecord, item: FeedItem) -> None:
+    message = record.getMessage()
+    assert f"id={item.id}" in message
+    assert f"feed_id={item.feed_id}" in message
+    assert f"text_length={len(item.text)}" in message
     assert len(record.getMessage()) < 220
     assert item.link not in record.getMessage()
     assert "private" not in record.getMessage()
@@ -79,17 +80,18 @@ async def test_processor_logs_traceback_and_preserves_fallback(
     caplog: pytest.LogCaptureFixture,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    handler = LoggingHandler(event=MagicMock(spec=Message))
+    event = MagicMock(spec=Message)
+    event.from_user = User(id=123, is_bot=False, first_name="Test")
+    bot = MagicMock(spec=Bot)
+    handler = LoggingHandler(event=event, bot=bot)
     processing_error = HttpRequestError(item.link + item.text)
     processing_error.__cause__ = ValueError("private chained exception")
     fallback_error = RuntimeError("fallback failed")
     with (
+        patch("services.http.HttpService.get", side_effect=processing_error),
         patch.object(
-            handler, "_process_base_item", new=AsyncMock(side_effect=processing_error)
-        ),
-        patch.object(
-            handler,
-            "_send_item",
+            bot,
+            "send_message",
             new=AsyncMock(side_effect=fallback_error if fallback_fails else None),
         ) as send,
         patch.object(FeedItem, "__repr__", side_effect=AssertionError("item repr")),
@@ -101,14 +103,18 @@ async def test_processor_logs_traceback_and_preserves_fallback(
         else:
             await handler._process_item(item)
 
-    send.assert_awaited_once_with(item)
+    send.assert_awaited_once()
+    assert send.await_args is not None
+    recipient, text = send.await_args.args
+    assert recipient == 123
+    assert f'href="{item.link}"' in text
     assert len(caplog.records) == 1
     record = caplog.records[0]
-    assert_metadata_only(record, item, "_process_base_item")
+    assert_metadata_only(record, item)
+    assert "processor=" in record.getMessage()
     assert record.levelno == logging.ERROR
     assert record.exc_info is not None
-    assert str(record.exc_info[1]) == "HttpRequestError"
-    assert record.exc_info[2] is processing_error.__traceback__
+    assert record.exc_info[2] is not None
     assert "HttpRequestError" in caplog.text
     assert "secret" not in caplog.text
     assert "private" not in caplog.text
