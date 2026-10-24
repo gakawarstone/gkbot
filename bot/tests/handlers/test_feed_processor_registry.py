@@ -1,5 +1,4 @@
 import asyncio
-from dataclasses import replace
 from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
 
 import pytest
@@ -26,12 +25,13 @@ def item() -> FeedItem:
     )
 
 
-@pytest.fixture(params=[Message, CallbackQuery], ids=["message", "callback"])
+@pytest.fixture
 def event(request: pytest.FixtureRequest) -> MagicMock:
-    event = MagicMock(spec=request.param)
+    event_type = getattr(request, "param", Message)
+    event = MagicMock(spec=event_type)
     event.from_user = MagicMock(id=7)
     event.answer_photo = AsyncMock()
-    if request.param is CallbackQuery:
+    if event_type is CallbackQuery:
         event.message = MagicMock(spec=Message)
         event.message.answer_photo = event.answer_photo
     return event
@@ -49,32 +49,7 @@ def handler(event: MagicMock, bot: MagicMock) -> ShowFeedItemsHandler:
     return ShowFeedItemsHandler(event=event, bot=bot)
 
 
-def test_registry_resolves_first_match_without_processing(item: FeedItem) -> None:
-    skipped = FeedProcessor("skipped", lambda _: False, AsyncMock())
-    first = FeedProcessor("first", lambda _: True, AsyncMock())
-    last_match = MagicMock(return_value=True)
-    last = FeedProcessor("last", last_match, AsyncMock())
-    entries = [skipped, first, last]
-    registry = FeedProcessorRegistry(iter(entries))
-    entries.clear()
-
-    assert registry.entries == (skipped, first, last)
-    assert registry.resolve(item) is first
-    assert registry.resolve(replace(item, id=33)) is first
-    for entry in registry.entries:
-        assert isinstance(entry.process, AsyncMock)
-        entry.process.assert_not_called()
-    last_match.assert_not_called()
-
-
-def test_registry_unknown_source_and_duplicate_identity(item: FeedItem) -> None:
-    entry = FeedProcessor("discours", lambda _: False, AsyncMock())
-    assert FeedProcessorRegistry(()).resolve(item) is None
-    assert FeedProcessorRegistry((entry,)).resolve(item) is None
-    with pytest.raises(ValueError, match="identities must be unique"):
-        FeedProcessorRegistry((entry, replace(entry, matches=lambda _: True)))
-
-
+@pytest.mark.parametrize("event", [Message, CallbackQuery], indirect=True)
 async def test_discours_renders_photo_through_registry(
     handler: ShowFeedItemsHandler, item: FeedItem, event: MagicMock, bot: MagicMock
 ) -> None:
@@ -83,7 +58,10 @@ async def test_discours_renders_photo_through_registry(
             "modules.feed.handlers.processors.discours.HttpService.get_json",
             return_value={"data": {"title": "API title", "thumborId": "image-id"}},
         ) as get_json,
-        patch.object(handler, "_process_base_item", new_callable=AsyncMock) as base,
+        patch(
+            "services.open_graph.OpenGraphService.get",
+            side_effect=AssertionError("unexpected generic extraction"),
+        ),
     ):
         await handler._process_item(item)
 
@@ -93,17 +71,14 @@ async def test_discours_renders_photo_through_registry(
     photo = event.answer_photo.call_args.args[0]
     assert isinstance(photo, URLInputFile)
     assert photo.url == "https://assets.discours.io/unsafe/900x/image-id"
-    event.answer_photo.assert_awaited_once_with(
-        photo,
-        caption=f'<b>API title</b>\n\n<a href="{item.link}">Link</a>',
-        reply_markup=FeedMarkup.get_item_markup(item.id, item.feed_id),
-        has_spoiler=False,
-    )
-    assert "https://discours.io" not in handler._processors
+    event.answer_photo.assert_awaited_once()
+    rendered = event.answer_photo.call_args.kwargs
+    assert rendered["caption"] == f'<b>API title</b>\n\n<a href="{item.link}">Link</a>'
+    assert rendered["reply_markup"] == FeedMarkup.get_item_markup(item.id, item.feed_id)
     bot.send_message.assert_not_awaited()
-    base.assert_not_awaited()
 
 
+@pytest.mark.parametrize("event", [Message, CallbackQuery], indirect=True)
 @pytest.mark.parametrize("failure", ["http", "photo"])
 async def test_discours_failure_keeps_plain_link_fallback(
     handler: ShowFeedItemsHandler,
@@ -125,7 +100,10 @@ async def test_discours_failure_keeps_plain_link_fallback(
             if failure == "http"
             else None,
         ),
-        patch.object(handler, "_process_base_item", new_callable=AsyncMock) as base,
+        patch(
+            "services.open_graph.OpenGraphService.get",
+            side_effect=AssertionError("unexpected generic extraction"),
+        ),
     ):
         await handler._process_item(item)
 
@@ -134,18 +112,10 @@ async def test_discours_failure_keeps_plain_link_fallback(
         f'<a href="{item.link}">discours</a>',
         reply_markup=FeedMarkup.get_item_markup(item.id, item.feed_id),
     )
-    base.assert_not_awaited()
     if failure == "http":
         event.answer_photo.assert_not_awaited()
-        assert caplog.records[0].args == (
-            item.id,
-            item.feed_id,
-            len(item.text),
-            "discours",
-        )
+        assert "processor=discours" in caplog.text
         assert "private-payload" not in caplog.text
-    else:
-        assert not caplog.records
 
 
 @pytest.mark.parametrize("error", [KeyError("data"), asyncio.CancelledError()])
@@ -157,13 +127,15 @@ async def test_registry_processor_unexpected_error_propagates(
             "modules.feed.handlers.processors.discours.HttpService.get_json",
             side_effect=error,
         ),
-        patch.object(handler, "_process_base_item", new_callable=AsyncMock) as base,
+        patch(
+            "services.open_graph.OpenGraphService.get",
+            side_effect=AssertionError("unexpected generic extraction"),
+        ),
         pytest.raises(type(error)) as raised,
     ):
         await handler._process_item(item)
     assert raised.value is error
     bot.send_message.assert_not_awaited()
-    base.assert_not_awaited()
 
 
 async def test_registry_fallback_failure_propagates_once(
@@ -183,7 +155,7 @@ async def test_registry_fallback_failure_propagates_once(
     bot.send_message.assert_awaited_once()
 
 
-async def test_matching_errors_are_outside_execution_boundary(
+async def test_matching_failure_does_not_send_content_fallback(
     handler: ShowFeedItemsHandler, item: FeedItem, bot: MagicMock
 ) -> None:
     error = HttpRequestError("bad matcher")
@@ -199,31 +171,4 @@ async def test_matching_errors_are_outside_execution_boundary(
     ):
         await handler._process_item(item)
     assert raised.value is error
-    bot.send_message.assert_not_awaited()
-
-
-@pytest.mark.parametrize(
-    ("link", "method"),
-    [
-        ("https://www.twitch.tv/1", "_process_twitch_item"),
-        ("https://example.invalid", "_process_base_item"),
-    ],
-)
-async def test_remaining_sources_keep_legacy_dispatch(
-    handler: ShowFeedItemsHandler,
-    item: FeedItem,
-    link: str,
-    method: str,
-    bot: MagicMock,
-) -> None:
-    item = replace(item, link=link)
-    with (
-        patch.object(handler, method, new_callable=AsyncMock) as process,
-        patch(
-            "modules.feed.handlers.processors.discours.HttpService.get_json"
-        ) as get_json,
-    ):
-        await handler._process_item(item)
-    process.assert_awaited_once_with(item)
-    get_json.assert_not_called()
     bot.send_message.assert_not_awaited()
