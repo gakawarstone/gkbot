@@ -1,13 +1,15 @@
 import asyncio
+import json
 import threading
 from pathlib import Path
-from subprocess import CalledProcessError
+from subprocess import CalledProcessError, CompletedProcess
 from unittest.mock import AsyncMock
 
 import pytest
 
 from services.cache_dir import CacheDir
 from services.ffmpeg import FfmpegService
+from services.ffmpeg_runner import FfmpegRunner
 
 
 @pytest.fixture
@@ -61,6 +63,30 @@ async def test_slideshow_bytes_compatibility_and_cleanup(
             await FfmpegService.make_slideshow_from_web(["image"], None) == b"slideshow"
         )
     assert list(cache_root.iterdir()) == []
+
+
+@pytest.mark.parametrize(
+    ("probe_output", "expected"),
+    [
+        ({"streams": []}, {}),
+        ({}, {}),
+        (
+            {"streams": [{"width": 720, "height": "1080", "duration": "12.9"}]},
+            {"width": 720, "height": 1080, "duration": 12},
+        ),
+        ({"streams": [{"width": 720, "duration": "N/A"}]}, {"width": 720}),
+    ],
+)
+async def test_metadata_parses_probe_output(
+    monkeypatch: pytest.MonkeyPatch,
+    probe_output: dict,
+    expected: dict[str, int],
+) -> None:
+    run = AsyncMock(
+        return_value=CompletedProcess([], 0, stdout=json.dumps(probe_output))
+    )
+    monkeypatch.setattr(FfmpegRunner, "run", run)
+    assert await FfmpegService.get_video_metadata("input file.mp4") == expected
 
 
 async def test_voice_conversion_still_returns_bytes(
