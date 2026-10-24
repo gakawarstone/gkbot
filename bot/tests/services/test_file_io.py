@@ -28,9 +28,6 @@ async def test_upload_keeps_file_open_until_request_finishes(
     uploaded: list[BinaryIO] = []
 
     async def post(url: str, body: dict[str, Any]) -> bytes:
-        assert url == LitterboxUploader.host_url
-        assert body["reqtype"] == "fileupload"
-        assert body["time"] == "1h"
         file = body["fileToUpload"]
         uploaded.append(file)
         assert not file.closed

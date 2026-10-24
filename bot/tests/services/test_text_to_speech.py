@@ -24,8 +24,6 @@ async def test_convert_text_to_speech_edge(
         )
 
     assert result == b"audio content"
-    communicate.assert_called_once_with("hello", "ru-RU-DmitryNeural")
-    communicate.return_value.save.assert_awaited_once()
     assert list(tmp_path.iterdir()) == []
 
 

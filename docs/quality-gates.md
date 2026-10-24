@@ -46,8 +46,9 @@ instead of appearing to be invalid user dates.
 ## Offline and external tests
 
 `make test` sets `INTEGRATION_TEST=0`. Handler doubles record awaited calls and
-return editable/deletable message doubles. Unit tests assert delivery payloads,
-status cleanup, and error responses without making provider requests.
+return editable/deletable message doubles. The retained regressions check album
+bytes, storage-error propagation, file contents and cleanup without making
+provider requests.
 
 Use `make test FILE=-rs` to print skip reasons. Each external test identifies
 its dependency and requires `INTEGRATION_TEST=1` to opt in:
@@ -66,8 +67,8 @@ embedded debugger calls.
 ## Serveo lifecycle
 
 Serveo now has a standard Go module and tests without external services. Tests
-use temporary files, a loopback HTTP listener, and a helper subprocess instead
-of contacting serveo.net or relying on an installed SSH executable.
+use temporary files and a helper subprocess instead of contacting serveo.net or
+relying on an installed SSH executable.
 
 SIGINT or SIGTERM cancels the service context. Shutdown stops and waits for the
 SSH process, removes the advertised URL file, and calls
@@ -79,14 +80,14 @@ before waiting for the child, avoiding a full output pipe.
 
 The service still serves `/files` on port 8089 and forwards through serveo.net.
 It now exits with an error when startup fails or the tunnel stops, rather than
-remaining alive with an unusable tunnel. HTTP file delivery, URL extraction and
-file writing, startup cancellation, tunnel exit, and shutdown are covered by
-`go test -race`; `go vet` checks the reachable shutdown flow.
+remaining alive with an unusable tunnel. URL extraction, startup cancellation,
+tunnel exit, and process/URL cleanup are covered by `go test -race`; `go vet`
+checks the reachable shutdown flow.
 
-## Verification on 2026-10-23
+## Verification after test review
 
-`make check` passes with 140 Python tests passed and 13 external tests skipped;
-Ruff, typos, mypy, Pyright, Go race tests, and vet all pass. Mypy checks 419 source
+`make check` passes with 132 Python tests passed and 13 external tests skipped;
+Ruff, typos, mypy, Pyright, Go race tests, and vet all pass. Mypy checks 418 source
 files. Go race tests and vet also pass with `GOTOOLCHAIN=go1.23.1`, the version
 selected by CI. `actionlint` 1.7.7 accepts both workflows. A missing-dependency
 probe still fails with mypy's `import-not-found` error.
