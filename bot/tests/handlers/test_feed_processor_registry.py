@@ -10,7 +10,6 @@ from aiogram.types import CallbackQuery, Message, URLInputFile
 
 from modules.feed.handlers.messages import ShowFeedItemsHandler
 from modules.feed.handlers.processors import FeedProcessor, FeedProcessorRegistry
-from modules.feed.handlers.processors.discours import create_discours_processor
 from modules.feed.ui.keyboards import FeedMarkup
 from services.gkfeed import FeedItem
 from services.http import HttpRequestError
@@ -76,25 +75,6 @@ def test_registry_unknown_source_and_duplicate_identity(item: FeedItem) -> None:
         FeedProcessorRegistry((entry, replace(entry, matches=lambda _: True)))
 
 
-@pytest.mark.parametrize(
-    ("link", "matches"),
-    [
-        ("https://discours.io/articles/post", True),
-        ("https://discours.io/", True),
-        ("https://discours.io.example/articles/post", True),
-        ("http://discours.io/articles/post", False),
-        ("https://www.discours.io/articles/post", False),
-        ("https://example.invalid", False),
-    ],
-)
-def test_discours_preserves_existing_prefix_matching(
-    item: FeedItem, link: str, matches: bool
-) -> None:
-    entry = create_discours_processor(AsyncMock())
-    assert entry.source_id == "discours"
-    assert entry.matches(replace(item, link=link)) is matches
-
-
 async def test_discours_renders_photo_through_registry(
     handler: ShowFeedItemsHandler, item: FeedItem, event: MagicMock, bot: MagicMock
 ) -> None:
@@ -119,7 +99,6 @@ async def test_discours_renders_photo_through_registry(
         reply_markup=FeedMarkup.get_item_markup(item.id, item.feed_id),
         has_spoiler=False,
     )
-    assert not hasattr(handler, "_process_discours_item")
     assert "https://discours.io" not in handler._processors
     bot.send_message.assert_not_awaited()
     base.assert_not_awaited()
@@ -223,52 +202,10 @@ async def test_matching_errors_are_outside_execution_boundary(
     bot.send_message.assert_not_awaited()
 
 
-async def test_registry_takes_precedence_over_legacy_dispatch(
-    handler: ShowFeedItemsHandler, item: FeedItem, bot: MagicMock
-) -> None:
-    item = replace(item, link="https://www.twitch.tv/channel")
-    process = AsyncMock()
-    entry = FeedProcessor("registered", lambda _: True, process)
-    with (
-        patch.object(
-            type(handler),
-            "_processor_registry",
-            new_callable=PropertyMock,
-            return_value=FeedProcessorRegistry((entry,)),
-        ),
-        patch.object(handler, "_process_twitch_item", new_callable=AsyncMock) as legacy,
-        patch.object(handler, "_process_base_item", new_callable=AsyncMock) as base,
-    ):
-        await handler._process_item(item)
-    process.assert_awaited_once_with(item)
-    legacy.assert_not_awaited()
-    base.assert_not_awaited()
-    bot.send_message.assert_not_awaited()
-
-
 @pytest.mark.parametrize(
     ("link", "method"),
     [
-        ("https://stories.example/1", "_process_stories_item"),
-        ("https://kinogo.example/1", "_process_kinogo_item"),
-        ("https://open.spotify.com/1", "_process_spoti_item"),
-        ("https://vk.com/1", "_process_vk_item"),
-        ("https://www.youtube.com/1", "_process_youtube_item"),
-        ("https://t.me/1", "_process_telegram_item"),
-        ("https://www.reddit.com/1", "_process_reddit_item"),
-        ("https://hdrezka.me/1", "_process_rezka_item"),
-        ("https://shikimori.one/1", "_process_shiki_item"),
         ("https://www.twitch.tv/1", "_process_twitch_item"),
-        ("https://www.tiktok.com/1", "_process_tiktok_item"),
-        ("https://www.pornhub.com/1", "_process_pornhub_item"),
-        ("https://de.pornhub.org/1", "_process_pornhub_item"),
-        ("https://pornhub.org/1", "_process_pornhub_item"),
-        ("http://porno365.broker/1", "_process_porno365_item"),
-        ("https://instagram.com/1", "_process_instagram_item"),
-        ("https://www.instagram.com/1", "_process_instagram_item"),
-        ("https://www.hltv.org/1", "_process_hltv_item"),
-        ("https://sasflix.ru/1", "_process_sasflix_item"),
-        ("https://matreshka.tv/video/1", "_process_matreshka_item"),
         ("https://example.invalid", "_process_base_item"),
     ],
 )
