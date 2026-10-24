@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 import pytest
 from aiogram.types import Message
 
-from bot.filters.vk import VkVideoLink
+from filters.vk import VkVideoLink
 
 
 @pytest.mark.asyncio

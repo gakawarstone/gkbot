@@ -1,17 +1,18 @@
-from typing import Any, Awaitable, Callable, Dict
+from collections.abc import Awaitable, Callable
+from typing import Any, ClassVar
 
 from aiogram.dispatcher.middlewares.base import BaseMiddleware
 from aiogram.types import TelegramObject
 
 
 class UserDataMiddleware(BaseMiddleware):
-    __data: Dict[int, Dict[str, Any]] = {}
+    __data: ClassVar[dict[int, dict[str, Any]]] = {}
 
     async def __call__(
         self,
-        handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
+        handler: Callable[[TelegramObject, dict[str, Any]], Awaitable[Any]],
         event: TelegramObject,
-        data: Dict[str, Any],
+        data: dict[str, Any],
     ) -> Any:
         user = getattr(event, "from_user", None)
         user_id = user.id if user else None

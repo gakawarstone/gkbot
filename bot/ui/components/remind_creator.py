@@ -1,5 +1,4 @@
 from datetime import date, time
-from typing import Optional
 
 from .base_creator import BaseCreatorComponent
 
@@ -7,10 +6,10 @@ from .base_creator import BaseCreatorComponent
 class RemindCreator(BaseCreatorComponent):
     def __init__(
         self,
-        text: Optional[str] = None,
-        date: Optional[date] = None,
-        time: Optional[time] = None,
-        status_message: Optional[str] = None,
+        text: str | None = None,
+        date: date | None = None,
+        time: time | None = None,
+        status_message: str | None = None,
     ) -> None:
         self.text = text
         self.date = date

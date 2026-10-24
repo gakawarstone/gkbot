@@ -1,15 +1,15 @@
-from typing import Any, Type, get_type_hints
+from typing import Any, get_args, get_type_hints
 
 from varname import argname, nameof
 
 from ._types import Property
 
 
-def uncast_opt(obj: Type) -> Type:
-    return obj.__args__[0]
+def uncast_opt(obj: type) -> type:
+    return get_args(obj)[0]
 
 
-def get_hint(obj_parent: Any, obj_name: str) -> Type:
+def get_hint(obj_parent: Any, obj_name: str) -> type:
     return uncast_opt(get_type_hints(obj_parent)[obj_name])
 
 
@@ -22,6 +22,6 @@ def make_prop(obj: Any, obj_parent: Any, frame=3) -> Property:
 def make_args_names_list(*args, frame: int = 2) -> list[str]:
     names = []
     for i, _ in enumerate(args):
-        arg_id = "args[%s]" % i
+        arg_id = f"args[{i}]"
         names.append(argname(arg_id, frame=frame))
     return names

@@ -1,8 +1,9 @@
 import asyncio
 import logging
 import pickle
+from collections.abc import Awaitable, Callable
 from datetime import datetime, timedelta, timezone
-from typing import Any, Awaitable, Callable, ClassVar
+from typing import Any, ClassVar
 
 from models.tasks import Task as _Model
 
@@ -34,7 +35,8 @@ class TasksStorage:
         ]
 
     async def remove_by_id(self, id: int) -> None:
-        [await i.delete() for i in await _Model.filter(id=id).all()]
+        for task in await _Model.filter(id=id).all():
+            await task.delete()
 
 
 class Schedule:
@@ -75,7 +77,7 @@ class Schedule:
             if time.timestamp() <= cls.__get_now_timestamp():
                 try:
                     await task.run()
-                except Exception:
+                except Exception:  # noqa: BLE001 - Each scheduled callback has its own retry budget.
                     if cls.__register_failure(id):
                         await cls.__tasks.remove_by_id(id)
                     continue
@@ -94,7 +96,10 @@ class Schedule:
             )
             return True
         logger.exception(
-            "Scheduled task %s failed, attempt %s/%s", id, attempts, cls.__max_task_attempts
+            "Scheduled task %s failed, attempt %s/%s",
+            id,
+            attempts,
+            cls.__max_task_attempts,
         )
         return False
 

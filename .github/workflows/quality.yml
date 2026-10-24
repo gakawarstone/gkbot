@@ -1,0 +1,34 @@
+name: Quality
+on:
+  pull_request:
+  push:
+    branches:
+      - dev-3.0
+  workflow_call:
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install uv and dependencies
+        run: |
+          pip install uv
+          sudo apt-get update
+          sudo apt-get -y install build-essential libxml2-dev libxslt-dev
+          uv sync --frozen --dev --python 3.13
+      - run: make lint
+      - run: make test
+
+  serveo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: services/serveo_file_server/go.mod
+          cache: false
+      - run: make check-go

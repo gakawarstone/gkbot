@@ -1,8 +1,10 @@
+from typing import ClassVar
+
 from ._types import DownloadOptions
 
 
 class AudioDownloadOptions(DownloadOptions):
-    youtube = {
+    youtube: ClassVar[dict] = {
         "format": "ba[ext=m4a]/ba/b",
         "postprocessors": [
             {"key": "SponsorBlock", "categories": ["sponsor"]},
@@ -10,7 +12,7 @@ class AudioDownloadOptions(DownloadOptions):
         ],
     }
 
-    vk = {
+    vk: ClassVar[dict] = {
         "format": "ba",
         "concurrent_fragment_downloads": 100,
         "force_ipv4": True,
@@ -18,20 +20,17 @@ class AudioDownloadOptions(DownloadOptions):
 
 
 class VideoDownloadOptions(DownloadOptions):
-    default: dict = {}
-    youtube_shorts = {
+    default: ClassVar[dict] = {}
+    youtube_shorts: ClassVar[dict] = {
         "format": "bv*+ba/b",
         "external_downloader": "aria2c",
         "postprocessors": [{"key": "FFmpegVideoConvertor", "preferedformat": "mp4"}],
     }
 
-    youtube = {
+    youtube: ClassVar[dict] = {
         # Combined YouTube formats commonly omit filesize, so keep the size
         # guard only on the adaptive-stream path.
-        "format": (
-            "bv[ext=mp4][filesize<1G][vcodec^=avc1]+ba[ext=m4a]"
-            "/b[ext=mp4]"
-        ),
+        "format": ("bv[ext=mp4][filesize<1G][vcodec^=avc1]+ba[ext=m4a]/b[ext=mp4]"),
         "external_downloader": "aria2c",
         "external_downloader_args": [
             "-x",
@@ -45,11 +44,11 @@ class VideoDownloadOptions(DownloadOptions):
         ],
     }
 
-    tiktok = {
+    tiktok: ClassVar[dict] = {
         "format": "b[vcodec^=h264][acodec!=none]/b[acodec!=none]/bv*+ba/b",
     }
 
-    vk = {
+    vk: ClassVar[dict] = {
         "format": "bv[ext=mp4]+ba[ext=m4a]/b[ext=mp4]",
         "concurrent_fragment_downloads": 100,
         "force_ipv4": True,

@@ -15,11 +15,11 @@ class InstagramFeedItemView(BaseFeedItemView):
 
         img_tag = soup.find("img")
         if not isinstance(img_tag, Tag):
-            raise ValueError("No image tag found in the item content")
+            raise TypeError("No image tag found in the item content")
 
         src = img_tag.get("src")
         if not isinstance(src, str):
-            raise ValueError("No src attribute found in the image tag")
+            raise TypeError("No src attribute found in the image tag")
 
         caption = item.title.split("/")[-1].split(":")[1]
 

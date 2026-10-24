@@ -8,10 +8,12 @@ from ui.buttons.youtube.download import (
     YoutubeDownloadButtonData,
 )
 
-from .... import integration_test
+from .... import requires_integration
 
 
-@integration_test
+@requires_integration(
+    "Telegram Bot API credentials, ADMIN_IDS and YouTube network access and the yt-dlp worker"
+)
 @pytest.mark.asyncio(loop_scope="session")
 async def test_download_video():
     yt_code = "oRxuDeZRFx8"

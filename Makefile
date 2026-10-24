@@ -49,14 +49,21 @@ lock:
 	uv export --no-dev --no-hashes --format=requirements-txt > requirements.txt
 
 lint:
-	uvx ruff check $(or $(FILE),bot/) 
-	uvx typos $(or $(FILE),bot/) 
+	uv run ruff check $(or $(FILE),bot/)
+	uv run typos $(or $(FILE),bot/)
 	uv run mypy $(or $(FILE),bot/) 
 	uv run pyright $(or $(FILE),bot/)
 
+.PHONY: check check-go lint test format
+check: lint test check-go
+
+check-go:
+	cd services/serveo_file_server && go test -race -timeout 60s ./...
+	cd services/serveo_file_server && go vet ./...
+
 format:
 ifdef FILE
-	uvx ruff format $(FILE)
+	uv run ruff format $(FILE)
 else
-	uvx ruff format .
+	uv run ruff format .
 endif

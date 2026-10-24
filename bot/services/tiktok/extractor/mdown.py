@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 import requests
 from bs4 import BeautifulSoup
 from bs4.element import Tag
@@ -11,7 +13,7 @@ from .exceptions import SourceInfoExtractFailed
 
 class Mdown(BaseExtractor, requests.Session):
     _base_url = "https://musicaldown.com/"
-    _headers = {
+    _headers: ClassVar[dict] = {
         "origin": "https://musicaldown.com",
         "referer": "https://musicaldown.com/en/",
         "sec-ch-ua": '"Chromium";v="94", "Google Chrome";v="94", ";Not A Brand";v="99"',

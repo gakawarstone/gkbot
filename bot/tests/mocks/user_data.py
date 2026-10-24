@@ -1,8 +1,8 @@
-from typing import Any
+from typing import Any, ClassVar
 
 
 class MockedUserDataExtension:
-    __user_data: dict[str, Any] = {}
+    __user_data: ClassVar[dict[str, Any]] = {}
 
     @property
     def user_data(self) -> dict[str, Any]:

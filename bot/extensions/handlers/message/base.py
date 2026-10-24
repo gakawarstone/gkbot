@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import Any, Optional
+from typing import Any
 
 from aiogram.fsm.context import FSMContext
 from aiogram.handlers import BaseHandler as _BaseHandler
@@ -9,13 +9,13 @@ from aiogram.types import Message
 class BaseHandler(_BaseHandler[Message], ABC):
     @property
     def user_data(self) -> dict:
-        return self.data['data']
+        return self.data["data"]
 
     @property
     def state(self) -> FSMContext:
-        return self.data['state']
+        return self.data["state"]
 
-    def _try_get_from_user_data(self, prop: str) -> Optional[Any]:
-        if prop not in self.user_data.keys():
+    def _try_get_from_user_data(self, prop: str) -> Any | None:
+        if prop not in self.user_data:
             return None
         return self.user_data[prop]

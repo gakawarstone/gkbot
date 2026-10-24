@@ -1,18 +1,15 @@
-from abc import ABC
-from typing import Any, Generic, Optional, Type, TypeVar
+from typing import Any
 
 from ..base import BaseHandler as _BaseHandler
 from ._types import BaseContext, Property
 from ._utils import get_hint, make_args_names_list, make_prop
 
-_T = TypeVar("_T", bound=BaseContext)
 
-
-class BaseContextManager(_BaseHandler, Generic[_T], ABC):
-    props: Type[_T]
+class BaseContextManager[T: BaseContext](_BaseHandler):
+    props: type[T]
 
     @property
-    def ctx(self) -> _T:
+    def ctx(self) -> T:
         props_name_list: list[str] = [
             prop_name for prop_name in dir(self.props) if not prop_name.startswith("__")
         ]
@@ -53,7 +50,7 @@ class BaseContextManager(_BaseHandler, Generic[_T], ABC):
     def _reset_prop(self, prop: Property) -> None:
         self.user_data[prop.name] = None
 
-    def _try_get_prop(self, prop: Property) -> Optional[Any]:
+    def _try_get_prop(self, prop: Property) -> Any | None:
         value = self._try_get_from_user_data(prop.name)
 
         if value is not None and type(value) is not prop.type and prop.type is not Any:

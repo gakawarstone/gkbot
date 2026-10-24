@@ -1,4 +1,6 @@
+import asyncio
 from datetime import datetime, timedelta
+from pathlib import Path
 
 from aiogram.types.input_file import FSInputFile, InputFile, URLInputFile
 
@@ -8,7 +10,7 @@ from services.litterbox import LitterboxUploader
 
 
 class StaticFile:
-    def __init__(self, path: str, cache: bool = True):
+    def __init__(self, path: str, cache: bool = True) -> None:
         self.__path = path
         self.__should_cache = cache
         self.__cache_url = ""
@@ -25,7 +27,9 @@ class StaticFile:
 
     async def as_str(self) -> str:
         if not self.__should_cache:
-            return open(self.__path, "rb").read().decode("utf-8")
+            return (await asyncio.to_thread(Path(self.__path).read_bytes)).decode(
+                "utf-8"
+            )
         return (await HttpService.get(await self._cache_url)).decode("utf-8")
 
     async def as_input_file(self) -> InputFile:
