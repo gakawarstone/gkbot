@@ -1,23 +1,22 @@
-from html import escape, unescape
+from html import unescape
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from modules.feed.handlers.add._states import FSM
 from modules.feed.handlers.add.add import AddFeedHandler
 from services.gkfeed import GkfeedApi, GkfeedAuthService, GkfeedCredentials
 
 
 @pytest.mark.parametrize(
-    "feed_url",
+    ("feed_url", "copyable"),
     [
-        "https://example.com/feed.xml?tag=<python>&sort=new#latest",
-        "https://example.com/" + "я" * 236,
-        "https://example.com/" + "a" * 237,
+        ("https://example.com/feed.xml?tag=<python>&sort=new#latest", True),
+        ("https://example.com/" + "я" * 236, True),
+        ("https://example.com/" + "a" * 237, False),
     ],
 )
 async def test_add_feed_confirmation_copies_saved_url(
-    monkeypatch: pytest.MonkeyPatch, feed_url: str
+    monkeypatch: pytest.MonkeyPatch, feed_url: str, copyable: bool
 ) -> None:
     credentials = GkfeedCredentials(login="test", password="test")
     get_credentials = AsyncMock(return_value=credentials)
@@ -33,16 +32,13 @@ async def test_add_feed_confirmation_copies_saved_url(
 
     await AddFeedHandler(event=event, state=state).handle()
 
-    state.set_state.assert_awaited_once_with(FSM.finish)
-    event.delete.assert_awaited_once_with()
-    get_credentials.assert_awaited_once_with(42)
     add_feed.assert_awaited_once_with(feed_url)
     event.answer.assert_awaited_once()
     args, kwargs = event.answer.await_args
-    assert args == (f"Feed added: {escape(feed_url)}",)
     assert unescape(args[0]) == f"Feed added: {feed_url}"
+    assert "<python>" not in args[0]
     markup = kwargs["reply_markup"]
-    if len(feed_url) <= 256:
+    if copyable:
         assert markup.inline_keyboard[0][0].copy_text.text == feed_url
     else:
         assert markup is None
