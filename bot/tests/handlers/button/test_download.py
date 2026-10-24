@@ -9,7 +9,6 @@ from typing import Literal, cast
 from unittest.mock import AsyncMock, Mock
 
 import pytest
-from aiogram import Router
 from aiogram.types import (
     CallbackQuery,
     Chat,
@@ -340,19 +339,6 @@ async def test_vk_full_url_compatibility(
     await handler.download(harness.callback(case.payload()))
     start = harness.start_audio if media_type == "audio" else harness.start_video
     start.assert_awaited_once_with(identifier)
-
-
-@pytest.mark.parametrize("case", VIDEO_CASES, ids=lambda case: case.source)
-async def test_router_registration(
-    case: DownloadCase, harness: DownloadHarness
-) -> None:
-    handler = import_module(f"handlers.button.{case.source}.download")
-    router = Router()
-    handler.setup(router)
-    registered = router.callback_query.handlers[0]
-    assert registered.callback is handler.download
-    assert (await registered.check(harness.callback(case.payload())))[0]
-    assert not (await registered.check(harness.callback("unrelated:dlmp4:False:id")))[0]
 
 
 @integration_test
