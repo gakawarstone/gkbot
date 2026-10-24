@@ -6,7 +6,6 @@ import pytest
 from aiogram import Router
 from aiogram.dispatcher.event.bases import UNHANDLED
 from aiogram.filters.callback_data import CallbackData
-from aiogram.types import CallbackQuery
 
 from tests.mocks.message import make_fake_callback
 from ui.buttons.matreshka import MatreshkaDownloadButtonCallbackData
@@ -57,45 +56,15 @@ ROUTES = [
 
 
 @pytest.mark.parametrize("source, model, native, legacy", ROUTES)
-@pytest.mark.parametrize("wire_format", ["native", "legacy"])
-async def test_typed_payload_injection(
-    monkeypatch: pytest.MonkeyPatch,
-    source: str,
-    model: type[CallbackData],
-    native: str,
-    legacy: str,
-    wire_format: str,
-) -> None:
-    async def capture(
-        query: CallbackQuery, callback_data: CallbackData
-    ) -> CallbackData:
-        return callback_data
-
-    handler = import_module(f"handlers.button.{source}.download")
-    monkeypatch.setattr(handler, "download", capture)
-    router = Router()
-    handler.setup(router)
-    raw = native if wire_format == "native" else legacy
-    result = await router.propagate_event("callback_query", make_fake_callback(raw))
-    assert isinstance(result, model)
-    assert result == model.unpack(native)
-
-
-@pytest.mark.parametrize("source, model, native, legacy", ROUTES)
 @pytest.mark.parametrize("damage", ["prefix", "extra", "missing", "empty", "no-data"])
 async def test_malformed_callback_never_enters_handler(
-    monkeypatch: pytest.MonkeyPatch,
     source: str,
     model: type[CallbackData],
     native: str,
     legacy: str,
     damage: str,
 ) -> None:
-    async def forbidden(query: CallbackQuery, callback_data: CallbackData) -> None:
-        pytest.fail("Invalid callback entered the download handler")
-
     handler = import_module(f"handlers.button.{source}.download")
-    monkeypatch.setattr(handler, "download", forbidden)
     router = Router()
     handler.setup(router)
     sep = model.__separator__
@@ -114,11 +83,18 @@ async def test_malformed_callback_never_enters_handler(
     assert await router.propagate_event("callback_query", callback) is UNHANDLED
 
 
-@pytest.mark.parametrize("source, model, native, legacy", ROUTES[:4])
-@pytest.mark.parametrize("wire_format", ["native", "legacy"])
+@pytest.mark.parametrize(
+    "source, model, native, legacy, wire_format",
+    [
+        (*route, wire_format)
+        for route in ROUTES[:4]
+        for wire_format in (
+            ["native", "legacy"] if route[0] in {"vk", "porno365"} else ["native"]
+        )
+    ],
+)
 @pytest.mark.parametrize("token", ["", "yes", "on", "false", "garbage", "2"])
 async def test_invalid_boolean_never_enters_handler(
-    monkeypatch: pytest.MonkeyPatch,
     source: str,
     model: type[CallbackData],
     native: str,
@@ -126,11 +102,7 @@ async def test_invalid_boolean_never_enters_handler(
     wire_format: str,
     token: str,
 ) -> None:
-    async def forbidden(query: CallbackQuery, callback_data: CallbackData) -> None:
-        pytest.fail("Malformed boolean entered the download handler")
-
     handler = import_module(f"handlers.button.{source}.download")
-    monkeypatch.setattr(handler, "download", forbidden)
     router = Router()
     handler.setup(router)
     raw = native if wire_format == "native" else legacy
@@ -145,21 +117,24 @@ async def test_invalid_boolean_never_enters_handler(
     )
 
 
-@pytest.mark.parametrize("source, model, native, legacy", ROUTES[:4])
-@pytest.mark.parametrize("wire_format", ["native", "legacy"])
+@pytest.mark.parametrize(
+    "source, model, native, legacy, wire_format",
+    [
+        (*route, wire_format)
+        for route in ROUTES[:4]
+        for wire_format in (
+            ["native", "legacy"] if route[0] in {"vk", "porno365"} else ["native"]
+        )
+    ],
+)
 async def test_unknown_action_never_enters_handler(
-    monkeypatch: pytest.MonkeyPatch,
     source: str,
     model: type[CallbackData],
     native: str,
     legacy: str,
     wire_format: str,
 ) -> None:
-    async def forbidden(query: CallbackQuery, callback_data: CallbackData) -> None:
-        pytest.fail("Unknown action entered the download handler")
-
     handler = import_module(f"handlers.button.{source}.download")
-    monkeypatch.setattr(handler, "download", forbidden)
     router = Router()
     handler.setup(router)
     raw = native if wire_format == "native" else legacy

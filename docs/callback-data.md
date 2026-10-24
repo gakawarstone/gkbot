@@ -80,8 +80,8 @@ contract. This migration does not integrate the duplicate lifecycle PR #24.
 Offline tests cover all six model round trips, literal old payloads, malformed
 field counts/prefixes, action and reference enums, strict booleans, UUIDs,
 separator rejection and the 64-byte boundary, including multibyte IDs. Router
-tests verify typed injection and rejection before handler entry. Feed keyboard
-and dialog tests check emitted native payloads. The lifecycle contract exercises
+tests verify rejection through the real router and handlers. Dialog tests retain
+the target and status-reuse contract. The lifecycle contract exercises
 both old and new payloads through the registered routers.
 
 Run `make test FILE='bot/tests/ui/buttons bot/tests/handlers/button'` for focused
@@ -90,8 +90,10 @@ remain opt-in. API behavior was checked against the installed aiogram 3.31.0 and
 its [official implementation](https://github.com/aiogram/aiogram/blob/v3.31.0/aiogram/filters/callback_data.py).
 
 On the synchronized lifecycle base `e56759d` with aiogram 3.31.0, the full offline
-suite passes with 500 passed and 13 skipped. Ruff, typos and Pyright pass for all
-27 changed Python files. Scoped `make lint` reaches an existing imported Mypy
-error at `bot/handlers/prompt/generate_image.py:43`: aiogram's media-group union
-now includes `InputMediaLivePhoto`. That file is unchanged by this migration.
-Mypy with `--follow-imports=silent` passes all 27 changed files.
+suite after the test audit passes with 350 passed and 13 skipped. The focused
+callback/lifecycle suite passes with 194 passed and 4 skipped. `make lint` passes
+all four test files edited in the audit, including Ruff, typos, Mypy and Pyright.
+Broader source lint still has the existing imported Mypy error at
+`bot/handlers/prompt/generate_image.py:43` after the aiogram upgrade; that file
+is unchanged. Runtime code and existing failure/cancellation coverage were not
+changed by the audit.

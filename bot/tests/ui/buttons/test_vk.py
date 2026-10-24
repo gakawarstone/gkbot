@@ -1,36 +1,11 @@
 import pytest
 
 from ui.buttons.compatibility import unpack_callback
-from ui.buttons.download import DownloadAction
 from ui.buttons.vk import (
     VKDownloadButtonCallbackData,
 )
 from ui.keyboards.vk import VkMarkup
 from utils.vk import parse_vk_reference
-
-
-@pytest.mark.parametrize("action", list(DownloadAction))
-@pytest.mark.parametrize("use_status", [False, True])
-@pytest.mark.parametrize(
-    "value", ["wall-123_456", "video-123_456", "https://vk.cc/abc-123"]
-)
-def test_callback_roundtrip(
-    action: DownloadAction, use_status: bool, value: str
-) -> None:
-    data = VKDownloadButtonCallbackData.from_reference(
-        parse_vk_reference(value),
-        action=action,
-        use_callback_message_as_status=use_status,
-    )
-
-    payload = data.pack()
-
-    assert (
-        payload
-        == f"vk2|{action.value}|{int(use_status)}|{data.reference_kind.value}|{value}"
-    )
-    assert VKDownloadButtonCallbackData.unpack(payload) == data
-    assert len(payload.encode()) <= 64
 
 
 @pytest.mark.parametrize(

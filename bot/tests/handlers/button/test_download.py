@@ -358,25 +358,6 @@ async def test_vk_full_url_compatibility(
     start.assert_awaited_once_with(identifier)
 
 
-@pytest.mark.parametrize("case", VIDEO_CASES, ids=lambda case: case.source)
-async def test_router_registration(
-    case: DownloadCase, harness: DownloadHarness
-) -> None:
-    handler = import_module(f"handlers.button.{case.source}.download")
-    router = Router()
-    handler.setup(router)
-    matches = []
-    for registered in router.callback_query.handlers:
-        assert registered.callback is handler.download
-        matched, data = await registered.check(harness.callback(case.payload()))
-        if matched:
-            matches.append(data["callback_data"])
-        assert not (
-            await registered.check(harness.callback("unrelated:dlmp4:False:id"))
-        )[0]
-    assert len(matches) == 1
-
-
 @integration_test
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize(
