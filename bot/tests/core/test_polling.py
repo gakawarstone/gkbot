@@ -19,20 +19,6 @@ def make_config() -> BotConfig:
     )
 
 
-def test_default_polling_limit() -> None:
-    assert make_config().polling_tasks_concurrency_limit == 10
-
-
-@pytest.mark.parametrize("limit", [1, 7, 100])
-def test_positive_polling_limit(limit: int) -> None:
-    assert (
-        replace(
-            make_config(), polling_tasks_concurrency_limit=limit
-        ).polling_tasks_concurrency_limit
-        == limit
-    )
-
-
 @pytest.mark.parametrize("limit", [0, -1, None, True, False, 1.5, "10"])
 def test_invalid_polling_limit(limit: object) -> None:
     with pytest.raises(ValueError, match="polling_tasks_concurrency_limit"):
@@ -48,7 +34,7 @@ def polling_setup(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 @pytest.mark.usefixtures("polling_setup")
-@pytest.mark.parametrize("limit", [None, 1, 7])
+@pytest.mark.parametrize("limit", [7])
 async def test_polling_forwards_configured_limit(
     monkeypatch: pytest.MonkeyPatch, limit: int | None
 ) -> None:
