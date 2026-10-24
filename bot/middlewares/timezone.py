@@ -1,10 +1,10 @@
-from typing import Callable, Any, Awaitable, Dict
+from typing import Any, Awaitable, Callable, Dict
 
-from aiogram.dispatcher.middlewares.base import BaseMiddleware
 from aiogram.dispatcher.flags import get_flag
+from aiogram.dispatcher.middlewares.base import BaseMiddleware
 from aiogram.types import Message, TelegramObject
 
-from services.timezone import UserDontHaveTimeZone, TimeZone
+from services.timezone import TimeZone, UserDontHaveTimeZone
 
 
 class TimeZoneMiddleware(BaseMiddleware):

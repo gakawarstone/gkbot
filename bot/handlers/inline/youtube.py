@@ -1,9 +1,9 @@
-from typing import Any
-from aiogram import Router, F
-from aiogram.types import InlineQuery
-from youtube_search import YoutubeSearch
 import hashlib
-from aiogram.types import InlineQueryResultArticle, InputTextMessageContent
+from typing import Any
+
+from aiogram import F, Router
+from aiogram.types import InlineQuery, InlineQueryResultArticle, InputTextMessageContent
+from youtube_search import YoutubeSearch
 
 
 async def youtube_search(query: InlineQuery):
