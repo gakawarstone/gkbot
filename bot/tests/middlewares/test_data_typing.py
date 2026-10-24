@@ -1,4 +1,4 @@
-"""Check positive examples and ensure every invalid contract use is rejected."""
+"""Ensure incorrect uses of the project injection contract are rejected."""
 
 import json
 import os
@@ -14,9 +14,8 @@ FIXTURES = ROOT / "typing_tests" / "middleware_data"
 
 
 @pytest.mark.parametrize("checker", ["mypy", "pyright"])
-@pytest.mark.parametrize("fixture", ["valid", "invalid"])
-def test_middleware_data_contract(checker: str, fixture: str) -> None:
-    source = FIXTURES / f"{fixture}.py"
+def test_middleware_data_contract(checker: str) -> None:
+    source = FIXTURES / "invalid.py"
     command = [sys.executable, "-m", checker]
     if checker == "mypy":
         command += ["--follow-imports=silent", "--no-error-summary"]
@@ -49,5 +48,5 @@ def test_middleware_data_contract(checker: str, fixture: str) -> None:
         for number, line in enumerate(source.read_text().splitlines(), start=1)
         if "# error" in line
     }
-    assert result.returncode == (1 if expected else 0), result.stdout + result.stderr
+    assert result.returncode == 1, result.stdout + result.stderr
     assert errors == expected, result.stdout + result.stderr

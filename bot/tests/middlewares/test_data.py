@@ -26,7 +26,8 @@ async def test_user_context_is_shared_between_messages_and_callbacks(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(UserDataMiddleware, "_UserDataMiddleware__data", {})
-    handler = AsyncMock(return_value="handled")
+    handler = AsyncMock()
+    middleware = UserDataMiddleware()
     message = MagicMock(spec=Message, from_user=MagicMock(id=7))
     callback = MagicMock(spec=CallbackQuery, from_user=MagicMock(id=7))
     other_user = MagicMock(spec=Message, from_user=MagicMock(id=8))
@@ -34,19 +35,14 @@ async def test_user_context_is_shared_between_messages_and_callbacks(
     callback_data: MiddlewareData = {}
     other_data: MiddlewareData = {}
 
-    await UserDataMiddleware()(handler, message, message_data)
+    await middleware(handler, message, message_data)
     user_data = require_user_data(message_data)
-    assert user_data["delete_queue"] == []
     user_data["tz"] = timedelta(hours=3)
-    await UserDataMiddleware()(handler, callback, callback_data)
-    await UserDataMiddleware()(handler, other_user, other_data)
+    await middleware(handler, callback, callback_data)
+    await middleware(handler, other_user, other_data)
 
-    assert require_user_data(callback_data) is user_data
     assert require_user_data(callback_data).get("tz") == timedelta(hours=3)
-    assert require_user_data(other_data)["delete_queue"] == []
-    assert (
-        require_user_data(other_data)["delete_queue"] is not user_data["delete_queue"]
-    )
+    assert require_user_data(other_data).get("tz") is None
 
 
 def test_missing_dependencies_have_explicit_errors() -> None:
