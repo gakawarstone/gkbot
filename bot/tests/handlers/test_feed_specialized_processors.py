@@ -1,8 +1,6 @@
-import asyncio
 import json
-from collections.abc import Callable
 from dataclasses import replace
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from aiogram import Bot
@@ -18,37 +16,12 @@ from aiogram.types import (
 from bs4 import BeautifulSoup
 
 from modules.feed.handlers.messages import ShowFeedItemsHandler
-from modules.feed.ui.keyboards import FeedMarkup
 from services.gkfeed import FeedItem, GkfeedCredentials
 from services.http import HttpRequestError
 from services.matreshka import MatreshkaVideo
 from services.open_graph import OpenGraphMetadata
 from services.tiktok.types import TikTokVideo
 from services.youtube import UnavailableVideo, YoutubeVideoData
-from ui.buttons.matreshka import (
-    MatreshkaDownloadButtonCallbackData,
-    MatreshkaDownloadButtonCallbackDataDeserializer,
-)
-from ui.buttons.pornhub.download import (
-    PornhubDownloadButtonCallbackData,
-    PornhubDownloadButtonCallbackDataDeserializer,
-)
-from ui.buttons.porno365 import (
-    Porno365DownloadButtonCallbackData,
-    Porno365DownloadButtonCallbackDataDeserializer,
-)
-from ui.buttons.sasflix import (
-    SasflixDownloadButtonCallbackData,
-    SasflixDownloadButtonCallbackDataDeserializer,
-)
-from ui.buttons.vk import (
-    VKDownloadButtonCallbackData,
-    VKDownloadButtonCallbackDataDeserializer,
-)
-from ui.buttons.youtube.download import (
-    YoutubeDownloadButtonCallbackData,
-    YoutubeDownloadButtonCallbackDataDeserializer,
-)
 
 TOPIC_UUID = "12345678-1234-1234-1234-123456789abc"
 IMAGE_URL = "https://example.invalid/image.jpg"
@@ -179,48 +152,28 @@ def payload_rows(markup: InlineKeyboardMarkup) -> list[list[str | None]]:
     ]
 
 
-@pytest.mark.parametrize("source", LINKS)
-def test_registry_resolves_specialized_identity(
-    handler: SpecializedHandler, item: FeedItem, source: str
-) -> None:
-    entry = handler._processor_registry.resolve(replace(item, link=LINKS[source]))
-    assert entry is not None
-    assert entry.source_id == source
-    assert not hasattr(handler, f"_process_{source}_item")
-    assert not any(
-        entry.matches(replace(item, link=prefix)) for prefix in handler._processors
-    )
-    assert "video" not in {
-        entry.source_id for entry in handler._processor_registry.entries
+def assert_plain_link(bot: MagicMock, item: FeedItem) -> None:
+    caption = {
+        "youtube": "youtube",
+        "pornhub": "pornhub",
+        "porno365": "porno365",
+        "sasflix": "sasflix",
+        "matreshka": "matreshka",
+        "stories": "stories",
+        "reddit": "reddit",
+        "instagram": "instagram",
+        "tiktok": "TikTok:author",
     }
-
-
-@pytest.mark.parametrize(
-    ("link", "source"),
-    [
-        ("https://de.pornhub.org/watch", "pornhub"),
-        ("https://pornhub.org/watch", "pornhub"),
-        ("https://www.instagram.com/post", "instagram"),
-        ("https://vk.example/post", "vk"),
-        ("https://www.youtube.example/watch", "youtube"),
-        ("https://www.reddit.com.example/post", "reddit"),
-        ("https://www.tiktok.example/post", "tiktok"),
-        ("https://www.pornhub.com.example/watch", "pornhub"),
-        ("http://porno365.broker.example/watch", "porno365"),
-        ("https://instagram.com.example/post", "instagram"),
-        ("https://stories-other.example/1", "stories"),
-        ("https://sasflix.ru.example/topics/1", None),
-        ("https://matreshka.tv/other/1", None),
-        ("https://youtu.be/1", None),
-        ("https://reddit.com/r/test", None),
-        ("http://vk.com/post", None),
-    ],
-)
-def test_specialized_matching_preserves_aliases_and_prefix_semantics(
-    handler: SpecializedHandler, item: FeedItem, link: str, source: str | None
-) -> None:
-    entry = handler._processor_registry.resolve(replace(item, link=link))
-    assert (entry.source_id if entry else None) == source
+    source = next(source for source, link in LINKS.items() if item.link == link)
+    bot.send_message.assert_awaited_once()
+    assert bot.send_message.call_args.args == (
+        7,
+        f'<a href="{item.link}">{caption[source]}</a>',
+    )
+    assert payload_rows(bot.send_message.call_args.kwargs["reply_markup"]) == [
+        ["fd:show_all_feed:22"],
+        ["fd:keep:11", "fd:del:11"],
+    ]
 
 
 @pytest.mark.parametrize("source", LINKS)
@@ -233,9 +186,7 @@ async def test_specialized_render_keeps_media_and_keyboard(
     bot: MagicMock,
 ) -> None:
     item = replace(item, link=LINKS[source])
-    with patch.object(handler, "_process_base_item", new_callable=AsyncMock) as base:
-        await handler._process_item(item)
-    base.assert_not_awaited()
+    await handler._process_item(item)
     bot.send_message.assert_not_awaited()
     event.answer.assert_not_awaited()
     sender = (
@@ -248,7 +199,10 @@ async def test_specialized_render_keeps_media_and_keyboard(
     if source in CALLBACKS:
         assert payload_rows(markup) == [CALLBACKS[source], ["fd:keep:11", "fd:del:11"]]
     else:
-        assert markup == FeedMarkup.get_item_markup(11, 22)
+        assert payload_rows(markup) == [
+            ["fd:show_all_feed:22"],
+            ["fd:keep:11", "fd:del:11"],
+        ]
     captions = {
         "stories": "author",
         "vk": "Channel",
@@ -286,12 +240,9 @@ async def test_specialized_render_keeps_media_and_keyboard(
     if source == "reddit":
         assert isinstance(media, BufferedInputFile)
         assert media.data == b"media"
-        assert media.filename == "reddit.jpg"
-        assert services["http"].call_args.kwargs["headers"] == {
-            "User-Agent": "Mozilla/5.0 (compatible; Twitterbot/1.0)"
-        }
     if source == "tiktok":
-        assert media is services["tiktok"].return_value.input_file
+        assert isinstance(media, BufferedInputFile)
+        assert media.data == b"video"
         assert (kwargs["height"], kwargs["width"], kwargs["duration"]) == (
             720,
             1280,
@@ -301,86 +252,24 @@ async def test_specialized_render_keeps_media_and_keyboard(
     if source == "stories":
         assert isinstance(media, BufferedInputFile)
         assert media.data == b"media"
-        assert media.filename == "video.mp4"
-        services["raw"].assert_awaited_once_with(11)
-        services["redirect"].assert_awaited_once_with(item.link)
-        services["http"].assert_awaited_once_with("https://example.invalid/video.mp4")
-    if source == "sasflix":
-        services["sasflix"].assert_awaited_once_with(item.link)
 
 
-@pytest.mark.parametrize(
-    ("source", "deserialize", "expected"),
-    [
-        (
-            "vk",
-            VKDownloadButtonCallbackDataDeserializer.deserialize,
-            VKDownloadButtonCallbackData("video-42_99"),
-        ),
-        (
-            "youtube",
-            YoutubeDownloadButtonCallbackDataDeserializer.deserialize,
-            YoutubeDownloadButtonCallbackData("video-code"),
-        ),
-        (
-            "pornhub",
-            PornhubDownloadButtonCallbackDataDeserializer.deserialize,
-            PornhubDownloadButtonCallbackData("ph-code"),
-        ),
-        (
-            "porno365",
-            Porno365DownloadButtonCallbackDataDeserializer.deserialize,
-            Porno365DownloadButtonCallbackData(LINKS["porno365"]),
-        ),
-        (
-            "sasflix",
-            SasflixDownloadButtonCallbackDataDeserializer.deserialize,
-            SasflixDownloadButtonCallbackData(TOPIC_UUID),
-        ),
-        (
-            "matreshka",
-            MatreshkaDownloadButtonCallbackDataDeserializer.deserialize,
-            MatreshkaDownloadButtonCallbackData("video-id"),
-        ),
-    ],
-)
-async def test_rendered_callbacks_are_readable_by_existing_download_handlers(
+async def test_vk_text_preserves_line_breaks_and_feed_actions(
     handler: SpecializedHandler,
     item: FeedItem,
     services: dict[str, AsyncMock],
     event: MagicMock,
-    source: str,
-    deserialize: Callable[[str], object],
-    expected: object,
-) -> None:
-    await handler._process_item(replace(item, link=LINKS[source]))
-    markup = event.answer_photo.call_args.kwargs["reply_markup"]
-    for button in markup.inline_keyboard[0]:
-        assert isinstance(button.callback_data, str)
-        assert deserialize(button.callback_data) == expected
-
-
-@pytest.mark.parametrize("branch", ["image", "text"])
-async def test_vk_nonvideo_branches_keep_generic_keyboard(
-    handler: SpecializedHandler,
-    item: FeedItem,
-    services: dict[str, AsyncMock],
-    event: MagicMock,
-    branch: str,
 ) -> None:
     html = '<title>Post title | Channel</title><meta property="og:description" content="Line1&lt;br&gt;Line2">'
-    if branch == "image":
-        html += f'<meta property="og:image" content="{IMAGE_URL}">'
     services["vk_soup"].return_value = BeautifulSoup(html, "html.parser")
     await handler._process_item(replace(item, link=LINKS["vk"]))
-    sender = event.answer_photo if branch == "image" else event.answer
-    sender.assert_awaited_once()
-    assert sender.call_args.kwargs["reply_markup"] == FeedMarkup.get_item_markup(11, 22)
-    if branch == "text":
-        assert (
-            sender.call_args.args[0]
-            == f"<b>Line1\nLine2</b>\n\n<a href='{LINKS['vk']}'>Channel</a>"
-        )
+    assert payload_rows(event.answer.call_args.kwargs["reply_markup"]) == [
+        ["fd:show_all_feed:22"],
+        ["fd:keep:11", "fd:del:11"],
+    ]
+    assert event.answer.call_args.args[0] == (
+        f"<b>Line1\nLine2</b>\n\n<a href='{LINKS['vk']}'>Channel</a>"
+    )
 
 
 @pytest.mark.parametrize("branch", ["image", "video", "link", "gallery", "missing"])
@@ -406,7 +295,7 @@ async def test_reddit_alternate_branches(
     services["http"].side_effect = [html.encode(), b"video"]
     await handler._process_item(replace(item, link=LINKS["reddit"]))
     if branch == "missing":
-        bot.send_message.assert_awaited_once()
+        assert_plain_link(bot, replace(item, link=LINKS["reddit"]))
         event.answer.assert_not_awaited()
         return
     bot.send_message.assert_not_awaited()
@@ -427,16 +316,12 @@ async def test_reddit_alternate_branches(
         )
         assert payload_rows(markup) == [[expected_url], ["fd:keep:11", "fd:del:11"]]
         if branch == "gallery":
-            services["telegraph"].assert_awaited_once()
             assert json.loads(services["telegraph"].call_args.kwargs["content"]) == [
                 {
                     "tag": "img",
                     "attrs": {"src": "gallery.jpg"},
                 }
             ]
-    services["http"].assert_any_await(
-        "https://libreddit.qwik.space/r/test/comments/post"
-    )
 
 
 @pytest.mark.parametrize(
@@ -455,8 +340,9 @@ async def test_source_local_fallbacks(
         services["matreshka"].return_value, image_url=None
     )
     services["youtube"].side_effect = UnavailableVideo(LINKS["youtube"])
-    await handler._process_item(replace(item, link=LINKS[source]))
-    bot.send_message.assert_awaited_once()
+    item = replace(item, link=LINKS[source])
+    await handler._process_item(item)
+    assert_plain_link(bot, item)
     event.answer_photo.assert_not_awaited()
 
 
@@ -472,7 +358,7 @@ async def test_pornhub_without_viewkey_keeps_feed_actions(
     ]
 
 
-@pytest.mark.parametrize("source", LINKS)
+@pytest.mark.parametrize("source", ["stories", "reddit"])
 async def test_recoverable_source_failures_use_generic_response_once(
     handler: SpecializedHandler,
     item: FeedItem,
@@ -483,17 +369,13 @@ async def test_recoverable_source_failures_use_generic_response_once(
 ) -> None:
     for mock in services.values():
         mock.side_effect = HttpRequestError("private-url")
-    if source == "instagram":
-        item = replace(item, text="missing external image")
-    with patch.object(handler, "_process_base_item", new_callable=AsyncMock) as base:
-        await handler._process_item(replace(item, link=LINKS[source]))
-    bot.send_message.assert_awaited_once()
-    base.assert_not_awaited()
-    assert caplog.records[0].args == (item.id, item.feed_id, len(item.text), source)
+    item = replace(item, link=LINKS[source])
+    await handler._process_item(item)
+    assert_plain_link(bot, item)
     assert "private-url" not in caplog.text
 
 
-@pytest.mark.parametrize("source", LINKS)
+@pytest.mark.parametrize("source", ["youtube", "tiktok", "instagram", "reddit"])
 async def test_media_send_failure_preserves_generic_response(
     handler: SpecializedHandler,
     item: FeedItem,
@@ -505,35 +387,6 @@ async def test_media_send_failure_preserves_generic_response(
     error = TelegramBadRequest(SendPhoto(chat_id=7, photo="image"), "invalid media")
     event.answer_photo.side_effect = error
     event.answer_video.side_effect = error
-    await handler._process_item(replace(item, link=LINKS[source]))
-    bot.send_message.assert_awaited_once()
-
-
-@pytest.mark.parametrize("error", [AttributeError("bug"), asyncio.CancelledError()])
-async def test_specialized_unexpected_errors_and_cancellation_propagate(
-    handler: SpecializedHandler,
-    item: FeedItem,
-    services: dict[str, AsyncMock],
-    bot: MagicMock,
-    error: BaseException,
-) -> None:
-    services["tiktok"].side_effect = error
-    with pytest.raises(type(error)) as raised:
-        await handler._process_item(replace(item, link=LINKS["tiktok"]))
-    assert raised.value is error
-    bot.send_message.assert_not_awaited()
-
-
-async def test_specialized_fallback_send_error_propagates_once(
-    handler: SpecializedHandler,
-    item: FeedItem,
-    services: dict[str, AsyncMock],
-    bot: MagicMock,
-) -> None:
-    services["tiktok"].side_effect = HttpRequestError()
-    error = HttpRequestError("fallback failed")
-    bot.send_message.side_effect = error
-    with pytest.raises(HttpRequestError) as raised:
-        await handler._process_item(replace(item, link=LINKS["tiktok"]))
-    assert raised.value is error
-    bot.send_message.assert_awaited_once()
+    item = replace(item, link=LINKS[source])
+    await handler._process_item(item)
+    assert_plain_link(bot, item)

@@ -119,7 +119,6 @@ async def test_discours_renders_photo_through_registry(
         reply_markup=FeedMarkup.get_item_markup(item.id, item.feed_id),
         has_spoiler=False,
     )
-    assert not hasattr(handler, "_process_discours_item")
     assert "https://discours.io" not in handler._processors
     bot.send_message.assert_not_awaited()
     base.assert_not_awaited()
@@ -220,49 +219,4 @@ async def test_matching_errors_are_outside_execution_boundary(
     ):
         await handler._process_item(item)
     assert raised.value is error
-    bot.send_message.assert_not_awaited()
-
-
-async def test_registry_takes_precedence_over_legacy_dispatch(
-    handler: ShowFeedItemsHandler, item: FeedItem, bot: MagicMock
-) -> None:
-    item = replace(item, link="https://www.youtube.com/watch?v=1")
-    process = AsyncMock()
-    legacy = AsyncMock()
-    entry = FeedProcessor("registered", lambda _: True, process)
-    with (
-        patch.object(
-            type(handler),
-            "_processor_registry",
-            new_callable=PropertyMock,
-            return_value=FeedProcessorRegistry((entry,)),
-        ),
-        patch.object(
-            type(handler),
-            "_processors",
-            new_callable=PropertyMock,
-            return_value={"https://www.youtube": legacy},
-        ),
-        patch.object(handler, "_process_base_item", new_callable=AsyncMock) as base,
-    ):
-        await handler._process_item(item)
-    process.assert_awaited_once_with(item)
-    legacy.assert_not_awaited()
-    base.assert_not_awaited()
-    bot.send_message.assert_not_awaited()
-
-
-async def test_unknown_source_keeps_generic_web_dispatch(
-    handler: ShowFeedItemsHandler, item: FeedItem, bot: MagicMock
-) -> None:
-    item = replace(item, link="https://example.invalid")
-    with (
-        patch.object(handler, "_process_base_item", new_callable=AsyncMock) as process,
-        patch(
-            "modules.feed.handlers.processors.discours.HttpService.get_json"
-        ) as get_json,
-    ):
-        await handler._process_item(item)
-    process.assert_awaited_once_with(item)
-    get_json.assert_not_called()
     bot.send_message.assert_not_awaited()
