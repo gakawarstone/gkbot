@@ -51,9 +51,6 @@ docker compose up --build
 For the local Telegram server version, compatibility checks, and rollout order,
 see [Bot API compatibility](services/bot-api/README.md).
 
-For Ruff's import rules, module classification, and validation results, see
-[Import ordering](docs/import-ordering.md).
-
 **Configuration**
 Required:
 - `BOT_TOKEN`

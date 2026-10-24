@@ -45,11 +45,12 @@ testpaths = ["bot/tests"]
 pythonpath = ["bot"]
 
 [tool.ruff]
-# Runtime imports are rooted at bot/; see docs/import-ordering.md.
+# Runtime imports are rooted at bot/ for both bot/main.py and pytest.
 src = ["bot"]
 
 [tool.ruff.lint]
-# Keep import ordering explicit while preserving Ruff's other default checks.
+# Ruff 0.16+ defaults enable I001. Keep consistent import groups explicitly
+# while preserving the other default checks; ruff format does not sort imports.
 extend-select = ["I001"]
 
 [tool.ruff.lint.isort]

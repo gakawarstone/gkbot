@@ -9,7 +9,7 @@ Go 1.23.1 or newer and a C compiler are needed for the Go race detector.
 Ruff 0.17.2 and typos 1.51.1 are development dependencies in `uv.lock`.
 Make targets use `uv run`, and pre-commit pins the same Ruff version. Updating
 them is an explicit dependency change rather than a different check on each
-fresh machine. Import configuration is described in [import-ordering.md](import-ordering.md).
+fresh machine. Comments in `pyproject.toml` explain the import configuration.
 
 The `Quality` workflow runs on pull requests and pushes to `dev-3.0`. The
 existing deployment workflow calls the same workflow and waits for both its
