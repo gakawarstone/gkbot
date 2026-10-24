@@ -26,7 +26,7 @@ async def run_startup_hooks(hooks: Iterable[StartupHook]) -> None:
 class BotStarter:
     __storage = MemoryStorage()
 
-    def __init__(self, config: BotConfig):
+    def __init__(self, config: BotConfig) -> None:
         session = AiohttpSession(  # NOTE timeout
             api=TelegramAPIServer.from_base(config.api_url), timeout=300.0
         )
@@ -51,6 +51,7 @@ class BotStarter:
         modules.setup(self.dp)
         await self.dp.start_polling(
             self.bot,
+            handle_as_tasks=True,
             tasks_concurrency_limit=self.polling_tasks_concurrency_limit,
         )
 

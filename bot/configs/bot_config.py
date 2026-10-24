@@ -15,4 +15,5 @@ BOT_CONFIG = BotConfig(
     default_commands=DEFAULT_COMMANDS,
     parse_mode="HTML",
     admins=ADMINS,
+    polling_tasks_concurrency_limit=env.POLLING_TASKS_CONCURRENCY_LIMIT,
 )

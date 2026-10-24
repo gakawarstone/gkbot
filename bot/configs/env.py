@@ -1,7 +1,8 @@
 import os
-from typing import Optional
 
 from dotenv import load_dotenv
+
+from core.types import DEFAULT_POLLING_TASKS_CONCURRENCY_LIMIT
 
 load_dotenv()
 
@@ -13,8 +14,21 @@ def _get_required_env(key: str) -> str:
     return value
 
 
+def _get_positive_int_env(key: str, default: int) -> int:
+    try:
+        value = int(os.getenv(key, str(default)))
+    except ValueError as error:
+        raise ValueError(f"{key} must be a positive integer") from error
+    if value <= 0:
+        raise ValueError(f"{key} must be a positive integer")
+    return value
+
+
 BOT_TOKEN = _get_required_env("BOT_TOKEN")
 ADMIN_IDS = _get_required_env("ADMIN_IDS")
+POLLING_TASKS_CONCURRENCY_LIMIT = _get_positive_int_env(
+    "POLLING_TASKS_CONCURRENCY_LIMIT", DEFAULT_POLLING_TASKS_CONCURRENCY_LIMIT
+)
 
 NOTION_API_TOKEN = os.getenv("NOTION_API_TOKEN")
 DB_URL = os.getenv("DB_URL")
@@ -24,12 +38,12 @@ TELEGRAPH_API_KEY = os.getenv("TELEGRAPH_API_KEY")
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 BROKER_URL = os.getenv("BROKER_URL")
 
-DB_DIALECT: Optional[str]
-DB_USER: Optional[str]
-DB_PASSWORD: Optional[str]
-DB_HOST: Optional[str]
-DB_PORT: Optional[str]
-DB_NAME: Optional[str]
+DB_DIALECT: str | None
+DB_USER: str | None
+DB_PASSWORD: str | None
+DB_HOST: str | None
+DB_PORT: str | None
+DB_NAME: str | None
 
 if DB_URL:
     DB_DIALECT = os.getenv("SQLDIALECT")
