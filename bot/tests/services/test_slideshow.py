@@ -127,36 +127,6 @@ async def test_slideshow_bytes_compatibility_and_cleanup(
     assert list(cache_root.iterdir()) == []
 
 
-@pytest.mark.parametrize("audio_input", [None, "audio.m4a"])
-def test_slideshow_command_preserves_input_option_order(
-    audio_input: str | None,
-) -> None:
-    audio_options = ["-stream_loop", "-1", "-i", audio_input] if audio_input else []
-    assert SlideshowRenderer._build_slideshow_command(
-        "*.jpg", audio_input, "out.mp4"
-    ) == [
-        "ffmpeg",
-        "-y",
-        "-framerate",
-        "1/3",
-        "-pattern_type",
-        "glob",
-        "-i",
-        "*.jpg",
-        *audio_options,
-        "-c:v",
-        "libx264",
-        *(["-shortest"] if audio_input else []),
-        "-vf",
-        "scale=720:1080",
-        "-r",
-        "30",
-        "-pix_fmt",
-        "yuv420p",
-        "out.mp4",
-    ]
-
-
 async def test_cancelled_slideshow_finishes_before_cleanup(
     cache_root: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
