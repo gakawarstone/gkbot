@@ -31,11 +31,10 @@ resolving a source perform no network requests or credential lookups. The
 [registry contract](feed-processor-registry.md) and centralized
 [exception policy](feed-processor-exceptions.md) are unchanged.
 
-Task 11 migrates the remaining simple sources independently from the registry
-base. Task 13 combines its composition property with this one, retains one
-Discours entry, removes the remaining legacy dispatch and inheritance, and owns
-the matching-filter follow-up. Neither migration requires the other migration's
-commits.
+Task 11's published commit is merged into this branch to provide a linear PR
+stack. The composition includes all simple and specialized sources with one
+Discours entry. Task 13 removes the remaining empty legacy map, dispatch loop,
+and aggregate handler inheritance, and owns the matching-filter follow-up.
 
 ## Preserved responses
 

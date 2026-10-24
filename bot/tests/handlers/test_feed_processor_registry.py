@@ -226,8 +226,9 @@ async def test_matching_errors_are_outside_execution_boundary(
 async def test_registry_takes_precedence_over_legacy_dispatch(
     handler: ShowFeedItemsHandler, item: FeedItem, bot: MagicMock
 ) -> None:
-    item = replace(item, link="https://www.twitch.tv/channel")
+    item = replace(item, link="https://www.youtube.com/watch?v=1")
     process = AsyncMock()
+    legacy = AsyncMock()
     entry = FeedProcessor("registered", lambda _: True, process)
     with (
         patch.object(
@@ -236,7 +237,12 @@ async def test_registry_takes_precedence_over_legacy_dispatch(
             new_callable=PropertyMock,
             return_value=FeedProcessorRegistry((entry,)),
         ),
-        patch.object(handler, "_process_twitch_item", new_callable=AsyncMock) as legacy,
+        patch.object(
+            type(handler),
+            "_processors",
+            new_callable=PropertyMock,
+            return_value={"https://www.youtube": legacy},
+        ),
         patch.object(handler, "_process_base_item", new_callable=AsyncMock) as base,
     ):
         await handler._process_item(item)
@@ -246,29 +252,12 @@ async def test_registry_takes_precedence_over_legacy_dispatch(
     bot.send_message.assert_not_awaited()
 
 
-@pytest.mark.parametrize(
-    ("link", "method"),
-    [
-        ("https://kinogo.example/1", "_process_kinogo_item"),
-        ("https://open.spotify.com/1", "_process_spoti_item"),
-        ("https://t.me/1", "_process_telegram_item"),
-        ("https://hdrezka.me/1", "_process_rezka_item"),
-        ("https://shikimori.one/1", "_process_shiki_item"),
-        ("https://www.twitch.tv/1", "_process_twitch_item"),
-        ("https://www.hltv.org/1", "_process_hltv_item"),
-        ("https://example.invalid", "_process_base_item"),
-    ],
-)
-async def test_remaining_sources_keep_legacy_dispatch(
-    handler: ShowFeedItemsHandler,
-    item: FeedItem,
-    link: str,
-    method: str,
-    bot: MagicMock,
+async def test_unknown_source_keeps_generic_web_dispatch(
+    handler: ShowFeedItemsHandler, item: FeedItem, bot: MagicMock
 ) -> None:
-    item = replace(item, link=link)
+    item = replace(item, link="https://example.invalid")
     with (
-        patch.object(handler, method, new_callable=AsyncMock) as process,
+        patch.object(handler, "_process_base_item", new_callable=AsyncMock) as process,
         patch(
             "modules.feed.handlers.processors.discours.HttpService.get_json"
         ) as get_json,

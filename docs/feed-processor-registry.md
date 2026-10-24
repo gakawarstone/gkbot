@@ -49,11 +49,14 @@ second processor or generic web extraction, and fallback sender errors propagate
 
 ## Migration behavior
 
-`discours` and the ten [specialized sources](feed-specialized-processors.md) use
-the registry. Their inherited views and legacy entries have been removed. They
-retain their existing endpoints, captions, media and keyboard behavior. A
-registry miss uses the remaining simple-source legacy dispatch; a legacy miss
-uses the generic web view. All remaining prefix routes keep their order.
+All sources now use the registry: the Discours tracer, seven
+[simple sources](feed-simple-processors.md), and ten
+[specialized sources](feed-specialized-processors.md). Their inherited views and
+legacy entries have been removed. Requests, captions, media, keyboard payloads,
+and prefix matching retain their existing behavior. A registry miss uses the
+generic web view. The empty legacy map and its dispatch loop remain until task 13
+removes the migration infrastructure. The composition preserves the original
+source order with one entry per source, including its existing aliases.
 
 Discours matching retains the original `https://discours.io` prefix semantics,
 including acceptance of longer hostnames starting with that text. This migration
@@ -79,7 +82,8 @@ unknown sources, duplicate identities, matching-error propagation, precedence ov
 legacy dispatch, and Discours prefix compatibility. Offline rendering tests cover
 both message and callback handlers, the real shared photo sender and keyboard,
 HTTP and Telegram fallback, unexpected errors, cancellation, and fallback failure.
-Every remaining legacy prefix and the generic route have dispatch checks.
+The generic route and registry precedence over an injected legacy map have
+dispatch checks. Simple and specialized source tests cover every migrated route.
 `bot/tests/handlers/test_feed_specialized_processors.py` covers the migrated media
 sources, their literal callback payloads, and source-specific rendering branches.
 
