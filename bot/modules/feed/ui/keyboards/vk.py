@@ -1,10 +1,10 @@
 from aiogram.types import InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+from ui.buttons.download import DownloadAction
 from ui.buttons.vk import (
     VKDownloadButtonBuilder,
     VKDownloadButtonCallbackData,
-    VKDownloadButtonData,
 )
 from utils.vk import parse_vk_reference
 
@@ -22,12 +22,14 @@ class VKFeedVideoItemMarkup(BaseFeedMarkup):
             [
                 [
                     VKDownloadButtonBuilder.build(
-                        VKDownloadButtonData.audio,
-                        VKDownloadButtonCallbackData(reference),
+                        VKDownloadButtonCallbackData.from_reference(
+                            reference, action=DownloadAction.audio
+                        ),
                     ),
                     VKDownloadButtonBuilder.build(
-                        VKDownloadButtonData.video,
-                        VKDownloadButtonCallbackData(reference),
+                        VKDownloadButtonCallbackData.from_reference(
+                            reference, action=DownloadAction.video
+                        ),
                     ),
                 ],
                 cls._get_feed_buttons_row(item_id),

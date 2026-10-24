@@ -1,14 +1,17 @@
-from aiogram import F, Router
+from aiogram import Router
 from aiogram.types import CallbackQuery, InaccessibleMessage, URLInputFile
+
 from configs.timeouts import AUDIO_TRANSFER_TIMEOUT_SECONDS
 from services.sasflix import SasflixService
 from ui.buttons.sasflix import (
-    PREFIX,
-    SasflixDownloadButtonCallbackDataDeserializer,
+    SasflixDownloadButtonCallbackData,
 )
 
 
-async def download(callback: CallbackQuery) -> None:
+async def download(
+    callback: CallbackQuery,
+    callback_data: SasflixDownloadButtonCallbackData | None = None,
+) -> None:
     if callback.message is None or isinstance(callback.message, InaccessibleMessage):
         raise ValueError("Callback message is inaccessible or None")
     if callback.data is None:
@@ -16,9 +19,8 @@ async def download(callback: CallbackQuery) -> None:
     if callback.bot is None:
         raise ValueError("Callback bot is not configured")
 
-    callback_data = SasflixDownloadButtonCallbackDataDeserializer.deserialize(
-        callback.data
-    )
+    if callback_data is None:
+        callback_data = SasflixDownloadButtonCallbackData.unpack(callback.data)
     topic_url = f"https://sasflix.ru/topics/{callback_data.topic_uuid}"
     status_message = await callback.message.answer("Cкачиваю " + topic_url)
 
@@ -40,4 +42,4 @@ async def download(callback: CallbackQuery) -> None:
 
 
 def setup(router: Router) -> None:
-    router.callback_query.register(download, F.data.startswith(PREFIX))
+    router.callback_query.register(download, SasflixDownloadButtonCallbackData.filter())
