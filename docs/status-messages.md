@@ -67,8 +67,8 @@ prompt handler and document download handler have no waiting-message send site.
 ## Verification
 
 The offline suite uses real aiogram request models and a mocked session transport.
-It covers group/supergroup targeting, callback identity, forum topics, both wire
-formats, private chats, ineligible senders, rejecting/ignoring old servers,
+It covers group/supergroup targeting, callback identity, forum topics, recipient
+fields for both API versions, private chats, rejecting/ignoring old servers,
 unrelated send errors, persistent generation results, download failures,
 cancellation and cleanup errors. External Telegram and download smoke tests
 remain opt-in; these checks do not deploy or contact a live Bot API server.

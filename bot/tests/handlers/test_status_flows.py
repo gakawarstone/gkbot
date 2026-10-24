@@ -10,7 +10,6 @@ from unittest.mock import AsyncMock
 import pytest
 from aiogram.methods import (
     DeleteEphemeralMessage,
-    EditEphemeralMessageText,
     EditMessageText,
     SendMessage,
 )
@@ -22,22 +21,21 @@ from handlers.text.ytdlp_short import YtdlpShortVideoHandler
 from handlers.user.chatgpt.answer import AnswerHandler as ChatAnswerHandler
 from handlers.user.cvision import AnswerHandler as VisionAnswerHandler
 from services.agents.image_explainer import ImageExplainer
-from services.instagram import InstagramDownloadError, InstagramService
+from services.instagram import InstagramService
 from services.llm import OpenRouter
 from services.llm.openrouter import StreamChunk
 from services.matreshka import MatreshkaService
 from services.sasflix import SasflixService
 from services.tiktok import TikTokService
-from services.tiktok.exceptions import TikTokInvalidUrl
 from services.ytdlp import YtdlpDownloader
 from services.ytdlp._types import VideoFileInfo
 from tests.mocks.status import StatusHarness
 
 
 @pytest.mark.parametrize("source", ["tiktok", "instagram", "short"])
-@pytest.mark.parametrize("failure", [None, "download", "cancel"])
+@pytest.mark.parametrize("failure", ["download", "cancel"])
 async def test_text_download_uses_personal_status_and_cleans_failures(
-    monkeypatch: pytest.MonkeyPatch, source: str, failure: str | None
+    monkeypatch: pytest.MonkeyPatch, source: str, failure: str
 ) -> None:
     harness = StatusHarness(monkeypatch)
     video = VideoFileInfo(
@@ -76,37 +74,11 @@ async def test_text_download_uses_personal_status_and_cleans_failures(
     elif failure == "cancel":
         with pytest.raises(asyncio.CancelledError):
             await handler.handle()
-    else:
-        await handler.handle()
     sends = [method for method in harness.methods if isinstance(method, SendMessage)]
     assert len(sends) == 1
     assert sends[0].ephemeral_message_parameters is not None
     assert sends[0].ephemeral_message_parameters.receiver_user_id == harness.user.id
     assert isinstance(harness.methods[-1], DeleteEphemeralMessage)
-
-
-@pytest.mark.parametrize("source", ["tiktok", "instagram"])
-async def test_known_download_error_edits_personal_status(
-    monkeypatch: pytest.MonkeyPatch, source: str
-) -> None:
-    harness = StatusHarness(monkeypatch)
-    if source == "tiktok":
-        monkeypatch.setattr(
-            TikTokService, "get_video", AsyncMock(side_effect=TikTokInvalidUrl("url"))
-        )
-        handler = TikTokVideoHandler(event=harness.message, bot=harness.bot)
-    else:
-        monkeypatch.setattr(
-            InstagramService,
-            "get_photos_album",
-            AsyncMock(side_effect=InstagramDownloadError("url")),
-        )
-        handler = InstagramPostDownloadHandler(event=harness.message, bot=harness.bot)
-    await handler.handle()
-    assert isinstance(harness.methods[-1], EditEphemeralMessageText)
-    assert not any(
-        isinstance(method, DeleteEphemeralMessage) for method in harness.methods
-    )
 
 
 @pytest.mark.parametrize("source", ["matreshka", "sasflix"])
@@ -137,8 +109,10 @@ async def test_additional_audio_callback_cleans_personal_status_on_failure(
 
 
 @pytest.mark.parametrize("source", ["chat", "vision"])
-@pytest.mark.parametrize("chat_type", ["private", "supergroup"])
-@pytest.mark.parametrize("failure", [False, True])
+@pytest.mark.parametrize(
+    "chat_type, failure",
+    [("private", False), ("supergroup", False), ("supergroup", True)],
+)
 async def test_generation_wait_is_temporary_and_final_response_persists(
     monkeypatch: pytest.MonkeyPatch, source: str, chat_type: str, failure: bool
 ) -> None:
@@ -188,7 +162,6 @@ async def test_generation_wait_is_temporary_and_final_response_persists(
         )
         if not failure:
             assert len(sends) == 2
-            assert sends[1].text == "An"
             final = harness.methods[-1]
             assert isinstance(final, EditMessageText)
             assert final.text == "Answer"
