@@ -1,22 +1,24 @@
-import pytest
-
 from services.converters.tests.parsers.platonus import PlatonusParser
 from services.converters.tests.types import Choice, Question
 
 
-@pytest.mark.parametrize("ending", ["", "\n", "\n\n"])
-@pytest.mark.parametrize("question_count", [1, 2])
-def test_last_question_without_trailing_blank_line(
-    ending: str, question_count: int
-) -> None:
-    text = "\n".join(
-        f"<question>Question {index}\n<variant>Correct\n<variant>Incorrect"
-        for index in range(question_count)
-    )
+def test_last_question_without_trailing_blank_line() -> None:
+    lines = [
+        "<question>First question",
+        "<variant>First answer",
+        "<variant>First alternative",
+        "<question>Last question",
+        "<variant>Last answer",
+        "<variant>Last alternative",
+    ]
 
-    assert PlatonusParser.parse_lines((text + ending).splitlines()) == [
+    assert PlatonusParser.parse_lines(lines) == [
         Question(
-            f"Question {index}", [Choice("Correct", True), Choice("Incorrect", False)]
-        )
-        for index in range(question_count)
+            "First question",
+            [Choice("First answer", True), Choice("First alternative", False)],
+        ),
+        Question(
+            "Last question",
+            [Choice("Last answer", True), Choice("Last alternative", False)],
+        ),
     ]

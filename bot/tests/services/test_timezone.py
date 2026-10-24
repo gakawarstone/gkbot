@@ -9,7 +9,6 @@ from services.timezone import InvalidTimeZone, TimeZone, UserDontHaveTimeZone
 INVALID_TZ_SET = [timedelta(hours=-12, minutes=-1), timedelta(hours=14, seconds=1)]
 
 VALID_TZ_SET = [
-    timedelta(0),
     timedelta(hours=1),
     timedelta(hours=6),
     timedelta(hours=14),

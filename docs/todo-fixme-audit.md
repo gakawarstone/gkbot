@@ -9,10 +9,10 @@ The referenced `review.md` is absent from this checkout and tracked files. There
 | Location | Result and verification |
 | --- | --- |
 | `bot/core/types.py` | Replace the local chat enum with `aiogram.enums.ChatType` at its call sites. |
-| `bot/filters/chat_type.py` | Normalize one or several allowed types once. Compare the incoming type directly so channel and sender events return false when excluded. Test all installed enum values with single, multiple, and empty allowed types. |
+| `bot/filters/chat_type.py` | Normalize one or several allowed types once. Compare the incoming type directly so channel and sender events return false when excluded. The regression test checks that a private-chat filter rejects a channel event without raising. |
 | `bot/core/keyboard_builder.py` | Construct `ReplyKeyboardMarkup` directly from the existing rows and options instead of creating a builder only to export it. |
 | `bot/extensions/handlers/callback/carousel.py` | Preserve the string item ID when rebuilding markup. Declare that contract on the base markup. Tests navigate with `opaque-id` and `0012`, checking that neither fails or changes. The callback migration thread has agreed to preserve this contract. |
-| `bot/services/converters/tests/parsers/platonus.py` | The final buffer was already appended. Remove the stale warning and test one and two questions with no final newline, a final newline, and a blank final line. |
+| `bot/services/converters/tests/parsers/platonus.py` | The final buffer was already appended. Remove the stale warning and test that both questions and their answers survive parsing when the input ends immediately after the last variant. |
 | `bot/services/timezone.py` | Use `update_or_create` with the user ID as lookup and the offset in `defaults`. Treat only `None` as missing, so UTC is valid. A real in-memory SQLite test creates and updates UTC repeatedly, checks nonzero offsets, and verifies another user's value stays unchanged. |
 
 The enum and upsert APIs were checked against the installed aiogram 3.26.0 and Tortoise ORM 0.21.6 symbols and implementation. Their official references are [aiogram enums](https://docs.aiogram.dev/en/v3.26.0/api/enums/) and [Tortoise models](https://tortoise.github.io/models.html). No dependency upgrade is needed. The separate aiogram 3.31 upgrade thread does not change the enum call sites.
@@ -35,4 +35,4 @@ Run `rg -n 'TODO|FIXME' bot` from the worktree. Count matching lines with `rg -n
 
 The clean starting worktree passed `make test` with 105 passed and 13 skipped. Its `make lint` stopped at 391 Ruff findings, before the other lint stages. These existing findings are outside this change's scope.
 
-After the changes, `make test` passes with 129 passed and 13 skipped. The focused parser, timezone, carousel, and filter run passes all 26 cases. `make lint FILE=...` passes Ruff, typos, mypy, and Pyright for all 13 changed Python files. `git diff --check` also passes.
+After test review, `make test` passes with 110 passed and 13 skipped. The focused parser, timezone, carousel, and filter run passes all seven cases. The review removes the filter membership matrix, duplicate parser input variants, and a mocked UTC case already covered by the SQLite regression. The remaining tests check channel rejection without an exception, final-question retention, string ID preservation, repeated UTC persistence, and user isolation. `make lint FILE=...` passes Ruff, typos, mypy, and Pyright for the three test files changed during review; the original lint run passed for all 13 changed Python files. `git diff --check` also passes.
