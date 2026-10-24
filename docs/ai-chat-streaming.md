@@ -88,7 +88,7 @@ longer can therefore lose its visible preview before generation finishes.
 Tests use real aiogram request objects and dispatcher routing with a recording
 session. They cover private drafts, stable IDs, HTML and Unicode bounds, a single
 final message below the Telegram limit, long responses, groups, old-server and
-mid-stream failures, cooldowns, empty answers, and native/external cancellation.
+mid-stream failures, reasoning-only answers, and native/external cancellation.
 Stop tests exercise both blocked model reads and suspended generators while a
 draft is being sent, including failure of the stop status. HTTP stream tests use
 the installed OpenAI SDK with a local mock transport and check that both the
@@ -111,10 +111,7 @@ production network requests were used.
 - [aiogram stop update](https://docs.aiogram.dev/en/latest/api/types/message_generation_stopped.html)
 - [OpenAI SDK stream cleanup](https://github.com/openai/openai-python/blob/v2.26.0/src/openai/_streaming.py)
 
-Results on 2026-10-23: 78 focused tests passed; the full suite passed with
-200 passed and 13 skipped. Ruff and typos passed for all seven changed Python
-files, and a separate pyright run reported zero errors. `make lint FILE=...`
-stops at the existing imported mypy error in
-`bot/handlers/prompt/generate_image.py:43`: `answer_media_group` now accepts
-`InputMediaLivePhoto` and the existing list annotation is invariant. That file
-is unchanged by this task. No new mypy errors remain in the changed files.
+Results after test review on 2026-10-24: 68 focused tests passed; the full suite
+passed with 190 passed and 13 skipped. Scoped `make lint` for the three reviewed
+test files passed Ruff, typos, mypy, and pyright. The review changed no production
+code or prerequisite tests.

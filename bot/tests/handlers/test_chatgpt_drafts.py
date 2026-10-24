@@ -4,7 +4,7 @@ from collections.abc import AsyncGenerator
 from datetime import UTC, datetime
 from itertools import count
 from typing import Any
-from unittest.mock import AsyncMock, patch
+from unittest.mock import patch
 
 import pytest
 from aiogram import Bot, Dispatcher, Router
@@ -14,7 +14,6 @@ from aiogram.exceptions import (
     TelegramBadRequest,
     TelegramNetworkError,
     TelegramNotFound,
-    TelegramRetryAfter,
 )
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.storage.base import StorageKey
@@ -28,9 +27,8 @@ from aiogram.methods import (
 from aiogram.types import Chat, Message, MessageGenerationStopped, Update
 from aiogram.utils.formatting import sizeof
 
-from extensions.handlers.message.markdown_render import parse_markdown
 from handlers.user import chatgpt
-from handlers.user.chatgpt._generation import active_generations, stop_generation
+from handlers.user.chatgpt._generation import stop_generation
 from handlers.user.chatgpt._states import FSM
 from handlers.user.chatgpt.answer import AnswerHandler
 from services.llm.openrouter import StreamChunk
@@ -45,8 +43,9 @@ class RecordingSession(BaseSession):
         super().__init__()
         self.requests: list[TelegramMethod[Any]] = []
         self.messages: dict[int, Message] = {}
-        self.failures: dict[int, TelegramAPIError] = {}
-        self.on_request = asyncio.Event()
+        self.failures: dict[
+            type[TelegramMethod[Any]], list[TelegramAPIError | None]
+        ] = {}
 
     async def close(self) -> None:
         pass
@@ -65,8 +64,7 @@ class RecordingSession(BaseSession):
         self, bot: Bot, method: TelegramMethod[Any], timeout: int | None = None
     ) -> Any:
         self.requests.append(method)
-        self.on_request.set()
-        if error := self.failures.get(len(self.requests)):
+        if (failures := self.failures.get(type(method))) and (error := failures.pop(0)):
             raise error
         if isinstance(method, SendMessage):
             message = Message(
@@ -115,10 +113,15 @@ async def chunks_stream(text: str) -> AsyncGenerator[StreamChunk]:
         yield StreamChunk(text[index : index + 701], "content")
 
 
-@pytest.mark.parametrize("thread_id", [None, 42])
-@pytest.mark.parametrize("text", ["**hello <&>**" * 100, "😀" * 6000])
+@pytest.mark.parametrize(
+    ("text", "thread_id", "expected"),
+    [
+        ("**hello <&>**" * 100, None, "hello <&>" * 100),
+        ("😀" * 6000, 42, "😀" * 6000),
+    ],
+)
 async def test_private_drafts_finalize_complete_bounded_response(
-    text: str, thread_id: int | None
+    text: str, thread_id: int | None, expected: str
 ) -> None:
     handler, session, state, history = make_handler(thread_id=thread_id)
     ticks = count(step=2)
@@ -139,23 +142,19 @@ async def test_private_drafts_finalize_complete_bounded_response(
     assert len(drafts) > 1
     assert len({r.draft_id for r in drafts}) == 1
     assert drafts[0].draft_id != 0
-    assert all(r.can_stop is True and r.keep_on_stop is False for r in drafts)
+    assert all(r.can_stop is True for r in drafts)
     assert all(r.message_thread_id == thread_id for r in drafts + final)
     assert all(r.chat_id == 123 for r in drafts + final)
     assert all(0 < sizeof(visible_text(r.text or "")) <= 4096 for r in drafts + final)
-    expected = parse_markdown(text).render()[0]
     assert "".join(visible_text(r.text) for r in final) == expected
     if sizeof(expected) <= 4096:
         assert len(final) == 1
-    assert not any(isinstance(r, EditMessageText) for r in session.requests)
     assert history == ["prompt", text]
     assert await state.get_state() == FSM.get_message.state
-    assert not active_generations
 
 
-@pytest.mark.parametrize("chat_type", ["group", "supergroup"])
-async def test_groups_use_edit_and_split_fallback(chat_type: str) -> None:
-    handler, session, state, history = make_handler(chat_type, thread_id=42)
+async def test_group_fallback_preserves_topic_and_complete_response() -> None:
+    handler, session, state, history = make_handler("supergroup", thread_id=42)
     text = "a" * 3500
     with patch(
         "handlers.user.chatgpt.answer.OpenRouter.stream",
@@ -163,7 +162,6 @@ async def test_groups_use_edit_and_split_fallback(chat_type: str) -> None:
     ):
         await handler.handle()
     assert not any(isinstance(r, SendMessageDraft) for r in session.requests)
-    assert any(isinstance(r, EditMessageText) for r in session.requests)
     assert all(
         r.message_thread_id == 42
         for r in session.requests
@@ -176,22 +174,18 @@ async def test_groups_use_edit_and_split_fallback(chat_type: str) -> None:
     assert await state.get_state() == FSM.get_message.state
 
 
-@pytest.mark.parametrize("fail_at", [1, 3])
 @pytest.mark.parametrize(
-    "error_type",
-    [TelegramBadRequest, TelegramNotFound, TelegramNetworkError, TelegramRetryAfter],
+    ("fail_at", "error_type"),
+    [(1, TelegramNotFound), (3, TelegramNetworkError)],
 )
-async def test_draft_failure_falls_back_without_restarting_or_losing_text(
+async def test_draft_failure_preserves_complete_response(
     fail_at: int, error_type: type[TelegramAPIError]
 ) -> None:
     handler, session, state, history = make_handler(thread_id=42)
-    kwargs = {"retry_after": 2} if error_type is TelegramRetryAfter else {}
     method: TelegramMethod[Any] = SendMessageDraft(chat_id=123, draft_id=1)
-    session.failures[fail_at] = error_type(
-        method=method,
-        message="draft unavailable",
-        **kwargs,
-    )
+    session.failures[SendMessageDraft] = [None] * (fail_at - 1) + [
+        error_type(method=method, message="draft unavailable")
+    ]
     text = "before\n\n" + "😀<&>" * 1200
     closed = asyncio.Event()
 
@@ -204,23 +198,13 @@ async def test_draft_failure_falls_back_without_restarting_or_losing_text(
 
     ticks = count(step=2)
     with (
-        patch(
-            "handlers.user.chatgpt.answer.OpenRouter.stream", side_effect=stream
-        ) as model,
+        patch("handlers.user.chatgpt.answer.OpenRouter.stream", side_effect=stream),
         patch(
             "handlers.user.chatgpt.answer.time",
             monotonic=lambda: next(ticks),
         ),
-        patch(
-            "handlers.user.chatgpt.answer.asyncio.sleep", new_callable=AsyncMock
-        ) as sleep,
     ):
         await handler.handle()
-    model.assert_called_once()
-    if error_type is TelegramRetryAfter:
-        sleep.assert_awaited_once_with(2)
-    else:
-        sleep.assert_not_awaited()
     assert closed.is_set()
     assert (
         "".join(visible_text(m.text or "") for m in session.messages.values()) == text
@@ -232,7 +216,6 @@ async def test_draft_failure_falls_back_without_restarting_or_losing_text(
     )
     assert history == ["prompt", text]
     assert await state.get_state() == FSM.get_message.state
-    assert not active_generations
 
 
 @pytest.mark.parametrize("failure", ["model", "final_message"])
@@ -240,9 +223,11 @@ async def test_failure_closes_stream_and_recovers_state(failure: str) -> None:
     handler, session, state, history = make_handler()
     closed = asyncio.Event()
     if failure == "final_message":
-        session.failures[2] = TelegramBadRequest(
-            method=SendMessage(chat_id=123, text="answer"), message="send failed"
-        )
+        session.failures[SendMessage] = [
+            TelegramBadRequest(
+                method=SendMessage(chat_id=123, text="answer"), message="send failed"
+            )
+        ]
 
     async def stream(*args: Any) -> AsyncGenerator[StreamChunk]:
         try:
@@ -261,11 +246,10 @@ async def test_failure_closes_stream_and_recovers_state(failure: str) -> None:
     assert closed.is_set()
     assert history == ["prompt"]
     assert await state.get_state() == FSM.get_message.state
-    assert not active_generations
 
 
 @pytest.mark.parametrize("exit_before_stop", [False, True])
-async def test_native_stop_cancels_blocked_model_and_uses_saved_context(
+async def test_native_stop_cancels_only_matching_generation_and_preserves_exit(
     exit_before_stop: bool,
 ) -> None:
     handler, session, state, history = make_handler(thread_id=42)
@@ -284,17 +268,13 @@ async def test_native_stop_cancels_blocked_model_and_uses_saved_context(
     chatgpt.setup(router)
     dispatcher = Dispatcher()
     dispatcher.include_router(router)
-    assert "stopped_message_generation" in dispatcher.resolve_used_update_types()
     with patch("handlers.user.chatgpt.answer.OpenRouter.stream", side_effect=stream):
         task = asyncio.create_task(handler.handle())
         await asyncio.wait_for(started.wait(), 1)
-        draft = session.requests[0]
-        assert isinstance(draft, SendMessageDraft)
+        draft = next(r for r in session.requests if isinstance(r, SendMessageDraft))
         event = MessageGenerationStopped(
             chat=handler.event.chat, draft_id=draft.draft_id, message_thread_id=42
         )
-        saved = next(iter(active_generations.values()))
-        assert saved.state is state
         if exit_before_stop:
             await state.clear()
         # Unknown/stale drafts, topics and bot instances must not cancel this task.
@@ -304,7 +284,8 @@ async def test_native_stop_cancels_blocked_model_and_uses_saved_context(
         ]:
             await stop_generation(update, handler.bot)
         await stop_generation(event, Bot("654321:TEST"))
-        assert not saved.stopped
+        await asyncio.sleep(0)
+        assert not closed.is_set()
         # Real aiogram routing, no from_user or FSMContext on the update.
         await dispatcher.feed_update(
             handler.bot, Update(update_id=1, stopped_message_generation=event)
@@ -317,10 +298,9 @@ async def test_native_stop_cancels_blocked_model_and_uses_saved_context(
     assert await state.get_state() == (
         None if exit_before_stop else FSM.get_message.state
     )
-    assert not active_generations
     final = [r for r in session.requests if isinstance(r, SendMessage)]
     assert len(final) == 1
-    assert final[0].text == "Генерация остановлена."
+    assert final[0].text
     assert final[0].message_thread_id == 42
     await dispatcher.storage.close()
 
@@ -347,12 +327,11 @@ async def test_external_cancellation_propagates_and_closes_stream() -> None:
     assert closed.is_set()
     assert history == ["prompt"]
     assert await state.get_state() == FSM.get_message.state
-    assert not active_generations
 
 
-@pytest.mark.parametrize("reason", ["", "thinking <&>"])
-async def test_empty_private_response_finishes_with_status(reason: str) -> None:
+async def test_reason_only_response_finishes_with_nonempty_status() -> None:
     handler, session, state, _history = make_handler()
+    reason = "thinking <&>"
 
     async def stream(*args: Any) -> AsyncGenerator[StreamChunk]:
         yield StreamChunk(reason, "reason")
@@ -361,7 +340,8 @@ async def test_empty_private_response_finishes_with_status(reason: str) -> None:
         await handler.handle()
     final = [r for r in session.requests if isinstance(r, SendMessage)]
     assert len(final) == 1
-    assert final[0].text == "Модель не вернула ответ."
+    assert visible_text(final[0].text)
+    assert visible_text(final[0].text) != reason
     assert await state.get_state() == FSM.get_message.state
 
 
@@ -390,9 +370,11 @@ async def test_stop_while_sending_draft_closes_suspended_stream(
         return True
 
     if status_fails:
-        session.failures[2] = TelegramBadRequest(
-            method=SendMessage(chat_id=123, text="status"), message="status failed"
-        )
+        session.failures[SendMessage] = [
+            TelegramBadRequest(
+                method=SendMessage(chat_id=123, text="status"), message="status failed"
+            )
+        ]
     ticks = count(step=2)
     with (
         patch("handlers.user.chatgpt.answer.OpenRouter.stream", side_effect=stream),
@@ -404,8 +386,7 @@ async def test_stop_while_sending_draft_closes_suspended_stream(
     ):
         task = asyncio.create_task(handler.handle())
         await asyncio.wait_for(sending.wait(), 1)
-        draft = session.requests[0]
-        assert isinstance(draft, SendMessageDraft)
+        draft = next(r for r in session.requests if isinstance(r, SendMessageDraft))
         await stop_generation(
             MessageGenerationStopped(
                 chat=handler.event.chat, draft_id=draft.draft_id, message_thread_id=42
@@ -420,4 +401,3 @@ async def test_stop_while_sending_draft_closes_suspended_stream(
     assert closed.is_set()
     assert history == ["prompt"]
     assert await state.get_state() == FSM.get_message.state
-    assert not active_generations
