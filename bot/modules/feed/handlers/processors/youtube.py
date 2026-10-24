@@ -5,6 +5,7 @@ from services.youtube import UnavailableVideo, YoutubeApiService
 from utils.strings import remove_emoji
 
 from ...ui.keyboards.youtube import YoutubeFeedItemMarkup
+from .matching import matches_source_url
 from .registry import FeedProcessor
 from .rendering import FeedRendering
 
@@ -25,6 +26,6 @@ def create_youtube_processor(rendering: FeedRendering) -> FeedProcessor:
 
     return FeedProcessor(
         "youtube",
-        lambda item: item.link.startswith(("https://www.youtube",)),
+        lambda item: matches_source_url(item, frozenset({"www.youtube.com"})),
         process,
     )

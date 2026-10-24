@@ -2,11 +2,12 @@ from services.gkfeed import FeedItem
 from services.open_graph import OpenGraphService
 
 from ._simple_rendering import SendItem, SendPhoto
+from .matching import matches_source_url
 from .registry import FeedProcessor
 
 
 def _matches_telegram(item: FeedItem) -> bool:
-    return item.link.startswith("https://t.me")
+    return matches_source_url(item, frozenset({"t.me"}))
 
 
 def _limit_description(description: str, limit: int = 250) -> str:

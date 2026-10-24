@@ -11,11 +11,12 @@ from services.open_graph import OpenGraphService
 
 from ...ui.keyboards import FeedMarkup
 from ._simple_rendering import AnswerBufferedPhoto, SendItem
+from .matching import matches_source_url
 from .registry import FeedProcessor
 
 
 def _matches_hltv(item: FeedItem) -> bool:
-    return item.link.startswith("https://www.hltv.org")
+    return matches_source_url(item, frozenset({"www.hltv.org"}))
 
 
 def create_hltv_processor(

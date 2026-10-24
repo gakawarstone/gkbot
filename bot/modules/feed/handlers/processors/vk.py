@@ -9,6 +9,7 @@ from services.open_graph import OpenGraphMetadata, OpenGraphService
 from ...ui.keyboards import FeedMarkup
 from ...ui.keyboards.vk import VKFeedVideoItemMarkup
 from .._exceptions import FeedMediaExtractionError
+from .matching import matches_source_url
 from .registry import FeedProcessor
 from .rendering import FeedRendering
 
@@ -114,6 +115,6 @@ class _VkProcessor:
 def create_vk_processor(rendering: FeedRendering) -> FeedProcessor:
     return FeedProcessor(
         "vk",
-        lambda item: item.link.startswith(("https://vk",)),
+        lambda item: matches_source_url(item, frozenset({"vk.com"})),
         _VkProcessor(rendering).process,
     )

@@ -214,3 +214,34 @@ async def test_picker_order_and_pocket_are_preserved(
     read = api._get_html
     assert isinstance(read, AsyncMock)
     read.assert_awaited_once()
+
+
+async def test_transport_preserves_all_source_records(api: GkfeedApi) -> None:
+    raw_items = [
+        {
+            "id": item_id,
+            "feed_id": 10,
+            "link": link,
+            "title": "title",
+            "text": "text",
+        }
+        for item_id, link in enumerate(
+            (
+                "https://www.youtube.com/watch?v=1",
+                "https://discours.io/articles/post",
+                "https://unknown.invalid/article",
+                "https://unknown.invalid/?source=www.youtube.com",
+            ),
+            start=1,
+        )
+    ]
+    expected = [FeedItem(**raw_item) for raw_item in raw_items]
+    read = api._get_html
+    assert isinstance(read, AsyncMock)
+    read.return_value = json.dumps({"items": raw_items}).encode()
+    assert await consume(api) == expected
+    assert await consume(api) == expected
+    read.assert_awaited_once()
+    for raw_item, item in zip(raw_items, expected, strict=True):
+        read.return_value = json.dumps({"item": raw_item}).encode()
+        assert await api.get_item_by_item_id(item.id) == item
