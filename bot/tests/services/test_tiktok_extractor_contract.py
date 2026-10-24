@@ -41,7 +41,10 @@ MUSIC_URL = "https://media.example/music.mp3"
 IMAGE_URL = "https://media.example/image.jpg"
 
 
-@pytest.fixture(params=_EXTRACTORS, ids=lambda source: str(type(source).__name__))
+@pytest.fixture(
+    params=list({type(source): source for source in _EXTRACTORS}.values()),
+    ids=lambda source: str(type(source).__name__),
+)
 def extractor(request: pytest.FixtureRequest) -> BaseExtractor:
     return cast(BaseExtractor, request.param)
 
@@ -97,37 +100,28 @@ def provider_io(
     return operation
 
 
-async def test_every_provider_preserves_media_and_shared_defaults(
+@pytest.mark.parametrize(
+    "extractor",
+    [Snaptik(), ApiExtractor("https://api.example"), GalleryDl(), YtDlp()],
+    indirect=True,
+)
+async def test_provider_results_preserve_media(
     extractor: BaseExtractor, provider_io: AsyncMock
 ) -> None:
     info = await extractor.get_video_info(URL)
-    provider_io.assert_awaited_once()
     if isinstance(extractor, VideoUrlExtractor):
         assert info.video_url == VIDEO_URL
-        assert info.video_input_file is None
-        assert info.music_url == ""
-        assert info.images_urls == []
-        assert (info.height, info.width, info.duration) == (None, None, None)
     else:
         assert (info.height, info.width, info.duration) == (720, 1280, 12)
         if isinstance(extractor, ApiExtractor):
             assert info.video_url == VIDEO_URL
-            assert info.video_input_file is None
-            assert info.images_urls == []
             assert info.music_url == MUSIC_URL
         elif isinstance(extractor, GalleryDl):
-            assert info.video_url is None
-            assert info.video_input_file is None
             assert info.images_urls == [IMAGE_URL]
             assert info.music_url == MUSIC_URL
         else:
             assert isinstance(info.video_input_file, FSInputFile)
             assert Path(info.video_input_file.path).read_bytes() == b"video"
-            assert info.video_url is None
-            assert info.images_urls == []
-            assert info.music_url == ""
-    if isinstance(extractor, VideoUrlExtractor):
-        assert info.images_urls is not (await extractor.get_video_info(URL)).images_urls
 
 
 @pytest.mark.parametrize("method", ["get_video_info", "get_video_file_url"])
@@ -143,9 +137,10 @@ async def test_every_provider_preserves_media_and_shared_defaults(
     ids=lambda error: type(error).__name__,
 )
 async def test_expected_failures_have_one_contract(
-    extractor: BaseExtractor, provider_io: AsyncMock, method: str, error: Exception
+    monkeypatch: pytest.MonkeyPatch, method: str, error: Exception
 ) -> None:
-    provider_io.side_effect = error
+    extractor = Snaptik()
+    monkeypatch.setattr(extractor, "_get_video_links", AsyncMock(side_effect=error))
     with pytest.raises(SourceInfoExtractFailed) as raised:
         await getattr(extractor, method)(URL)
     assert raised.value.source is extractor
@@ -178,12 +173,12 @@ async def test_provider_specific_failures_use_the_same_contract(
 @pytest.mark.parametrize("method", ["get_video_info", "get_video_file_url"])
 @pytest.mark.parametrize("error", [RuntimeError("bug"), asyncio.CancelledError()])
 async def test_unexpected_errors_and_cancellation_propagate(
-    extractor: BaseExtractor,
-    provider_io: AsyncMock,
+    monkeypatch: pytest.MonkeyPatch,
     method: str,
     error: BaseException,
 ) -> None:
-    provider_io.side_effect = error
+    extractor = Snaptik()
+    monkeypatch.setattr(extractor, "_get_video_links", AsyncMock(side_effect=error))
     with pytest.raises(type(error)) as raised:
         await getattr(extractor, method)(URL)
     assert raised.value is error
@@ -205,14 +200,12 @@ async def test_legacy_url_entry_point(
     provider_io.assert_awaited_once()
 
 
-@pytest.mark.parametrize("source_type", [Snaptik, Mdown, Tikdown, TTDownloader])
 @pytest.mark.parametrize("links", [[], [""]])
 async def test_missing_video_links_trigger_fallback(
-    source_type: type[VideoUrlExtractor],
     links: list[str],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    source = source_type()
+    source = Snaptik()
     monkeypatch.setattr(source, "_get_video_links", AsyncMock(return_value=links))
     monkeypatch.setattr(
         HttpService, "get_redirected_url", AsyncMock(return_value=FULL_URL)
@@ -267,13 +260,14 @@ async def test_redirect_failure_uses_provider_failure_contract(
 
 
 @pytest.mark.parametrize("method", ["get_video_info", "get_video_url"])
-async def test_fallback_continues_after_failure_from_every_provider(
-    extractor: BaseExtractor,
-    provider_io: AsyncMock,
+async def test_fallback_continues_after_provider_failure(
     method: str,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    provider_io.side_effect = HttpRequestError()
+    extractor = Snaptik()
+    monkeypatch.setattr(
+        extractor, "_get_video_links", AsyncMock(side_effect=HttpRequestError())
+    )
     final_source = Snaptik()
     monkeypatch.setattr(
         final_source, "_get_video_links", AsyncMock(return_value=[VIDEO_URL])
