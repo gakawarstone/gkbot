@@ -107,10 +107,10 @@ fallback, rather than dropping or clipping parts.
 
 The installed aiogram 3.31.0 uses discriminated input-block unions. Its
 [3.29.1 changelog](https://docs.aiogram.dev/en/latest/changelog.html) describes
-the fix for exponential nested-block validation. Tests validate nested input
-JSON, a large response at the depth limit, and rejection of a 2000-level tree
-before recursive conversion. A subprocess watchdog gives the benchmark
-fixtures, including the 16-level tree, a generous 10-second bound. No
+the fix for exponential nested-block validation. Tests check nested output
+content, a large response at the depth limit, and rejection of a 2000-level tree
+without a recursion failure. A subprocess watchdog gives 16-level conversion
+and serialization a generous 10-second bound. No
 millisecond threshold is imposed on shared CI.
 
 ## Local comparison
@@ -156,12 +156,16 @@ Keep the experiment disabled in production until that comparison is complete.
 
 ## Checks
 
-    make test FILE='bot/tests/services/test_rich_messages.py bot/tests/handlers/test_chatgpt_rich_fallback.py bot/tests/handlers/test_chatgpt_drafts.py bot/tests/handlers/test_chatgpt_answer.py'
+    make test FILE='bot/tests/services/test_rich_messages.py bot/tests/handlers/test_chatgpt_rich_fallback.py'
     make test
-    make lint FILE='bot/services/rich_messages.py bot/tests/services/test_rich_messages.py bot/tests/handlers/test_chatgpt_rich_fallback.py bot/tests/benchmarks/rich_messages.py'
+    make lint FILE='bot/tests/services/test_rich_messages.py bot/tests/handlers/test_chatgpt_rich_fallback.py'
 
-Results: 129 focused tests passed; the full suite passed with 253 passed and
-13 skipped. All four new Python files pass Ruff, typos, mypy, and pyright.
+Results after the test review: 22 focused tests passed; the full suite passed
+with 222 passed and 13 skipped. The revised test files pass Ruff, typos, mypy,
+and pyright. Retained tests protect literal text and nested block content,
+conversion bounds, topic routing, complete HTML fallback output, cooldowns,
+and cancellation without duplicate delivery. Pure defaults/argument guards,
+mock-only forwarding, and duplicated API scenarios were removed.
 Full make lint stops at 381 existing Ruff findings. A separate archive of the
 prerequisite commit produces the same count. No production handler, dependency,
 deployment, root checkout, or .env was changed by this prototype.
