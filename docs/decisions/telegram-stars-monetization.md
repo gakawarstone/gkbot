@@ -38,8 +38,7 @@ This is a design candidate, not an approved product.
 
 There is no proposed numeric paid price. The owner must approve `P` Stars per
 30 days, a precise paid allowance `Q`, a free allowance `F`, supported models,
-input/output limits, and what counts as delivered usage. Test fixtures use
-1 Star only to exercise integer amounts; that value is not pricing guidance.
+input/output limits, and what counts as delivered usage.
 
 Before choosing `P`, collect provider cost per delivered unit, retries and
 failed requests, peak usage, storage/egress costs, support workload, and
@@ -91,14 +90,10 @@ Channel subscription invites cost 1 to 10000 Stars per 30 days and require
   owner wants no automatic renewal. It still needs accounting and support.
   Compare it again once real usage is known; no sale is enabled here.
 
-## Conditional design and offline prototype
+## Conditional design
 
-[The offline prototype](../../experiments/telegram_stars/test_lifecycle.py)
-uses real aiogram objects and a small in-memory ledger. It exists to validate
-the lifecycle assumptions behind the decision, especially subscription state
-changes, receipt replays, and refunds. It never constructs a `Bot`, calls an
-API, loads configuration, registers production handlers, or changes access.
-The normal test suite does not collect `experiments/`; run it explicitly.
+This evaluation does not implement billing or validate production payment
+behavior.
 
 The installed 3.31.0 wheel exposes `Dispatcher.subscription`,
 `BotSubscriptionUpdated`, `SuccessfulPayment`, and `RefundedPayment`.
@@ -172,8 +167,8 @@ prompts, downloaded files, and credentials do not belong in the ledger.
 
 Never silently discard an unexpected successful charge. Quarantine mismatched
 or duplicate-subscription receipts, alert support, and arrange fulfillment or
-refund after verification. The prototype raises `ValueError` at this boundary;
-production needs a durable support case instead.
+refund after verification. Production needs a durable support case for these
+receipts.
 
 ### Refunds, retries, and reconciliation
 
@@ -200,22 +195,17 @@ rather than guessing a paid interval. Alert on unknown charges, discrepancies,
 refund failures, inbox lag, and reconciliation failure. Suspend new sales
 while reconciliation is unhealthy and preserve already verified paid access.
 
-### Prototype coverage and limits
+### Validation required for a future implementation
 
-The executable scenarios cover checkout validation, no access at checkout,
-receipt ingestion through `Update`, user isolation, renewal, duplicate and
-reordered receipts, expiry boundaries, all three subscription states, refunds
-before/after receipts, refund replay, conflicting receipts, and a second
-initial charge. Refunding an older period preserves a newer paid period.
-
-The model has one user-bound order, a fixed 30-day period, and unlimited test
-units. It models an interval as expiry minus the fixed period through expiry.
-It proves neither production concurrency nor durability. There are no API
-retry, quota, reconciliation, or real Telegram integration tests here. The
-separate implementation must test database rollback/restart, concurrent
-checkout and usage, provider failures, API timeout outcomes, and test-environment
-payment/refund flows before production. No real or test-network payments were
-made during evaluation.
+The separate implementation must test actual payment handlers and persisted
+entitlements: no access from checkout or subscription state alone, payer
+isolation, receipt replay, expiry boundaries, and refunds arriving before or
+after receipts. Refunding an older period must preserve a newer paid period.
+It must also test database rollback/restart, concurrent checkout and usage,
+provider failures, API timeout outcomes, reconciliation, and test-environment
+payment/refund flows before production. These are requirements for future
+regression tests, not claims of coverage in this evaluation. No real or
+test-network payments were made during evaluation.
 
 ## Support obligations and reopening
 
@@ -248,17 +238,9 @@ task to execute while the decision remains no-go.
 
 ```bash
 uv sync --locked --all-extras
-make test FILE=experiments/telegram_stars/test_lifecycle.py
-make lint FILE=experiments/telegram_stars/test_lifecycle.py
 make test
-make test FILE='bot/tests experiments/telegram_stars/test_lifecycle.py'
 ```
 
-Evaluation results: 22 prototype tests pass; its Ruff, typos, mypy, and pyright
-checks pass. The unchanged application suite has 122 passing and 13 skipped
-tests. The combined run has 144 passing and 13 skipped tests. Full `make lint`
+The unchanged application suite has 122 passing and 13 skipped tests. It does
+not validate billing, which this PR does not implement. Full `make lint`
 already stops at 383 unrelated Ruff findings in `bot/` on the starting commit.
-
-No bot token, `.env`, database, or network is needed for the offline prototype
-after dependencies are installed. It lives outside `bot/` and is not imported
-by production. Keep it outside runtime if this design is revisited.
