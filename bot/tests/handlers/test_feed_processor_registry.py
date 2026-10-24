@@ -81,13 +81,13 @@ def test_registry_unknown_source_and_duplicate_identity(item: FeedItem) -> None:
     [
         ("https://discours.io/articles/post", True),
         ("https://discours.io/", True),
-        ("https://discours.io.example/articles/post", True),
+        ("https://discours.io.example/articles/post", False),
         ("http://discours.io/articles/post", False),
         ("https://www.discours.io/articles/post", False),
         ("https://example.invalid", False),
     ],
 )
-def test_discours_preserves_existing_prefix_matching(
+def test_discours_matches_parsed_source(
     item: FeedItem, link: str, matches: bool
 ) -> None:
     entry = create_discours_processor(AsyncMock())
@@ -120,7 +120,7 @@ async def test_discours_renders_photo_through_registry(
         has_spoiler=False,
     )
     assert not hasattr(handler, "_process_discours_item")
-    assert "https://discours.io" not in handler._processors
+    assert not hasattr(handler, "_processors")
     bot.send_message.assert_not_awaited()
     base.assert_not_awaited()
 
@@ -223,12 +223,11 @@ async def test_matching_errors_are_outside_execution_boundary(
     bot.send_message.assert_not_awaited()
 
 
-async def test_registry_takes_precedence_over_legacy_dispatch(
+async def test_registered_source_skips_generic_dispatch(
     handler: ShowFeedItemsHandler, item: FeedItem, bot: MagicMock
 ) -> None:
     item = replace(item, link="https://www.youtube.com/watch?v=1")
     process = AsyncMock()
-    legacy = AsyncMock()
     entry = FeedProcessor("registered", lambda _: True, process)
     with (
         patch.object(
@@ -237,17 +236,11 @@ async def test_registry_takes_precedence_over_legacy_dispatch(
             new_callable=PropertyMock,
             return_value=FeedProcessorRegistry((entry,)),
         ),
-        patch.object(
-            type(handler),
-            "_processors",
-            new_callable=PropertyMock,
-            return_value={"https://www.youtube": legacy},
-        ),
         patch.object(handler, "_process_base_item", new_callable=AsyncMock) as base,
     ):
         await handler._process_item(item)
     process.assert_awaited_once_with(item)
-    legacy.assert_not_awaited()
+    assert not hasattr(handler, "_processors")
     base.assert_not_awaited()
     bot.send_message.assert_not_awaited()
 

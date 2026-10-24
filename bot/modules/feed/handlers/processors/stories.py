@@ -2,6 +2,7 @@ from collections.abc import Awaitable, Callable
 
 from services.gkfeed import FeedItem, GkfeedApi, GkfeedCredentials
 
+from .matching import matches_source_url
 from .registry import FeedProcessor
 from .rendering import FeedRendering
 from .video import send_video
@@ -19,6 +20,7 @@ def create_stories_processor(
 
     return FeedProcessor(
         "stories",
-        lambda item: item.link.startswith(("https://stor",)),
+        # Preserve the existing CDN hostname family without matching URL paths.
+        lambda item: matches_source_url(item, host_prefix="stor"),
         process,
     )

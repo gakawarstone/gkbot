@@ -1,8 +1,8 @@
 # Feed processor failures
 
 `GkfeedItemProcessorExtension._run_processor(item, processor, processor_name)`
-is the shared execution boundary. Legacy dispatch supplies the method name.
-A registry entry must supply its resolved `source_id` as `processor_name` and
+is the shared execution boundary. Generic web dispatch supplies `_process_base_item`.
+A registry entry supplies its resolved `source_id` as `processor_name` and
 call this same boundary for `entry.process`. Resolve and match entries outside
 the boundary so configuration and matching errors propagate.
 

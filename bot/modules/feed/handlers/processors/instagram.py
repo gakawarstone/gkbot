@@ -8,6 +8,7 @@ from services.gkfeed import FeedItem
 
 from ...ui.keyboards import FeedMarkup
 from .._exceptions import FeedMediaExtractionError
+from .matching import matches_source_url
 from .registry import FeedProcessor
 from .rendering import FeedRendering
 
@@ -49,8 +50,8 @@ def create_instagram_processor(rendering: FeedRendering) -> FeedProcessor:
 
     return FeedProcessor(
         "instagram",
-        lambda item: item.link.startswith(
-            ("https://instagram.com", "https://www.instagram.com")
+        lambda item: matches_source_url(
+            item, frozenset({"instagram.com", "www.instagram.com"})
         ),
         process,
     )

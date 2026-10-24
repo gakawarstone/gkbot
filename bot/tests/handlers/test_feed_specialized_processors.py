@@ -187,9 +187,7 @@ def test_registry_resolves_specialized_identity(
     assert entry is not None
     assert entry.source_id == source
     assert not hasattr(handler, f"_process_{source}_item")
-    assert not any(
-        entry.matches(replace(item, link=prefix)) for prefix in handler._processors
-    )
+    assert not hasattr(handler, "_processors")
     assert "video" not in {
         entry.source_id for entry in handler._processor_registry.entries
     }
@@ -201,13 +199,13 @@ def test_registry_resolves_specialized_identity(
         ("https://de.pornhub.org/watch", "pornhub"),
         ("https://pornhub.org/watch", "pornhub"),
         ("https://www.instagram.com/post", "instagram"),
-        ("https://vk.example/post", "vk"),
-        ("https://www.youtube.example/watch", "youtube"),
-        ("https://www.reddit.com.example/post", "reddit"),
-        ("https://www.tiktok.example/post", "tiktok"),
-        ("https://www.pornhub.com.example/watch", "pornhub"),
-        ("http://porno365.broker.example/watch", "porno365"),
-        ("https://instagram.com.example/post", "instagram"),
+        ("https://vk.example/post", None),
+        ("https://www.youtube.example/watch", None),
+        ("https://www.reddit.com.example/post", None),
+        ("https://www.tiktok.example/post", None),
+        ("https://www.pornhub.com.example/watch", None),
+        ("http://porno365.broker.example/watch", None),
+        ("https://instagram.com.example/post", None),
         ("https://stories-other.example/1", "stories"),
         ("https://sasflix.ru.example/topics/1", None),
         ("https://matreshka.tv/other/1", None),
@@ -216,7 +214,7 @@ def test_registry_resolves_specialized_identity(
         ("http://vk.com/post", None),
     ],
 )
-def test_specialized_matching_preserves_aliases_and_prefix_semantics(
+def test_specialized_matching_preserves_aliases_and_rejects_partial_hosts(
     handler: SpecializedHandler, item: FeedItem, link: str, source: str | None
 ) -> None:
     entry = handler._processor_registry.resolve(replace(item, link=link))

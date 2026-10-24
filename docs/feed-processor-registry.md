@@ -47,21 +47,20 @@ Recoverable failures send the original plain link once and log bounded source
 identity. Programming errors and cancellation propagate. Failure never tries a
 second processor or generic web extraction, and fallback sender errors propagate.
 
-## Migration behavior
+## Dispatch behavior
 
 All sources now use the registry: the Discours tracer, seven
 [simple sources](feed-simple-processors.md), and ten
 [specialized sources](feed-specialized-processors.md). Their inherited views and
-legacy entries have been removed. Requests, captions, media, keyboard payloads,
-and prefix matching retain their existing behavior. A registry miss uses the
-generic web view. The empty legacy map and its dispatch loop remain until task 13
-removes the migration infrastructure. The composition preserves the original
-source order with one entry per source, including its existing aliases.
+legacy entries have been removed. Requests, captions, media and keyboard payloads
+retain their existing behavior. A registry miss uses the generic web view. The
+legacy map and its dispatch loop are removed. The composition preserves the
+original source order with one entry per source, including its existing aliases.
 
-Discours matching retains the original `https://discours.io` prefix semantics,
-including acceptance of longer hostnames starting with that text. This migration
-introduces no hostname validation or new aliases. Task 13 owns completion of the
-filters/startswith TODO; changes to accepted URLs need separate regression cases.
+Sources match parsed URL components and expose their stable identities to the
+application's item policy. Discours now requires the exact `discours.io` hostname;
+a longer hostname is a registry miss. See [matching and policy](feed-source-policy.md)
+for all source declarations and the retained Stories/Kinogo hostname families.
 
 The agreed source ownership is:
 
@@ -71,19 +70,18 @@ The agreed source ownership is:
   `instagram`, `sasflix`, `matreshka`. Video is a helper, not a source.
 - Task 13: integrate migrations and remove processor multiple inheritance.
 
-Keep each source's existing keyboard builder and callback payloads during
-migration. Remove only that source's legacy prefix entries, imports and view
-inheritance once its standalone factory is registered.
+Keep each source's existing keyboard builder and callback payloads when extending
+the registry. Source processing uses explicitly bound rendering callbacks.
 
 ## Regression coverage
 
 `bot/tests/handlers/test_feed_processor_registry.py` checks ordered resolution,
-unknown sources, duplicate identities, matching-error propagation, precedence over
-legacy dispatch, and Discours prefix compatibility. Offline rendering tests cover
+unknown sources, duplicate identities, matching-error propagation, registry-only
+dispatch, and parsed Discours matching. Offline rendering tests cover
 both message and callback handlers, the real shared photo sender and keyboard,
 HTTP and Telegram fallback, unexpected errors, cancellation, and fallback failure.
-The generic route and registry precedence over an injected legacy map have
-dispatch checks. Simple and specialized source tests cover every migrated route.
+The generic route and selected-source dispatch have separate checks. Simple and
+specialized source tests cover every migrated route.
 `bot/tests/handlers/test_feed_specialized_processors.py` covers the migrated media
 sources, their literal callback payloads, and source-specific rendering branches.
 

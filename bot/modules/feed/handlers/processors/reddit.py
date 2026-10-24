@@ -12,6 +12,7 @@ from services.telegraph import HtmlToTelegraphContentConverter, TelegraphAPI
 
 from ...ui.keyboards import FeedMarkup
 from ...ui.keyboards.reddit import RedditFeedItemMarkup
+from .matching import matches_source_url
 from .registry import FeedProcessor
 from .rendering import FeedRendering
 from .video import send_video
@@ -173,6 +174,6 @@ class _RedditProcessor:
 def create_reddit_processor(rendering: FeedRendering) -> FeedProcessor:
     return FeedProcessor(
         "reddit",
-        lambda item: item.link.startswith(("https://www.reddit.com",)),
+        lambda item: matches_source_url(item, frozenset({"www.reddit.com"})),
         _RedditProcessor(rendering).process,
     )

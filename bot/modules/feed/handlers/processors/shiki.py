@@ -4,11 +4,14 @@ from services.gkfeed import FeedItem
 
 from .._exceptions import FeedMediaExtractionError
 from ._simple_rendering import SendPhoto, get_html_soup
+from .matching import matches_source_url
 from .registry import FeedProcessor
 
 
 def _matches_shiki(item: FeedItem) -> bool:
-    return item.link.startswith("https://shikimori")
+    return matches_source_url(
+        item, frozenset({"shikimori.one", "shikimori.me", "shikimori.org"})
+    )
 
 
 def create_shiki_processor(send_photo: SendPhoto) -> FeedProcessor:
