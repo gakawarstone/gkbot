@@ -81,6 +81,8 @@ processor modules and changed tests.
 This migration builds on registry commit
 `1cda1a9cd415b72274d2ec3e96912961ea27410f`, published in
 [PR #46](https://github.com/gakawarstone/gkbot/pull/46), and exception prerequisite
-`6123f94fbfd2c169df27c336becb853b46ea1fd8`. Task 12 adds the remaining source
-factories independently on the same base. Task 13 must combine both sets of
-entries in `_processor_registry` and retain the shared rendering behavior.
+`6123f94fbfd2c169df27c336becb853b46ea1fd8`. Task 12's branch merges this
+migration and combines both sets of entries in `_processor_registry`, retaining
+the original source order and shared rendering behavior. Its PR is stacked on
+the task 11 branch. Task 13 removes the empty legacy map and remaining aggregate
+inheritance and owns the matching-filter follow-up.

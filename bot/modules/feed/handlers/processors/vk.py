@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 from aiogram.types import InlineKeyboardMarkup
 from bs4 import BeautifulSoup, Tag
 
@@ -7,15 +9,19 @@ from services.open_graph import OpenGraphMetadata, OpenGraphService
 from ...ui.keyboards import FeedMarkup
 from ...ui.keyboards.vk import VKFeedVideoItemMarkup
 from .._exceptions import FeedMediaExtractionError
-from . import BaseFeedItemView
+from .registry import FeedProcessor
+from .rendering import FeedRendering
 
 _DEFAULT_THUMBNAIL_URL = (
     "http://sun6-21.userapi.com/fafvjSB8ha2EWPn-VR6LIahBtBkf50LZSLbKfQ/BiN2pjgeJTw.png"
 )
 
 
-class VKFeedItemView(BaseFeedItemView):
-    async def _process_vk_item(self, item: FeedItem) -> None:
+@dataclass
+class _VkProcessor:
+    rendering: FeedRendering
+
+    async def process(self, item: FeedItem) -> None:
         soup = await OpenGraphService.get_soup(item.link)
         metadata = OpenGraphService.parse_soup(soup)
 
@@ -29,7 +35,7 @@ class VKFeedItemView(BaseFeedItemView):
         if self._is_video_item(metadata):
             reply_markup = self._get_video_markup(item, metadata)
 
-        await self._send_photo(
+        await self.rendering.send_photo(
             item=item,
             media_url=media_url,
             description=title,
@@ -46,7 +52,7 @@ class VKFeedItemView(BaseFeedItemView):
         description = self._get_description(metadata)
         _, channel_name = self._parse_title(soup)
 
-        await self.answer(
+        await self.rendering.answer(
             f"<b>{description.replace('<br>', '\n')}</b>\n\n<a href='{item.link}'>{channel_name}</a>",
             reply_markup=FeedMarkup.get_item_markup(item.id, item.feed_id),
             disable_web_page_preview=True,
@@ -103,3 +109,11 @@ class VKFeedItemView(BaseFeedItemView):
 
         video_link = f"https://vk.com/video{oid_part}_{id_part}"
         return VKFeedVideoItemMarkup.get_item_markup(item.id, video_link)
+
+
+def create_vk_processor(rendering: FeedRendering) -> FeedProcessor:
+    return FeedProcessor(
+        "vk",
+        lambda item: item.link.startswith(("https://vk",)),
+        _VkProcessor(rendering).process,
+    )

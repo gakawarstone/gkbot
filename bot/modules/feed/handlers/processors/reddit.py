@@ -1,10 +1,10 @@
+from dataclasses import dataclass
 from html import escape
 from urllib.parse import urlparse
 
 from aiogram.types import BufferedInputFile
 from bs4 import BeautifulSoup, Tag
 
-from extensions.handlers.message.http import HttpExtension
 from services.gkfeed import FeedItem
 from services.http import HttpRequestError, HttpService
 from services.open_graph import OpenGraphService
@@ -12,34 +12,38 @@ from services.telegraph import HtmlToTelegraphContentConverter, TelegraphAPI
 
 from ...ui.keyboards import FeedMarkup
 from ...ui.keyboards.reddit import RedditFeedItemMarkup
-from . import BaseFeedItemView
-from .video import VideoFeedItemView
+from .registry import FeedProcessor
+from .rendering import FeedRendering
+from .video import send_video
 
 _REDDIT_PREVIEW_HEADERS = {
     "User-Agent": "Mozilla/5.0 (compatible; Twitterbot/1.0)",
 }
 
 
-class RedditFeedItemView(VideoFeedItemView, BaseFeedItemView, HttpExtension):
+@dataclass
+class _RedditProcessor:
+    rendering: FeedRendering
+
     _base_url = "https://libreddit.qwik.space/"
 
-    async def _process_reddit_item(self, item: FeedItem) -> None:
+    async def process(self, item: FeedItem) -> None:
         if await self._send_reddit_preview(item):
             return
 
         url = self._base_url + "r/" + item.link.split("r/")[-1]
-        soup = await self._get_soup(url)
+        soup = BeautifulSoup(await HttpService.get(url), "html.parser")
         title_tag = soup.find("title")
         title = title_tag.text.strip() if title_tag else "No title"
 
         if not soup.find_all(class_="post"):
-            return await self._send_item(item)
+            return await self.rendering.send_item(item)
 
         if image_url := self._find_post_image_url(soup):
-            return await self._send_photo(item, image_url, title)
+            return await self.rendering.send_photo(item, image_url, title)
 
         if video_url := self._find_post_video_url(soup):
-            return await self._send_video(item, video_url)
+            return await send_video(self.rendering, item, video_url)
 
         if link := self._find_post_link(soup):
             await self._send_link_response(title, link, item)
@@ -62,7 +66,7 @@ class RedditFeedItemView(VideoFeedItemView, BaseFeedItemView, HttpExtension):
         except HttpRequestError:
             return False
 
-        await self.answer_photo(
+        await self.rendering.answer_photo(
             BufferedInputFile(image_data, filename="reddit.jpg"),
             caption=(
                 f'<a href="{escape(item.link, quote=True)}">'
@@ -119,11 +123,11 @@ class RedditFeedItemView(VideoFeedItemView, BaseFeedItemView, HttpExtension):
                 return self._normalize_link(str(link.get("href")))
         return None
 
-    async def _send_link_response(self, title: str, link: str, item: FeedItem):
+    async def _send_link_response(self, title: str, link: str, item: FeedItem) -> None:
         _title = title.split("-")[0].strip()
         link_caption = title.split("-")[-1].strip()
 
-        return await self.answer(
+        await self.rendering.answer(
             _title + f'\n\n<a href="{item.link}">{link_caption}</a>',
             reply_markup=RedditFeedItemMarkup.get_item_markup(item.id, link, "Ссылка"),
             disable_web_page_preview=True,
@@ -131,9 +135,9 @@ class RedditFeedItemView(VideoFeedItemView, BaseFeedItemView, HttpExtension):
 
     async def _send_telegraph_response(
         self, title: str, item: FeedItem, soup: BeautifulSoup
-    ):
+    ) -> None:
         telegraph_url = await self._create_telegraph_page(title, soup)
-        await self.answer(
+        await self.rendering.answer(
             f'<b>{title.split("-")[0]}</b>\n\n<a href="{item.link}">{title.split("-")[-1].strip()}</a>',
             reply_markup=RedditFeedItemMarkup.get_item_markup(item.id, telegraph_url),
             disable_web_page_preview=True,
@@ -164,3 +168,11 @@ class RedditFeedItemView(VideoFeedItemView, BaseFeedItemView, HttpExtension):
         if soup.find(class_="gallery"):
             post_body = soup.find(class_="gallery")
         return post_body if isinstance(post_body, Tag) else None
+
+
+def create_reddit_processor(rendering: FeedRendering) -> FeedProcessor:
+    return FeedProcessor(
+        "reddit",
+        lambda item: item.link.startswith(("https://www.reddit.com",)),
+        _RedditProcessor(rendering).process,
+    )
