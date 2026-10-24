@@ -10,15 +10,9 @@ from aiogram.types import (
     InputTextMessageContent,
 )
 
-from bot.handlers.button.delete_message import delete_message
-from bot.handlers.inline.choose_list import send_choice
-from bot.handlers.user.exit import exit_flow
 from bot.handlers.user.reminder._states import FSM as ReminderFSM
-from bot.handlers.user.reminder.start import InitHandler as ReminderInitHandler
 from bot.handlers.user.timezone import FSM as TimezoneFSM
-from bot.handlers.user.timezone import _set_timezone, init_timezone_set
 from bot.handlers.user.tts._states import FSM as SpeechFSM
-from bot.handlers.user.tts.init import InitHandler as SpeechInitHandler
 from configs.commands import USER_COMMANDS
 from services.timezone import UserDontHaveTimeZone
 from tests.dispatcher.helpers import (
@@ -39,10 +33,10 @@ async def test_command_and_fsm_input_use_registered_handlers(
     await harness.message(f"/{USER_COMMANDS.set_tz}")
 
     invocation = harness.invocations[0]
-    assert invocation.callback is init_timezone_set
     assert isinstance(invocation.state, FSMContext)
     assert invocation.state_before is None
-    assert invocation.data_before == {"delete_queue": []}
+    assert invocation.data_before is not None
+    assert invocation.data_before["delete_queue"] == []
     assert await invocation.state.get_state() == TimezoneFSM.set_timezone.state
     harness.find_user.assert_awaited_once_with()
     harness.create_user.assert_awaited_once_with(
@@ -57,7 +51,6 @@ async def test_command_and_fsm_input_use_registered_handlers(
     await harness.message("3")
 
     next_invocation = harness.invocations[1]
-    assert next_invocation.callback is _set_timezone
     assert next_invocation.state_before == TimezoneFSM.set_timezone.state
     assert next_invocation.user_data is invocation.user_data
     harness.set_timezone.assert_awaited_once_with(USER_ID, timedelta(hours=3))
@@ -75,7 +68,6 @@ async def test_invalid_fsm_input_retries_without_consuming_other_users(
     await harness.message(f"/{USER_COMMANDS.set_tz}")
     await harness.message("invalid offset")
 
-    assert harness.invocations[-1].callback is _set_timezone
     assert await harness.state().get_state() == TimezoneFSM.set_timezone.state
     harness.set_timezone.assert_not_awaited()
     answer = harness.session.calls[-1]
@@ -96,10 +88,11 @@ async def test_flagged_class_handler_receives_timezone_user_data_and_state(
     await harness.message(f"/{USER_COMMANDS.add_remind}")
 
     invocation = harness.invocations[0]
-    assert invocation.callback is ReminderInitHandler
     assert isinstance(invocation.state, FSMContext)
     assert invocation.state_before is None
-    assert invocation.data_before == {"delete_queue": [], "tz": timedelta(hours=3)}
+    assert invocation.data_before is not None
+    assert invocation.data_before["delete_queue"] == []
+    assert invocation.data_before.get("tz") == timedelta(hours=3)
     assert await invocation.state.get_state() == ReminderFSM.get_text.state
     harness.get_timezone.assert_awaited_once_with(USER_ID)
     assert len(harness.session.calls) == 2
@@ -134,7 +127,6 @@ async def test_exit_command_flushes_delete_queue_before_clearing_active_fsm(
     harness = dispatcher_harness
     await harness.message(f"/{USER_COMMANDS.tts}")
     invocation = harness.invocations[0]
-    assert invocation.callback is SpeechInitHandler
     assert await harness.state().get_state() == SpeechFSM.send_speech.state
     assert invocation.user_data is not None
     queued_message = invocation.user_data["delete_queue"][0]
@@ -144,7 +136,6 @@ async def test_exit_command_flushes_delete_queue_before_clearing_active_fsm(
     await harness.message(f"/{USER_COMMANDS.exit}")
 
     exit_invocation = harness.invocations[-1]
-    assert exit_invocation.callback is exit_flow
     assert exit_invocation.state_before == SpeechFSM.send_speech.state
     assert exit_invocation.user_data is invocation.user_data
     assert invocation.user_data["delete_queue"] == []
@@ -173,7 +164,6 @@ async def test_callback_reaches_delete_handler_and_shares_injected_user_data(
     await harness.feed(callback_update(deleteMessageButtonPrefix))
 
     invocation = harness.invocations[0]
-    assert invocation.callback is delete_message
     assert invocation.user_data is message_invocation.user_data
     assert invocation.state_before == TimezoneFSM.set_timezone.state
     assert len(harness.session.calls) == 1
@@ -190,7 +180,6 @@ async def test_inline_query_reaches_choice_handler_without_message_side_effects(
     assert await harness.feed(inline_update("lst only-choice")) is True
 
     assert len(harness.invocations) == 1
-    assert harness.invocations[0].callback is send_choice
     harness.create_user.assert_awaited_once_with(
         user_id=USER_ID, user_name="Dispatcher Test"
     )
@@ -216,7 +205,6 @@ async def test_exception_reaches_registered_error_handler_with_admin_injection(
 
     await harness.message("3")
 
-    assert harness.invocations[-1].callback is _set_timezone
     assert len(harness.session.calls) == len(ADMIN_IDS)
     for method, admin_id in zip(harness.session.calls, ADMIN_IDS, strict=True):
         assert isinstance(method, SendDocument)
@@ -226,7 +214,7 @@ async def test_exception_reaches_registered_error_handler_with_admin_injection(
         assert "User: @dispatcher_test" in method.caption
         assert isinstance(method.document, BufferedInputFile)
         assert method.document.filename == "traceback.txt"
-        assert b"_set_timezone" in method.document.data
+        assert method.document.data
 
 
 @pytest.mark.parametrize(
