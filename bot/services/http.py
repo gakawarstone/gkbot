@@ -1,13 +1,16 @@
-from typing import Optional
-from yarl import URL
 import subprocess
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from http.cookies import SimpleCookie
+from typing import Optional
 
 import aiohttp
 from aiohttp.client_exceptions import ClientConnectorError, ContentTypeError, InvalidURL
+from yarl import URL
 
-from utils.async_wrapper import async_wrap
 from services.cache_dir import CacheDir
+from utils.async_cleanup import wait_for_completion
+from utils.async_wrapper import async_wrap
 
 _headers = {
     "User-Agent": (
@@ -118,13 +121,19 @@ class HttpService:
             cache_dir.delete()
 
     @classmethod
-    async def download_file(cls, url: str) -> str:
+    @asynccontextmanager
+    async def download_file(cls, url: str) -> AsyncIterator[str]:
+        """Keep the downloaded path alive only inside the caller's async with."""
         cache_dir = CacheDir()
-        file_path = cache_dir.path + "/file"
-        await cls.download_file_to_path(url, file_path)
-        return file_path
+        try:
+            file_path = cache_dir.get_file_path("file")
+            await wait_for_completion(cls.download_file_to_path(url, file_path))
+            yield file_path
+        finally:
+            cache_dir.delete()
 
     @classmethod
-    async def download_file_to_path(cls, url: str, output_path: str):
+    async def download_file_to_path(cls, url: str, output_path: str) -> None:
+        """Download to a caller-owned path; the caller handles its lifetime."""
         command = ["aria2c", "-x16", "-s16", "-k1M", url, "-o", output_path]
         await async_wrap(subprocess.call)(command)

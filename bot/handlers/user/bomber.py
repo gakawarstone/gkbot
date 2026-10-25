@@ -3,8 +3,8 @@ import asyncio
 from aiogram import Router
 from aiogram.filters import Command
 from aiogram.filters.state import StateFilter
-from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import Message
 
 from configs.commands import USER_COMMANDS
