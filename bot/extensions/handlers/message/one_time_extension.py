@@ -1,6 +1,6 @@
-from .base import BaseHandler
-
 from aiogram.types import Message
+
+from .base import BaseHandler
 
 
 class OneTimeMessageHandlerExtension(BaseHandler):

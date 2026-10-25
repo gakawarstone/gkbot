@@ -7,6 +7,7 @@ from aiogram.types import FSInputFile
 from services.ffmpeg import FfmpegService
 from services.ytdlp import YtdlpDownloader
 from services.ytdlp.options_manager import YtDlpOptionsManager
+from services.ytdlp.source import classify_source
 
 
 @pytest.mark.parametrize("worker", [False, True])
@@ -34,7 +35,7 @@ async def test_extracts_presentation_from_local_and_worker_metadata(
         if worker
         else "https://example.com/video"
     )
-    info = await YtdlpDownloader._get_info(url)
+    info = await YtdlpDownloader._get_info(url, classify_source(url))
     assert info.cover == raw_info["thumbnail"]
     assert info.start_timestamp == 12
 
@@ -140,6 +141,7 @@ async def test_optional_bad_metadata_does_not_fail_extraction(
             }
         ),
     )
-    info = await YtdlpDownloader._get_info("https://www.youtube.com/shorts/id")
+    url = "https://www.youtube.com/shorts/id"
+    info = await YtdlpDownloader._get_info(url, classify_source(url))
     assert info.cover is None
     assert info.start_timestamp is None
