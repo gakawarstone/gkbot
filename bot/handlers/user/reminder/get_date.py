@@ -4,10 +4,11 @@ from typing import Any
 from extensions.handlers.message.one_time_extension import (
     OneTimeMessageHandlerExtension,
 )
+from ui.keyboards.reminder import RemindMarkup
+
 from ._base import BaseHandler
 from ._exceptions import InvalidDateInput
 from ._states import FSM
-from ui.keyboards.reminder import RemindMarkup
 
 
 class DateInputHandler(BaseHandler, OneTimeMessageHandlerExtension):

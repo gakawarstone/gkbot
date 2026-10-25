@@ -1,6 +1,8 @@
-from services.gkfeed import FeedItem
-from extensions.handlers.message.http import HttpExtension
 from bs4 import Tag
+
+from extensions.handlers.message.http import HttpExtension
+from services.gkfeed import FeedItem
+
 from . import BaseFeedItemView
 
 
