@@ -1,9 +1,10 @@
-from typing import Any, Type
 from abc import abstractmethod
+from typing import Any, Type
 
 from aiogram.types import InputMediaPhoto, Message
 
 from ui.keyboards.carousel import BaseCarouselMarkup
+
 from .base import BaseHandler
 
 

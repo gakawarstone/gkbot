@@ -1,6 +1,6 @@
 from aiogram import Router
 
-from . import add, show, edit_property
+from . import add, edit_property, show
 
 
 def setup(r: Router):

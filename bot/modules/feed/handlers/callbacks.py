@@ -1,5 +1,5 @@
-from typing import Any
 import asyncio
+from typing import Any
 
 from aiogram.types import CallbackQuery, InaccessibleMessage
 
