@@ -1,5 +1,5 @@
-from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
+from aiogram.types import Message
 
 from ._states import FSM
 

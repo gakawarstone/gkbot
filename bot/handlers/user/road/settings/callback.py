@@ -1,8 +1,9 @@
 from typing import Any
 
 from extensions.handlers.callback.base import BaseHandler
-from ._context import RoadSettingsContextManager
+
 from ..states import FSM
+from ._context import RoadSettingsContextManager
 
 
 class EditSettingsHandler(BaseHandler, RoadSettingsContextManager):
