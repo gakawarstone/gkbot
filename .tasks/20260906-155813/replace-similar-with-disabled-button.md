@@ -24,9 +24,10 @@ The feed keyboard advertises a Similar action, but its callback branch is a stub
 
 ## Implementation status, 2026-10-22
 
-Implementation is based on prerequisite PR #11, branch
-`task-20261022-upgrade-aiogram-to-3-31`, commits `5756c37` and `68d75dc`.
-The prerequisite remains draft and has not been merged or deployed.
+Prerequisite PR #11 has merged into `dev-3.0`. The 2026-10-25 conflict
+resolution merged dev commit `2db43ed99af695c841ed7c29194df88da8d42225`
+into this branch and retargets PR #16 to `dev-3.0`. This PR remains draft;
+client evidence and production approval are still required.
 
 - Similar remains visible as `Похожие` and serializes as
   `{"text": "Похожие", "disabled": {}}`, without callback data.
@@ -54,19 +55,20 @@ absent in 3.26.0 and present in 3.31.0. All four dependency files agree on
 
 ### Validation and remaining acceptance criteria
 
-- Review validation on 2026-10-25: focused regression passed; full suite
-  106 passed, 13 skipped.
+- Validation after the dev merge on 2026-10-25: focused regression passed;
+  full suite 162 passed, 13 skipped.
 - The retained regression fails if the callback guard is removed in memory:
   the stale button sends an unwanted exhaustion reply to the chat. No
   production file was modified for this check.
-- Targeted `make lint FILE=bot/tests/handlers/test_feed_callbacks.py`: Ruff,
-  typos, mypy, and pyright passed. Production files passed targeted checks
-  during implementation and were not changed by the test review.
+- Targeted `make lint FILE=...`: Ruff, typos, mypy, and pyright passed for
+  the three changed production files and retained regression. Import ordering
+  from merged PR #32 is preserved; the merge left one unused `Any` import,
+  which was removed.
 - `uv lock --check`, `uv pip check`, and `git diff --check` passed.
-- Implementation-stage global `make lint` was blocked by 382 Ruff findings in
-  unrelated files. The prerequisite baseline has 391; the nine removed
-  findings are confined to the three changed production files. There are no
-  new findings. Global downstream lint stages do not run after Ruff fails.
+- Global `make lint` stops at 196 Ruff findings versus 204 at the used dev
+  commit. Comparing structured diagnostics shows no introduced findings;
+  the eight removed findings belong to the three changed production files.
+  The later global lint stages do not run after Ruff fails.
 
 The task remains OPEN because the full static checks do not pass and the
 required server rollout has not happened. Do not remove this task file yet.
