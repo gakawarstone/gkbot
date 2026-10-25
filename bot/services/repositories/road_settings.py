@@ -1,6 +1,7 @@
 from datetime import time
 from typing import Any
-from sqlalchemy import select, update
+
+from sqlalchemy import select
 
 from configs import db
 from models.road import RoadSettings as Model
@@ -36,16 +37,14 @@ class RoadSettingsRepository:
                 new_settings = Model(
                     user_id=user_id,
                     time_focused=settings.time_focused,
-                    time_relax=settings.time_relax
+                    time_relax=settings.time_relax,
                 )
                 session.add(new_settings)
             await session.commit()
 
     @classmethod
     async def update_user_setting(
-        cls, user_id: int,
-        setting_name: str,
-        new_setting_value: Any
+        cls, user_id: int, setting_name: str, new_setting_value: Any
     ) -> None:
         async with db.SessionLocal() as session:
             stmt = select(Model).where(Model.user_id == user_id)
@@ -55,7 +54,7 @@ class RoadSettingsRepository:
                 new_settings = Model(
                     user_id=user_id,
                     time_focused=DEFAULT_SETTINGS.time_focused,
-                    time_relax=DEFAULT_SETTINGS.time_relax
+                    time_relax=DEFAULT_SETTINGS.time_relax,
                 )
                 setattr(new_settings, setting_name, new_setting_value)
                 session.add(new_settings)

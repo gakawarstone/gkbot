@@ -1,16 +1,17 @@
 aiofiles==25.1.0
-aiogram==3.26.0
+aiogram==3.31.0
 aiohappyeyeballs==2.6.1
 aiohttp==3.13.3
 aiomysql==0.3.2
 aiosignal==1.4.0
 aiosqlite==0.17.0
-alembic==1.20.0
+alembic==1.20.1
 annotated-types==0.7.0
 anyio==4.12.1
 asyncpg==0.31.0
 attrs==25.4.0
 beautifulsoup4==4.14.3
+brotli==1.2.0
 certifi==2026.2.25
 cffi==2.1.1
 charset-normalizer==3.4.5
@@ -30,7 +31,7 @@ google-auth-httplib2==0.4.4
 google-generativeai==0.8.6
 googleapis-common-protos==1.75.0
 greenlet==3.5.6
-grpcio==1.84.0
+grpcio==1.84.1
 grpcio-status==1.71.2
 gtts==2.5.4
 h11==0.16.0
@@ -45,6 +46,7 @@ magic-filter==1.0.12
 mako==1.4.3
 markupsafe==3.0.4
 multidict==6.7.1
+mutagen==1.48.1
 mypy==1.19.1
 mypy-extensions==1.1.0
 nodeenv==1.10.0
@@ -58,7 +60,8 @@ proto-plus==1.28.2
 protobuf==5.29.6
 pyasn1==0.6.4
 pyasn1-modules==0.4.2
-pycparser==3.11
+pycparser==3.0
+pycryptodomex==3.23.0
 pydantic==2.12.5
 pydantic-core==2.41.5
 pygments==2.19.2
@@ -81,7 +84,9 @@ uritemplate==4.2.0
 urllib3==2.6.3
 uvloop==0.22.1
 varname==0.13.0
+websockets==17.1
 wikipedia==1.4.0
 yarl==1.23.0
 youtube-search==2.2.0
-yt-dlp==2026.3.17
+yt-dlp==2026.8.19
+yt-dlp-ejs==0.8.0

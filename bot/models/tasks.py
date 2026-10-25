@@ -1,6 +1,8 @@
 import datetime as dt
+
 from sqlalchemy import DateTime, Integer, LargeBinary
 from sqlalchemy.orm import Mapped, mapped_column
+
 from models.base import Base
 
 

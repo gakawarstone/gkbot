@@ -11,10 +11,10 @@ dependencies = [
     "youtube-search",
     "docx2txt",
     "varname==0.13.0",
-    "yt-dlp==2026.3.17",
+    "yt-dlp[default]==2026.8.19",
     "gallery-dl>=1.30.10",
     "edge-tts",
-    "aiogram==3.26.0",
+    "aiogram==3.31.0",
     "uvloop>=0.21.0",
     "openai>=1.82.1",
     "asyncpg>=0.30.0",
@@ -46,7 +46,17 @@ testpaths = ["bot/tests"]
 pythonpath = ["bot"]
 
 [tool.ruff]
+# Runtime imports are rooted at bot/ for both bot/main.py and pytest.
 src = ["bot"]
+
+[tool.ruff.lint]
+# Ruff 0.16+ defaults enable I001. Keep consistent import groups explicitly
+# while preserving the other default checks; ruff format does not sort imports.
+extend-select = ["I001"]
+
+[tool.ruff.lint.isort]
+# src detects core/configs/services/etc.; also recognize package-qualified imports.
+known-first-party = ["bot"]
 
 [tool.mypy]
 ignore_missing_imports = true

@@ -1,5 +1,6 @@
 from sqlalchemy import BigInteger, Text
 from sqlalchemy.orm import Mapped, mapped_column
+
 from models.base import Base
 
 

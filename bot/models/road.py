@@ -1,6 +1,8 @@
 import datetime
+
 from sqlalchemy import BigInteger, Integer, Text, Time
 from sqlalchemy.orm import Mapped, mapped_column
+
 from models.base import Base
 
 

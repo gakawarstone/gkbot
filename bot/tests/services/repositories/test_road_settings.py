@@ -1,11 +1,10 @@
-import datetime
 from datetime import time
 
 import pytest
 from sqlalchemy.exc import IntegrityError, StatementError
 
 from services.entities.road_settings import RoadSettings
-from services.repositories.road_settings import RoadSettingsRepository, DEFAULT_SETTINGS
+from services.repositories.road_settings import DEFAULT_SETTINGS, RoadSettingsRepository
 from tests.mocks.db import use_db
 
 

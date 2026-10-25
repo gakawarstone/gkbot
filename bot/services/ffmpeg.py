@@ -2,10 +2,12 @@ import asyncio
 import json
 import shutil
 import subprocess
+from pathlib import Path
 from subprocess import CompletedProcess
 from typing import Any
 
 from services.cache_dir import CacheDir
+from utils.async_cleanup import wait_for_completion
 from utils.async_wrapper import async_wrap
 
 
@@ -39,20 +41,19 @@ class FfmpegService:
     @classmethod
     async def convert_music_to_voice(cls, music: bytes) -> bytes:
         cache_dir = CacheDir()
+        try:
+            cache_dir.save_file("music.mp3", music)
 
-        cache_dir.save_file("music.mp3", music)
+            command = cls._build_command(
+                inputs=[cache_dir.get_file_path("music.mp3")],
+                output=cache_dir.get_file_path("voice.ogg"),
+                props=cls.__convert_to_voice_options,
+            )
 
-        command = cls._build_command(
-            inputs=[f"{cache_dir.path}/music.mp3"],
-            output=f"{cache_dir.path}/voice.ogg",
-            props=cls.__convert_to_voice_options,
-        )
-
-        await cls._run_command(command)
-
-        content = open(f"{cache_dir.path}/voice.ogg", "rb").read()
-        cache_dir.delete()
-        return content
+            await wait_for_completion(cls._run_command(command))
+            return Path(cache_dir.get_file_path("voice.ogg")).read_bytes()
+        finally:
+            cache_dir.delete()
 
     @classmethod
     async def convert_video(cls, input_path: str, output_path: str) -> None:
@@ -110,22 +111,34 @@ class FfmpegService:
         cls, images_urls: list[str], audio_url: str | None
     ) -> bytes:
         cache_dir = CacheDir()
+        try:
+            output_path = cache_dir.get_file_path("slideshow.mp4")
+            await wait_for_completion(
+                cls.make_slideshow_file_from_web(images_urls, audio_url, output_path)
+            )
+            return await wait_for_completion(
+                asyncio.to_thread(Path(output_path).read_bytes)
+            )
+        finally:
+            await wait_for_completion(asyncio.to_thread(cache_dir.delete))
 
-        await cls.download_and_prepare_images(images_urls, cache_dir.path)
+    @classmethod
+    async def make_slideshow_file_from_web(
+        cls, images_urls: list[str], audio_url: str | None, output_path: str
+    ) -> None:
+        """Write into a caller-owned directory, kept alive for the later upload."""
+        work_dir = str(Path(output_path).parent)
+        await cls.download_and_prepare_images(images_urls, work_dir)
         if audio_url:
-            await cls.download_and_prepare_audio(audio_url, cache_dir.path)
+            await cls.download_and_prepare_audio(audio_url, work_dir)
 
         command = cls._build_slideshow_command(
-            images_input=f"{cache_dir.path}/*.jpg",
-            audio_input=f"{cache_dir.path}/audio.m4a" if audio_url else None,
-            output_path=f"{cache_dir.path}/slideshow.mp4",
+            images_input=f"{work_dir}/*.jpg",
+            audio_input=f"{work_dir}/audio.m4a" if audio_url else None,
+            output_path=output_path,
         )
 
         await cls._run_command(command)
-
-        content = open(f"{cache_dir.path}/slideshow.mp4", "rb").read()
-        cache_dir.delete()
-        return content
 
     @classmethod
     async def download_and_prepare_images(

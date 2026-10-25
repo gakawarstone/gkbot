@@ -1,6 +1,7 @@
 from datetime import timedelta
 from typing import Optional
-from sqlalchemy import select, delete
+
+from sqlalchemy import select
 
 from configs import db
 from models.timezone import TimeZone as _TimeZone

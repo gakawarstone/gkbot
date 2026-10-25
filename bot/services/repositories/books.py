@@ -8,6 +8,28 @@ from models.books import Book
 
 class BooksRepository:
     @classmethod
+    async def get_or_create_book(
+        cls, name: str, author: str, chapters_cnt: int, user_id: int
+    ) -> tuple[Book, bool]:
+        async with db.SessionLocal() as session:
+            stmt = select(Book).where(
+                Book.name == name,
+                Book.author == author,
+                Book.chapters_cnt == chapters_cnt,
+                Book.user_id == user_id,
+            )
+            result = await session.execute(stmt)
+            book = result.scalars().first()
+            if book is not None:
+                return book, False
+            book = Book(
+                name=name, author=author, chapters_cnt=chapters_cnt, user_id=user_id
+            )
+            session.add(book)
+            await session.commit()
+            return book, True
+
+    @classmethod
     async def get_all_user_books(cls, user_id: int) -> list[Book]:
         async with db.SessionLocal() as session:
             stmt = select(Book).where(Book.user_id == user_id)

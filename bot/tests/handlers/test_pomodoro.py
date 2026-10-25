@@ -1,18 +1,18 @@
 import pytest
 
-from tests.mocks.db import use_db
-from tests.mocks.message import fake_event, make_fake_callback, make_fake_message
-from tests.mocks.state import fake_state
-from tests.mocks.user_data import MockedUserDataExtension
-from services.entities.road_settings import RoadSettings
-from services.repositories.road_settings import DEFAULT_SETTINGS
 from handlers.user.road.pomodoro.pomodoro import PomodoroHandler
-from handlers.user.road.settings.start import InitSettingsHandler
 from handlers.user.road.settings.callback import EditSettingsHandler
 from handlers.user.road.settings.edit.get_new_setting_value import (
     GetNewSettingValueHandler,
 )
+from handlers.user.road.settings.start import InitSettingsHandler
 from handlers.user.road.states import FSM
+from services.entities.road_settings import RoadSettings
+from services.repositories.road_settings import DEFAULT_SETTINGS
+from tests.mocks.db import use_db
+from tests.mocks.message import make_fake_callback, make_fake_message
+from tests.mocks.state import fake_state
+from tests.mocks.user_data import MockedUserDataExtension
 from ui.keyboards.pomodoro import PomodoroSettingsMarkup
 
 
@@ -74,6 +74,7 @@ async def test_edit_settings():
         await get_new_settings_value_handler.handle()
 
         new_setting_value = get_new_settings_value_handler.ctx.setting_new_value
+        assert new_setting_value is not None
         setting_name = data.split(":")[1]
         current_settings = await PomodoroHandler(make_fake_message("test")).settings
         actual_value = getattr(current_settings, setting_name)
