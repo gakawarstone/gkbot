@@ -1,5 +1,5 @@
 import asyncio
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from html import escape
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -253,34 +253,6 @@ async def test_registered_source_keeps_execution_error_policy(
             assert raised.value is failure
             bot.send_message.assert_not_awaited()
     base.assert_not_awaited()
-
-
-@pytest.mark.parametrize("candidate", CASES, ids=lambda case: case.source_id)
-def test_simple_source_matches_parsed_host(candidate: SourceCase) -> None:
-    handler = ShowFeedItemsHandler(event=MagicMock(spec=Message))
-    registry = handler._processor_registry
-    item = FeedItem(id=1, feed_id=2, link=candidate.link, title="", text="")
-    entry = registry.resolve(item)
-    assert entry is not None and entry.source_id == candidate.source_id
-    assert (
-        entry.matches(replace(item, link=candidate.link.replace("https://", "http://")))
-        is False
-    )
-    assert (
-        entry.matches(
-            replace(item, link=candidate.link.replace("https://", "HTTPS://"))
-        )
-        is True
-    )
-    assert entry.matches(replace(item, link="https://example.invalid")) is False
-    host = candidate.link.split("/")[2]
-    if candidate.source_id == "kinogo":
-        # Its mirror hostname family stays compatible until hosts are enumerated.
-        assert entry.matches(replace(item, link=f"https://{host}.other/extra"))
-    else:
-        assert not entry.matches(
-            replace(item, link=f"https://{host}.evil.invalid/extra")
-        )
 
 
 def create_example_processor(

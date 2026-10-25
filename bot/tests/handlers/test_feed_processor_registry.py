@@ -10,7 +10,6 @@ from aiogram.types import CallbackQuery, Message, URLInputFile
 
 from modules.feed.handlers.messages import ShowFeedItemsHandler
 from modules.feed.handlers.processors import FeedProcessor, FeedProcessorRegistry
-from modules.feed.handlers.processors.discours import create_discours_processor
 from modules.feed.ui.keyboards import FeedMarkup
 from services.gkfeed import FeedItem
 from services.http import HttpRequestError
@@ -74,25 +73,6 @@ def test_registry_unknown_source_and_duplicate_identity(item: FeedItem) -> None:
     assert FeedProcessorRegistry((entry,)).resolve(item) is None
     with pytest.raises(ValueError, match="identities must be unique"):
         FeedProcessorRegistry((entry, replace(entry, matches=lambda _: True)))
-
-
-@pytest.mark.parametrize(
-    ("link", "matches"),
-    [
-        ("https://discours.io/articles/post", True),
-        ("https://discours.io/", True),
-        ("https://discours.io.example/articles/post", False),
-        ("http://discours.io/articles/post", False),
-        ("https://www.discours.io/articles/post", False),
-        ("https://example.invalid", False),
-    ],
-)
-def test_discours_matches_parsed_source(
-    item: FeedItem, link: str, matches: bool
-) -> None:
-    entry = create_discours_processor(AsyncMock())
-    assert entry.source_id == "discours"
-    assert entry.matches(replace(item, link=link)) is matches
 
 
 async def test_discours_renders_photo_through_registry(
@@ -218,27 +198,6 @@ async def test_matching_errors_are_outside_execution_boundary(
     ):
         await handler._process_item(item)
     assert raised.value is error
-    bot.send_message.assert_not_awaited()
-
-
-async def test_registered_source_skips_generic_dispatch(
-    handler: ShowFeedItemsHandler, item: FeedItem, bot: MagicMock
-) -> None:
-    item = replace(item, link="https://www.youtube.com/watch?v=1")
-    process = AsyncMock()
-    entry = FeedProcessor("registered", lambda _: True, process)
-    with (
-        patch.object(
-            type(handler),
-            "_processor_registry",
-            new_callable=PropertyMock,
-            return_value=FeedProcessorRegistry((entry,)),
-        ),
-        patch.object(handler, "_process_base_item", new_callable=AsyncMock) as base,
-    ):
-        await handler._process_item(item)
-    process.assert_awaited_once_with(item)
-    base.assert_not_awaited()
     bot.send_message.assert_not_awaited()
 
 

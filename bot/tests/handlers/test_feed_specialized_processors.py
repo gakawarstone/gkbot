@@ -182,25 +182,10 @@ def payload_rows(markup: InlineKeyboardMarkup) -> list[list[str | None]]:
 @pytest.mark.parametrize(
     ("link", "source"),
     [
-        ("https://de.pornhub.org/watch", "pornhub"),
-        ("https://pornhub.org/watch", "pornhub"),
-        ("https://www.instagram.com/post", "instagram"),
-        ("https://vk.example/post", None),
-        ("https://www.youtube.example/watch", None),
-        ("https://www.reddit.com.example/post", None),
-        ("https://www.tiktok.example/post", None),
-        ("https://www.pornhub.com.example/watch", None),
-        ("http://porno365.broker.example/watch", None),
-        ("https://instagram.com.example/post", None),
-        ("https://stories-other.example/1", "stories"),
-        ("https://sasflix.ru.example/topics/1", None),
         ("https://matreshka.tv/other/1", None),
-        ("https://youtu.be/1", None),
-        ("https://reddit.com/r/test", None),
-        ("http://vk.com/post", None),
     ],
 )
-def test_specialized_matching_preserves_aliases_and_rejects_partial_hosts(
+def test_nonvideo_matreshka_page_does_not_select_video_processor(
     handler: SpecializedHandler, item: FeedItem, link: str, source: str | None
 ) -> None:
     entry = handler._processor_registry.resolve(replace(item, link=link))

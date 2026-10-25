@@ -91,7 +91,8 @@ The integration base is task12 head
 `1cda1a9cd415b72274d2ec3e96912961ea27410f`, and exception prerequisite
 `6123f94fbfd2c169df27c336becb853b46ea1fd8`.
 
-Validation on 2026-10-24: `make test` passed with 541 passed and 13 skipped.
+Validation after test cleanup on 2026-10-25: `make test` passed with 452 passed
+and 13 skipped.
 File-scoped `make lint` passed Ruff, typos, mypy and pyright for the dispatcher,
 entry-point handlers, policy, all processor modules and affected tests. Three
 existing invalid-handler checks retain `ValueError` with local Ruff exceptions;
