@@ -1,6 +1,7 @@
 from typing import Generator
 
 from utils.chunks import chunks
+
 from .generators.indigo import IndigoGenerator
 from .parsers.platonus import PlatonusParser
 
