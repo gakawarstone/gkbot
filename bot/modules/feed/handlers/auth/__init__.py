@@ -2,10 +2,11 @@ from aiogram import Router
 from aiogram.filters import Command
 
 from configs.commands import USER_COMMANDS
+
 from ._states import FSM
-from .start import GkfeedLoginInitHandler
 from .get_login import LoginHandler
 from .get_password import PasswordHandler
+from .start import GkfeedLoginInitHandler
 
 
 def setup(r: Router):

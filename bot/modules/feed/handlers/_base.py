@@ -3,8 +3,9 @@ from urllib.parse import urlparse
 
 from aiogram.types import CallbackQuery
 
-from services.gkfeed import FeedItem, GkfeedAuthService, GkfeedCredentials
 from extensions.handlers.base import BaseHandler as _ExtensionsBaseHandler
+from services.gkfeed import FeedItem, GkfeedAuthService, GkfeedCredentials
+
 from ..ui.keyboards import FeedMarkup
 
 

@@ -1,7 +1,7 @@
 from datetime import time
 
 from extensions.handlers.message.base import BaseHandler as _BaseHandler
-from services.repositories.road_settings import RoadSettingsRepository, RoadSettings
+from services.repositories.road_settings import RoadSettings, RoadSettingsRepository
 from ui.widgets.timer import Timer
 
 
