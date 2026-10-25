@@ -1,11 +1,11 @@
-from . import generate_yt_code
-
 from ui.buttons.youtube.download import (
     YoutubeDownloadButtonBuilder,
     YoutubeDownloadButtonCallbackData,
     YoutubeDownloadButtonCallbackDataDeserializer,
     YoutubeDownloadButtonData,
 )
+
+from . import generate_yt_code
 
 
 def _create_audio_button():
