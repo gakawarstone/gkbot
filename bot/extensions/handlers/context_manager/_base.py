@@ -1,9 +1,9 @@
 from abc import ABC
-from typing import TypeVar, Type, Generic, Any, Optional
+from typing import Any, Generic, Optional, Type, TypeVar
 
 from ..base import BaseHandler as _BaseHandler
-from ._types import Property, BaseContext
-from ._utils import get_hint, make_prop, make_args_names_list
+from ._types import BaseContext, Property
+from ._utils import get_hint, make_args_names_list, make_prop
 
 _T = TypeVar("_T", bound=BaseContext)
 

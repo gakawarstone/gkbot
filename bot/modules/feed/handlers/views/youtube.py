@@ -1,8 +1,9 @@
 from aiogram.types import URLInputFile
 
-from utils.strings import remove_emoji
 from services.gkfeed import FeedItem
-from services.youtube import YoutubeApiService, UnavailableVideo
+from services.youtube import UnavailableVideo, YoutubeApiService
+from utils.strings import remove_emoji
+
 from ...ui.keyboards.youtube import YoutubeFeedItemMarkup
 from . import BaseFeedItemView
 

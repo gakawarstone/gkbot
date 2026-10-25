@@ -10,7 +10,6 @@ from services.http import HttpService
 from services.open_graph import OpenGraphService
 
 from ...ui.keyboards import FeedMarkup
-
 from . import BaseFeedItemView
 
 
