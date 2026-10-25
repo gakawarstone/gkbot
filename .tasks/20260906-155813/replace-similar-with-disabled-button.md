@@ -36,7 +36,10 @@ The prerequisite remains draft and has not been merged or deployed.
   implementation. Old Similar callbacks and unknown feed actions no longer
   select a random next item or cause message/API deletion.
 - Kept the `feed_id` markup argument for compatibility with existing callers.
-- Added 11 regression tests for serialized keyboards and feed callback effects.
+- After the 2026-10-25 test review, retained one existing stale-Similar
+  regression. Removed serialization snapshots, mock-call choreography, and a
+  duplicate unknown-action case. The remaining check observes chat/feed state
+  using the real handler and picker with fakes at external service boundaries.
 
 ### Verified API contract
 
@@ -51,13 +54,16 @@ absent in 3.26.0 and present in 3.31.0. All four dependency files agree on
 
 ### Validation and remaining acceptance criteria
 
-- Focused tests: 11 passed.
-- Full suite: 116 passed, 13 skipped after the upstream compatibility-test
-  removal in `68d75dc`.
-- Targeted `make lint FILE=...`: Ruff, typos, mypy, and pyright passed for all
-  five changed Python files.
+- Review validation on 2026-10-25: focused regression passed; full suite
+  106 passed, 13 skipped.
+- The retained regression fails if the callback guard is removed in memory:
+  the stale button sends an unwanted exhaustion reply to the chat. No
+  production file was modified for this check.
+- Targeted `make lint FILE=bot/tests/handlers/test_feed_callbacks.py`: Ruff,
+  typos, mypy, and pyright passed. Production files passed targeted checks
+  during implementation and were not changed by the test review.
 - `uv lock --check`, `uv pip check`, and `git diff --check` passed.
-- Global `make lint` remains blocked by 382 pre-existing Ruff findings in
+- Implementation-stage global `make lint` was blocked by 382 Ruff findings in
   unrelated files. The prerequisite baseline has 391; the nine removed
   findings are confined to the three changed production files. There are no
   new findings. Global downstream lint stages do not run after Ruff fails.

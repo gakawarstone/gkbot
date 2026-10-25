@@ -81,12 +81,13 @@ After rollout, check in a controlled Telegram chat that Similar and carousel
 page numbers do nothing when tapped, Keep/Delete still advance the feed, and
 carousel arrows navigate correctly at the first and last pages.
 
-Local regression checks use serialized keyboard payloads and mocked feed
-dependencies, without Telegram credentials:
+The retained stale-Similar regression checks that chat messages and saved
+items remain unchanged, using the real handler and picker with fakes at
+external service boundaries. It requires no Telegram credentials:
 
 ```bash
-make test FILE='bot/tests/ui/keyboards/test_disabled_buttons.py bot/tests/handlers/test_feed_callbacks.py'
-make lint FILE='bot/modules/feed/ui/keyboards/__init__.py bot/modules/feed/handlers/callbacks.py bot/ui/keyboards/carousel.py bot/tests/ui/keyboards/test_disabled_buttons.py bot/tests/handlers/test_feed_callbacks.py'
+make test FILE=bot/tests/handlers/test_feed_callbacks.py
+make lint FILE=bot/tests/handlers/test_feed_callbacks.py
 ```
 
 ## Reproducing local checks
