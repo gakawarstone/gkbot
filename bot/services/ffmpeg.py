@@ -7,6 +7,7 @@ from subprocess import CompletedProcess
 from typing import Any
 
 from services.cache_dir import CacheDir
+from utils.async_cleanup import wait_for_completion
 from utils.async_wrapper import async_wrap
 
 
@@ -40,20 +41,19 @@ class FfmpegService:
     @classmethod
     async def convert_music_to_voice(cls, music: bytes) -> bytes:
         cache_dir = CacheDir()
+        try:
+            cache_dir.save_file("music.mp3", music)
 
-        cache_dir.save_file("music.mp3", music)
+            command = cls._build_command(
+                inputs=[cache_dir.get_file_path("music.mp3")],
+                output=cache_dir.get_file_path("voice.ogg"),
+                props=cls.__convert_to_voice_options,
+            )
 
-        command = cls._build_command(
-            inputs=[f"{cache_dir.path}/music.mp3"],
-            output=f"{cache_dir.path}/voice.ogg",
-            props=cls.__convert_to_voice_options,
-        )
-
-        await cls._run_command(command)
-
-        content = open(f"{cache_dir.path}/voice.ogg", "rb").read()
-        cache_dir.delete()
-        return content
+            await wait_for_completion(cls._run_command(command))
+            return Path(cache_dir.get_file_path("voice.ogg")).read_bytes()
+        finally:
+            cache_dir.delete()
 
     @classmethod
     async def convert_video(cls, input_path: str, output_path: str) -> None:
@@ -113,10 +113,14 @@ class FfmpegService:
         cache_dir = CacheDir()
         try:
             output_path = cache_dir.get_file_path("slideshow.mp4")
-            await cls.make_slideshow_file_from_web(images_urls, audio_url, output_path)
-            return await asyncio.to_thread(Path(output_path).read_bytes)
+            await wait_for_completion(
+                cls.make_slideshow_file_from_web(images_urls, audio_url, output_path)
+            )
+            return await wait_for_completion(
+                asyncio.to_thread(Path(output_path).read_bytes)
+            )
         finally:
-            await asyncio.to_thread(cache_dir.delete)
+            await wait_for_completion(asyncio.to_thread(cache_dir.delete))
 
     @classmethod
     async def make_slideshow_file_from_web(

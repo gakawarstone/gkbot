@@ -1,8 +1,8 @@
-from unittest.mock import AsyncMock
 import datetime
 from typing import Any
+from unittest.mock import AsyncMock
 
-from aiogram.types import CallbackQuery, User, Message, Chat
+from aiogram.types import CallbackQuery, Chat, Message, User
 
 fake_event = AsyncMock()
 

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import AsyncGenerator, Optional, NamedTuple, Literal
+from typing import AsyncGenerator, Literal, NamedTuple, Optional
 
 
 class StreamChunk(NamedTuple):
