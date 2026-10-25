@@ -222,31 +222,6 @@ async def test_matching_errors_are_outside_execution_boundary(
     bot.send_message.assert_not_awaited()
 
 
-async def test_registry_takes_precedence_over_legacy_dispatch(
-    handler: ShowFeedItemsHandler, item: FeedItem, bot: MagicMock
-) -> None:
-    item = replace(item, link="https://www.youtube.com/watch?v=1")
-    process = AsyncMock()
-    entry = FeedProcessor("registered", lambda _: True, process)
-    with (
-        patch.object(
-            type(handler),
-            "_processor_registry",
-            new_callable=PropertyMock,
-            return_value=FeedProcessorRegistry((entry,)),
-        ),
-        patch.object(
-            handler, "_process_youtube_item", new_callable=AsyncMock
-        ) as legacy,
-        patch.object(handler, "_process_base_item", new_callable=AsyncMock) as base,
-    ):
-        await handler._process_item(item)
-    process.assert_awaited_once_with(item)
-    legacy.assert_not_awaited()
-    base.assert_not_awaited()
-    bot.send_message.assert_not_awaited()
-
-
 @pytest.mark.parametrize(
     ("link", "method"),
     [

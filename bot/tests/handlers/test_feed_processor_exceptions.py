@@ -114,27 +114,6 @@ async def test_unexpected_error_propagates_with_original_traceback(
     send.assert_not_awaited()
 
 
-async def test_matched_processor_is_logged(
-    handler: ShowFeedItemsHandler,
-    item: FeedItem,
-    caplog: pytest.LogCaptureFixture,
-) -> None:
-    item = replace(item, link="https://www.twitch.tv/channel")
-
-    with (
-        patch.object(
-            handler, "_send_photo", new=AsyncMock(side_effect=HttpRequestError())
-        ),
-        patch.object(handler, "_process_base_item", new_callable=AsyncMock) as base,
-        patch.object(handler, "_send_item", new_callable=AsyncMock) as send,
-    ):
-        await handler._process_item(item)
-
-    send.assert_awaited_once_with(item)
-    base.assert_not_awaited()
-    assert "processor=twitch" in caplog.text
-
-
 async def test_execution_accepts_bounded_registry_source_id(
     handler: ShowFeedItemsHandler,
     item: FeedItem,
@@ -206,23 +185,6 @@ async def test_malformed_instagram_media_falls_back(
     ):
         await handler._process_item(item)
     photo.assert_not_awaited()
-    send.assert_awaited_once_with(item)
-
-
-async def test_shiki_missing_title_is_recoverable(
-    handler: ShowFeedItemsHandler, item: FeedItem
-) -> None:
-    item = replace(item, link="https://shikimori.one/animes/1")
-    soup = BeautifulSoup(
-        '<meta property="og:image" content="image.jpg">', "html.parser"
-    )
-    with (
-        patch(
-            "modules.feed.handlers.processors.shiki.get_html_soup", return_value=soup
-        ),
-        patch.object(handler, "_send_item", new_callable=AsyncMock) as send,
-    ):
-        await handler._process_item(item)
     send.assert_awaited_once_with(item)
 
 

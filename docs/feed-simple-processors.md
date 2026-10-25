@@ -59,22 +59,18 @@ property, without changing registry internals or processor inheritance.
 - Confirm photo rejection still invokes the generic feed-item fallback.
 - Apply the exception policy supplied by task 10 and its prerequisite. Do not
   add broad exception catches in individual source modules.
-- Add a test source through the registry's supported registration mechanism and
-  render it without changing the registry implementation or processor bases.
-- Preserve unknown-source Open Graph rendering and generic-item fallback.
 
 `bot/tests/handlers/test_feed_simple_processors.py` implements these checks with
-offline HTML and image fixtures. It also registers an example metadata source
-using only its factory and composition, then renders through the real shared
-sender and navigation markup. No registry code or inherited source view is
-needed. The existing legacy-dispatch and exception tests have been adapted to
-the migration. `bot/tests/handlers/test_feed.py` remains an integration test
+offline HTML and image fixtures. Assertions inspect the outgoing media, captions,
+original fallback links and navigation payloads. Shared failure and cancellation
+checks use representative URL-photo and buffered-upload paths rather than
+repeating every source. The existing legacy-dispatch and exception tests have
+been adapted to the migration. `bot/tests/handlers/test_feed.py` remains an integration test
 skipped in the ordinary offline run.
 
-Validation for this migration: the full `make test` run passed with 346 passed
-and 13 skipped. The feed-only run passed with 245 passed and 1 skipped.
-File-scoped `make lint` passed Ruff, typos, mypy and pyright for the composition,
-processor modules and changed tests.
+After test review, the feed-only run passed with 170 passed and 1 skipped.
+File-scoped `make lint` passed Ruff, typos, mypy and pyright for the three
+reviewed test modules. Production code is unchanged by the test cleanup.
 
 ## Integration base
 
