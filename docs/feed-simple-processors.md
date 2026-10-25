@@ -68,15 +68,16 @@ repeating every source. The existing legacy-dispatch and exception tests have
 been adapted to the migration. `bot/tests/handlers/test_feed.py` remains an integration test
 skipped in the ordinary offline run.
 
-After test review, the feed-only run passed with 170 passed and 1 skipped.
-File-scoped `make lint` passed Ruff, typos, mypy and pyright for the three
-reviewed test modules. Production code is unchanged by the test cleanup.
+After integrating the updated registry parent, the full `make test` run passed
+with 262 passed and 13 skipped. File-scoped `make lint` and format checks passed
+for the processors, composition and relevant test modules. No removed mirror
+tests were restored.
 
 ## Integration base
 
 This migration builds on registry commit
-`1cda1a9cd415b72274d2ec3e96912961ea27410f`, published in
+`d59f8c789c144244dba0237793346c836cfb28e2`, published in
 [PR #46](https://github.com/gakawarstone/gkbot/pull/46), and exception prerequisite
-`6123f94fbfd2c169df27c336becb853b46ea1fd8`. Task 12 adds the remaining source
+`6138b0c322bcadee1ad7a9f4c004f148c80a578f`. Task 12 adds the remaining source
 factories independently on the same base. Task 13 must combine both sets of
 entries in `_processor_registry` and retain the shared rendering behavior.

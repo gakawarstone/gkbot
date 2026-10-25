@@ -75,12 +75,11 @@ inheritance once its standalone factory is registered.
 
 ## Regression coverage
 
-`bot/tests/handlers/test_feed_processor_registry.py` checks ordered resolution,
-unknown sources, duplicate identities, matching-error propagation, precedence over
-legacy dispatch, and Discours prefix compatibility. Offline rendering tests cover
-both message and callback handlers, the real shared photo sender and keyboard,
-HTTP and Telegram fallback, unexpected errors, cancellation, and fallback failure.
-Every remaining legacy prefix and the generic route have dispatch checks.
+`bot/tests/handlers/test_feed_processor_registry.py` checks the Discours photo,
+caption, link and keyboard sent through both message and callback handlers. HTTP
+and Telegram failures retain the original link fallback; programming errors and
+cancellation propagate. Further checks prevent recursive fallback, accidental
+content fallback for matching failures, and sensitive exception text in logs.
 
 The registry builds on exception prerequisite commit
 `6123f94fbfd2c169df27c336becb853b46ea1fd8`, published in
