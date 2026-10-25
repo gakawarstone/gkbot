@@ -1,10 +1,11 @@
 from typing import Any
 
-from ui.static import Images
 from extensions.handlers.message.base import BaseHandler
 from extensions.handlers.message.one_time_extension import (
     OneTimeMessageHandlerExtension,
 )
+from ui.static import Images
+
 from ._states import FSM
 
 
