@@ -1,14 +1,14 @@
 from aiogram import F, Router
-from aiogram.filters.state import StateFilter
 from aiogram.filters.command import Command
+from aiogram.filters.state import StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import CallbackQuery, Message
 
-from services.timer import TimersManager
-from ui.keyboards.timer import TimerMarkup
-from ui.components.timer import TimerComponent
 from configs.commands import USER_COMMANDS
+from services.timer import TimersManager
+from ui.components.timer import TimerComponent
+from ui.keyboards.timer import TimerMarkup
 
 
 class FSM(StatesGroup):
