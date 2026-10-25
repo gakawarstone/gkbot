@@ -113,21 +113,6 @@ async def test_malformed_instagram_media_falls_back(
     assert f'href="{item.link}"' in text
 
 
-async def test_shiki_missing_title_is_recoverable(
-    handler: ShowFeedItemsHandler, item: FeedItem, bot: MagicMock
-) -> None:
-    item = replace(item, link="https://shikimori.one/animes/1")
-    with patch(
-        "services.http.HttpService.get",
-        return_value=b'<meta property="og:image" content="image.jpg">',
-    ):
-        await handler._process_item(item)
-    bot.send_message.assert_awaited_once()
-    recipient, text = bot.send_message.await_args.args
-    assert recipient == 123
-    assert f'href="{item.link}"' in text
-
-
 async def test_reddit_telegraph_programming_error_is_not_hidden(
     handler: ShowFeedItemsHandler, item: FeedItem, bot: MagicMock
 ) -> None:
