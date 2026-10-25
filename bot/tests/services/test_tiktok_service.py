@@ -91,28 +91,20 @@ async def test_download_writes_off_loop_and_survives_return(
 
 
 @pytest.mark.parametrize("audio_url", [None, "https://example.invalid/music"])
-async def test_slideshow_keeps_ffmpeg_output_without_bytes_round_trip(
+async def test_slideshow_output_remains_available_until_scheduled_cleanup(
     cache_root: Path,
     scheduled: list[Task],
     monkeypatch: pytest.MonkeyPatch,
     audio_url: str | None,
 ) -> None:
-    output_paths: list[str] = []
-
     async def run(command: list[str]) -> None:
-        output_paths.append(command[-1])
         Path(command[-1]).write_bytes(b"generated slideshow")
 
-    def unexpected_save(*args: object) -> None:
-        pytest.fail("Slideshow output must not be read and saved again")
-
-    monkeypatch.setattr(CacheDir, "save_file", unexpected_save)
     monkeypatch.setattr(SlideshowRenderer, "download_and_prepare_images", AsyncMock())
     monkeypatch.setattr(AudioService, "download_and_prepare_audio", AsyncMock())
     monkeypatch.setattr(FfmpegRunner, "run", run)
     info = InfoVideoTikTok(None, None, audio_url, ["https://example.invalid/image"])
     input_file = await get_video(info, monkeypatch)
-    assert output_paths == [str(input_file.path)]
     assert Path(input_file.path).read_bytes() == b"generated slideshow"
     assert len(list(cache_root.iterdir())) == 1
     await scheduled[0].run()

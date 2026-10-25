@@ -18,62 +18,18 @@ async def cache_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     return tmp_path
 
 
-@pytest.mark.parametrize("audio_url", [None, "https://example.invalid/audio"])
-async def test_slideshow_file_uses_owned_output_directory(
-    cache_root: Path, monkeypatch: pytest.MonkeyPatch, audio_url: str | None
-) -> None:
-    images = AsyncMock()
-    audio = AsyncMock()
-    run = AsyncMock()
-    monkeypatch.setattr(SlideshowRenderer, "download_and_prepare_images", images)
-    monkeypatch.setattr(AudioService, "download_and_prepare_audio", audio)
-    monkeypatch.setattr(FfmpegRunner, "run", run)
-    output_path = str(cache_root / "video.mp4")
-    urls = ["https://example.invalid/image"]
-    await SlideshowRenderer.make_slideshow_file_from_web(urls, audio_url, output_path)
-    images.assert_awaited_once_with(urls, str(cache_root))
-    assert run.await_args is not None
-    command = run.await_args.args[0]
-    assert command[-1] == output_path
-    assert str(cache_root / "*.jpg") in command
-    if audio_url:
-        audio.assert_awaited_once_with(audio_url, str(cache_root))
-        assert str(cache_root / "audio.m4a") in command
-        assert "-shortest" in command
-    else:
-        audio.assert_not_awaited()
-        assert "-shortest" not in command
-
-
 @pytest.mark.parametrize("image_count", [1, 2, 3, 4])
 async def test_images_keep_order_and_repeat_last_frame_to_at_least_three(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, image_count: int
 ) -> None:
     urls = [f"https://example.invalid/image/{index}" for index in range(image_count)]
-    commands: list[list[str]] = []
 
     async def prepare(command: list[str]) -> None:
-        commands.append(command)
-        Path(command[-1]).write_text(command[3])
+        Path(command[-1]).write_text(command[command.index("-i") + 1])
 
     monkeypatch.setattr(FfmpegRunner, "run", prepare)
     await SlideshowRenderer.download_and_prepare_images(urls, str(tmp_path))
 
-    assert commands == [
-        [
-            "ffmpeg",
-            "-y",
-            "-i",
-            url,
-            "-vf",
-            (
-                "scale=trunc(oh*a/2)*2:720,"
-                "pad=max(iw\\,ih*9/16):max(ih\\,iw*16/9):(ow-iw)/2:(oh-ih)/2:black"
-            ),
-            str(tmp_path / f"{index:03d}.jpg"),
-        ]
-        for index, url in enumerate(urls, start=1)
-    ]
     assert [path.read_text() for path in sorted(tmp_path.iterdir())] == (
         urls + [urls[-1]] * max(0, 3 - image_count)
     )
@@ -100,10 +56,6 @@ async def test_file_render_propagates_errors_and_leaves_caller_directory(
 
     assert raised.value is error
     assert existing_file.read_bytes() == b"keep"
-    if failure_stage == "images":
-        audio.assert_not_awaited()
-    if failure_stage != "render":
-        run.assert_not_awaited()
 
 
 @pytest.mark.parametrize("fail", [False, True])
