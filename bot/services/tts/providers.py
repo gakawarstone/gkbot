@@ -25,8 +25,9 @@ class EdgeTTSProvider(TTSProvider):
 
 class GTTSProvider(TTSProvider):
     async def synthesize(self, text: str, voice: str = "ru") -> bytes:
-        from gtts import gTTS
         from io import BytesIO
+
+        from gtts import gTTS
 
         lang_map = {"ru": "ru", "en": "en"}
         lang = lang_map.get(voice, "ru")

@@ -1,15 +1,15 @@
-from aiogram import Router, F
-from aiogram.types import CallbackQuery, Message, InaccessibleMessage, URLInputFile
+from aiogram import F, Router
+from aiogram.types import CallbackQuery, InaccessibleMessage, Message, URLInputFile
 
-from utils.strings import remove_emoji
-from services.ytdlp import YtdlpDownloader
 from services.youtube import YoutubeApiService
+from services.ytdlp import YtdlpDownloader
 from ui.buttons.youtube.download import (
+    PREFIX,
+    YoutubeDownloadButtonCallbackDataDeserializer,
     YoutubeDownloadButtonData,
     YoutubeDownloadButtonDataSerializer,
-    YoutubeDownloadButtonCallbackDataDeserializer,
-    PREFIX,
 )
+from utils.strings import remove_emoji
 
 
 def _get_video_url(yt_video_code: str) -> str:
