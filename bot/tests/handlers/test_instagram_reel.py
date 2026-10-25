@@ -3,8 +3,9 @@ from typing import override
 import pytest
 
 from handlers.text.ytdlp_short import YtdlpShortVideoHandler
+
 from .. import integration_test
-from . import Event, Bot
+from . import Bot, Event
 
 
 class MockedHandler(YtdlpShortVideoHandler):

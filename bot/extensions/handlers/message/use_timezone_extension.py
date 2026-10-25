@@ -1,6 +1,6 @@
-from .base import BaseHandler
-
 from aiogram import flags
+
+from .base import BaseHandler
 
 
 # NOTE: added to silence linter

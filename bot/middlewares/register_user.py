@@ -1,8 +1,7 @@
-from typing import Awaitable, Callable, Dict, Any
+from typing import Any, Awaitable, Callable, Dict
 
-from aiogram.types import User
 from aiogram.dispatcher.middlewares.base import BaseMiddleware
-from aiogram.types import TelegramObject
+from aiogram.types import TelegramObject, User
 
 from models.users import Users
 
