@@ -10,6 +10,8 @@ from ._base import BaseExtractor, VideoUrlExtractor
 class TTDownloader(VideoUrlExtractor, requests.Session):
     _expected_errors = (*BaseExtractor._expected_errors, requests.RequestException)
     _normalize_url = True
+    # TTDownloader returns the soundtrack for photo posts.
+    _supports_photo_posts = False
     _base_url = "https://ttdownloader.com/"
 
     async def _get_video_links(self, url: str) -> list[str]:

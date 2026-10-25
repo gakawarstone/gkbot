@@ -1,9 +1,10 @@
 from dataclasses import dataclass
 from typing import TypeAlias
+
 from aiogram.types import BufferedInputFile
 from bs4 import BeautifulSoup, Tag
 
-from services.http import HttpService, HttpRequestError
+from services.http import HttpRequestError, HttpService
 
 _Link: TypeAlias = str
 _Pixel: TypeAlias = int

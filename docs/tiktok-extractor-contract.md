@@ -8,7 +8,7 @@ Explicit provider values, including `None`, remain intact.
 
 URL providers inherit `VideoUrlExtractor` and implement `_get_video_links()`.
 The shared implementation selects the first link and rejects missing or empty
-links. API, gallery-dl and yt-dlp providers supply their media and metadata through
+links. API, TikWm, gallery-dl and yt-dlp providers supply their media and metadata through
 `_extract_video_data()` instead.
 
 Both public entry points translate expected extraction failures into
@@ -30,10 +30,11 @@ outlive the downloader context.
 Gallery-dl and TTDownloader opt into `_normalize_url`. The shared path resolves
 redirects, removes query parameters and fragments, and changes `/photo/` to
 `/video/` in the resource path. It preserves the hostname and creator name.
-TTDownloader applies this normalization to both public entry points.
+TTDownloader rejects photo posts before path conversion because its response
+contains only audio. This applies to both public entry points.
 
-The contract suite uses every configured entry in `_EXTRACTORS`, including both
-API endpoints. Provider I/O is stubbed; these tests do not establish whether the
+The contract suite uses each configured provider class in `_EXTRACTORS`.
+Provider I/O is stubbed; these tests do not establish whether the
 external provider websites are currently available. Tests cover defaults, media
 and metadata, expected failures, cancellation, the compatibility method,
 normalization, fallback exhaustion, malformed responses, and delayed file cleanup.

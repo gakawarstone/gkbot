@@ -36,6 +36,7 @@ class BaseExtractor(ABC):
         ValueError,
     )
     _normalize_url: ClassVar[bool] = False
+    _supports_photo_posts: ClassVar[bool] = True
 
     async def get_video_info(self, url: str) -> InfoVideoTikTok:
         """Build shared defaults and expose expected failures to the fallback."""
@@ -82,6 +83,8 @@ class BaseExtractor(ABC):
     async def _extract_full_url(self, url: str) -> str:
         """Resolve short links and normalize TikTok's photo resource path."""
         redirected_url = urlsplit(await HttpService.get_redirected_url(url))
+        if not self._supports_photo_posts and "/photo/" in redirected_url.path:
+            raise ValueError("Provider returns only audio for photo posts")
         path = redirected_url.path.replace("/photo/", "/video/", 1)
         return urlunsplit(redirected_url._replace(path=path, query="", fragment=""))
 

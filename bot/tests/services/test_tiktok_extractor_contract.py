@@ -28,6 +28,7 @@ from services.tiktok.extractor.gallery_dl import GalleryDl
 from services.tiktok.extractor.mdown import Mdown
 from services.tiktok.extractor.snaptik import Snaptik
 from services.tiktok.extractor.tikdown import Tikdown
+from services.tiktok.extractor.tikwm import TikWm
 from services.tiktok.extractor.ttdownloader import TTDownloader
 from services.tiktok.extractor.yt_dlp import YtDlp
 from services.ytdlp import YtdlpDownloader
@@ -73,6 +74,11 @@ def provider_io(
                     "music": {"play_url": {"url_list": [MUSIC_URL]}},
                 }
             }
+        )
+        monkeypatch.setattr(HttpService, "get_json", operation)
+    elif isinstance(extractor, TikWm):
+        operation = AsyncMock(
+            return_value={"code": 0, "data": {"play": VIDEO_URL, "duration": 12}}
         )
         monkeypatch.setattr(HttpService, "get_json", operation)
     elif isinstance(extractor, GalleryDl):
@@ -153,7 +159,7 @@ async def test_provider_specific_failures_use_the_same_contract(
 ) -> None:
     if isinstance(extractor, (Mdown, TTDownloader)):
         error: Exception = RequestsConnectionError("provider unavailable")
-    elif isinstance(extractor, ApiExtractor):
+    elif isinstance(extractor, (ApiExtractor, TikWm)):
         error = SerializationError()
     elif isinstance(extractor, GalleryDl):
         error = GalleryDlExtractionError()
@@ -240,9 +246,14 @@ async def test_redirect_normalization_for_both_entry_points(
     operation = AsyncMock(return_value={"video_url": VIDEO_URL})
     monkeypatch.setattr(HttpService, "get_redirected_url", redirect)
     monkeypatch.setattr(source, "_extract_video_data", operation)
-    await getattr(source, method)(URL)
+    if source_type is TTDownloader and "/photo/" in redirected:
+        with pytest.raises(SourceInfoExtractFailed):
+            await getattr(source, method)(URL)
+        operation.assert_not_awaited()
+    else:
+        await getattr(source, method)(URL)
+        operation.assert_awaited_once_with(expected)
     redirect.assert_awaited_once_with(URL)
-    operation.assert_awaited_once_with(expected)
 
 
 @pytest.mark.parametrize("source_type", [GalleryDl, TTDownloader])

@@ -34,7 +34,7 @@ class ApiExtractor(BaseExtractor):
             if "image_post_info" in api_data:
                 for img in api_data["image_post_info"]["images"]:
                     images_urls.append(img["display_image"]["url_list"][0])
-            if "video" in api_data:
+            if not images_urls and "video" in api_data:
                 video_data = api_data["video"]
                 video_url = video_data["play_addr"]["url_list"][0]
                 height = video_data.get("height")
