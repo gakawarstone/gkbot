@@ -14,7 +14,9 @@ fresh machine. Comments in `pyproject.toml` explain the import configuration.
 The `Quality` workflow runs on pull requests and pushes to `dev-3.0`. The
 existing deployment workflow calls the same workflow and waits for both its
 Python and Serveo jobs before deployment. The quality workflow itself needs
-no deployment secrets or provider credentials.
+no deployment secrets or provider credentials. Existing open PRs need a new
+head update or reopen event after the workflow reaches their base; an empty
+check rollup does not establish that CI passed.
 
 ## Type checking imports
 
@@ -86,8 +88,8 @@ checks the reachable shutdown flow.
 
 ## Verification after test review
 
-`make check` passes with 132 Python tests passed and 13 external tests skipped;
-Ruff, typos, mypy, Pyright, Go race tests, and vet all pass. Mypy checks 418 source
+`make check` passes with 171 Python tests passed and 13 external tests skipped;
+Ruff, typos, mypy, Pyright, Go race tests, and vet all pass. Mypy checks 421 source
 files. Go race tests and vet also pass with `GOTOOLCHAIN=go1.23.1`, the version
 selected by CI. `actionlint` 1.7.7 accepts both workflows. A missing-dependency
 probe still fails with mypy's `import-not-found` error.

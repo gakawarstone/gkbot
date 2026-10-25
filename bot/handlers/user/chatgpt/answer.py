@@ -1,9 +1,8 @@
 import base64
 import time
 from collections.abc import AsyncGenerator
-from typing import Any
 
-from aiogram.types import Message
+from aiogram.types import LinkPreviewOptions, Message
 from aiogram.utils.formatting import BlockQuote
 
 from extensions.handlers.message.file_extension import FileHandlerExtension
@@ -13,20 +12,26 @@ from services.llm import OpenRouter
 from services.llm.openrouter import DEFAULT_MODEL, StreamChunk
 
 from ._base import BaseHandler
+from ._response import split_response
 from ._states import FSM
 
 
 class AnswerHandler(BaseHandler, MarkdownRenderHandlerExtension, FileHandlerExtension):
     _MODEL = DEFAULT_MODEL
 
-    async def handle(self) -> Any:
+    async def handle(self) -> None:
         await self.state.set_state(FSM.finish)
+        try:
+            await self._answer_prompt()
+        finally:
+            await self.state.set_state(FSM.get_message)
+
+    async def _answer_prompt(self) -> None:
         assert self.ctx.messages is not None
 
         prompt = await self._build_prompt()
         if not prompt:
             await self.event.answer("Отправь текст или изображение с подписью.")
-            await self.state.set_state(FSM.get_message)
             return
 
         self.ctx.messages.append(prompt)
@@ -40,7 +45,6 @@ class AnswerHandler(BaseHandler, MarkdownRenderHandlerExtension, FileHandlerExte
         )
 
         self.ctx.messages.append(text)
-        await self.state.set_state(FSM.get_message)
 
     async def _build_prompt(self) -> str | None:
         prompt = self.event.text or self.event.caption
@@ -76,8 +80,8 @@ class AnswerHandler(BaseHandler, MarkdownRenderHandlerExtension, FileHandlerExte
     ) -> str:
         reason = ""
         text = ""
-        full_text = ""
-        last_update = time.time()
+        messages = [(message, message.html_text or "")]
+        last_update = time.monotonic()
 
         async for chunk, chunk_type in stream:
             if chunk_type == "reason":
@@ -85,30 +89,44 @@ class AnswerHandler(BaseHandler, MarkdownRenderHandlerExtension, FileHandlerExte
             if chunk_type == "content":
                 text += chunk
 
-            now = time.time()
+            now = time.monotonic()
             if now - last_update >= 1.5:
                 last_update = now
-                _message_text = ""
-
                 if not text and reason:
-                    _message_text += BlockQuote(reason[-500:]).as_html()
+                    chunks = [BlockQuote(reason[-500:]).as_html()]
                 else:
-                    _message_text += text.replace("<", "__tagopen__").replace(
-                        ">", "__tagclose__"
-                    )
+                    chunks = split_response(text)
+                await self._update_messages(messages, chunks)
 
-                if len(_message_text) > 1500:
-                    text_chunks = text.split("\n\n")
+        await self._update_messages(
+            messages, split_response(text) or ["Модель не вернула ответ."]
+        )
+        return text
+
+    async def _update_messages(
+        self, messages: list[tuple[Message, str]], chunks: list[str]
+    ) -> None:
+        for index, chunk in enumerate(chunks):
+            if index >= len(messages):
+                message = await messages[-1][0].answer(
+                    chunk,
+                    parse_mode="HTML",
+                    link_preview_options=LinkPreviewOptions(is_disabled=True),
+                )
+            else:
+                message, previous_text = messages[index]
+                if chunk != previous_text:
                     await message.edit_text(
-                        self._render_markdown("\n\n".join(text_chunks[:-1]))
+                        chunk,
+                        parse_mode="HTML",
+                        link_preview_options=LinkPreviewOptions(is_disabled=True),
                     )
-                    full_text += "\n\n".join(text_chunks[:-1])
-                    text = text_chunks[-1]
-                    message = await message.answer(text)
-                    continue
+            if index >= len(messages):
+                messages.append((message, chunk))
+            else:
+                messages[index] = (message, chunk)
 
-                await message.edit_text(_message_text, disable_web_page_preview=True)
-
-        full_text += text
-        await message.edit_text(self._render_markdown(text))
-        return full_text
+        # Completing Markdown can remove delimiters and reduce the chunk count.
+        while len(messages) > max(1, len(chunks)):
+            await messages[-1][0].delete()
+            messages.pop()
