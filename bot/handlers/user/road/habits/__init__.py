@@ -1,11 +1,12 @@
 from datetime import datetime
 
 from aiogram import Router
-from aiogram.types import Message, ReplyKeyboardRemove
-from aiogram.fsm.context import FSMContext
 from aiogram.filters import StateFilter
+from aiogram.fsm.context import FSMContext
+from aiogram.types import Message, ReplyKeyboardRemove
 
 from models.road import Habits  # FIXME
+
 from ..states import FSM
 
 

@@ -1,20 +1,16 @@
 from collections.abc import AsyncGenerator
 from enum import Enum
 
-from configs.env import OPENROUTER_API_KEY
 from openai import AsyncOpenAI
+
+from configs.env import OPENROUTER_API_KEY
 
 from ._base import LLM, StreamChunk
 
 
 class OpenRouterModel(Enum):
-    MICROSOFT_PHI_4_REASONING = "microsoft/phi-4-reasoning:free"
-    DEEPSEEK_DEEPSEEK_R1_0528 = "deepseek/deepseek-r1-0528:free"
-    STEP_35 = "stepfun/step-3.5-flash:free"
     GEMMA_4 = "google/gemma-4-31b-it:free"
-    KIMI_K25 = "moonshotai/kimi-k2.5"
     GPT_5_6_LUNA = "openai/gpt-5.6-luna"
-    GPT_OSS_120 = "openai/gpt-oss-120b:free"
 
     @property
     def supports_images(self) -> bool:

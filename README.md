@@ -4,7 +4,7 @@ GKBot is an async Telegram bot with a modular feed system, media tooling, and op
 
 **Features**
 - Telegram bot built on `aiogram` 3.
-- Modular feed handlers for YouTube, TikTok, Twitch, Reddit, VK, Telegram, Rezka, Kinogo, Shiki, Spotify, Discours, Pornhub, Piokok, Stories, and generic video.
+- Feed integration with [gkfeed](https://github.com/gakawarstone/gkfeed).
 - Media downloading via `yt-dlp`, with async workers and `ffmpeg` support.
 - LLM integrations via OpenRouter.
 - Notion database/page integration.
@@ -47,6 +47,9 @@ python bot/main.py
 ```bash
 docker compose up --build
 ```
+
+For the local Telegram server version, compatibility checks, and rollout order,
+see [Bot API compatibility](services/bot-api/README.md).
 
 **Configuration**
 Required:

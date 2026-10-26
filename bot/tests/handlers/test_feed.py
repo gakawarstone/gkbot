@@ -1,14 +1,15 @@
-from typing import override, Callable
+from typing import Callable, override
 from unittest.mock import patch
 
 import pytest
 
+from modules.feed import ShowFeedItemsHandler
 from services.gkfeed import (
     FeedItem,
-    GkfeedItemsPicker,
     GkfeedCredentials,
+    GkfeedItemsPicker,
 )
-from modules.feed import ShowFeedItemsHandler
+
 from .. import integration_test
 from . import Bot, Event
 
@@ -17,7 +18,6 @@ class MockedGkfeedItemsPicker(GkfeedItemsPicker):
     # TODO: use Event(text=link) and get_next_item this link
     LINKS = [
         "https://trashbox.ru/link/2025-03-10-iphone-17-air-iphone-17-pro",
-        "https://www.piokok.com/post/6733377018605557242512/",
         "https://www.youtube.com/watch?v=5WMmPoHbQOo",
         "https://ranobe.me/ranobe24/6117",
     ]
@@ -68,5 +68,5 @@ async def test_handler():
         ),
         patch("modules.feed.handlers.messages.Message", Event),
     ):
-        for _ in range(4):
+        for _ in range(3):
             await MockedHandler(event=Event(breakpoint_at_delete=False)).handle()  # type: ignore[arg-type]

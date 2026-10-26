@@ -1,17 +1,16 @@
-from aiogram import Router, F
+from aiogram import F, Router
 from aiogram.filters import Command
 
 from configs.commands import USER_COMMANDS
-from .ui.keyboards import FeedMarkup
+
 from .handlers import add, auth
-from .handlers.views import piokok
-from .handlers.messages import ShowFeedItemsHandler
 from .handlers.callbacks import ItemEventHandler
+from .handlers.messages import ShowFeedItemsHandler
+from .ui.keyboards import FeedMarkup
 
 
 def setup(r: Router):
     r.message.register(ShowFeedItemsHandler, Command(USER_COMMANDS.feed))
     r.callback_query.register(ItemEventHandler, F.data.startswith(FeedMarkup.prefix))
-    piokok.setup(r)
     add.setup(r)
     auth.setup(r)

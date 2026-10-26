@@ -1,8 +1,8 @@
 from aiogram import Router
 from aiogram.filters import StateFilter
 
-from .get_new_value import GetNewPropertyValueHandler
 from ._states import FSM
+from .get_new_value import GetNewPropertyValueHandler
 
 
 def setup(r: Router):

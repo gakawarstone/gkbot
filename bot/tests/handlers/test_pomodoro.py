@@ -1,18 +1,18 @@
 import pytest
 
-from tests.mocks.db import use_db
-from tests.mocks.message import fake_event, make_fake_callback, make_fake_message
-from tests.mocks.state import fake_state
-from tests.mocks.user_data import MockedUserDataExtension
-from services.entities.road_settings import RoadSettings
-from services.repositories.road_settings import DEFAULT_SETTINGS
 from handlers.user.road.pomodoro.pomodoro import PomodoroHandler
-from handlers.user.road.settings.start import InitSettingsHandler
 from handlers.user.road.settings.callback import EditSettingsHandler
 from handlers.user.road.settings.edit.get_new_setting_value import (
     GetNewSettingValueHandler,
 )
+from handlers.user.road.settings.start import InitSettingsHandler
 from handlers.user.road.states import FSM
+from services.entities.road_settings import RoadSettings
+from services.repositories.road_settings import DEFAULT_SETTINGS
+from tests.mocks.db import use_db
+from tests.mocks.message import fake_event, make_fake_callback, make_fake_message
+from tests.mocks.state import fake_state
+from tests.mocks.user_data import MockedUserDataExtension
 from ui.keyboards.pomodoro import PomodoroSettingsMarkup
 
 

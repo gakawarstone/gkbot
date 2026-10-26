@@ -2,8 +2,10 @@ from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from aiogram.types import FSInputFile
+
 from services.ytdlp._options import VideoDownloadOptions
 from services.ytdlp.downloader import YtdlpDownloader
+from services.ytdlp.source import DownloadSource
 
 
 def test_tiktok_options_prefer_compact_h264_mp4() -> None:
@@ -38,7 +40,7 @@ async def test_tiktok_download_is_not_transcoded(tmp_path: Path) -> None:
         ) as compress_video,
     ):
         input_file = await YtdlpDownloader._download_file(
-            "https://vt.tiktok.com/ZS4cDkR61/", options
+            "https://vt.tiktok.com/ZS4cDkR61/", options, DownloadSource.TIKTOK
         )
 
     assert isinstance(input_file, FSInputFile)
@@ -69,7 +71,9 @@ async def test_instagram_download_keeps_compatibility_transcode(tmp_path: Path) 
         ) as compress_video,
     ):
         input_file = await YtdlpDownloader._download_file(
-            "https://www.instagram.com/reel/example/", options
+            "https://www.instagram.com/reel/example/",
+            options,
+            DownloadSource.INSTAGRAM_REEL,
         )
 
     converted_path = tmp_path / "video_converted.mp4"

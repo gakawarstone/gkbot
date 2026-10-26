@@ -3,9 +3,9 @@ from typing import override
 import pytest
 
 from handlers.text.tiktok import TikTokVideoHandler
+
 from .. import integration_test
-from ..mocks.db import use_db
-from . import Event, Bot
+from . import Bot, Event
 
 
 class MockedHandler(TikTokVideoHandler):
@@ -20,7 +20,6 @@ async def _handle_url(url: str):
 
 
 @integration_test
-@use_db
 @pytest.mark.asyncio(loop_scope="session")
 async def test_download_video():
     await _handle_url("https://vm.tiktok.com/ZGdm6LB6D/")
