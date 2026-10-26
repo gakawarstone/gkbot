@@ -1,23 +1,26 @@
-from typing import Callable
+from collections.abc import Callable
+from typing import ClassVar
 
-from ._types import FeedItem
+import aiohttp
+
+from ._types import FeedItem, FeedItemSummary
 from .api import GkfeedApi
 from .auth import GkfeedCredentials
 
 
 class GkfeedItemsPicker:
-    _items_pocket: dict[str, set[int]] = {}
+    _items_pocket: ClassVar[dict[str, set[int]]] = {}
 
-    def __init__(self, credentials: GkfeedCredentials):
+    def __init__(self, credentials: GkfeedCredentials) -> None:
         self.__credentials = credentials
         self._items_pocket.setdefault(credentials.login, set())
 
     async def get_next_item(
-        self, is_item_valid: Callable[[FeedItem], bool] = lambda _: True
+        self, is_item_valid: Callable[[FeedItemSummary], bool] = lambda _: True
     ) -> FeedItem | None:
         item = None
         api = GkfeedApi(self.__credentials)
-        items: list[FeedItem] = []
+        items: list[FeedItemSummary] = []
 
         async for _item in api.get_user_items():
             items.append(_item)
@@ -27,7 +30,17 @@ class GkfeedItemsPicker:
                 continue
 
             if not self._is_item_in_pocket(_item.id):
-                item = _item
+                try:
+                    full_item = await api.get_item_by_item_id(_item.id)
+                except aiohttp.ClientResponseError as error:
+                    if error.status != 404:
+                        raise
+                    # Deleted after listing. Try each remaining candidate once.
+                    continue
+                # Another picker may have delivered this ID while detail loaded.
+                if self._is_item_in_pocket(full_item.id):
+                    continue
+                item = full_item
                 self._save_to_pocket(item.id)
                 break
 
@@ -45,10 +58,12 @@ class GkfeedItemsPicker:
     def _clean_pocket(self) -> None:
         self._items_pocket[self.__credentials.login] = set()
 
-    def _sort_items_by_feed(self, items: list[FeedItem]) -> list[FeedItem]:
+    def _sort_items_by_feed(
+        self, items: list[FeedItemSummary]
+    ) -> list[FeedItemSummary]:
         items_by_id = sorted(items, key=lambda x: x.id)
 
-        items_by_feed: dict[int, list[FeedItem]] = {}
+        items_by_feed: dict[int, list[FeedItemSummary]] = {}
         for item in items_by_id:
             feed_id = item.feed_id
             if feed_id not in items_by_feed:

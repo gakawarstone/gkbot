@@ -4,7 +4,7 @@ import multiprocessing
 from concurrent.futures import ProcessPoolExecutor
 from concurrent.futures.process import BrokenProcessPool
 
-from ._types import FeedItem
+from ._types import FeedItem, FeedItemSummary
 
 
 def feed_item_from_raw_data(raw_data: dict) -> FeedItem:
@@ -17,10 +17,20 @@ def feed_item_from_raw_data(raw_data: dict) -> FeedItem:
     )
 
 
-def _decode_items(payload: bytes) -> list[FeedItem]:
+def feed_item_summary_from_raw_data(raw_data: dict) -> FeedItemSummary:
+    return FeedItemSummary(
+        id=raw_data["id"],
+        feed_id=raw_data["feed_id"],
+        link=raw_data["link"],
+        title=raw_data["title"],
+        date=raw_data["date"],
+    )
+
+
+def _decode_items(payload: bytes) -> list[FeedItemSummary]:
     data = json.loads(payload)
     return [
-        feed_item_from_raw_data(raw_item)
+        feed_item_summary_from_raw_data(raw_item)
         for raw_item in data["items"]
         if raw_item["link"]
     ]
@@ -32,14 +42,14 @@ class FeedDecoder:
     def __init__(self) -> None:
         self._pool: ProcessPoolExecutor | None = None
         self._lock = asyncio.Lock()
-        self._pending: asyncio.Task[list[FeedItem]] | None = None
+        self._pending: asyncio.Task[list[FeedItemSummary]] | None = None
         self._closing: asyncio.Task[None] | None = None
 
     async def start(self) -> None:
         # Spawn and import before polling; decode also supports lazy initialization.
         await self.decode(b'{"items":[]}')
 
-    async def decode(self, payload: bytes) -> list[FeedItem]:
+    async def decode(self, payload: bytes) -> list[FeedItemSummary]:
         async with self._lock:
             if self._closing is not None:
                 raise RuntimeError("Feed decoder is closed")
@@ -54,7 +64,7 @@ class FeedDecoder:
             pending.add_done_callback(self._finished)
             return await asyncio.shield(pending)
 
-    def _decode(self, payload: bytes) -> list[FeedItem]:
+    def _decode(self, payload: bytes) -> list[FeedItemSummary]:
         # Pool creation, first spawn, and IPC submission must also stay off-loop.
         if self._pool is None:
             self._pool = ProcessPoolExecutor(
@@ -66,7 +76,7 @@ class FeedDecoder:
             self._shutdown()
             raise
 
-    def _finished(self, pending: asyncio.Task[list[FeedItem]]) -> None:
+    def _finished(self, pending: asyncio.Task[list[FeedItemSummary]]) -> None:
         # Retrieve errors even when the requesting task has already been cancelled.
         if not pending.cancelled():
             pending.exception()

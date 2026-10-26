@@ -8,7 +8,7 @@ import aiohttp
 from bs4 import BeautifulSoup
 
 from ._decoder import FeedDecoder, feed_item_from_raw_data
-from ._types import FeedItem, GkfeedCredentials
+from ._types import FeedItem, FeedItemSummary, GkfeedCredentials
 
 
 class GkfeedApi:
@@ -16,7 +16,7 @@ class GkfeedApi:
     _items_lock: ClassVar[asyncio.Lock] = asyncio.Lock()
     _items_decoder: ClassVar[FeedDecoder] = FeedDecoder()
     _items_cache: ClassVar[
-        dict[tuple[str, str, int, int | None], tuple[float, list[FeedItem]]]
+        dict[tuple[str, str, int, int | None], tuple[float, list[FeedItemSummary]]]
     ] = {}
 
     def __init__(self, credentials: GkfeedCredentials) -> None:
@@ -25,7 +25,7 @@ class GkfeedApi:
 
     async def get_user_items(
         self, limit: int = 1000, cursor: int | None = None
-    ) -> AsyncGenerator[FeedItem]:
+    ) -> AsyncGenerator[FeedItemSummary]:
         cache_key = (self.__login, self.__password, limit, cursor)
         async with self._items_lock:
             now = monotonic()
@@ -39,7 +39,7 @@ class GkfeedApi:
 
             cached = self._items_cache.get(cache_key)
             if cached is None:
-                url = self._api_root + f"get_items?limit={limit}"
+                url = self._api_root + f"get_items?view=summary&limit={limit}"
                 if cursor:
                     url += f"&cursor={cursor}"
                 items = await self._items_decoder.decode(await self._get_html(url))

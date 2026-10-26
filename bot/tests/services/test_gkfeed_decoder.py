@@ -8,7 +8,7 @@ from unittest.mock import Mock
 import pytest
 
 from services.gkfeed._decoder import FeedDecoder, _decode_items
-from services.gkfeed._types import FeedItem
+from services.gkfeed._types import FeedItemSummary
 
 
 async def test_worker_reuse_errors_and_cleanup() -> None:
@@ -28,13 +28,26 @@ async def test_worker_reuse_errors_and_cleanup() -> None:
                         "feed_id": 2,
                         "link": "https://example.invalid/7",
                         "title": "Заголовок",
-                        "text": '<img src="data:image/png;base64,YWJj"> текст',
+                        "date": "2026-10-26T10:00:00Z",
+                        "text": "Discard unexpected text from list responses",
                     },
                     {"link": ""},
                 ]
             }
         ).encode()
-        assert await decoder.decode(payload) == _decode_items(payload)
+        assert (
+            await decoder.decode(payload)
+            == _decode_items(payload)
+            == [
+                FeedItemSummary(
+                    7,
+                    2,
+                    "https://example.invalid/7",
+                    "Заголовок",
+                    "2026-10-26T10:00:00Z",
+                )
+            ]
+        )
         with pytest.raises(json.JSONDecodeError):
             await decoder.decode(b"invalid json")
         with pytest.raises(KeyError, match="items"):
@@ -62,7 +75,7 @@ async def test_cancellation_keeps_one_job_and_shutdown_drains_it(
     submissions: list[bytes] = []
     loop_thread = threading.get_ident()
 
-    def blocked_decode(payload: bytes) -> list[FeedItem]:
+    def blocked_decode(payload: bytes) -> list[FeedItemSummary]:
         assert threading.get_ident() != loop_thread
         submissions.append(payload)
         entered.set()
@@ -104,7 +117,7 @@ async def test_cancelled_job_error_is_observed_and_next_decode_succeeds(
     entered = threading.Event()
     release = threading.Event()
 
-    def decode(payload: bytes) -> list[FeedItem]:
+    def decode(payload: bytes) -> list[FeedItemSummary]:
         if payload == b"cancelled":
             entered.set()
             assert release.wait(5)
