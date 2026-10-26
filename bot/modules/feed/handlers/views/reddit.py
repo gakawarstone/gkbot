@@ -5,11 +5,12 @@ from urllib.parse import urlparse
 from aiogram.types import BufferedInputFile
 from bs4 import BeautifulSoup, Tag
 
+from extensions.handlers.message.http import HttpExtension
 from services.gkfeed import FeedItem
 from services.http import HttpRequestError, HttpService
 from services.open_graph import OpenGraphService
-from services.telegraph import TelegraphAPI, HtmlToTelegraphContentConverter
-from extensions.handlers.message.http import HttpExtension
+from services.telegraph import HtmlToTelegraphContentConverter, TelegraphAPI
+
 from ...ui.keyboards import FeedMarkup
 from ...ui.keyboards.reddit import RedditFeedItemMarkup
 from . import BaseFeedItemView

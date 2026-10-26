@@ -3,13 +3,14 @@ import hashlib
 from aiogram import Router
 from aiogram.types import InlineQuery, InlineQueryResultVideo
 
-from services.tiktok import (
-    TikTokService,
-    TikTokVideoUrlExtractionFailed,
-    TikTokInfoExtractionFailed,
-)
 from extensions.handlers.query.failed import async_return_failed_result_if
 from filters.tiktok import TikTokVideoLink
+from services.tiktok import (
+    TikTokInfoExtractionFailed,
+    TikTokService,
+    TikTokVideoUrlExtractionFailed,
+)
+
 from ._types import ResultsType
 
 
