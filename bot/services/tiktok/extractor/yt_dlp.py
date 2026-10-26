@@ -6,7 +6,6 @@ from yt_dlp.utils import DownloadError
 
 from configs.services.cache_dir import CACHE_DIR_PATH
 from services.ytdlp import YtdlpDownloader
-from services.ytdlp._types import VideoFileInfo
 
 from ._base import BaseExtractor, ExtractedVideoData
 
@@ -31,27 +30,19 @@ class YtDlp(BaseExtractor):
         ) as video_file_info:
             return video_file_info.input_file
 
-    async def _extract_video_file_url(self, url: str) -> str:
-        if not self._get_serveo_url():
-            raise ValueError("Serveo URL is missing")
-        async with YtdlpDownloader.download_video(
-            url, cleanup_delay_minutes=5
-        ) as video_file_info:
-            return await self._get_video_file_url_from_info(video_file_info)
-
-    async def _get_video_file_url_from_info(
-        self, video_file_info: VideoFileInfo
-    ) -> str:
-        fs_input_file = video_file_info.input_file
-        if not isinstance(fs_input_file, FSInputFile):
-            raise TypeError("Input file is not an FSInputFile instance")
-
-        serveo_url = self._get_serveo_url()
-        if serveo_url is None:
-            raise ValueError("Serveo URL is missing")
-
-        video_path = "/".join(str(fs_input_file.path).split("/")[-3:])
-        return serveo_url + "/" + video_path
+    async def get_video_file_url(self, url: str) -> str:
+        with self._translate_errors():
+            serveo_url = self._get_serveo_url()
+            if not serveo_url:
+                raise ValueError("Serveo URL is missing")
+            async with YtdlpDownloader.download_video(
+                url, cleanup_delay_minutes=5
+            ) as video_file_info:
+                input_file = video_file_info.input_file
+                if not isinstance(input_file, FSInputFile):
+                    raise TypeError("Input file is not an FSInputFile instance")
+                video_path = "/".join(str(input_file.path).split("/")[-3:])
+                return serveo_url + "/" + video_path
 
     @classmethod
     def _get_serveo_url(cls) -> str | None:

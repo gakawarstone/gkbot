@@ -65,13 +65,10 @@ class BaseExtractor(ABC):
         callers can continue to another provider.
         """
         with self._translate_errors():
-            return await self._extract_video_file_url(url)
-
-    async def _extract_video_file_url(self, url: str) -> str:
-        info = await self.get_video_info(url)
-        if not info.video_url:
-            raise ValueError("Provider did not return a public video URL")
-        return info.video_url
+            info = await self.get_video_info(url)
+            if not info.video_url:
+                raise ValueError("Provider did not return a public video URL")
+            return info.video_url
 
     @contextmanager
     def _translate_errors(self) -> Iterator[None]:
