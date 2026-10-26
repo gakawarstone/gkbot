@@ -3,11 +3,12 @@ from bs4 import Tag
 from services.gkfeed import FeedItem
 
 from ._simple_rendering import SendItem, SendPhoto, get_html_soup
+from .matching import matches_source_url
 from .registry import FeedProcessor
 
 
 def _matches_spoti(item: FeedItem) -> bool:
-    return item.link.startswith("https://open")
+    return matches_source_url(item, frozenset({"open.spotify.com"}))
 
 
 def create_spoti_processor(send_photo: SendPhoto, send_item: SendItem) -> FeedProcessor:

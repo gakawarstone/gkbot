@@ -4,11 +4,12 @@ from services.gkfeed import FeedItem
 
 from .._exceptions import FeedMediaExtractionError
 from ._simple_rendering import SendPhoto
+from .matching import matches_source_url
 from .registry import FeedProcessor
 
 
 def _matches_twitch(item: FeedItem) -> bool:
-    return item.link.startswith("https://www.twitch")
+    return matches_source_url(item, frozenset({"www.twitch.tv"}))
 
 
 def create_twitch_processor(send_photo: SendPhoto) -> FeedProcessor:

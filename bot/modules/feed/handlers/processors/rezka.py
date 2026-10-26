@@ -4,13 +4,14 @@ from services.gkfeed import FeedItem
 from services.open_graph import OpenGraphService
 
 from ._simple_rendering import SendItem, SendPhoto
+from .matching import matches_source_url
 from .registry import FeedProcessor
 
 _PREVIEW_HEADERS = {"User-Agent": "TelegramBot (like TwitterBot)"}
 
 
 def _matches_rezka(item: FeedItem) -> bool:
-    return item.link.startswith("https://hdrezka.me")
+    return matches_source_url(item, frozenset({"hdrezka.me"}))
 
 
 def create_rezka_processor(send_photo: SendPhoto, send_item: SendItem) -> FeedProcessor:

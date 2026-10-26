@@ -3,11 +3,13 @@ from bs4 import Tag
 from services.gkfeed import FeedItem
 
 from ._simple_rendering import SendItem, SendPhoto, get_html_soup
+from .matching import matches_source_url
 from .registry import FeedProcessor
 
 
 def _matches_kinogo(item: FeedItem) -> bool:
-    return item.link.startswith("https://kinogo")
+    # Mirror hostnames are not enumerated in the existing feed configuration.
+    return matches_source_url(item, host_prefix="kinogo")
 
 
 def create_kinogo_processor(

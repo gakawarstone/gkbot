@@ -6,18 +6,17 @@ from aiogram.types import Message
 
 from services.gkfeed.picker import GkfeedItemsPicker
 
-from ._base import BaseHandler
 from ._item_processor import GkfeedItemProcessorExtension
 
 logger = logging.getLogger(__name__)
 
 
-class ShowFeedItemsHandler(GkfeedItemProcessorExtension, BaseHandler):
+class ShowFeedItemsHandler(GkfeedItemProcessorExtension):
     _items_limit = 1
 
     async def handle(self) -> Any:
         if not isinstance(self.event, Message):
-            raise ValueError("event must be Message")
+            raise ValueError("event must be Message")  # noqa: TRY004
 
         await self.event.delete()
 
@@ -26,7 +25,7 @@ class ShowFeedItemsHandler(GkfeedItemProcessorExtension, BaseHandler):
         try:
             async with asyncio.TaskGroup() as tg:
                 for _ in range(self._items_limit):
-                    item = await picker.get_next_item()
+                    item = await picker.get_next_item(self._source_policy.allows)
 
                     if not item:
                         await self.answer("На данный момент ничего нового")
@@ -39,6 +38,7 @@ class ShowFeedItemsHandler(GkfeedItemProcessorExtension, BaseHandler):
                         len(item.text),
                     )
                     tg.create_task(self._process_item(item))
-        except* Exception as exc:
+        except* Exception as exc:  # noqa: BLE001
+            # Preserve the original error instead of exposing TaskGroup's wrapper.
             for e in exc.exceptions:
                 raise e

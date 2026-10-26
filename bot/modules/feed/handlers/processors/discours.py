@@ -3,11 +3,12 @@ from collections.abc import Awaitable, Callable
 from services.gkfeed import FeedItem
 from services.http import HttpService
 
+from .matching import matches_source_url
 from .registry import FeedProcessor
 
 
 def _matches_discours(item: FeedItem) -> bool:
-    return item.link.startswith("https://discours.io")
+    return matches_source_url(item, frozenset({"discours.io"}))
 
 
 def create_discours_processor(
