@@ -63,7 +63,8 @@ Carousel callbacks are outside this contract.
 ## Tests
 
 `make test FILE=bot/tests/handlers/button/test_download.py` runs the same lifecycle
-contract across all supported source/media combinations. It checks status modes,
-source options, legacy payloads, invalid callbacks, router registration, failure
-cleanup and cancellation. The four previous YouTube/VK integration smoke tests
-are retained as one opt-in parametrized test in that module.
+contract across all supported source/media combinations. It checks delivered media
+and source metadata, which status message is removed, upload file lifetime, and
+cleanup after download, metadata, send failures and cancellation. The four previous
+YouTube/VK integration smoke tests are retained as one opt-in parametrized test
+in that module.

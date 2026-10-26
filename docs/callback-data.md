@@ -89,11 +89,11 @@ coverage and `make test` for the offline suite. Telegram integration smoke tests
 remain opt-in. API behavior was checked against the installed aiogram 3.31.0 and
 its [official implementation](https://github.com/aiogram/aiogram/blob/v3.31.0/aiogram/filters/callback_data.py).
 
-On the synchronized lifecycle base `e56759d` with aiogram 3.31.0, the full offline
-suite after the test audit passes with 350 passed and 13 skipped. The focused
-callback/lifecycle suite passes with 194 passed and 4 skipped. `make lint` passes
-all four test files edited in the audit, including Ruff, typos, Mypy and Pyright.
-Broader source lint still has the existing imported Mypy error at
-`bot/handlers/prompt/generate_image.py:43` after the aiogram upgrade; that file
-is unchanged. Runtime code and existing failure/cancellation coverage were not
-changed by the audit.
+On the synchronized lifecycle base `7424a99` with aiogram 3.31.0, the full
+offline suite passes with 340 passed and 13 skipped; focused callback/lifecycle
+checks pass with 156 passed and 4 skipped. Scoped Ruff, typos, format and Pyright
+pass for all 26 changed Python files. `make lint` stops at the existing imported
+Mypy error in `bot/handlers/prompt/generate_image.py:43`; that file, `pyproject.toml`
+and `uv.lock` match the used dev base. Mypy with `--follow-imports=silent` passes
+all 26 changed files. The integration preserves both layers' test removals and
+the callback migration's production behavior; it adds no test scenarios.

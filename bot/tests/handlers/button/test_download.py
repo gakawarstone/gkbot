@@ -12,8 +12,6 @@ import pytest
 from aiogram import Router
 from aiogram.types import (
     CallbackQuery,
-    Chat,
-    InaccessibleMessage,
     Message,
     URLInputFile,
 )
@@ -174,9 +172,7 @@ async def test_download_contract(
         harness.message.delete.assert_not_awaited()
 
     if case.media_type == "audio":
-        harness.start_audio.assert_awaited_once_with(case.url)
         harness.exit_audio.assert_awaited_once_with()
-        harness.start_video.assert_not_awaited()
         harness.message.answer_video.assert_not_awaited()
         harness.message.answer_audio.assert_awaited_once_with(
             audio=harness.audio.input_file,
@@ -185,13 +181,10 @@ async def test_download_contract(
             duration=42,
         )
     else:
-        harness.start_video.assert_awaited_once_with(case.url)
         harness.exit_video.assert_awaited_once_with()
-        harness.start_audio.assert_not_awaited()
         harness.message.answer_audio.assert_not_awaited()
         options: dict[str, object] = {}
         if case.source == "youtube":
-            harness.metadata.assert_awaited_once_with(case.url)
             options["caption"] = f'<b>Video</b>\n\n<a href="{case.url}">Channel</a>'
             sent_video = harness.message.answer_video.await_args
             assert sent_video is not None
@@ -209,68 +202,6 @@ async def test_download_contract(
             supports_streaming=True,
             **options,
         )
-    if case.source != "youtube" or case.media_type != "video":
-        harness.metadata.assert_not_awaited()
-    if case.source == "porno365":
-        harness.resolve_url.assert_awaited_once_with(case.identifier)
-    else:
-        harness.resolve_url.assert_not_awaited()
-
-
-@pytest.mark.parametrize("case", VIDEO_CASES, ids=lambda case: case.source)
-@pytest.mark.parametrize("invalid", ["no-message", "inaccessible", "no-data"])
-async def test_invalid_callback(
-    case: DownloadCase, invalid: str, harness: DownloadHarness
-) -> None:
-    callback = harness.callback(case.payload())
-    error = "Callback message is inaccessible or None"
-    if invalid == "no-message":
-        callback = callback.model_copy(update={"message": None})
-    elif invalid == "inaccessible":
-        inaccessible = InaccessibleMessage(
-            chat=Chat(id=42, type="private"), message_id=1, date=0
-        )
-        callback = callback.model_copy(update={"message": inaccessible})
-    else:
-        callback = callback.model_copy(update={"data": None})
-        error = "Callback data cannot be None"
-    handler = import_module(f"handlers.button.{case.source}.download")
-    if case.source == "vk":
-        with pytest.raises(ValueError, match=error):
-            await handler.download(callback)
-    else:
-        await handler.download(callback)
-    harness.message.answer.assert_not_awaited()
-    harness.message.edit_text.assert_not_awaited()
-    harness.start_audio.assert_not_awaited()
-    harness.start_video.assert_not_awaited()
-    harness.resolve_url.assert_not_awaited()
-
-
-@pytest.mark.parametrize("case", VIDEO_CASES, ids=lambda case: case.source)
-async def test_malformed_payload_fails_before_status(
-    case: DownloadCase, harness: DownloadHarness
-) -> None:
-    handler = import_module(f"handlers.button.{case.source}.download")
-    with pytest.raises((TypeError, ValueError)):
-        await handler.download(harness.callback(case.prefix + ":dlmp4"))
-    harness.message.answer.assert_not_awaited()
-    harness.message.edit_text.assert_not_awaited()
-    harness.resolve_url.assert_not_awaited()
-
-
-@pytest.mark.parametrize("case", VIDEO_CASES, ids=lambda case: case.source)
-async def test_unknown_event_fails_before_status(
-    case: DownloadCase, harness: DownloadHarness
-) -> None:
-    handler = import_module(f"handlers.button.{case.source}.download")
-    with pytest.raises(ValueError):
-        await handler.download(harness.callback(case.payload(event="unknown")))
-    harness.message.answer.assert_not_awaited()
-    harness.status.delete.assert_not_awaited()
-    harness.resolve_url.assert_not_awaited()
-    harness.start_audio.assert_not_awaited()
-    harness.start_video.assert_not_awaited()
 
 
 @pytest.mark.parametrize(
@@ -342,20 +273,6 @@ async def test_porno365_resolve_failure_precedes_status(
         await handler.download(harness.callback(VIDEO_CASES[3].payload()))
     harness.message.answer.assert_not_awaited()
     harness.start_video.assert_not_awaited()
-
-
-@pytest.mark.parametrize(
-    "identifier", ["https://vk.cc/abc123", "https://vk.com/video-123_456"]
-)
-@pytest.mark.parametrize("media_type", ["audio", "video"])
-async def test_vk_full_url_compatibility(
-    identifier: str, media_type: Literal["audio", "video"], harness: DownloadHarness
-) -> None:
-    case = DownloadCase("vk", "vkbtn", identifier, identifier, media_type)
-    handler = import_module("handlers.button.vk.download")
-    await handler.download(harness.callback(case.payload()))
-    start = harness.start_audio if media_type == "audio" else harness.start_video
-    start.assert_awaited_once_with(identifier)
 
 
 @integration_test

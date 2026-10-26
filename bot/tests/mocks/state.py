@@ -1,7 +1,6 @@
 from aiogram.fsm.context import FSMContext
-from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.fsm.storage.base import StorageKey
-
+from aiogram.fsm.storage.memory import MemoryStorage
 
 fake_state = FSMContext(
     storage=MemoryStorage(),
