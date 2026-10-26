@@ -86,12 +86,12 @@ keyboard payloads, generic rendering and failure fallback. `test_gkfeed_api.py`
 checks that list/cache and direct-item transport preserve source records.
 
 The integration base is task12 head
-`96d9b9c5b436f47d2822e1929e0397423c512ebd`, which includes task11's
-`9e4fe280867b77a413d3a334b808b1f1ee0f4656`, registry
-`1cda1a9cd415b72274d2ec3e96912961ea27410f`, and exception prerequisite
-`6123f94fbfd2c169df27c336becb853b46ea1fd8`.
+`29bf94502f3f037167b14754befa8932034eb8bc`, which includes task11's
+`5edc55bc948c6e6774230f574cd9499cb71a2518`, registry
+`d59f8c789c144244dba0237793346c836cfb28e2`, and exception prerequisite
+`6138b0c322bcadee1ad7a9f4c004f148c80a578f`.
 
-Validation after test cleanup on 2026-10-25: `make test` passed with 452 passed
+Validation after parent integration on 2026-10-26: `make test` passed with 361 passed
 and 13 skipped.
 File-scoped `make lint` passed Ruff, typos, mypy and pyright for the dispatcher,
 entry-point handlers, policy, all processor modules and affected tests. Three

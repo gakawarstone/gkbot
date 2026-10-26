@@ -1,7 +1,7 @@
-from aiogram import Router, F, Bot
+from aiogram import Bot, F, Router
 from aiogram.types import Message
 
-from services.jutsu import JutSuDownloader, InvalidUrl
+from services.jutsu import InvalidUrl, JutSuDownloader
 
 
 async def download_video(message: Message, bot: Bot):

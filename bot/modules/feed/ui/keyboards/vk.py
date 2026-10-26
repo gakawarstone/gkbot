@@ -6,6 +6,7 @@ from ui.buttons.vk import (
     VKDownloadButtonData,
 )
 from utils.vk import get_vk_id
+
 from . import BaseFeedMarkup, FeedMarkupButtons, FeedMarkupData
 
 

@@ -1,12 +1,12 @@
 from aiogram.types import InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+from ui.buttons.delete_message import deleteMessageButton
 from ui.buttons.vk import (
     VKDownloadButtonBuilder,
     VKDownloadButtonCallbackData,
     VKDownloadButtonData,
 )
-from ui.buttons.delete_message import deleteMessageButton
 
 
 class VkMarkup:
