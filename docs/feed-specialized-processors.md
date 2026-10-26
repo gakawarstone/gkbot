@@ -22,21 +22,19 @@ buffered video with the existing feed keyboard. It has no registry entry.
 
 `GkfeedItemProcessorExtension._processor_registry` composes the specialized
 factories with the Discours tracer. Source IDs match the names above and do not
-contain URLs or per-item values. Pornhub's three existing hostname aliases share
-the `pornhub` identity, and Instagram's two aliases share `instagram`.
+contain URLs or per-item values. Pornhub's three existing URL prefixes share the
+`pornhub` identity, and Instagram's two prefixes share `instagram`.
 
-Matching uses parsed URL components. Fixed sources require exact hostnames;
-Stories retains its existing CDN hostname family. See
-[matching and policy](feed-source-policy.md) for the source declarations and item
-policy. Building the registry and resolving a source perform no network requests
-or credential lookups. The
+Matching preserves the existing URL prefix semantics, including longer hostnames
+accepted by those prefixes. No new aliases are added. Building the registry and
+resolving a source perform no network requests or credential lookups. The
 [registry contract](feed-processor-registry.md) and centralized
 [exception policy](feed-processor-exceptions.md) are unchanged.
 
 Task 11's published commit is merged into this branch to provide a linear PR
 stack. The composition includes all simple and specialized sources with one
-Discours entry. Task 13 removes the remaining legacy dispatch and aggregate
-inheritance and connects application-level source policy to both feed entry points.
+Discours entry. Task 13 removes the remaining empty legacy map, dispatch loop,
+and aggregate handler inheritance, and owns the matching-filter follow-up.
 
 ## Preserved responses
 

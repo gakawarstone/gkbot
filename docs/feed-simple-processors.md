@@ -32,9 +32,8 @@ helper used by Kinogo, Spotify and Shikimori. That helper retains the previous
 `HttpService.headers` request headers. Factories never inherit feed views or
 perform network requests during construction or matching.
 
-Matchers use parsed source declarations described in
-[matching and policy](feed-source-policy.md). Fixed sources require exact
-hostnames; Kinogo retains its existing mirror hostname family.
+Matchers retain the original URL prefixes, including acceptance of longer
+hostnames starting with those prefixes. URL validation changes belong to task 13.
 Adding another source requires its factory and an entry in the composition
 property, without changing registry internals or processor inheritance.
 
@@ -79,8 +78,7 @@ tests were restored.
 This migration builds on registry commit
 `d59f8c789c144244dba0237793346c836cfb28e2`, published in
 [PR #46](https://github.com/gakawarstone/gkbot/pull/46), and exception prerequisite
-`6138b0c322bcadee1ad7a9f4c004f148c80a578f`. Task 12's branch merges this
-migration and combines both sets of entries in `_processor_registry`, retaining
-the original source order and shared rendering behavior. Its PR is stacked on
-the task 11 branch. Task 13 completes registry-only dispatch and application-level
-source policy, as described in [matching and policy](feed-source-policy.md).
+`6138b0c322bcadee1ad7a9f4c004f148c80a578f`. Task 12 merges this migration and
+combines both sets of entries in `_processor_registry`, retaining the original
+source order and shared rendering behavior. Task 13 removes the empty legacy map
+and remaining aggregate inheritance and owns the matching-filter follow-up.
