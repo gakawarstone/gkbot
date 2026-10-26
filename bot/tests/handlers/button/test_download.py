@@ -9,6 +9,7 @@ from typing import Literal, cast
 from unittest.mock import AsyncMock, Mock
 
 import pytest
+from aiogram import Router
 from aiogram.types import (
     CallbackQuery,
     Message,
@@ -21,6 +22,7 @@ from services.youtube import YoutubeApiService, YoutubeVideoData
 from services.ytdlp._types import AudioFileInfo, VideoFileInfo
 from tests.handlers import CallbackEvent
 from tests.mocks.message import make_fake_callback
+from ui.buttons.compatibility import unpack_callback
 
 from ... import integration_test
 
@@ -132,8 +134,9 @@ def harness(monkeypatch: pytest.MonkeyPatch) -> DownloadHarness:
     "case", CASES, ids=lambda case: f"{case.source}-{case.media_type}"
 )
 @pytest.mark.parametrize("reuse_status", [False, True])
+@pytest.mark.parametrize("wire_format", ["native", "legacy"])
 async def test_download_contract(
-    case: DownloadCase, reuse_status: bool, harness: DownloadHarness
+    case: DownloadCase, reuse_status: bool, wire_format: str, harness: DownloadHarness
 ) -> None:
     async def assert_context_active(*args: object, **kwargs: object) -> None:
         harness.exit_audio.assert_not_awaited()
@@ -142,7 +145,19 @@ async def test_download_contract(
     harness.message.answer_audio.side_effect = assert_context_active
     harness.message.answer_video.side_effect = assert_context_active
     handler = import_module(f"handlers.button.{case.source}.download")
-    await handler.download(harness.callback(case.payload(reuse_status)))
+    payload = case.payload(reuse_status)
+    if wire_format == "native":
+        model_name = {
+            "youtube": "Youtube",
+            "vk": "VK",
+            "pornhub": "Pornhub",
+            "porno365": "Porno365",
+        }[case.source]
+        model = getattr(handler, model_name + "DownloadButtonCallbackData")
+        payload = unpack_callback(model, payload).pack()
+    router = Router()
+    handler.setup(router)
+    await router.propagate_event("callback_query", harness.callback(payload))
 
     status_text = "Cкачиваю " + case.url
     if reuse_status:

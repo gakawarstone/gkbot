@@ -36,12 +36,15 @@ removed the `_<post>` suffix.
 
 ## Button compatibility
 
-`VKDownloadButtonCallbackData.reference` holds a `VKReference`.
-The existing payload remains
-`vkbtn:dlmp3|dlmp4:True|False:<reference.value>`.
-The decoder splits at the first three colons, then parses the remaining value.
-This preserves short URLs and old buttons with owner-only wall identifiers.
-The download handler reads `reference.download_url` directly.
+`VKDownloadButtonCallbackData.reference` exposes a validated `VKReference`.
+Construct it with `VKDownloadButtonCallbackData.from_reference(reference,
+action=DownloadAction.video, use_callback_message_as_status=False)`.
+The native wire format is `vk2|<action>|<0-or-1>|<reference_kind>|<reference_value>`.
+The legacy compatibility filter still reads
+`vkbtn:<dlmp3-or-dlmp4>:<True-or-False>:<reference.value>` and normalizes it to the
+same typed model. It splits at the first three colons, preserving short URLs
+and old buttons with owner-only wall identifiers. The download handler reads
+`reference.download_url` directly. See [callback data](callback-data.md).
 
 `get_vk_id(url)` and `reconstruct_vk_url(value)` remain compatibility adapters
 for supported references. Both use the same parser and raise `ValueError` for

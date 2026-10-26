@@ -1,10 +1,10 @@
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from ui.buttons.delete_message import deleteMessageButton
+from ui.buttons.download import DownloadAction
 from ui.buttons.youtube.download import (
     YoutubeDownloadButtonBuilder,
     YoutubeDownloadButtonCallbackData,
-    YoutubeDownloadButtonData,
 )
 
 
@@ -15,12 +15,18 @@ class YtdlpMarkup:
             [
                 [
                     YoutubeDownloadButtonBuilder.build(
-                        YoutubeDownloadButtonData.audio,
-                        YoutubeDownloadButtonCallbackData(yt_code, True),
+                        YoutubeDownloadButtonCallbackData(
+                            action=DownloadAction.audio,
+                            use_callback_message_as_status=True,
+                            yt_video_code=yt_code,
+                        ),
                     ),
                     YoutubeDownloadButtonBuilder.build(
-                        YoutubeDownloadButtonData.video,
-                        YoutubeDownloadButtonCallbackData(yt_code, True),
+                        YoutubeDownloadButtonCallbackData(
+                            action=DownloadAction.video,
+                            use_callback_message_as_status=True,
+                            yt_video_code=yt_code,
+                        ),
                     ),
                     deleteMessageButton,
                 ]

@@ -1,6 +1,7 @@
 import pytest
 
-from ui.buttons.vk import VKDownloadButtonCallbackDataDeserializer
+from ui.buttons.compatibility import unpack_callback
+from ui.buttons.vk import VKDownloadButtonCallbackData
 
 
 @pytest.mark.parametrize(
@@ -13,8 +14,6 @@ from ui.buttons.vk import VKDownloadButtonCallbackDataDeserializer
     ],
 )
 def test_legacy_callback(value: str, expected_url: str) -> None:
-    data = VKDownloadButtonCallbackDataDeserializer.deserialize(
-        f"vkbtn:dlmp4:False:{value}"
-    )
+    data = unpack_callback(VKDownloadButtonCallbackData, f"vkbtn:dlmp4:False:{value}")
 
     assert data.reference.download_url == expected_url

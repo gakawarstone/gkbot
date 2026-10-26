@@ -2,10 +2,10 @@ from urllib.parse import parse_qs, urlparse
 
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+from ui.buttons.download import DownloadAction
 from ui.buttons.pornhub.download import (
     PornhubDownloadButtonBuilder,
     PornhubDownloadButtonCallbackData,
-    PornhubDownloadButtonData,
 )
 
 from . import BaseFeedMarkup, FeedMarkupButtons, FeedMarkupData
@@ -32,8 +32,11 @@ class PornhubFeedItemMarkup(BaseFeedMarkup):
             [
                 [
                     PornhubDownloadButtonBuilder.build(
-                        PornhubDownloadButtonData.video,
-                        PornhubDownloadButtonCallbackData(viewkey),
+                        PornhubDownloadButtonCallbackData(
+                            action=DownloadAction.video,
+                            use_callback_message_as_status=False,
+                            ph_video_code=viewkey,
+                        ),
                     ),
                 ],
                 cls._get_feed_buttons_row(item_id),
