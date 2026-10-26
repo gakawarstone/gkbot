@@ -1,7 +1,7 @@
 import re
 from dataclasses import dataclass
 from enum import Enum
-from urllib.parse import urlsplit
+from urllib.parse import SplitResult, urlsplit
 
 _IDENTIFIER_PATTERN = re.compile(r"(?:wall-\d+(?:_\d+)?|video-\d+_\d+)")
 _SHORT_PATH_PATTERN = re.compile(r"/[\w-]+")
@@ -24,7 +24,9 @@ class VKReference:
         if self.kind is VKReferenceKind.IDENTIFIER:
             if _IDENTIFIER_PATTERN.fullmatch(self.value):
                 return
-        elif self.kind is VKReferenceKind.SHORT_URL and _is_short_url(self.value):
+        elif self.kind is VKReferenceKind.SHORT_URL and _is_short_url(
+            urlsplit(self.value)
+        ):
             return
         raise ValueError("Invalid VK reference")
 
@@ -35,8 +37,7 @@ class VKReference:
         return f"https://vk.com/{self.value}"
 
 
-def _is_short_url(url: str) -> bool:
-    parsed = urlsplit(url)
+def _is_short_url(parsed: SplitResult) -> bool:
     return (
         parsed.scheme == "https"
         and parsed.netloc == "vk.cc"
@@ -56,9 +57,9 @@ def parse_vk_reference(text: str) -> VKReference:
 
     for match in _URL_PATTERN.finditer(value):
         url = match.group().rstrip(".,!)]}")
-        if _is_short_url(url):
-            return VKReference(VKReferenceKind.SHORT_URL, url)
         parsed = urlsplit(url)
+        if _is_short_url(parsed):
+            return VKReference(VKReferenceKind.SHORT_URL, url)
         if parsed.scheme != "https" or parsed.netloc not in {"vk.com", "vkvideo.ru"}:
             continue
         identifier = parsed.path.removeprefix("/")
