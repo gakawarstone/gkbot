@@ -1,8 +1,6 @@
 import asyncio
 import shutil
 from pathlib import Path
-from subprocess import CompletedProcess
-from typing import Any
 
 from services.audio import AudioService
 from services.cache_dir import CacheDir
@@ -65,21 +63,21 @@ class FfmpegService:
             output_path=output_path,
         )
 
-        await cls._run_command(command)
+        await FfmpegRunner.run(command)
 
     @classmethod
     async def download_and_prepare_images(
         cls, images_url: list[str], work_dir_path: str
     ) -> None:
         for n, url in enumerate(images_url):
-            command = cls._build_command(
+            command = FfmpegRunner.build_command(
                 inputs=[
                     url,
                 ],
                 output=f"{work_dir_path}/{n + 1:03d}.jpg",
                 props=cls.__resize_image_options,
             )
-            await cls._run_command(command)
+            await FfmpegRunner.run(command)
 
         if len(images_url) == 1:
             shutil.copy(f"{work_dir_path}/001.jpg", f"{work_dir_path}/002.jpg")
@@ -87,16 +85,6 @@ class FfmpegService:
 
         if len(images_url) == 2:
             shutil.copy(f"{work_dir_path}/002.jpg", f"{work_dir_path}/003.jpg")
-
-    @classmethod
-    async def _run_command(cls, command: list[str], **kwargs: Any) -> CompletedProcess:
-        return await FfmpegRunner.run(command, **kwargs)
-
-    @classmethod
-    def _build_command(
-        cls, inputs: list[str], output: str, props: list[str]
-    ) -> list[str]:
-        return FfmpegRunner.build_command(inputs, output, props)
 
     @classmethod
     def _build_slideshow_command(
@@ -113,4 +101,4 @@ class FfmpegService:
             opts.remove("-shortest")
             command += opts
 
-        return cls._build_command(inputs=[], output=output_path, props=command)
+        return FfmpegRunner.build_command(inputs=[], output=output_path, props=command)

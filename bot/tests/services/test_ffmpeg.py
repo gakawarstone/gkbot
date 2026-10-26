@@ -9,6 +9,7 @@ import pytest
 from services.audio import AudioService
 from services.cache_dir import CacheDir
 from services.ffmpeg import FfmpegService
+from services.ffmpeg_runner import FfmpegRunner
 
 
 @pytest.fixture
@@ -26,7 +27,7 @@ async def test_slideshow_file_uses_owned_output_directory(
     run = AsyncMock()
     monkeypatch.setattr(FfmpegService, "download_and_prepare_images", images)
     monkeypatch.setattr(AudioService, "download_and_prepare_audio", audio)
-    monkeypatch.setattr(FfmpegService, "_run_command", run)
+    monkeypatch.setattr(FfmpegRunner, "run", run)
     output_path = str(cache_root / "video.mp4")
     urls = ["https://example.invalid/image"]
     await FfmpegService.make_slideshow_file_from_web(urls, audio_url, output_path)
@@ -79,7 +80,7 @@ async def test_cancelled_slideshow_finishes_before_cleanup(
     async def run(command: list[str]) -> None:
         await asyncio.to_thread(write, command[-1])
 
-    monkeypatch.setattr(FfmpegService, "_run_command", run)
+    monkeypatch.setattr(FfmpegRunner, "run", run)
     monkeypatch.setattr(FfmpegService, "download_and_prepare_images", AsyncMock())
     task = asyncio.create_task(FfmpegService.make_slideshow_from_web(["image"], None))
     try:
