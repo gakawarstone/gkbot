@@ -11,14 +11,10 @@ current price is 0 Stars, and there is no paid tier or recurring charge.
 Existing availability and provider limits continue to apply. Free does not
 promise unlimited usage or an uptime guarantee.
 
-The repository has no payment handlers, durable payment ledger, entitlement
-checks, usage accounting, or payment support process. `Users` stores only an
-ID and username. FSM storage is in memory. Database startup generates schemas
-but supplies no billing migration or reconciliation procedure. The image
-handler depends on Pollinations and prompt enhancement; AI chat depends on
-OpenRouter. Neither path records the cost and delivered units needed to price
-a service. See [users](../../bot/models/users.py),
-[startup](../../bot/core/bot.py), [database setup](../../bot/configs/db.py),
+The repository has no payment handlers, durable payment records, entitlement
+checks, usage accounting, or payment support process. AI costs and delivered
+units are not recorded, so there is no basis for pricing an allowance.
+See [users](../../bot/models/users.py),
 [image generation](../../bot/handlers/prompt/generate_image.py), and
 [AI chat](../../bot/handlers/user/chatgpt/answer.py).
 
@@ -36,17 +32,12 @@ third-party media resale from that proposal. A monthly bot subscription fits
 an allowance better than selling channel membership or locking each result.
 This is a design candidate, not an approved product.
 
-There is no proposed numeric paid price. The owner must approve `P` Stars per
-30 days, a precise paid allowance `Q`, a free allowance `F`, supported models,
-input/output limits, and what counts as delivered usage.
-
-Before choosing `P`, collect provider cost per delivered unit, retries and
-failed requests, peak usage, storage/egress costs, support workload, and
-refund losses. Evaluate whether `P * 0.013 * fee_factor` covers the bounded
-allowance, operating costs, refunds, taxes, and an owner-approved margin.
-Use `fee_factor = 0.85` if the topics fee below applies, otherwise 1, then
-check actual balance movements and rounding. This is a planning estimate,
-not a guaranteed payout. Unknown cost inputs keep this decision at no-go.
+There is no proposed numeric paid price. Before choosing one, measure provider
+costs including failures and retries, usage, hosting, support, and refund losses.
+The owner must approve a price per 30 days, free and paid allowances, supported
+models, request limits, and what counts as delivered usage. Expected proceeds
+after the fees below must cover those costs and the owner's required margin.
+Unknown costs keep this decision at no-go.
 
 ## Telegram economics and limits
 
@@ -86,126 +77,80 @@ Channel subscription invites cost 1 to 10000 Stars per 30 days and require
 - Subscription invite link: buys membership of a channel. GKBot has no paid
   channel product; channel membership would also require a separate mapping
   to bot entitlements. Not selected.
-- One-time Stars invoice: an alternative for finite AI credit packs if the
-  owner wants no automatic renewal. It still needs accounting and support.
-  Compare it again once real usage is known; no sale is enabled here.
 
 ## Conditional design
 
 This evaluation does not implement billing or validate production payment
 behavior.
 
-The installed 3.31.0 wheel exposes `Dispatcher.subscription`,
-`BotSubscriptionUpdated`, `SuccessfulPayment`, and `RefundedPayment`.
-`Update.subscription` carries a user, payload, and state, with no charge ID,
-timestamp, or paid-through date. States are `active`, `canceled`, and `failed`.
-Only a successful receipt supplies new paid time. An `active` event must
-never grant or extend access by itself.
+Aiogram 3.31.0 supports `Update.subscription`, successful receipts, and refunds.
+Subscription states `active`, `canceled`, and `failed` describe renewal status;
+they do not provide proof of new paid time.
 [Subscription updates](https://core.telegram.org/bots/api#botsubscriptionupdated),
 [payment receipts](https://core.telegram.org/bots/api#successfulpayment).
 
-The following is the proposed implementation contract if a later decision
-approves the candidate. It is not implemented by this documentation PR.
+The following requirements cover the candidate's full lifecycle. Database
+schema and processing architecture belong to a separate implementation after
+product approval.
 
-### Durable records
+### Stored data
 
-Use database records, never FSM state or usernames, for financial truth:
-
-- Versioned plan: price, currency, period, allowance, models, and terms version.
-- Order: random unique payload, Telegram user ID stored as a 64-bit integer,
-  immutable plan snapshot, consent version/time, creation and checkout state.
-  Each subscription purchase needs its own payload, even for the same user.
-- Charge: unique bot ID plus `telegram_payment_charge_id`, order/user,
-  first-charge relationship, amount, recurring flags, paid interval, receipt
-  update ID and refund state. Retain the first recurring charge for managing
-  renewal. Do not assume all renewals share its charge ID.
-- Inbox: unique bot/update ID and minimal validated event data. Persist before
-  acknowledging processing. Do not let polling advance past an event whose
-  only copy is an in-flight coroutine. Add a durable ingestion/replay strategy.
-- Refund tombstone: charge ID, even when its receipt has not arrived. Keep
-  incoming and outgoing transaction directions distinct because refunds can
-  share the original charge ID.
-- Usage reservation and support audit: unique request ID, period, reserved and
-  delivered units, release outcome, operator, reason, and reconciliation state.
-
-Commit the inbox, charge change, and entitlement projection atomically. Add
-explicit migrations, uniqueness constraints, backup restoration checks, and
-retention rules before launch. Store only billing data needed for support;
-prompts, downloaded files, and credentials do not belong in the ledger.
+Persist the payer's Telegram ID, unique order payload, agreed price/allowance
+and terms, charge IDs, paid periods, refunds, renewal status, and usage.
+Retain the first subscription charge ID for managing renewal. Keep an audit
+of administrator actions and pending refund outcomes. Billing records need
+backups and a retention policy; in-memory conversation state is insufficient.
+These data requirements do not prescribe separate tables or service layers.
 
 ### Purchase and access
 
-1. Show price, allowance, renewal date, cancellation/refund terms, and support
-   contact. Record consent and create a user-bound opaque order. Create a
-   recurring link with `create_invoice_link`; `send_invoice` has no
-   `subscription_period` in the installed wheel. Send the link privately.
-2. At pre-checkout, validate payer, payload, immutable price/currency, consent,
-   sale availability, and duplicate-subscription policy. Lock the user's
-   pending purchase to prevent two simultaneous initial checkouts. Reject
-   invalid or unavailable orders with a useful message within the deadline.
-   Never run AI generation or slow provider probes in this handler.
-3. On `message.successful_payment`, validate the payer and order again, require
-   recurring flags and an expiry, and record the charge exactly once. Store
-   the supplied expiry, never add 30 days on every delivery of an update.
-   A renewal may arrive without a new pre-checkout callback. A valid payment
-   must still be processed if the in-memory checkout state was lost.
-4. Access requires a non-refunded paid interval for this Telegram user and
-   the requested feature, with `start <= now < expiry`, plus available quota.
-   Reserve quota atomically before provider work on every entry path. Commit
-   delivered usage once or release the reservation on failure. Enforce model,
-   input size, output size, and concurrency caps. Until `Q` and delivery units
-   are approved, this gate cannot be implemented correctly.
-5. Record subscription state separately from paid intervals. Cancel, failed
-   renewal, and re-enable events change renewal status without removing paid
-   time. Expiry checks run on every request; an expiry job is housekeeping.
-   Unknown states go to reconciliation. Since state events lack timestamps,
-   preserve inbox order and treat status as advisory when ordering is unclear.
-6. An administrator may request `edit_user_star_subscription` to stop renewal.
-   Cancellation preserves the purchased interval. Re-enable allows the user
-   to resume renewal; it does not manufacture paid time. Do not assume a
-   refund cancels renewal. Track the two actions separately.
-
-Never silently discard an unexpected successful charge. Quarantine mismatched
-or duplicate-subscription receipts, alert support, and arrange fulfillment or
-refund after verification. Production needs a durable support case for these
-receipts.
+1. Show the price, allowance, renewal and refund terms, and support contact.
+   Record consent and create a user-bound order and private recurring link
+   with `create_invoice_link`.
+2. At pre-checkout, match payer, payload, price/currency, and agreed terms.
+   Reject unavailable sales and unintended duplicate subscriptions within
+   the 10-second deadline. Do not grant access at this step.
+3. Match `message.successful_payment` to the order and persist its charge ID
+   and supplied expiry with the resulting access change. Repeated receipts
+   must not grant extra time or allowance. Renewals must work without another
+   checkout. Receipts must remain recoverable across a crash or restart.
+   Unexpected charges need operator review and fulfillment or refund.
+4. Before any paid provider work, check the payer's non-refunded paid period
+   and remaining allowance. Concurrent requests must not overspend it; failed
+   or canceled work must release unused allowance. The approved product must
+   define when delivery consumes units.
+5. Check expiry on every paid request. Cancellation and failed renewal preserve
+   already paid time. An `active` subscription event alone grants nothing.
+   Use `edit_user_star_subscription` to stop renewal when requested; resuming
+   renewal also requires payment before access extends. Refund and renewal
+   cancellation are separate actions.
 
 ### Refunds, retries, and reconciliation
 
-Full refunds use `refund_star_payment` for the recorded payer and charge.
-Write the intent before the API call; mark confirmed only after success or
-matching evidence. The API has no partial-amount argument. Revoke only the
-refunded charge's interval and unused allowance, preserving other valid paid
-periods. A refund tombstone prevents a delayed receipt restoring access.
-Consumed generation cannot be recovered; budget that loss.
+Use `refund_star_payment` for a full refund to the recorded payer, and handle
+`message.refunded_payment` too. Revoke only the refunded payment's rights,
+preserving other paid periods. Remember the refund even if its receipt arrives
+later, so replay cannot restore access. Delivered generation cannot be
+recovered; budget that loss.
 
-Handle `message.refunded_payment` as well as operator-initiated refunds. Retry
-database/transient API failures with bounded backoff; honor rate-limit delays.
-An API timeout is an unknown outcome. Reconcile before repeating a financial
-action, and never create another invoice or charge as an automatic retry.
-Receipt confirmation messages may be retried independently of entitlement.
+Persist refund requests and confirmed outcomes. An API timeout leaves the
+outcome unknown; reconcile before retrying. Bound transient retries and honor
+rate-limit delays. Never create a new purchase as an automatic retry.
 
-Periodically and after downtime, page `get_star_transactions` with overlap,
-match charge IDs plus direction, and compare with the ledger and
-`get_my_star_balance`. Persist checkpoints and accounting for other Star
-movements. A balance match alone proves no individual entitlement.
-The transaction history does not supply every receipt's expiry or all renewal
-state. Preserve the durable inbox; route incomplete history to an operator
-rather than guessing a paid interval. Alert on unknown charges, discrepancies,
-refund failures, inbox lag, and reconciliation failure. Suspend new sales
-while reconciliation is unhealthy and preserve already verified paid access.
+Regularly and after downtime, compare stored charges/refunds with
+`get_star_transactions`; distinguish incoming charges from outgoing refunds
+even when they share an ID. A balance alone does not establish a user's
+entitlement. History may not recover the full receipt or expiry, so missing
+evidence needs operator review rather than invented access dates. Pause new
+sales on unresolved discrepancies while preserving verified paid access.
 
 ### Validation required for a future implementation
 
-The separate implementation must test actual payment handlers and persisted
-entitlements: no access from checkout or subscription state alone, payer
-isolation, receipt replay, expiry boundaries, and refunds arriving before or
-after receipts. Refunding an older period must preserve a newer paid period.
-It must also test database rollback/restart, concurrent checkout and usage,
-provider failures, API timeout outcomes, reconciliation, and test-environment
-payment/refund flows before production. These are requirements for future
-regression tests, not claims of coverage in this evaluation. No real or
-test-network payments were made during evaluation.
+Test the implemented handlers and storage against the failure cases above,
+including payer isolation, duplicate receipts, restart recovery, expiry,
+out-of-order refunds, concurrent use, cancellation, and unknown API outcomes.
+Validate payment/refund flows in Telegram's test environment before launch.
+This evaluation has no billing tests or executable prototype.
 
 ## Support obligations and reopening
 
@@ -214,33 +159,17 @@ and a visible contact path. The operator owns disputes and timely support;
 Telegram support does not resolve purchases from this bot.
 [Payment support requirements](https://core.telegram.org/bots/payments-stars#going-live).
 
-The owner must name a primary and backup operator and approve response times,
-refund eligibility and handling deadlines, outage compensation, account
-recovery, data retention, and a reserve for refunds and chargebacks. Support
-needs an authenticated lookup by user/order/charge, a paid-through view, an
-audited cancel/refund action, and an escalation queue. Never request Telegram
-passwords, OTPs, or payment credentials from a customer.
+The owner must name a responsible operator and approve response times, refund
+eligibility, outage handling, retention, and a reserve for refunds/chargebacks.
+The operator needs to find a purchase and its paid-through date, resolve
+unmatched payments, and cancel/refund with an audit trail. This does not
+require a new support platform.
 
-To reopen, the owner must approve the candidate or an alternative, `P`, `Q`,
-`F`, delivery rules, cost evidence, and the support policy above. Verify
-Fragment eligibility and the actual topics setting without enabling it just
-for this experiment. Check the deployed Bot API version separately from the
-repository pin, following [compatibility notes](../../services/bot-api/README.md).
+Reopen only after owner approval of the product, price, allowances, cost
+evidence, and support policy. Verify Fragment eligibility, the actual topics
+setting, and the deployed API version using the
+[compatibility notes](../../services/bot-api/README.md).
 
-After approval, create a separate production implementation task and PR linked
-to the revised decision. That task must own migrations, all payment handlers,
-quota enforcement, durable ingestion, reconciliation, administrator tools,
-test-environment validation, and rollout/disable procedures. Approval of this
-evaluation PR alone does not authorize billing. There is no production billing
-task to execute while the decision remains no-go.
-
-## Reproduce the evaluation
-
-```bash
-uv sync --locked --all-extras
-make test
-```
-
-The unchanged application suite has 122 passing and 13 skipped tests. It does
-not validate billing, which this PR does not implement. Full `make lint`
-already stops at 383 unrelated Ruff findings in `bot/` on the starting commit.
+Then create a separate production implementation task and PR covering this
+lifecycle, storage changes, test-environment validation, and rollout/disable
+procedures. Approval of this evaluation alone does not authorize billing.
