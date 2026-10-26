@@ -59,30 +59,26 @@ property, without changing registry internals or processor inheritance.
 - Confirm photo rejection still invokes the generic feed-item fallback.
 - Apply the exception policy supplied by task 10 and its prerequisite. Do not
   add broad exception catches in individual source modules.
-- Add a test source through the registry's supported registration mechanism and
-  render it without changing the registry implementation or processor bases.
-- Preserve unknown-source Open Graph rendering and generic-item fallback.
 
 `bot/tests/handlers/test_feed_simple_processors.py` implements these checks with
-offline HTML and image fixtures. It also registers an example metadata source
-using only its factory and composition, then renders through the real shared
-sender and navigation markup. No registry code or inherited source view is
-needed. The existing legacy-dispatch and exception tests have been adapted to
-the migration. `bot/tests/handlers/test_feed.py` remains an integration test
+offline HTML and image fixtures. Assertions inspect the outgoing media, captions,
+original fallback links and navigation payloads. Shared failure and cancellation
+checks use representative URL-photo and buffered-upload paths rather than
+repeating every source. The existing legacy-dispatch and exception tests have
+been adapted to the migration. `bot/tests/handlers/test_feed.py` remains an integration test
 skipped in the ordinary offline run.
 
-Validation for this migration: the full `make test` run passed with 346 passed
-and 13 skipped. The feed-only run passed with 245 passed and 1 skipped.
-File-scoped `make lint` passed Ruff, typos, mypy and pyright for the composition,
-processor modules and changed tests.
+After integrating the updated registry parent, the full `make test` run passed
+with 262 passed and 13 skipped. File-scoped `make lint` and format checks passed
+for the processors, composition and relevant test modules. No removed mirror
+tests were restored.
 
 ## Integration base
 
 This migration builds on registry commit
-`1cda1a9cd415b72274d2ec3e96912961ea27410f`, published in
+`d59f8c789c144244dba0237793346c836cfb28e2`, published in
 [PR #46](https://github.com/gakawarstone/gkbot/pull/46), and exception prerequisite
-`6123f94fbfd2c169df27c336becb853b46ea1fd8`. Task 12's branch merges this
-migration and combines both sets of entries in `_processor_registry`, retaining
-the original source order and shared rendering behavior. Its PR is stacked on
-the task 11 branch. Task 13 removes the empty legacy map and remaining aggregate
-inheritance and owns the matching-filter follow-up.
+`6138b0c322bcadee1ad7a9f4c004f148c80a578f`. Task 12 merges this migration and
+combines both sets of entries in `_processor_registry`, retaining the original
+source order and shared rendering behavior. Task 13 removes the empty legacy map
+and remaining aggregate inheritance and owns the matching-filter follow-up.

@@ -77,16 +77,16 @@ inheritance once its standalone factory is registered.
 
 ## Regression coverage
 
-`bot/tests/handlers/test_feed_processor_registry.py` checks ordered resolution,
-unknown sources, duplicate identities, matching-error propagation, precedence over
-legacy dispatch, and Discours prefix compatibility. Offline rendering tests cover
-both message and callback handlers, the real shared photo sender and keyboard,
-HTTP and Telegram fallback, unexpected errors, cancellation, and fallback failure.
-The generic route and registry precedence over an injected legacy map have
-dispatch checks. Simple and specialized source tests cover every migrated route.
-`bot/tests/handlers/test_feed_specialized_processors.py` covers the migrated media
-sources, their literal callback payloads, and source-specific rendering branches.
+`bot/tests/handlers/test_feed_processor_registry.py` checks the Discours photo,
+caption, link and keyboard sent through both message and callback handlers. HTTP
+and Telegram failures retain the original link fallback; programming errors and
+cancellation propagate. Further checks prevent recursive fallback, accidental
+content fallback for matching failures, and sensitive exception text in logs.
+
+`bot/tests/handlers/test_feed_specialized_processors.py` checks media payloads,
+captions, spoilers, playback metadata, download buttons, Reddit gallery content,
+and usable link responses after missing media or send failures.
 
 The registry builds on exception prerequisite commit
-`6123f94fbfd2c169df27c336becb853b46ea1fd8`, published in
+`6138b0c322bcadee1ad7a9f4c004f148c80a578f`, published in
 [PR #26](https://github.com/gakawarstone/gkbot/pull/26).

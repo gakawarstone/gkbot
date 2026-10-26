@@ -18,14 +18,14 @@ allowlist for the plain-link fallback:
   `TikTokInfoExtractionFailed`, `TikTokInvalidUrl` and
   `TikTokVideoUrlExtractionFailed`, and YouTube `UnavailableVideo`.
 - aiogram `TelegramBadRequest`, `TelegramNetworkError` and
-  `TelegramServerError`. In installed aiogram 3.26.0, `TelegramEntityTooLarge`
+  `TelegramServerError`. In installed aiogram 3.31.0, `TelegramEntityTooLarge`
   inherits `TelegramNetworkError` and is also recoverable.
 
 The external exception categories follow the
 [aiohttp client exception reference](https://docs.aiohttp.org/en/stable/client_reference.html#client-exceptions)
-and [aiogram error reference](https://docs.aiogram.dev/en/v3.26.0/dispatcher/errors.html).
+and [aiogram error reference](https://docs.aiogram.dev/en/v3.31.0/dispatcher/errors.html).
 The imported symbols and inheritance were also checked against the locked
-aiohttp 3.13.3 and aiogram 3.26.0 packages.
+aiohttp 3.13.3 and aiogram 3.31.0 packages.
 
 Do not catch generic `Exception`, `ValueError`, `TypeError`, `KeyError`,
 `IndexError`, `OSError` or `TelegramAPIError` at this boundary. Missing methods,

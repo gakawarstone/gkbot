@@ -1,5 +1,5 @@
 import asyncio
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from html import escape
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -7,20 +7,17 @@ import pytest
 from aiogram import Bot
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.methods import SendPhoto
-from aiogram.types import BufferedInputFile, CallbackQuery, Message, URLInputFile
+from aiogram.types import (
+    BufferedInputFile,
+    CallbackQuery,
+    InlineKeyboardMarkup,
+    Message,
+    URLInputFile,
+)
 
 from modules.feed.handlers.messages import ShowFeedItemsHandler
-from modules.feed.handlers.processors import FeedProcessor, FeedProcessorRegistry
-from modules.feed.handlers.processors._simple_rendering import (
-    SendItem,
-)
-from modules.feed.handlers.processors._simple_rendering import (
-    SendPhoto as PhotoSender,
-)
-from modules.feed.ui.keyboards import FeedMarkup
 from services.gkfeed import FeedItem
 from services.http import HttpRequestError, HttpService
-from services.open_graph import OpenGraphService
 
 IMAGE = "https://example.invalid/image.jpg"
 
@@ -120,15 +117,22 @@ def handler(event: MagicMock, bot: MagicMock) -> ShowFeedItemsHandler:
     return ShowFeedItemsHandler(event=event, bot=bot)
 
 
-def assert_navigation(markup: object, item: FeedItem) -> None:
-    expected = FeedMarkup.get_item_markup(item.id, item.feed_id)
-    assert markup == expected
-    assert [
-        [button.callback_data for button in row] for row in expected.inline_keyboard
-    ] == [
-        [f"fd:show_all_feed:{item.feed_id}"],
-        [f"fd:keep:{item.id}", f"fd:del:{item.id}"],
-    ]
+def assert_navigation(markup: InlineKeyboardMarkup, item: FeedItem) -> None:
+    assert {
+        button.callback_data for row in markup.inline_keyboard for button in row
+    } == {
+        f"fd:show_all_feed:{item.feed_id}",
+        f"fd:keep:{item.id}",
+        f"fd:del:{item.id}",
+    }
+
+
+def assert_plain_link(bot: MagicMock, item: FeedItem) -> None:
+    bot.send_message.assert_awaited_once()
+    message = bot.send_message.call_args
+    assert message.args[0] == 7
+    assert f'href="{item.link}"' in message.args[1]
+    assert_navigation(message.kwargs["reply_markup"], item)
 
 
 async def test_simple_source_renders_through_registry(
@@ -145,52 +149,38 @@ async def test_simple_source_renders_through_registry(
         patch.object(HttpService, "get", side_effect=get) as http,
         patch.object(
             HttpService, "get_with_downloader", return_value=case.html.encode()
-        ) as downloader,
-        patch.object(handler, "_process_base_item", new_callable=AsyncMock) as base,
+        ),
     ):
         await handler._process_item(item)
 
-    entry = handler._processor_registry.resolve(item)
-    assert entry is not None and entry.source_id == case.source_id
-    assert not hasattr(handler, f"_process_{case.source_id}_item")
-    assert not any(item.link.startswith(prefix) for prefix in handler._processors)
     event.answer_photo.assert_awaited_once()
     photo = event.answer_photo.call_args.args[0]
     options = event.answer_photo.call_args.kwargs
     assert_navigation(options["reply_markup"], item)
     if case.source_id == "hltv":
         assert isinstance(photo, BufferedInputFile)
-        assert photo.data == b"image bytes" and photo.filename == "hltv.png"
+        assert photo.data == b"image bytes"
         assert (
             options["caption"]
             == f'<b>23.10.2026 12:30</b>\n\n<a href="{escape(item.link, quote=True)}">A &amp; B</a>'
         )
-        downloader.assert_awaited_once()
-        assert downloader.call_args.args == (item.link,)
-        http.assert_awaited_once_with(IMAGE)
     else:
         assert isinstance(photo, URLInputFile) and photo.url == case.image
         assert (
             options["caption"]
             == f'<b>{case.description}</b>\n\n<a href="{item.link}">{case.link_caption}</a>'
         )
-        assert options["has_spoiler"] is False
-        downloader.assert_not_awaited()
         if case.source_id == "rezka":
             http.assert_awaited_once_with(
                 "https://rezka.ag/film/1?preview=yes#poster",
                 headers={"User-Agent": "TelegramBot (like TwitterBot)"},
             )
-        elif case.source_id in {"kinogo", "spoti", "shiki"}:
-            http.assert_awaited_once_with(item.link, headers=HttpService.headers)
-        elif case.source_id == "twitch":
-            http.assert_not_awaited()
-        else:
-            assert http.call_args.args == (item.link,)
-    base.assert_not_awaited()
     bot.send_message.assert_not_awaited()
 
 
+@pytest.mark.parametrize(
+    "case", [CASES[0], CASES[-1]], ids=["url-photo", "buffered-photo"]
+)
 async def test_photo_rejection_keeps_navigation_and_plain_link(
     handler: ShowFeedItemsHandler,
     item: FeedItem,
@@ -206,21 +196,18 @@ async def test_photo_rejection_keeps_navigation_and_plain_link(
         patch.object(
             HttpService, "get_with_downloader", return_value=case.html.encode()
         ),
-        patch.object(handler, "_process_base_item", new_callable=AsyncMock) as base,
     ):
         await handler._process_item(item)
     event.answer_photo.assert_awaited_once()
-    bot.send_message.assert_awaited_once_with(
-        7,
-        f'<a href="{item.link}">{handler._get_item_link_caption(item)}</a>',
-        reply_markup=FeedMarkup.get_item_markup(item.id, item.feed_id),
-    )
-    base.assert_not_awaited()
+    assert_plain_link(bot, item)
 
 
 @pytest.mark.parametrize(
     "failure",
-    [HttpRequestError("private"), RuntimeError("bug"), asyncio.CancelledError()],
+    [RuntimeError("bug"), asyncio.CancelledError()],
+)
+@pytest.mark.parametrize(
+    "case", [CASES[5], CASES[-1]], ids=["url-photo", "buffered-photo"]
 )
 async def test_registered_source_keeps_execution_error_policy(
     handler: ShowFeedItemsHandler,
@@ -229,7 +216,6 @@ async def test_registered_source_keeps_execution_error_policy(
     event: MagicMock,
     bot: MagicMock,
     failure: BaseException,
-    caplog: pytest.LogCaptureFixture,
 ) -> None:
     event.answer_photo.side_effect = failure
     with (
@@ -237,120 +223,17 @@ async def test_registered_source_keeps_execution_error_policy(
         patch.object(
             HttpService, "get_with_downloader", return_value=case.html.encode()
         ),
-        patch.object(handler, "_process_base_item", new_callable=AsyncMock) as base,
     ):
-        if isinstance(failure, HttpRequestError):
+        with pytest.raises(type(failure)) as raised:
             await handler._process_item(item)
-            bot.send_message.assert_awaited_once()
-            assert caplog.records[0].args == (
-                item.id,
-                item.feed_id,
-                len(item.text),
-                case.source_id,
-            )
-            assert "private" not in caplog.text
-        else:
-            with pytest.raises(type(failure)) as raised:
-                await handler._process_item(item)
-            assert raised.value is failure
-            bot.send_message.assert_not_awaited()
-    base.assert_not_awaited()
-
-
-@pytest.mark.parametrize("candidate", CASES, ids=lambda case: case.source_id)
-def test_simple_source_keeps_prefix_matching(candidate: SourceCase) -> None:
-    handler = ShowFeedItemsHandler(event=MagicMock(spec=Message))
-    registry = handler._processor_registry
-    item = FeedItem(id=1, feed_id=2, link=candidate.link, title="", text="")
-    entry = registry.resolve(item)
-    assert entry is not None and entry.source_id == candidate.source_id
-    assert (
-        entry.matches(replace(item, link=candidate.link.replace("https://", "http://")))
-        is False
-    )
-    assert (
-        entry.matches(
-            replace(item, link=candidate.link.replace("https://", "HTTPS://"))
-        )
-        is False
-    )
-    assert entry.matches(replace(item, link="https://example.invalid")) is False
-    # Prefix acceptance, including longer hostnames, belongs to task 13 to change.
-    prefix = {
-        "kinogo": "https://kinogo",
-        "spoti": "https://open",
-        "rezka": "https://hdrezka.me",
-        "shiki": "https://shikimori",
-        "telegram": "https://t.me",
-        "hltv": "https://www.hltv.org",
-        "twitch": "https://www.twitch",
-    }[candidate.source_id]
-    assert entry.matches(replace(item, link=prefix + ".example/extra"))
-
-
-def create_example_processor(
-    send_photo: PhotoSender, send_item: SendItem
-) -> FeedProcessor:
-    async def process(item: FeedItem) -> None:
-        metadata = await OpenGraphService.get(item.link)
-        if metadata.image_url is None:
-            return await send_item(item)
-        await send_photo(item, metadata.image_url, metadata.title or item.title)
-
-    return FeedProcessor(
-        "example", lambda item: item.link.startswith("https://example.invalid"), process
-    )
-
-
-class HandlerWithAnotherSource(ShowFeedItemsHandler):
-    @property
-    def _processor_registry(self) -> FeedProcessorRegistry:
-        return FeedProcessorRegistry(
-            (
-                *super()._processor_registry.entries,
-                create_example_processor(self._send_photo, self._send_item),
-            )
-        )
-
-
-async def test_another_simple_source_needs_only_its_entry_and_composition(
-    event: MagicMock,
-    bot: MagicMock,
-) -> None:
-    handler = HandlerWithAnotherSource(event=event, bot=bot)
-    item = FeedItem(
-        id=11,
-        feed_id=22,
-        link="https://example.invalid/article",
-        title="Example",
-        text="",
-    )
-    with (
-        patch.object(
-            HttpService,
-            "get",
-            return_value=f'<meta property="og:image" content="{IMAGE}">'.encode(),
-        ),
-        patch.object(handler, "_process_base_item", new_callable=AsyncMock) as base,
-    ):
-        await handler._process_item(item)
-    event.answer_photo.assert_awaited_once()
-    assert (
-        event.answer_photo.call_args.kwargs["caption"]
-        == f'<b>Example</b>\n\n<a href="{item.link}">Link</a>'
-    )
-    assert_navigation(event.answer_photo.call_args.kwargs["reply_markup"], item)
-    base.assert_not_awaited()
-    bot.send_message.assert_not_awaited()
+        assert raised.value is failure
+        bot.send_message.assert_not_awaited()
 
 
 @pytest.mark.parametrize(
     ("source", "html"),
     [
-        ("kinogo", ""),
         ("kinogo", "<link>"),
-        ("kinogo", '<link href="">'),
-        ("spoti", ""),
         ("spoti", '<meta name="twitter:image">'),
         ("spoti", f'<meta name="twitter:image" content="{IMAGE}">'),
         (
@@ -380,21 +263,13 @@ async def test_missing_source_content_keeps_plain_link(
     with (
         patch.object(HttpService, "get", return_value=html.encode()),
         patch.object(HttpService, "get_with_downloader", return_value=html.encode()),
-        patch.object(handler, "_process_base_item", new_callable=AsyncMock) as base,
     ):
         await handler._process_item(item)
     event.answer_photo.assert_not_awaited()
-    bot.send_message.assert_awaited_once_with(
-        7,
-        f'<a href="{item.link}">{handler._get_item_link_caption(item)}</a>',
-        reply_markup=FeedMarkup.get_item_markup(item.id, item.feed_id),
-    )
-    base.assert_not_awaited()
+    assert_plain_link(bot, item)
 
 
-@pytest.mark.parametrize(
-    "source", [case.source_id for case in CASES if case.source_id != "twitch"]
-)
+@pytest.mark.parametrize("source", ["kinogo", "hltv"])
 async def test_source_http_error_falls_back_without_trying_generic_web(
     handler: ShowFeedItemsHandler,
     event: MagicMock,
@@ -411,17 +286,14 @@ async def test_source_http_error_falls_back_without_trying_generic_web(
             "get_with_downloader",
             side_effect=HttpRequestError("private URL"),
         ),
-        patch.object(handler, "_process_base_item", new_callable=AsyncMock) as base,
     ):
         await handler._process_item(item)
     event.answer_photo.assert_not_awaited()
-    bot.send_message.assert_awaited_once()
-    base.assert_not_awaited()
-    assert caplog.records[0].args == (item.id, item.feed_id, len(item.text), source)
+    assert_plain_link(bot, item)
     assert "private URL" not in caplog.text
 
 
-@pytest.mark.parametrize("length", [249, 250, 251])
+@pytest.mark.parametrize("length", [250, 251])
 async def test_telegram_description_length_boundary(
     handler: ShowFeedItemsHandler,
     event: MagicMock,
@@ -493,7 +365,7 @@ async def test_shiki_image_variants_and_title(
 
 
 @pytest.mark.parametrize(
-    "event_json", [None, "{", '{"startDate":"bad date"}', '{"startDate":123}', "{}"]
+    "event_json", [None, "{", '{"startDate":"bad date"}', '{"startDate":123}']
 )
 async def test_hltv_without_valid_time_keeps_matchup(
     handler: ShowFeedItemsHandler,

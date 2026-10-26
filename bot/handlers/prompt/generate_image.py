@@ -3,12 +3,12 @@ import random
 
 from aiogram import Router
 from aiogram.types import (
-    Message,
     BufferedInputFile,
-    InputMediaPhoto,
     InputMediaAudio,
     InputMediaDocument,
+    InputMediaPhoto,
     InputMediaVideo,
+    Message,
 )
 
 from filters.command import CommandWithPrompt
