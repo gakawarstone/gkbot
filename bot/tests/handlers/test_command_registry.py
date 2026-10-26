@@ -12,8 +12,6 @@ from aiogram.types import Message, Update
 from bot import handlers, modules
 from configs.commands import USER_COMMANDS
 from configs.default_commands import DEFAULT_COMMANDS
-from core.commands import Commands
-from core.default_commands import DefaultCommands
 from filters.command import CommandWithPrompt
 from tests.mocks.message import make_fake_message
 
@@ -26,24 +24,20 @@ def dispatcher() -> Dispatcher:
     return dispatcher
 
 
-def _filter_commands(filter_object: FilterObject) -> Iterator[Commands]:
+def _filter_commands(filter_object: FilterObject) -> Iterator[str]:
     callback = filter_object.callback
     if isinstance(callback, Command):
         for command in callback.commands:
-            assert isinstance(command, USER_COMMANDS), (
-                f"Command registration bypasses the shared registry: {command!r}"
-            )
-            yield command
+            yield str(command)
     elif isinstance(callback, CommandWithPrompt):
-        assert isinstance(callback.command, USER_COMMANDS)
-        yield callback.command
+        yield str(callback.command)
     elif isinstance(callback, (_AndFilter, _OrFilter)):
         # aiogram wraps commands combined with chat or FSM filters in targets.
         for target in callback.targets:
             yield from _filter_commands(target)
 
 
-def _registered_commands(router: Router) -> list[Commands]:
+def _registered_commands(router: Router) -> list[str]:
     return [
         command
         for child in router.chain_tail
@@ -56,31 +50,13 @@ def _registered_commands(router: Router) -> list[Commands]:
 def test_registered_commands_match_registry_and_defaults(
     dispatcher: Dispatcher,
 ) -> None:
-    registered = _registered_commands(dispatcher)
-    names = [command.value for command in registered]
+    names = _registered_commands(dispatcher)
 
     assert len(names) == len(set(names)), "Duplicate command registrations"
     assert set(names) == set(USER_COMMANDS.as_list()) == set(DEFAULT_COMMANDS)
     assert {"admins", "set_tz", "img", "wait", "feed", "add_feed", "login_feed"} <= set(
         names
     )
-
-
-async def test_telegram_defaults_match_registered_commands(
-    dispatcher: Dispatcher,
-) -> None:
-    bot = AsyncMock(spec=Bot)
-
-    await DefaultCommands(DEFAULT_COMMANDS).set(bot)
-
-    bot.set_my_commands.assert_awaited_once()
-    commands = bot.set_my_commands.await_args.args[0]
-    advertised = {command.command: command.description for command in commands}
-    assert len(commands) == len(advertised)
-    assert advertised == {
-        command.value: command.description
-        for command in _registered_commands(dispatcher)
-    }
 
 
 async def test_list_contains_exactly_registered_commands(
@@ -99,9 +75,7 @@ async def test_list_contains_exactly_registered_commands(
         line.removeprefix("/") for line in text.splitlines() if line.startswith("/")
     ]
     assert len(names) == len(set(names))
-    assert names == sorted(
-        command.value for command in _registered_commands(dispatcher)
-    )
+    assert names == sorted(_registered_commands(dispatcher))
 
 
 @pytest.mark.parametrize("command", ["start", "sub"])

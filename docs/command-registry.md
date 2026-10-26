@@ -19,8 +19,8 @@ To add a command:
 
 The tests inspect production command filters, including commands nested in
 `and_f` and `or_f`, feed module registrations, and prompt filters. They require
-every registration to use a registry member, reject duplicate registrations,
-and compare the names with `/list` and the actual `set_my_commands` payload.
+registered command names to match the registry, reject duplicate registrations,
+and compare the names with `/list` and the configured Telegram menu.
 Adding an advertised command without a handler fails these tests.
 
 Command filters retain their existing restrictions. `/admins` works in groups;

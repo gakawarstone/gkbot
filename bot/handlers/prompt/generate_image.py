@@ -4,10 +4,8 @@ import random
 from aiogram import Router
 from aiogram.types import (
     BufferedInputFile,
-    InputMediaAudio,
-    InputMediaDocument,
     InputMediaPhoto,
-    InputMediaVideo,
+    MediaUnion,
     Message,
 )
 
@@ -16,9 +14,7 @@ from filters.command import CommandWithPrompt
 from services.agents.image_prompt_enhancer import ImagePromptEnhancer
 from services.http import HttpService
 
-_MEDIA_GROUP = list[
-    InputMediaAudio | InputMediaDocument | InputMediaPhoto | InputMediaVideo
-]
+_MEDIA_GROUP = list[MediaUnion]
 
 
 async def generate_image(m: Message) -> None:
