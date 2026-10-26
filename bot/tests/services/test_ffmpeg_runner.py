@@ -9,6 +9,7 @@ from unittest.mock import AsyncMock
 import pytest
 
 from services.ffmpeg_runner import FfmpegRunner
+from services.video_conversion import VideoConversionService
 
 
 @pytest.fixture(autouse=True)
@@ -31,7 +32,7 @@ async def test_run_executes_outside_the_event_loop(
     assert await FfmpegRunner.run(command, capture_output=True, text=True) is result
 
 
-async def test_ffmpeg_and_ffprobe_share_the_process_limit(
+async def test_ffmpeg_and_ffprobe_share_the_service_process_limit(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     started = asyncio.Event()
@@ -45,7 +46,9 @@ async def test_ffmpeg_and_ffprobe_share_the_process_limit(
 
     executor = AsyncMock(side_effect=execute)
     monkeypatch.setattr("services.ffmpeg_runner.async_wrap", lambda function: executor)
-    first = asyncio.create_task(FfmpegRunner.run(["ffmpeg"]))
+    first = asyncio.create_task(
+        VideoConversionService.convert_video("input.mp4", "output.mp4")
+    )
     await asyncio.wait_for(started.wait(), timeout=5)
     second = asyncio.create_task(FfmpegRunner.run(["ffprobe"]))
     try:
@@ -55,7 +58,8 @@ async def test_ffmpeg_and_ffprobe_share_the_process_limit(
     finally:
         release.set()
         results = await asyncio.wait_for(asyncio.gather(first, second), timeout=5)
-    assert [result.args for result in results] == [["ffmpeg"], ["ffprobe"]]
+    assert results[0] is None
+    assert results[1].args == ["ffprobe"]
     assert executor.await_count == 2
 
 
