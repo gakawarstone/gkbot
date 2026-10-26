@@ -1,9 +1,7 @@
 # Proposal to replace handler context field lookup
 
-Status: proposed, awaiting task-owner approval. No runtime change is authorized by
-this document. The owner must explicitly approve this design in the task thread
-before implementation starts; opening or merging this documentation PR alone
-does not record that approval.
+Status: proposed, awaiting explicit task-owner approval before runtime work.
+This documentation PR does not record that approval.
 
 Audited on 2026-10-23 at `dfdecceb2e97824e924538bf7720c2547a7156a7`, using
 Python 3.13.11 and the locked aiogram 3.26.0 installation.
@@ -12,8 +10,8 @@ Python 3.13.11 and the locked aiogram 3.26.0 installation.
 
 Keep the six dataclass context schemas and their existing flat storage keys.
 Replace expression-based field lookup with explicit string keys and validate
-values recursively against the schema on reads and writes. Keep the synchronous
-manager API over the mapping supplied as `handler.user_data`. This removes
+current field types and the elements of `messages` on reads and writes. Keep
+the synchronous manager API over the mapping supplied as `handler.user_data`. This removes
 `varname` without changing storage ownership, FSM state names, or user flows.
 
 The proposed call contract is:
@@ -31,9 +29,9 @@ An unknown set or exclusion key raises `KeyError` before any mutation. A wrapper
 may forward the strings normally; caller stack depth has no meaning.
 
 Use `dataclasses.fields` for schema fields and `typing.get_type_hints` for resolved
-annotations. Compile/cache validation rules per schema class. Class methods and
-other non-field attributes must never become stored fields. Do not serialize the
-dataclass or replace the supplied mapping.
+annotations. Class methods and other non-field attributes must never become
+stored fields. No rule compilation or cache is needed for these six small schemas.
+Do not serialize the dataclass or replace the supplied mapping.
 
 ## What the current manager actually stores
 
@@ -58,11 +56,12 @@ Schema `_ChatGPTContext`, manager `ChatGPTContextManager`, defined in
 - `chatgpt/answer.py`, `AnswerHandler`, appends the prompt and generated answer,
   and joins the history for the model request.
 
-Keep the prompt/history behavior. Replace all three in-place appends with a new
-list passed to `set("messages", ...)`, so writes pass element validation. Give
-the cleanup override a typed `*preserve: str` signature and preserve its fresh-list
-initialization. `chatgpt/exit.py` delegates to the shared FSM exit handler and
-does not use this manager.
+Keep the three existing appends and prompt/history behavior. Their writers
+produce strings; validate the stored list on context reads and explicit sets,
+without copying history or introducing a mutation wrapper. Update the cleanup
+override to `*preserve: str` and keep its fresh-list initialization.
+`chatgpt/exit.py` delegates to the shared FSM exit handler and does not use
+this manager.
 
 ### Download
 
@@ -184,156 +183,115 @@ repository-wide import/base-class and call-site inventory.
 
 ## Alternatives considered
 
-1. **Explicit keys with the existing dataclass view, recommended.** Smallest
-   migration for all consumers. Schema annotations remain the source of validation
-   rules. String keys need runtime membership checks; static checking alone cannot
-   correlate a string argument with its value type. Per-schema `Literal` key
-   aliases may help editors later, but are not required for correctness.
-2. **Serialize dataclasses into stored dictionaries.** Field discovery removes
-   stack inspection, but `asdict` recursively converts nested dataclasses and
-   containers and deep-copies other objects. That is unnecessary for live widget
-   messages. Dataclasses do not enforce annotation types. Whole-object writes can
-   overwrite unrelated middleware keys unless carefully merged. Use dataclasses
-   as views, without serialization.
-3. **Typed mappings with `TypedDict`.** Literal indexing is explicit and useful
-   for static checks, but runtime values are still dictionaries. This needs the
-   same runtime validation policy, plus conversion of every `ctx.field` read and
-   handling of absent keys. It offers too little benefit for this migration.
-4. **Direct aiogram FSM data access.** `get_data`, `set_data`, and `update_data`
-   exist in installed aiogram 3.26.0 and are asynchronous. Moving context there
-   would change storage ownership, nested-handler requirements, mutable history
-   writes, and session identity. The current middleware is per-user; the configured
-   Dispatcher defaults to `FSMStrategy.USER_IN_CHAT`. `FSMContext.clear()` also
-   clears FSM data, whereas today it leaves the separate middleware data alone.
-   A future storage/isolation migration needs its own design and compatibility
-   tests. It should not be hidden in a field-lookup replacement.
+1. Explicit keys with the existing dataclass view, recommended. Keep typed
+   `ctx.field` reads and check string keys against the schema at runtime.
+2. Dataclass serialization. `asdict` copies objects and does not validate types.
+   Serializing live widget messages is unnecessary; retain dataclasses as views.
+3. `TypedDict`. Literal indexing helps static checking but needs the same runtime
+   validation and changes every `ctx.field` read. It adds migration work here.
+4. Direct aiogram FSM data. Installed aiogram 3.26.0 has asynchronous `get_data`,
+   `set_data`, and `update_data`. Moving the fields there changes storage ownership,
+   requires state in nested handlers, and changes cleanup. `FSMContext.clear()`
+   clears FSM data, but currently leaves middleware data alone. The middleware
+   is per-user; Dispatcher defaults to `FSMStrategy.USER_IN_CHAT`. Those are
+   separate storage/isolation decisions.
 
 ## Runtime validation policy to approve
 
-- Resolve annotations from trusted schema classes once. Support `Any`, ordinary
-  concrete classes, `None`, `Optional[T]`, `typing.Union`, `T | U`, `list[T]`, and
-  `dict[K, V]`, including nested combinations. This is a deliberately bounded
-  validator, not an implementation of the full Python typing language.
-- For scalar `str`, `int`, `float`, `bool`, `date`, `time`, and `timedelta`, require
-  the exact concrete type. Thus `bool` is rejected for `int`, and `datetime` for
-  `date`. For other concrete classes use `isinstance`, so a `Message` subclass is
-  accepted. `Any` accepts every value. Never coerce strings/numbers or deserialize
-  dictionaries into messages.
-- For `list[T]` and `dict[K, V]`, require the corresponding concrete outer type
-  and validate every element or key/value recursively using `get_origin` and
-  `get_args`. An empty container is valid; `list[str]` accepts `["a"]` and rejects
-  `["a", 1]`. Do not pass a parameterized annotation to `isinstance` or compare
-  it with `type(value)`.
-- All current schemas are optional with a `None` default. Missing keys read as
-  that default without inserting data. Explicit `None` is accepted only by
-  nullable annotations or `Any`. This deliberately makes nullable writes
-  consistent with existing nullable reads and cleanup.
-- Reject unsupported annotations, unresolved references, unparameterized
-  containers, or fields without a nullable `None` default as a schema
-  `TypeError` before accessing or mutating storage. Tuples, sets, `Literal`,
-  protocols, recursive schemas, and type aliases declared with `type` need an
-  explicit future extension and tests. Remove the ChatGPT raw-list workaround
-  in the same runtime change so it never encounters this rejection.
-- Validate the entire schema view on `ctx` reads and the target value on `set`.
-  A value mismatch raises `ContextValidationError`, a `ValueError` subclass,
-  with schema, field/element path, expected type, and actual type. Do not include
-  the value or chat history in errors. Invalid writes leave storage unchanged;
-  invalid reads leave existing session data available for diagnosis or restart.
-- `clean_context(*preserve: str) -> None` checks every exclusion first, then sets
-  only this schema's other keys to `None`, including previously absent keys.
-  It must work even if old values are invalid and leave all unrelated keys intact.
-- Preserve object identity in the dataclass view, including the live widget
-  message. Returned mutable containers remain aliases, as today; the manager
-  cannot intercept arbitrary mutation or direct middleware writes. Revalidate on
-  the next read. Migrate ChatGPT to replacement-list writes so its known writes
-  validate before storage mutation. This proposal does not promise immutable
-  snapshots or atomic multi-update transactions.
+Support the annotations actually needed by these schemas: nullable concrete
+classes, `Any`, and `list[str] | None`. Accept both `Optional[T]` and `T | None`
+spellings. Keep one validation helper shared by reads and writes; no validator
+registry, compiled rules, or custom exception class is needed.
+
+- For concrete classes, retain today's exact type check, including `str`, `int`,
+  `date`, `time`, `timedelta`, and `Message`. This preserves existing behavior
+  and rejects `bool` for `int` and `datetime` for `date`. `Any` accepts any value.
+- For `list[str]`, require a concrete list and check every element is a concrete
+  string. Empty lists are valid; `["a", 1]` is invalid. Use `get_origin` and
+  `get_args` to recognize the annotation. Do not compare `type(value)` with
+  `list[str]`. No current field needs dictionaries, nested containers, or
+  multi-type unions, so do not add support for them in this migration.
+- All current fields default to `None`. Missing keys read as `None` without
+  insertion; explicit `None` is valid for nullable fields and `Any`. Reject an
+  unsupported annotation with `TypeError`, rather than silently skipping checks.
+- Validate all schema fields on `ctx` reads and the target field on `set`.
+  Raise the existing `ValueError` for a value mismatch, adding the schema/key,
+  failing list index when applicable, and expected/actual type. Never include
+  stored values. Failed reads/writes must leave the mapping unchanged.
+- `clean_context(*preserve: str) -> None` checks every exclusion key first, then
+  sets only this schema's other keys to `None`, including absent keys. It must
+  recover invalid old values and preserve unrelated data without reading it.
+- Keep object identity, including live `Message` objects and history lists.
+  Direct middleware writes and in-place list mutation bypass `set`; validate
+  them on the next `ctx` read. This matches the existing mutable mapping contract.
 
 ## Migration and session compatibility
 
-1. Record owner approval of this recommendation and policy, or revise this
-   document to the owner's chosen alternative. Do not start runtime work first.
-2. Implement schema discovery, key checks, and the bounded validator in the
-   existing `extensions/handlers/context_manager` package. Retain `BaseContext`,
-   `BaseContextManager`, `props`, `ctx`, and `user_data` so handler inheritance
-   and callback/message construction do not need a redesign.
-3. Convert every writer/exclusion listed above in one runtime PR. Change
-   ChatGPT to `list[str] | None`, replace history appends with validated setters,
-   and update its cleanup override. There is no compatibility adapter for the
-   old expression-based API, since such an adapter would retain stack inspection.
-4. Replace the helper tests with explicit-key/schema tests and add the behavior
-   checks below. Remove `Property`, `make_prop`, `make_args_names_list`,
-   `uncast_opt`, and other obsolete helpers after all callers are gone.
-5. Verify there are no remaining `varname` consumers, then remove its direct
-   dependency and refresh `uv.lock` and generated requirement exports using the
-   repository workflow. Do not manually remove transitive packages still needed
-   by other dependencies.
+After owner approval, make one runtime change in the existing manager package:
 
-Keep every stored key, FSM state string, middleware mapping, and nested-handler
-handoff unchanged. Existing valid raw-list ChatGPT histories already containing
-strings pass the new annotation. Histories containing other objects now fail
-validation and require an explicit flow restart; do not silently drop or coerce
-history. A fresh ChatGPT initialization clears invalid history and creates an
-empty validated list. Other flow entrypoints similarly reset only their schema.
+1. Replace stack-based lookup with dataclass field discovery and explicit keys.
+   Keep `BaseContext`, `BaseContextManager`, `props`, `ctx`, and `user_data`.
+   Convert all writers/exclusions listed above, update the ChatGPT cleanup
+   override, and change its annotation to `list[str] | None` together.
+2. Update the tests below and remove obsolete `Property` and stack-inspection
+   helpers. Once no consumers remain, remove the direct `varname` dependency
+   and regenerate the lockfile and requirement exports using repository commands.
 
-The production process currently loses both middleware data and FSM memory on a
-restart, so a normal code deployment cannot preserve sessions across that restart.
-For a retained mapping in tests or a future hot reload, the key/value layout is
-compatible and must be covered by fixtures that prepopulate legacy dictionaries.
-There is no durable context format or serializer introduced here. Future Redis
-storage would need codecs for `Message`, date/time, and timedelta, plus a versioned
-session migration. `Any` fields and shared flat keys remain compatibility debts.
+Keep storage keys, FSM state names, mapping handoffs, and `state.clear()` behavior.
+Valid existing values need no conversion. ChatGPT histories containing non-strings
+will now fail validation; do not silently filter or coerce them. An explicit
+ChatGPT restart clears that history and initializes a fresh list. Cleanup must
+work even when old values fail validation.
 
-The flat `"message"` key is shared by reminder and add-book flows. Per-user data
-can also leak between chats; replacing keys does not fix that existing behavior.
-The private-topics work should define mapping ownership using its approved
-`bot/chat/user/message_thread_id` identity and inject the appropriate mapping
-through the existing `user_data` contract. This manager must neither construct
-that identity nor read it from stack frames. Draft/status/error thread routing
-belongs to that downstream task. This proposal supplies no runtime prerequisite
-until owner approval and a separate implementation are complete.
+Both current stores are in memory and lose sessions on process restart. Test
+compatibility by prepopulating mappings with the old key/value layout, without
+adding a serializer or a session migration system. Old expression-based callers
+and new string-key callers must change together; no stack-based compatibility
+adapter is proposed.
 
-Rollback means deploying the old code, with the same restart-related session
-loss. Valid new values use the old layout; the old API still needs its old
-callers and `varname` dependency together. Do not mix old/new call signatures
-within one deployment. Preserve `state.clear()` behavior and current FSM scope
-in this replacement; coordinate any later storage change explicitly.
+The shared flat `"message"` key and per-user scope remain existing limitations.
+Private-topics work owns mapping isolation by `bot/chat/user/message_thread_id`
+and draft/status/error routing. Its mapping should enter through `user_data`;
+this manager does not determine session identity. This proposal is not an
+implemented runtime prerequisite for that work.
 
 ## Required checks for the runtime PR
 
-- Preserve the seven existing manager behaviors, replacing expression arguments
-  with strings. Give each test a fresh mapping so order cannot affect results.
-- Verify keys passed through local variables and wrapper functions; test unknown
-  set/exclusion keys, including a valid exclusion followed by an invalid one,
-  with no partial mutation. A method on a schema must not become a data field.
-- Test nullable writes, empty and populated `list[str]`, nested lists/dicts,
-  both union spellings, wrong outer/element/key/value types, strict integers,
-  `Any`, live `Message` identity/subclasses, and unsupported schema failures.
-  Test both read and write paths and error messages without stored contents.
-- Prepopulate each of the six contexts with its legacy key/value layout, then
-  read, update, and clean it. Preserve unrelated sentinel keys and
-  `delete_queue`; verify the reminder timezone exclusion and both book-edit
-  exclusions. Confirm cleanup can recover an invalid old value.
-- Exercise ChatGPT initialization and two answers with fresh validated lists,
-  correct history order, and no raw-list annotation or direct append remaining.
-- Exercise add-book completion, reminder completion, book callback-to-message
-  editing, download filename use, and road-settings callback-to-message update
-  with real handler context injection and mocked external I/O. Assert the same
-  mapping reaches nested handlers and existing FSM transitions stay intact.
-- Re-run `bot/tests/middlewares/test_downstream_results.py`,
-  `bot/tests/middlewares/test_delete_queue.py`, and the full suite. Run lint on
-  changed Python files and distinguish existing imported-module findings.
+- Preserve the seven existing manager tests with explicit keys and fresh mappings.
+  Replace the `make_prop` test with variable/wrapper key tests. Check unknown
+  set/exclusion keys cause no mutation, even after a valid exclusion, and schema
+  methods are not treated as fields.
+- Test concrete types, `Any`, nullable fields in both spellings, empty/populated
+  `list[str]`, wrong outer/element types, and unsupported annotations. Cover read
+  and write paths, error messages without values, and detection of an invalid
+  direct list mutation on the next read.
+- Prepopulate all six legacy contexts and test reads, updates, and cleanup.
+  Preserve widget/list identity, unrelated keys, `delete_queue`, the reminder
+  timezone exclusion, and both book-edit exclusions. Cleanup must recover invalid
+  data without partial mutation.
+- Check ChatGPT initialization and answer history order, add-book and reminder
+  completion, download filename use, and both callback-to-message flows for book
+  editing and road settings. Keep the same mapping in nested handlers and the
+  existing FSM transitions; mock external I/O.
+- Run the context and middleware tests, the full suite, and lint on changed Python
+  files. Distinguish existing lint findings from new ones.
 
 ## Evidence for this documentation PR
 
-- `uv sync --locked` created a local worktree environment without changing the
-  lockfile. No root checkout or root `.env` was used.
+Baseline checks on 2026-10-23:
+
 - `make test FILE=bot/tests/contrib`: 8 passed, with two existing `varname`
   warnings about fallback evaluation.
 - `make test`: 105 passed, 13 skipped, five existing warnings.
 - `make lint FILE=bot/extensions/handlers/context_manager`: stopped at 13
   existing Ruff findings in unchanged code; later lint stages did not run.
   This documentation PR does not repair those findings.
+
+Self-review on 2026-10-26 checked the proposal against the original task and
+current consumers: all six schemas, 16 fields, six managers, and 24 consumer
+classes remain covered. Documentation links, example syntax, whitespace, and the
+documentation-only diff passed checks. `make test` again passed with 105 passed,
+13 skipped, and five existing warnings. Lint was not repeated for text changes.
 
 API choices were checked against the installed aiogram symbols/signatures and
 these official references:
@@ -350,7 +308,6 @@ these official references:
 
 ## Owner decision
 
-Please explicitly approve the recommended explicit-key dataclass adapter,
-validation policy, and preservation of the current storage boundary, or name an
-alternative above. Approval is pending. Keep the task file until that decision
-is recorded; this documentation PR alone does not complete its acceptance criteria.
+Approve the explicit-key dataclass view, current-type validation plus `list[str]`,
+and preservation of the storage boundary, or choose an alternative above.
+The task stays open until the decision is recorded. Runtime remains unchanged.
