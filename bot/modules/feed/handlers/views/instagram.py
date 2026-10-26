@@ -1,5 +1,4 @@
 import base64
-import binascii
 
 from aiogram.types import BufferedInputFile
 from bs4 import BeautifulSoup, Tag
@@ -36,7 +35,7 @@ class InstagramFeedItemView(BaseFeedItemView):
             raise FeedMediaExtractionError("Image data URL has no payload")
         try:
             photo_data = base64.b64decode(encoded, validate=True)
-        except (binascii.Error, ValueError) as error:
+        except ValueError as error:
             raise FeedMediaExtractionError("Invalid base64 image") from error
         photo = BufferedInputFile(photo_data, filename="image.jpg")
 

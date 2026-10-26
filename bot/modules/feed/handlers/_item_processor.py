@@ -31,10 +31,6 @@ _ITEM_PROCESSOR = Callable[[FeedItem], Awaitable[Any]]
 logger = logging.getLogger(__name__)
 
 
-class _RedactedFeedError(Exception):
-    """Keep error type and stack frames without URL/payload-bearing messages."""
-
-
 class GkfeedItemProcessorExtension(
     SasflixFeedItemView,
     HltvFeedItemView,
@@ -88,10 +84,7 @@ class GkfeedItemProcessorExtension(
     async def _process_item(self, item: FeedItem) -> None:
         for prefix, processor in self._processors.items():
             if item.link.startswith(prefix):
-                processor_name = getattr(
-                    processor, "__name__", type(processor).__name__
-                )
-                await self._run_processor(item, processor, processor_name)
+                await self._run_processor(item, processor, processor.__name__)
                 return
 
         await self._run_processor(item, self._process_base_item, "_process_base_item")
@@ -104,7 +97,7 @@ class GkfeedItemProcessorExtension(
         except RECOVERABLE_FEED_ERRORS as error:
             # Exception messages and chains can contain credentials, URLs or media.
             # Preserve the original frames, but log only the exception class name.
-            safe_error = _RedactedFeedError(type(error).__name__)
+            safe_error = Exception(type(error).__name__)
             logger.error(
                 "Failed to process feed item id=%s feed_id=%s text_length=%s processor=%s",
                 item.id,
