@@ -104,10 +104,10 @@ Run the runtime and static contract regressions together:
 make test FILE=bot/tests/middlewares
 ```
 
-`test_data_typing.py` runs mypy and pyright against positive and intentionally
-invalid fixtures in `typing_tests/middleware_data`. Every marked invalid line
-must produce an error in each checker. Those files live outside `bot/` so
-regular linting does not include expected failures. The test configures import
+`test_data_typing.py` runs mypy and pyright against intentionally invalid uses
+of the project injection contract in `typing_tests/middleware_data/invalid.py`.
+Every marked line must produce an error in each checker. The fixture lives
+outside `bot/` so regular linting does not include expected failures. The test configures import
 paths and uses mypy's silent imported-module diagnostics to isolate the fixture
 from unrelated repository errors.
 

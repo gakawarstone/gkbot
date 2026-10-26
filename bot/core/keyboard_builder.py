@@ -1,7 +1,7 @@
 from typing import Optional
 
-from aiogram.types.reply_keyboard_markup import ReplyKeyboardMarkup
 from aiogram.types.keyboard_button import KeyboardButton
+from aiogram.types.reply_keyboard_markup import ReplyKeyboardMarkup
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 
 
