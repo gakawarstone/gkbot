@@ -8,7 +8,9 @@ from typing import Any, cast
 import yt_dlp
 from aiogram.types import FSInputFile, InputFile, URLInputFile
 
-from services.ffmpeg import FfmpegService
+from services.audio import AudioService
+from services.video_conversion import VideoConversionService
+from services.video_metadata import VideoMetadataService
 from utils.async_wrapper import async_wrap
 from workers.yt_dlp import download_video, get_info
 
@@ -36,7 +38,7 @@ class YtdlpDownloader:
             file = await cls._download_file(url, opts, source)
             if isinstance(file, URLInputFile):
                 output_path = cast(str, opts["outtmpl"])
-                await FfmpegService.download_and_prepare_audio(
+                await AudioService.download_and_prepare_audio(
                     file.url, os.path.dirname(output_path)
                 )
                 file = FSInputFile(output_path)
@@ -84,7 +86,7 @@ class YtdlpDownloader:
             return info
 
         try:
-            metadata = await FfmpegService.get_video_metadata(str(file.path))
+            metadata = await VideoMetadataService.get_video_metadata(str(file.path))
         except SubprocessError:
             return info
 
@@ -138,7 +140,7 @@ class YtdlpDownloader:
         if source.needs_video_conversion:
             base, _ = os.path.splitext(output_path)
             converted_path = f"{base}_converted.mp4"
-            await FfmpegService.convert_video(output_path, converted_path)
+            await VideoConversionService.convert_video(output_path, converted_path)
             output_path = converted_path
 
         return FSInputFile(output_path)

@@ -8,8 +8,8 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from services.ffmpeg import FfmpegService
 from services.ffmpeg_runner import FfmpegRunner
+from services.video_conversion import VideoConversionService
 
 
 @pytest.fixture(autouse=True)
@@ -46,7 +46,9 @@ async def test_ffmpeg_and_ffprobe_share_the_service_process_limit(
 
     executor = AsyncMock(side_effect=execute)
     monkeypatch.setattr("services.ffmpeg_runner.async_wrap", lambda function: executor)
-    first = asyncio.create_task(FfmpegService.convert_video("input.mp4", "output.mp4"))
+    first = asyncio.create_task(
+        VideoConversionService.convert_video("input.mp4", "output.mp4")
+    )
     await asyncio.wait_for(started.wait(), timeout=5)
     second = asyncio.create_task(FfmpegRunner.run(["ffprobe"]))
     try:

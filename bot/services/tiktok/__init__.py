@@ -11,6 +11,7 @@ from aiogram.types import FSInputFile
 from services.cache_dir import CacheDir
 from services.ffmpeg import FfmpegService
 from services.http import HttpService
+from services.video_metadata import VideoMetadataService
 
 from .exceptions import TikTokInfoExtractionFailed, TikTokVideoUrlExtractionFailed
 from .extractor import TikTokInfoExtractor
@@ -85,7 +86,7 @@ class TikTokService:
 
         try:
             if isinstance(info.video_input_file, FSInputFile):
-                metadata = await FfmpegService.get_video_metadata(
+                metadata = await VideoMetadataService.get_video_metadata(
                     str(info.video_input_file.path)
                 )
             else:
