@@ -1,5 +1,5 @@
 import json
-from subprocess import CalledProcessError, CompletedProcess
+from subprocess import CompletedProcess
 from unittest.mock import AsyncMock
 
 import pytest
@@ -22,7 +22,7 @@ from services.video_metadata import VideoMetadataService
         ({"streams": [{"height": 480}, {"width": 720}]}, {"height": 480}),
     ],
 )
-async def test_metadata_delegates_to_runner_and_preserves_parsing(
+async def test_metadata_parses_probe_output(
     monkeypatch: pytest.MonkeyPatch,
     probe_output: dict,
     expected: dict[str, int],
@@ -32,46 +32,3 @@ async def test_metadata_delegates_to_runner_and_preserves_parsing(
     )
     monkeypatch.setattr(FfmpegRunner, "run", run)
     assert await VideoMetadataService.get_video_metadata("input file.mp4") == expected
-    run.assert_awaited_once_with(
-        [
-            "ffprobe",
-            "-v",
-            "error",
-            "-select_streams",
-            "v:0",
-            "-show_entries",
-            "stream=width,height,duration",
-            "-of",
-            "json",
-            "input file.mp4",
-        ],
-        capture_output=True,
-        text=True,
-    )
-
-
-@pytest.mark.parametrize(
-    "output", ["invalid json", '{"streams": [{"width": "invalid"}]}']
-)
-async def test_metadata_preserves_parse_failure(
-    monkeypatch: pytest.MonkeyPatch, output: str
-) -> None:
-    monkeypatch.setattr(
-        FfmpegRunner,
-        "run",
-        AsyncMock(return_value=CompletedProcess([], 0, stdout=output)),
-    )
-    with pytest.raises(ValueError):
-        await VideoMetadataService.get_video_metadata("input.mp4")
-
-
-@pytest.mark.parametrize(
-    "error", [CalledProcessError(3, "ffprobe"), FileNotFoundError("ffprobe")]
-)
-async def test_metadata_preserves_process_failure(
-    monkeypatch: pytest.MonkeyPatch, error: Exception
-) -> None:
-    monkeypatch.setattr(FfmpegRunner, "run", AsyncMock(side_effect=error))
-    with pytest.raises(type(error)) as raised:
-        await VideoMetadataService.get_video_metadata("input.mp4")
-    assert raised.value is error

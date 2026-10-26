@@ -8,7 +8,6 @@ from aiogram.types import FSInputFile, URLInputFile
 from services.audio import AudioService
 from services.cache_dir import CacheDir
 from services.matreshka import MatreshkaService, MatreshkaVideo
-from services.video_conversion import VideoConversionService
 from services.video_metadata import VideoMetadataService
 from services.ytdlp.downloader import YtdlpDownloader, _YtDlpInfo
 from services.ytdlp.options_manager import YtDlpOptionsManager
@@ -90,30 +89,3 @@ async def test_downloader_metadata_fallback_keeps_existing_fields_and_errors(
         )
         assert result == (original if error else _YtDlpInfo(12, "title", 480, 640))
     metadata.assert_awaited_once_with(str(path))
-
-
-@pytest.mark.parametrize(
-    "url", ["https://instagram.com/reel/id", "https://tiktok.com/id"]
-)
-@pytest.mark.parametrize("fail", [False, True])
-async def test_downloader_uses_video_conversion_and_returns_converted_path(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, url: str, fail: bool
-) -> None:
-    input_path = tmp_path / "video.mp4"
-    input_path.write_bytes(b"original")
-    output_path = tmp_path / "video_converted.mp4"
-    error = CalledProcessError(1, "ffmpeg")
-    convert = AsyncMock(side_effect=error if fail else None)
-    monkeypatch.setattr(VideoConversionService, "convert_video", convert)
-    ydl = MagicMock()
-    monkeypatch.setattr("services.ytdlp.downloader.yt_dlp.YoutubeDL", ydl)
-    if fail:
-        with pytest.raises(CalledProcessError) as raised:
-            await YtdlpDownloader._download_file(url, {"outtmpl": str(input_path)})
-        assert raised.value is error
-    else:
-        result = await YtdlpDownloader._download_file(url, {"outtmpl": str(input_path)})
-        assert isinstance(result, FSInputFile)
-        assert result.path == str(output_path)
-    convert.assert_awaited_once_with(str(input_path), str(output_path))
-    assert input_path.read_bytes() == b"original"

@@ -1,5 +1,4 @@
 import os
-import re
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
@@ -17,6 +16,7 @@ from workers.yt_dlp import download_video, get_info
 
 from ._types import AudioFileInfo, VideoFileInfo
 from .options_manager import YtDlpOptionsManager
+from .source import DownloadSource, classify_source
 
 
 @dataclass(frozen=True)
@@ -31,10 +31,11 @@ class YtdlpDownloader:
     @classmethod
     @asynccontextmanager
     async def download_audio(cls, url: str) -> AsyncIterator[AudioFileInfo]:
-        info = await cls._get_info(url)
-        opts, cache_dir = YtDlpOptionsManager.choose_audio_options(url)
+        source = classify_source(url)
+        info = await cls._get_info(url, source)
+        opts, cache_dir = YtDlpOptionsManager.choose_audio_options(source)
         try:
-            file = await cls._download_file(url, opts)
+            file = await cls._download_file(url, opts, source)
             if isinstance(file, URLInputFile):
                 output_path = cast(str, opts["outtmpl"])
                 await AudioService.download_and_prepare_audio(
@@ -55,10 +56,11 @@ class YtdlpDownloader:
     async def download_video(
         cls, url: str, cleanup_delay_minutes: int | None = None
     ) -> AsyncIterator[VideoFileInfo]:
-        info = await cls._get_info(url)
-        opts, cache_dir = YtDlpOptionsManager.choose_video_options(url)
+        source = classify_source(url)
+        info = await cls._get_info(url, source)
+        opts, cache_dir = YtDlpOptionsManager.choose_video_options(source)
         try:
-            file = await cls._download_file(url, opts)
+            file = await cls._download_file(url, opts, source)
             info = await cls._fill_missing_metadata(info, file)
 
             yield VideoFileInfo(
@@ -96,8 +98,8 @@ class YtdlpDownloader:
         )
 
     @classmethod
-    async def _get_info(cls, url: str) -> _YtDlpInfo:
-        if re.match(r"^https://(?:www\.)?youtu", url):
+    async def _get_info(cls, url: str, source: DownloadSource) -> _YtDlpInfo:
+        if source.uses_worker:
             raw_info = await get_info(url)
         else:
             with yt_dlp.YoutubeDL() as ydl:
@@ -114,8 +116,10 @@ class YtdlpDownloader:
         )
 
     @classmethod
-    async def _download_file(cls, url: str, opts: dict[str, Any]) -> InputFile:
-        if re.match(r"^https://(?:www\.)?youtu", url):
+    async def _download_file(
+        cls, url: str, opts: dict[str, Any], source: DownloadSource
+    ) -> InputFile:
+        if source.uses_worker:
             url = await download_video(url, opts)
             return URLInputFile(url)
 
@@ -133,7 +137,7 @@ class YtdlpDownloader:
                 if "preferredcodec" in postprocessor:
                     output_path += "." + postprocessor["preferredcodec"]
 
-        if "instagram.com/reel" in url or "tiktok.com" in url:
+        if source.needs_video_conversion:
             base, _ = os.path.splitext(output_path)
             converted_path = f"{base}_converted.mp4"
             await VideoConversionService.convert_video(output_path, converted_path)

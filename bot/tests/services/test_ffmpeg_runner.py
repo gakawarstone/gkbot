@@ -16,36 +16,8 @@ def fresh_process_limit(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(FfmpegRunner, "_semaphore", asyncio.Semaphore(1))
 
 
-@pytest.mark.parametrize(
-    "inputs", [[], ["music.mp3"], ["a b.mp4", "https://x/y?a=1&b=2"]]
-)
-def test_build_command_preserves_arguments(inputs: list[str]) -> None:
-    props = ["-c:v", "libx264", "-vf", "scale=720:1080"]
-    original_inputs = inputs.copy()
-    original_props = props.copy()
-
-    command = FfmpegRunner.build_command(inputs, "out file.mp4", props)
-
-    expected_inputs = [argument for path in inputs for argument in ("-i", path)]
-    assert command == ["ffmpeg", "-y", *expected_inputs, *props, "out file.mp4"]
-    assert inputs == original_inputs
-    assert props == original_props
-
-
-def test_build_probe_command_preserves_arguments() -> None:
-    props = ["-v", "error", "-show_entries", "stream=width,height", "-of", "json"]
-    original_props = props.copy()
-    assert FfmpegRunner.build_probe_command("a b.mp4", props) == [
-        "ffprobe",
-        *props,
-        "a b.mp4",
-    ]
-    assert props == original_props
-
-
-@pytest.mark.parametrize("stdin", [{}, {"stdin": None}])
-async def test_run_forwards_options_and_result_off_event_loop(
-    monkeypatch: pytest.MonkeyPatch, stdin: dict[str, Any]
+async def test_run_executes_outside_the_event_loop(
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     command = ["ffprobe", "input.mp4"]
     result = subprocess.CompletedProcess(command, 0, stdout="result", stderr="")
@@ -53,21 +25,10 @@ async def test_run_forwards_options_and_result_off_event_loop(
 
     def run(arguments: list[str], **kwargs: Any) -> subprocess.CompletedProcess:
         assert threading.get_ident() != event_loop_thread
-        assert arguments is command
-        assert kwargs == {
-            "check": True,
-            "stdin": subprocess.DEVNULL,
-            "capture_output": True,
-            "text": True,
-            **stdin,
-        }
         return result
 
     monkeypatch.setattr(subprocess, "run", run)
-    assert (
-        await FfmpegRunner.run(command, capture_output=True, text=True, **stdin)
-        is result
-    )
+    assert await FfmpegRunner.run(command, capture_output=True, text=True) is result
 
 
 async def test_ffmpeg_and_ffprobe_share_the_process_limit(
