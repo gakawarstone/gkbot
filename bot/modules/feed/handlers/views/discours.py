@@ -1,5 +1,6 @@
-from services.http import HttpService
 from services.gkfeed import FeedItem
+from services.http import HttpService
+
 from . import BaseFeedItemView
 
 

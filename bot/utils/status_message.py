@@ -5,11 +5,19 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 
+from aiogram.client.default import Default
 from aiogram.enums import ChatType
 from aiogram.exceptions import TelegramAPIError, TelegramBadRequest
-from aiogram.types import CallbackQuery, EphemeralMessageParameters, Message
+from aiogram.types import (
+    CallbackQuery,
+    EphemeralMessageParameters,
+    LinkPreviewOptions,
+    Message,
+)
 
 logger = logging.getLogger(__name__)
+_DEFAULT_PARSE_MODE = Default("parse_mode")
+_DEFAULT_LINK_PREVIEW = Default("link_preview")
 
 
 @dataclass
@@ -58,14 +66,26 @@ class StatusMessage:
         """Preserve an error notice, matching the ordinary-message behavior."""
         self._keep = True
 
-    async def publish(self, text: str) -> Message:
+    async def publish(
+        self,
+        text: str,
+        *,
+        parse_mode: str | Default | None = _DEFAULT_PARSE_MODE,
+        link_preview_options: LinkPreviewOptions
+        | Default
+        | None = _DEFAULT_LINK_PREVIEW,
+    ) -> Message:
         """Turn a waiting notice into a persistent generation response."""
         if self._message.ephemeral_message_id is None:
-            await self._message.edit_text(text)
+            await self._message.edit_text(
+                text, parse_mode=parse_mode, link_preview_options=link_preview_options
+            )
             self.keep()
             return self._message
         await self.delete()
-        return await self._message.answer(text)
+        return await self._message.answer(
+            text, parse_mode=parse_mode, link_preview_options=link_preview_options
+        )
 
 
 async def send_status(

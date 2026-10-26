@@ -1,7 +1,8 @@
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from models.books import Book
+
 from .base import BaseMarkup
 from .types import _Events
 

@@ -134,7 +134,11 @@ async def test_generation_wait_is_temporary_and_final_response_persists(
     module = import_module(
         "handlers.user.chatgpt.answer" if source == "chat" else "handlers.user.cvision"
     )
-    monkeypatch.setattr(module, "time", SimpleNamespace(time=lambda: next(clock)))
+    monkeypatch.setattr(
+        module,
+        "time",
+        SimpleNamespace(time=lambda: next(clock), monotonic=lambda: next(clock)),
+    )
     if source == "chat":
         monkeypatch.setattr(OpenRouter, "stream", chat_stream)
         handler = ChatAnswerHandler(

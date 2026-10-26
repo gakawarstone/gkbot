@@ -1,11 +1,12 @@
 from aiogram import Router
-from aiogram.filters import StateFilter, Command, or_f
+from aiogram.filters import Command, StateFilter, or_f
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
-from ui.static import Images
-from ui.keyboards.road import RoadMarkup
 from configs.commands import USER_COMMANDS
+from ui.keyboards.road import RoadMarkup
+from ui.static import Images
+
 from .states import FSM
 
 
