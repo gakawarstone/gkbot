@@ -46,7 +46,7 @@ async def test_ffmpeg_and_ffprobe_share_the_service_process_limit(
 
     executor = AsyncMock(side_effect=execute)
     monkeypatch.setattr("services.ffmpeg_runner.async_wrap", lambda function: executor)
-    first = asyncio.create_task(FfmpegService._run_command(["ffmpeg"]))
+    first = asyncio.create_task(FfmpegService.convert_video("input.mp4", "output.mp4"))
     await asyncio.wait_for(started.wait(), timeout=5)
     second = asyncio.create_task(FfmpegRunner.run(["ffprobe"]))
     try:
@@ -56,7 +56,8 @@ async def test_ffmpeg_and_ffprobe_share_the_service_process_limit(
     finally:
         release.set()
         results = await asyncio.wait_for(asyncio.gather(first, second), timeout=5)
-    assert [result.args for result in results] == [["ffmpeg"], ["ffprobe"]]
+    assert results[0] is None
+    assert results[1].args == ["ffprobe"]
     assert executor.await_count == 2
 
 

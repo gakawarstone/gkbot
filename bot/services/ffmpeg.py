@@ -2,8 +2,6 @@ import asyncio
 import json
 import shutil
 from pathlib import Path
-from subprocess import CompletedProcess
-from typing import Any
 
 from services.cache_dir import CacheDir
 from services.ffmpeg_runner import FfmpegRunner
@@ -41,20 +39,20 @@ class FfmpegService:
         try:
             cache_dir.save_file("music.mp3", music)
 
-            command = cls._build_command(
+            command = FfmpegRunner.build_command(
                 inputs=[cache_dir.get_file_path("music.mp3")],
                 output=cache_dir.get_file_path("voice.ogg"),
                 props=cls.__convert_to_voice_options,
             )
 
-            await wait_for_completion(cls._run_command(command))
+            await wait_for_completion(FfmpegRunner.run(command))
             return Path(cache_dir.get_file_path("voice.ogg")).read_bytes()
         finally:
             cache_dir.delete()
 
     @classmethod
     async def convert_video(cls, input_path: str, output_path: str) -> None:
-        command = cls._build_command(
+        command = FfmpegRunner.build_command(
             inputs=[input_path],
             output=output_path,
             props=[
@@ -70,7 +68,7 @@ class FfmpegService:
                 "yuv420p",
             ],
         )
-        await cls._run_command(command)
+        await FfmpegRunner.run(command)
 
     @classmethod
     async def get_video_metadata(cls, input_path: str) -> dict[str, int]:
@@ -87,7 +85,7 @@ class FfmpegService:
                 "json",
             ],
         )
-        result = await cls._run_command(command, capture_output=True, text=True)
+        result = await FfmpegRunner.run(command, capture_output=True, text=True)
         streams = json.loads(result.stdout).get("streams", [])
         if not streams:
             return {}
@@ -136,21 +134,21 @@ class FfmpegService:
             output_path=output_path,
         )
 
-        await cls._run_command(command)
+        await FfmpegRunner.run(command)
 
     @classmethod
     async def download_and_prepare_images(
         cls, images_url: list[str], work_dir_path: str
     ) -> None:
         for n, url in enumerate(images_url):
-            command = cls._build_command(
+            command = FfmpegRunner.build_command(
                 inputs=[
                     url,
                 ],
                 output=f"{work_dir_path}/{n + 1:03d}.jpg",
                 props=cls.__resize_image_options,
             )
-            await cls._run_command(command)
+            await FfmpegRunner.run(command)
 
         if len(images_url) == 1:
             shutil.copy(f"{work_dir_path}/001.jpg", f"{work_dir_path}/002.jpg")
@@ -163,22 +161,12 @@ class FfmpegService:
     async def download_and_prepare_audio(
         cls, audio_url: str, work_dir_path: str
     ) -> None:
-        command = cls._build_command(
+        command = FfmpegRunner.build_command(
             inputs=[audio_url],
             output=f"{work_dir_path}/audio.m4a",
             props=["-vn"],
         )
-        await cls._run_command(command)
-
-    @classmethod
-    async def _run_command(cls, command: list[str], **kwargs: Any) -> CompletedProcess:
-        return await FfmpegRunner.run(command, **kwargs)
-
-    @classmethod
-    def _build_command(
-        cls, inputs: list[str], output: str, props: list[str]
-    ) -> list[str]:
-        return FfmpegRunner.build_command(inputs, output, props)
+        await FfmpegRunner.run(command)
 
     @classmethod
     def _build_slideshow_command(
@@ -195,4 +183,4 @@ class FfmpegService:
             opts.remove("-shortest")
             command += opts
 
-        return cls._build_command(inputs=[], output=output_path, props=command)
+        return FfmpegRunner.build_command(inputs=[], output=output_path, props=command)

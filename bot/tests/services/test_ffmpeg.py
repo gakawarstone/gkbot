@@ -27,7 +27,7 @@ async def test_slideshow_file_uses_owned_output_directory(
     run = AsyncMock()
     monkeypatch.setattr(FfmpegService, "download_and_prepare_images", images)
     monkeypatch.setattr(FfmpegService, "download_and_prepare_audio", audio)
-    monkeypatch.setattr(FfmpegService, "_run_command", run)
+    monkeypatch.setattr(FfmpegRunner, "run", run)
     output_path = str(cache_root / "video.mp4")
     urls = ["https://example.invalid/image"]
     await FfmpegService.make_slideshow_file_from_web(urls, audio_url, output_path)
@@ -97,7 +97,7 @@ async def test_voice_conversion_still_returns_bytes(
         assert "libopus" in command
         Path(command[-1]).write_bytes(b"voice")
 
-    monkeypatch.setattr(FfmpegService, "_run_command", run)
+    monkeypatch.setattr(FfmpegRunner, "run", run)
     assert await FfmpegService.convert_music_to_voice(b"music") == b"voice"
     assert list(cache_root.iterdir()) == []
 
@@ -120,7 +120,7 @@ async def test_voice_conversion_cleans_up_on_failure(
         Path(cache.get_file_path(name)).write_bytes(content[:1])
         raise OSError("write failed")
 
-    monkeypatch.setattr(FfmpegService, "_run_command", run)
+    monkeypatch.setattr(FfmpegRunner, "run", run)
     if failure == "save":
         monkeypatch.setattr(CacheDir, "save_file", fail_save)
     expected_error = (
@@ -149,7 +149,7 @@ async def test_cancelled_conversion_finishes_before_cleanup(
     async def run(command: list[str]) -> None:
         await asyncio.to_thread(write, command[-1])
 
-    monkeypatch.setattr(FfmpegService, "_run_command", run)
+    monkeypatch.setattr(FfmpegRunner, "run", run)
     monkeypatch.setattr(FfmpegService, "download_and_prepare_images", AsyncMock())
     operation = (
         FfmpegService.convert_music_to_voice(b"music")
