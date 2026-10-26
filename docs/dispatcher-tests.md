@@ -55,13 +55,16 @@ notifier setup, or background workers. Teardown closes FSM storage and session.
 
 ## Prerequisite integration
 
-The initial PR uses `task-20261023-dispatcher-prerequisites` as its review base.
-That branch combines the published Notion removal commit
-`6284cdf943b026b3308c0b0678f2af37d2d3ba38`, command registry commit
-`95f7505e934458cf5055bb80ff9a288bbc5eddaf`, and middleware typing commit
-`1813b3e9079a70b4a086193fc8a0cfc87e757a36` with the worktree's existing
-aiogram 3.31 base. After PRs #25, #40, and #41 merge, retarget the test PR to
-`dev-3.0` and verify its diff again. No prerequisite PR is merged by this work.
+The PR uses `task-20261023-dispatcher-prerequisites` at
+`dece92509d9b838439d3b7755c9faf3b90a6d8d6` as its review base. The conflict
+coordination wave 20261025 combines the final published Notion removal head
+`60c31beb8f716ff51845d99613b2fd28f280b1f6`, command registry head
+`f90615c21e9e6860274865c54bc7d0e1d878cb33`, and middleware typing head
+`0d60ef03c74176313dfb70f9d3bf48005f6799b0`. All include the selected
+`dev-3.0` snapshot `2db43ed99af695c841ed7c29194df88da8d42225`.
+Ordinary merges preserve the registry, typed context, import ordering, and
+agreed test deletions. After PRs #25, #40, and #41 merge, retarget the test PR
+to `dev-3.0` and verify its diff again. No prerequisite PR is merged by this work.
 
 This combination uses the typing-only user-data cache. The fixture replaces
 `UserDataMiddleware._UserDataMiddleware__data` with a fresh dictionary for each
