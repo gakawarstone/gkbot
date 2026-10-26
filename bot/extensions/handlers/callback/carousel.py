@@ -59,10 +59,8 @@ class CarouselWidgetEventHandlerExtension[T: BaseCarouselMarkup](BaseHandler):
         message = self.event.message
         await message.edit_media(media)
         # await message.edit_caption(caption=f'<a href="{item.link}">Link</a>')
-        # Get the get_item_markup method from the concrete implementation
-        get_item_markup = self._markup.get_item_markup
         await message.edit_reply_markup(
-            reply_markup=get_item_markup(
+            reply_markup=self._markup.get_item_markup(
                 data,
                 media_len,
                 media_current_num,

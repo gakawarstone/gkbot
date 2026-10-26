@@ -15,7 +15,7 @@ The referenced `review.md` is absent from this checkout and tracked files. There
 | `bot/services/converters/tests/parsers/platonus.py` | The final buffer was already appended. Remove the stale warning and test that both questions and their answers survive parsing when the input ends immediately after the last variant. |
 | `bot/services/timezone.py` | Use `update_or_create` with the user ID as lookup and the offset in `defaults`. Treat only `None` as missing, so UTC is valid. A real in-memory SQLite test creates and updates UTC repeatedly, checks nonzero offsets, and verifies another user's value stays unchanged. |
 
-The enum and upsert APIs were checked against the installed aiogram 3.26.0 and Tortoise ORM 0.21.6 symbols and implementation. Their official references are [aiogram enums](https://docs.aiogram.dev/en/v3.26.0/api/enums/) and [Tortoise models](https://tortoise.github.io/models.html). No dependency upgrade is needed. The separate aiogram 3.31 upgrade thread does not change the enum call sites.
+The changes use the existing aiogram enum and Tortoise upsert API without adding dependencies. The carousel retains its typed markup method and string ID contract; its classmethod calls do not need an abstract-class instantiation guard.
 
 ## Follow-up work
 
@@ -23,22 +23,18 @@ The enum and upsert APIs were checked against the installed aiogram 3.26.0 and T
 | --- | --- |
 | `bot/handlers/user/books/messages/add/create.py`, `bot/handlers/user/books/messages/edit_property/get_new_value.py`, `bot/services/repositories/books.py`: 3 | [Book persistence and validated edits](../.tasks/20261022-todo-followups/books-handler-boundaries.md). Define editable fields, parse values, and enforce the acting user's ownership before changing the handler flow. |
 | `bot/handlers/user/road/habits/__init__.py`: 1 | [Habit persistence and input validation](../.tasks/20261022-todo-followups/habits-persistence.md). Extract persistence together with retry behavior for malformed input. |
-| `bot/handlers/user/road/pomodoro/restart.py`: 1 | [Restart confirmation extraction](../.tasks/20261022-todo-followups/pomodoro-restart-extension.md). The current helper captures a handler and depends on road FSM and cleanup keys; moving the file is insufficient. |
+| `bot/handlers/user/road/pomodoro/restart.py`: 1 | [Restart confirmation lifecycle](../.tasks/20261022-todo-followups/pomodoro-restart-extension.md). There is one caller, so keep confirmation local to Pomodoro and verify handler lifetime and message cleanup rather than extracting a shared helper. |
 | `bot/handlers/user/platonus2indigo/convert_file.py`: 1 | [Export batch size](../.tasks/20261022-todo-followups/platonus-export-batch-size.md). Preserve 25 as the current default; do not invent an external format restriction or a settings flow. |
 | `bot/tests/handlers/test_feed.py`, `bot/tests/handlers/test_pomodoro.py`: 3 | [Explicit handler test fixtures](../.tasks/20261022-todo-followups/handler-test-fixtures.md). Parameterize URLs and setting values and remove assumptions about button row layout. |
-| `bot/services/tiktok/extractor/_base.py`: 2 | Implemented separately in [PR #17](https://github.com/gakawarstone/gkbot/pull/17), commit `40d9f9c1f4a8fdbe67b1ecec84c31ab80abbbc26`, open and awaiting merge as of 2026-10-22. It removes both markers, preserves `get_video_file_url` as a shared compatibility entry point, and limits redirect normalization to replacing `/photo/` with `/video/` while preserving the domain and creator and removing query and fragment. The implementation thread reports shared contract coverage for all eight provider entries. These changes are not included in this branch's marker count. |
+| `bot/services/tiktok/extractor/_base.py`: 2 | Implemented separately in [PR #17](https://github.com/gakawarstone/gkbot/pull/17). These changes are not included in this branch's marker count. |
 | `bot/modules/feed/handlers/_item_processor.py`: 1 | Already covered by [the processor registry](../.tasks/code-smell-cleanup/10-add-feed-processor-registry.md) and [filter relocation](../.tasks/code-smell-cleanup/13-remove-feed-processor-inheritance.md). Keep prefix routing until those migrations replace it. |
 
-## Reproduce the scan
+## Verification
 
-Run `rg -n 'TODO|FIXME' bot` from the worktree. Count matching lines with `rg -n 'TODO|FIXME' bot | wc -l`. Exclude `.tasks` and this report when comparing code counts.
+Run `rg -n 'TODO|FIXME' bot` to reproduce the code inventory.
 
-The clean starting worktree passed `make test` with 105 passed and 13 skipped. Its `make lint` stopped at 391 Ruff findings, before the other lint stages. These existing findings are outside this change's scope.
+Against `dev-3.0` at `2db43ed99af695c841ed7c29194df88da8d42225`, the last full suite passed with 166 passed and 13 skipped. The seven focused regressions cover channel rejection without an exception, final-question retention, string ID preservation, UTC persistence, and user isolation. Test review removed redundant matrices and a mocked UTC case; simplification review adds no tests.
 
-Before the 2026-10-25 merge update, test review left `make test` at 110 passed and 13 skipped. The focused parser, timezone, carousel, and filter run passes all seven cases. The review removes the filter membership matrix, duplicate parser input variants, and a mocked UTC case already covered by the SQLite regression. The remaining tests check channel rejection without an exception, final-question retention, string ID preservation, repeated UTC persistence, and user isolation. `make lint FILE=...` passes Ruff, typos, mypy, and Pyright for the three test files changed during review; the original lint run passed for all 13 changed Python files. `git diff --check` also passes.
+Global lint has 193 Ruff findings versus 204 on that base, with no introduced findings. The original 13-file lint scope also encounters the unchanged mypy error at `bot/handlers/prompt/generate_image.py:43` with aiogram 3.31. This was reproduced on the base. Full lint is not green.
 
-## Merge verification, 2026-10-25
-
-Merged `dev-3.0` at `2db43ed99af695c841ed7c29194df88da8d42225` with an ordinary merge. Four import conflicts were resolved while preserving the import ordering from PR #32 and both sides' behavior. No removed tests or diagnostic documents were restored. The final diff against that base contains only this task's 20 files.
-
-`make test` passes with 166 passed and 13 skipped. Ruff and typos pass for all 13 changed Python files; standalone Pyright reports no errors. Targeted `make lint` stops at the existing mypy error in `bot/handlers/prompt/generate_image.py:43`, where the media list type lacks aiogram 3.31's `InputMediaLivePhoto`. The same error reproduces in an exported snapshot of the used base. Global lint stops at 193 Ruff findings, compared with 204 on that snapshot; comparison by file, rule, and message finds no introduced findings. Full lint is therefore not green. `git diff --check` passes.
+After simplification, the seven focused regressions pass. `make lint FILE='bot/ui/keyboards/carousel.py bot/extensions/handlers/callback/carousel.py bot/tests/handlers/test_carousel.py'` passes Ruff, typos, mypy, and Pyright. `git diff --check` passes.

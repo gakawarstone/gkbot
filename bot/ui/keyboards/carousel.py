@@ -1,5 +1,3 @@
-from abc import ABC, abstractmethod
-
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 
@@ -13,13 +11,12 @@ class CarouselMarkupData:
     show_next_media = "pknext"
 
 
-class BaseCarouselMarkup[T: CarouselMarkupButtons, S: CarouselMarkupData](ABC):
+class BaseCarouselMarkup[T: CarouselMarkupButtons, S: CarouselMarkupData]:
     prefix: str
     buttons: type[T]
     data: type[S]
 
     @classmethod
-    @abstractmethod
     def get_item_markup(
         cls, item_id: str, media_len: int, media_current_num: int
     ) -> InlineKeyboardMarkup:
