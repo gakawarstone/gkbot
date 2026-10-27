@@ -22,7 +22,7 @@ class TimeZoneMiddleware(BaseMiddleware):
         if not isinstance(event, Message) or not event.from_user:
             return await handler(event, data)
 
-        if not get_flag(dict(data), "require_timezone"):
+        if not get_flag(data.get("handler", {}), "require_timezone"):
             return await handler(event, data)
 
         try:
