@@ -140,14 +140,10 @@ class AnswerHandler(BaseHandler, MarkdownRenderHandlerExtension, FileHandlerExte
                 continue
             preview = chunks[-1] if chunks else BlockQuote(reason[-500:]).as_html()
             if not await self._send_draft(draft_id, preview):
-                # Replay accumulated text to the fallback, without restarting the
-                # model or losing the chunk consumed before the draft failed.
-                async with aclosing(
-                    self._remaining_stream(stream, text, reason)
-                ) as rest:
-                    return await self._stream_to_message(
-                        await self._answer("Подождите"), rest
-                    )
+                # Continue the same model stream with the content already read.
+                return await self._stream_to_message(
+                    await self._answer("Подождите"), stream, text=text, reason=reason
+                )
 
         for chunk in split_response(text, DRAFT_MESSAGE_LIMIT) or [
             "Модель не вернула ответ."
@@ -158,16 +154,6 @@ class AnswerHandler(BaseHandler, MarkdownRenderHandlerExtension, FileHandlerExte
                 link_preview_options=LinkPreviewOptions(is_disabled=True),
             )
         return text
-
-    async def _remaining_stream(
-        self, stream: AsyncGenerator[StreamChunk], text: str, reason: str
-    ) -> AsyncGenerator[StreamChunk]:
-        if text:
-            yield StreamChunk(text, "content")
-        if reason:
-            yield StreamChunk(reason, "reason")
-        async for chunk in stream:
-            yield chunk
 
     async def _build_prompt(self) -> str | None:
         prompt = self.event.text or self.event.caption
@@ -199,10 +185,13 @@ class AnswerHandler(BaseHandler, MarkdownRenderHandlerExtension, FileHandlerExte
         return text
 
     async def _stream_to_message(
-        self, message: Message, stream: AsyncGenerator[StreamChunk]
+        self,
+        message: Message,
+        stream: AsyncGenerator[StreamChunk],
+        *,
+        text: str = "",
+        reason: str = "",
     ) -> str:
-        reason = ""
-        text = ""
         messages = [(message, message.html_text or "")]
         last_update = time.monotonic()
 
