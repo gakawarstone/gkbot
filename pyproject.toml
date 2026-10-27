@@ -6,6 +6,7 @@ dependencies = [
     "notion-client==0.9.0",
     "python-dotenv",
     "gTTS",
+    "wikipedia",
     "beautifulsoup4",
     "youtube-search",
     "tortoise-orm==0.21.6",
