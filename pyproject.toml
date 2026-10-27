@@ -6,7 +6,6 @@ dependencies = [
     "notion-client==0.9.0",
     "python-dotenv",
     "gTTS",
-    "wikipedia",
     "beautifulsoup4",
     "youtube-search",
     "tortoise-orm==0.21.6",
@@ -65,14 +64,10 @@ explicit_package_bases = true
 # Keep missing internal imports and typed third-party imports as errors.
 [[tool.mypy.overrides]]
 module = [
-    "gallery_dl",
     "gallery_dl.*",
-    "gtts",
     "gtts.*",
-    "varname",
     "varname.*",
     "youtube_search",
-    "wikipedia",
     "wikipedia.*",
 ]
 ignore_missing_imports = true

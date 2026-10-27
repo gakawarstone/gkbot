@@ -72,4 +72,4 @@ async def test_handler():
         patch("modules.feed.handlers.messages.Message", Event),
     ):
         for _ in range(3):
-            await MockedHandler(event=Event(breakpoint_at_delete=False)).handle()  # type: ignore[arg-type]
+            await MockedHandler(event=Event()).handle()  # type: ignore[arg-type]

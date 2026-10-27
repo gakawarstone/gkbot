@@ -1,3 +1,4 @@
+from functools import partial
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
@@ -33,10 +34,10 @@ def make_sent_message() -> MagicMock:
 
 class Bot:
     def __init__(self) -> None:
-        self.send_message = AsyncMock(side_effect=self._send_message)
-        self.send_video = AsyncMock(side_effect=self._send_video)
-        self.send_photo = AsyncMock(side_effect=self._send_photo)
-        self.send_audio = AsyncMock(side_effect=self._send_audio)
+        self.send_message = AsyncMock(side_effect=partial(self._send, "send_message"))
+        self.send_video = AsyncMock(side_effect=partial(self._send, "send_video"))
+        self.send_photo = AsyncMock(side_effect=partial(self._send, "send_photo"))
+        self.send_audio = AsyncMock(side_effect=partial(self._send, "send_audio"))
         self.send_chat_action = AsyncMock(return_value=True)
         if INTEGRATION_TEST:
             self.send_chat_action.side_effect = bot.send_chat_action
@@ -49,18 +50,6 @@ class Bot:
                 await message.delete()
             return message
         return make_sent_message()
-
-    async def _send_message(self, *args: Any, **kwargs: Any) -> Any:
-        return await self._send("send_message", *args, **kwargs)
-
-    async def _send_video(self, *args: Any, **kwargs: Any) -> Any:
-        return await self._send("send_video", *args, **kwargs)
-
-    async def _send_photo(self, *args: Any, **kwargs: Any) -> Any:
-        return await self._send("send_photo", *args, **kwargs)
-
-    async def _send_audio(self, *args: Any, **kwargs: Any) -> Any:
-        return await self._send("send_audio", *args, **kwargs)
 
 
 class _FromUser:
@@ -80,22 +69,16 @@ class Event:
         self.text = text
         self.bot = Bot()
         self.delete = AsyncMock()
-        self.answer = AsyncMock(side_effect=self._answer)
-        self.answer_photo = AsyncMock(side_effect=self._answer_photo)
-        self.answer_audio = AsyncMock(side_effect=self._answer_audio)
-        self.answer_video = AsyncMock(side_effect=self._answer_video)
-
-    async def _answer(self, *args: Any, **kwargs: Any) -> Any:
-        return await self.bot.send_message(ADMINS[0], *args, **kwargs)
-
-    async def _answer_photo(self, *args: Any, **kwargs: Any) -> Any:
-        return await self.bot.send_photo(ADMINS[0], *args, **kwargs)
-
-    async def _answer_audio(self, *args: Any, **kwargs: Any) -> Any:
-        return await self.bot.send_audio(ADMINS[0], *args, **kwargs)
-
-    async def _answer_video(self, *args: Any, **kwargs: Any) -> Any:
-        return await self.bot.send_video(ADMINS[0], *args, **kwargs)
+        self.answer = AsyncMock(side_effect=partial(self.bot.send_message, ADMINS[0]))
+        self.answer_photo = AsyncMock(
+            side_effect=partial(self.bot.send_photo, ADMINS[0])
+        )
+        self.answer_audio = AsyncMock(
+            side_effect=partial(self.bot.send_audio, ADMINS[0])
+        )
+        self.answer_video = AsyncMock(
+            side_effect=partial(self.bot.send_video, ADMINS[0])
+        )
 
 
 class CallbackEvent(Event):
