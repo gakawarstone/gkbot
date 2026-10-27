@@ -80,8 +80,13 @@ class GkfeedApi:
         if not resp["created"]:
             raise ValueError
 
-    async def get_item_by_item_id(self, item_id: int) -> FeedItem:
-        resp = await self._get_html(self._api_root + f"item?id={item_id}")
+    async def get_item_by_item_id(self, item_id: int) -> FeedItem | None:
+        try:
+            resp = await self._get_html(self._api_root + f"item?id={item_id}")
+        except aiohttp.ClientResponseError as error:
+            if error.status == 404:
+                return None
+            raise
         data = json.loads(resp)
         item = data["item"]
         return self._convert_raw_data_to_feed_item(item)

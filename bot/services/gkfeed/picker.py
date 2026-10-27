@@ -1,8 +1,6 @@
 from collections.abc import Callable
 from typing import ClassVar
 
-import aiohttp
-
 from ._types import FeedItem, FeedItemSummary
 from .api import GkfeedApi
 from .auth import GkfeedCredentials
@@ -18,36 +16,23 @@ class GkfeedItemsPicker:
     async def get_next_item(
         self, is_item_valid: Callable[[FeedItemSummary], bool] = lambda _: True
     ) -> FeedItem | None:
-        item = None
         api = GkfeedApi(self.__credentials)
-        items: list[FeedItemSummary] = []
+        items = [item async for item in api.get_user_items()]
 
-        async for _item in api.get_user_items():
-            items.append(_item)
-
-        for _item in self._sort_items_by_feed(items):
-            if not is_item_valid(_item):
+        for summary in self._sort_items_by_feed(items):
+            if not is_item_valid(summary) or self._is_item_in_pocket(summary.id):
                 continue
 
-            if not self._is_item_in_pocket(_item.id):
-                try:
-                    full_item = await api.get_item_by_item_id(_item.id)
-                except aiohttp.ClientResponseError as error:
-                    if error.status != 404:
-                        raise
-                    # Deleted after listing. Try each remaining candidate once.
-                    continue
-                # Another picker may have delivered this ID while detail loaded.
-                if self._is_item_in_pocket(full_item.id):
-                    continue
-                item = full_item
-                self._save_to_pocket(item.id)
-                break
+            item = await api.get_item_by_item_id(summary.id)
+            # Another picker may have delivered this ID while detail loaded.
+            if item is None or self._is_item_in_pocket(item.id):
+                continue
 
-        if not item:
-            self._clean_pocket()
+            self._save_to_pocket(item.id)
+            return item
 
-        return item
+        self._clean_pocket()
+        return None
 
     def _is_item_in_pocket(self, item_id: int) -> bool:
         return item_id in self._items_pocket[self.__credentials.login]

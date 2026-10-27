@@ -323,22 +323,25 @@ async def test_concurrent_pickers_do_not_return_the_same_item(
 
 @pytest.mark.parametrize("all_deleted", [False, True])
 async def test_deleted_candidates_are_not_saved_or_retried_in_one_pick(
-    api: GkfeedApi, monkeypatch: pytest.MonkeyPatch, all_deleted: bool
+    api: GkfeedApi, all_deleted: bool
 ) -> None:
     not_found = aiohttp.ClientResponseError(
         request_info=Mock(spec=aiohttp.RequestInfo), history=(), status=404
     )
-    detail = AsyncMock(
-        side_effect=[not_found, not_found, not_found]
+    read = api._get_html
+    assert isinstance(read, AsyncMock)
+    full_item = {**json.loads(payload())["items"][0], "text": "text"}
+    read.side_effect = (
+        [payload(), not_found, not_found, not_found]
         if all_deleted
-        else [not_found, FeedItem(3, 10, "three", "3", "text")]
+        else [payload(), not_found, json.dumps({"item": full_item}).encode()]
     )
-    monkeypatch.setattr(GkfeedApi, "get_item_by_item_id", detail)
     picker = GkfeedItemsPicker(GkfeedCredentials("test", "password"))
     item = await picker.get_next_item()
-    assert [call.args[0] for call in detail.await_args_list] == (
-        [1, 3, 2] if all_deleted else [1, 3]
-    )
+    expected_ids = [1, 3, 2] if all_deleted else [1, 3]
+    assert [call.args[0] for call in read.await_args_list[1:]] == [
+        api._api_root + f"item?id={item_id}" for item_id in expected_ids
+    ]
     assert picker._items_pocket["test"] == (set() if all_deleted else {3})
     assert (item.id if item else None) == (None if all_deleted else 3)
 
@@ -349,20 +352,25 @@ async def test_deleted_candidates_are_not_saved_or_retried_in_one_pick(
         aiohttp.ClientResponseError(
             request_info=Mock(spec=aiohttp.RequestInfo), history=(), status=500
         ),
+        aiohttp.ClientResponseError(
+            request_info=Mock(spec=aiohttp.RequestInfo), history=(), status=401
+        ),
         aiohttp.ClientConnectionError("detail connection failure"),
         KeyError("text"),
     ],
 )
 async def test_detail_failure_does_not_save_candidate(
-    api: GkfeedApi, monkeypatch: pytest.MonkeyPatch, failure: Exception
+    api: GkfeedApi, failure: Exception
 ) -> None:
-    detail = AsyncMock(side_effect=failure)
-    monkeypatch.setattr(GkfeedApi, "get_item_by_item_id", detail)
+    read = api._get_html
+    assert isinstance(read, AsyncMock)
+    read.side_effect = [payload(), failure]
     picker = GkfeedItemsPicker(GkfeedCredentials("test", "password"))
     with pytest.raises(type(failure)):
         await picker.get_next_item()
     assert picker._items_pocket["test"] == set()
-    detail.assert_awaited_once_with(1)
+    assert read.await_count == 2
+    read.assert_awaited_with(api._api_root + "item?id=1")
 
 
 async def test_detail_requires_text(api: GkfeedApi) -> None:
@@ -373,4 +381,5 @@ async def test_detail_requires_text(api: GkfeedApi) -> None:
     with pytest.raises(KeyError, match="text"):
         await api.get_item_by_item_id(3)
     read.return_value = json.dumps({"item": {**raw_item, "text": ""}}).encode()
-    assert (await api.get_item_by_item_id(3)).text == ""
+    item = await api.get_item_by_item_id(3)
+    assert item is not None and item.text == ""
