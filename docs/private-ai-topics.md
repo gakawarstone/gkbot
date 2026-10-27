@@ -163,7 +163,7 @@ user-facing response.
 aiogram upgrade [PR #11](https://github.com/gakawarstone/gkbot/pull/11) is already
 merged into this worktree's base `fc19464`. Do not reapply it.
 
-Prerequisite status as reported on 2026-10-23:
+Published prerequisite status:
 
 - Draft streaming, thread `mcp:4bc598c3-6de2-4025-8740-daf05aaaaae7`, branch
   `task-20261023-stream-ai-with-message-drafts`, published ready/open
@@ -198,12 +198,19 @@ Prerequisite status as reported on 2026-10-23:
 - Context design, thread `mcp:566c7237-8a29-4c77-84c0-7f2700fa9a76`, branch
   `task-20261022-replace-handler-context-manager`, published documentation-only
   [PR #29](https://github.com/gakawarstone/gkbot/pull/29), commit
-  `6451efa9c5360ff84fdac212f82e911826eec185`. The PR is open and the design
+  `7baef250f81a6b4a335e4aa7ac52009777a714af`, superseding the initial proposal at
+  `6451efa9c5360ff84fdac212f82e911826eec185`. The revised document and source-thread
+  result have been read. The PR is open and the design
   awaits explicit owner approval. Its proposed contract keeps `BaseContextManager`,
   `props`, typed `ctx`, the injected mutable `data["data"]` mapping, flat keys,
   and live `Message` identity. Writes become `set("field", value)` and cleanup
-  uses `clean_context(*preserve: str)`, with recursive list/dict/union validation
-  without coercion. The manager does not choose session identity. This is a
+  uses `clean_context(*preserve: str)`. Validation covers current nullable concrete
+  types and `Any`, plus concrete string elements in `list[str]`. Concrete classes,
+  including `Message`, retain existing exact type checks. History appends stay
+  in place and are validated on the next `ctx` read. The revised proposal needs
+  no generic nested-container/union validator, rule compilation/cache, custom
+  exception class, or history-copying mechanism. Cleanup preserves unrelated
+  keys and object identity. The manager does not choose session identity. This is a
   proposed interface, not an approved or implemented runtime prerequisite.
   Do not import the documentation commit as a substitute for implementation or
   preempt the owner's decision.
