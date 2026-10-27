@@ -167,15 +167,21 @@ Published prerequisite status:
 
 - Draft streaming, thread `mcp:4bc598c3-6de2-4025-8740-daf05aaaaae7`, branch
   `task-20261023-stream-ai-with-message-drafts`, published ready/open
-  [PR #39](https://github.com/gakawarstone/gkbot/pull/39), implementation/head
-  commit `e24bebba1d1b697768cd72f0496472a63427e7d2`. Approval and merge remain
+  [PR #39](https://github.com/gakawarstone/gkbot/pull/39), published head
+  `d069c1f50b39584444dd71a5cbb2f0edc2e933c2` after the simplification of original
+  implementation `e24bebba1d1b697768cd72f0496472a63427e7d2`. Approval and merge remain
   pending. It is stacked on branch `task-20261022-split-long-ai-chat-responses`,
   [PR #20](https://github.com/gakawarstone/gkbot/pull/20), head
   `6c734b1b4d7ee7d49313c8a6b0cc870c6ec0848d`, integrated by an ordinary merge.
+  PR #20 merged on 2026-10-25; #39 still targets that parent branch.
   Preserve both prerequisite commit sets when choosing the integration base.
   The author reports 78 focused tests and 200 full-suite tests passed, with 13
   skipped. Ruff, typos, and pyright pass for the changed files; targeted mypy
   stops at the existing imported `generate_image.py:43` error.
+  The latest self-review reports 68 existing focused tests passing without test
+  changes, plus passing Ruff/typos/pyright and handler mypy with silent imported
+  diagnostics. It removes the relay generator while preserving fallback data
+  and cancellation/cleanup ownership.
 - Bounded retention, thread `mcp:45f94e95-1569-4cd9-9f99-6fc68dc05eb8`, branch
   `task-20261022-bound-middleware-user-data-retention`, published ready/open
   [PR #37](https://github.com/gakawarstone/gkbot/pull/37), final head
@@ -230,8 +236,11 @@ The streaming contract to reuse is `_stream_to_draft(stream, draft_id) -> str`,
 where `None` means the user stopped generation. Its registry key is
 `(bot_id, chat_id, message_thread_id, draft_id)`; stop routing does not require
 `from_user` or injected FSM state. `_answer` and new fallback chunks explicitly
-preserve the source topic. Draft errors replay accumulated content/reason into
-the existing edit/split fallback without another model request. Groups use the
+preserve the source topic. Draft errors pass accumulated content/reason directly
+to `_stream_to_message(message, stream, *, text='', reason='')`, continuing the
+same model stream without another request. The two-argument call remains valid.
+The source handler owns the stream's `aclosing`; there is no relay generator or
+additional cleanup owner. Groups use the
 1500-unit fallback; successful draft responses finalize as safe HTML chunks of
 4096 UTF-16 units while retaining the full raw Markdown history. FSM recovery
 does not undo a concurrent `/exit`. Global topic FSM/middleware isolation remains
