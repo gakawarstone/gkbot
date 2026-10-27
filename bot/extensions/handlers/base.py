@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import Any, TypeVar
+from typing import Any, TypeVar, cast
 
 from aiogram.fsm.context import FSMContext
 from aiogram.handlers import BaseHandler as _BaseHandler
@@ -18,12 +18,13 @@ class BaseHandler(_BaseHandler[Event], ABC):
         state: FSMContext | None = None,
         **kwargs: Any,
     ) -> None:
-        super().__init__(event, data=data, state=state, **kwargs)
-        self.context: MiddlewareData = {}
         if data is not None:
-            self.context["data"] = data
+            kwargs["data"] = data
         if state is not None:
-            self.context["state"] = state
+            kwargs["state"] = state
+        super().__init__(event, **kwargs)
+        # Aiogram stores injection in a dict; keep one shared context.
+        self.context = cast(MiddlewareData, self.data)
 
     @property
     def user_data(self) -> UserData:

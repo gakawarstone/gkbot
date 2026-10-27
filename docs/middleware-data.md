@@ -66,8 +66,11 @@ clearing another dispatcher's cache.
 
 Function handlers annotate their injected argument as `data: UserData`, and
 FSM dependencies as `state: FSMContext`. Message and callback class handlers
-share a typed base constructor and `user_data`/`state` properties. A handler
-that does not use these dependencies can omit them when instantiated directly;
+share a typed base constructor and `user_data`/`state` properties. Their base
+keeps `context` as a reference to aiogram's injection dictionary. One cast at
+that framework boundary avoids storing a second copy of `data` and `state`.
+A handler that does not use these dependencies can omit them when instantiated
+directly;
 accessing an omitted dependency raises an explicit error. The `tz` property
 checks for an available offset and returns `timedelta`.
 
@@ -80,7 +83,8 @@ wrongly typed constructor dependencies.
 The legacy dataclass context manager accepts runtime field names and validates
 values against reflected annotations. Its dynamic writes use one explicit
 `MutableMapping[str, Any]` boundary. Replacing that API belongs to the separate
-context-manager task. Common injected values do not pass through that cast.
+context-manager task. Common injected values do not pass through that
+dynamic-write boundary.
 Aiogram's arbitrary downstream result and extra framework constructor kwargs
 also retain `Any` at framework boundaries.
 
@@ -88,7 +92,7 @@ Middleware overrides have narrowly scoped mypy/pyright suppressions because
 aiogram's BaseMiddleware uses `dict[str, Any]`, which a TypedDict cannot override
 under substitution rules. This is the incompatibility described in
 [aiogram's dependency injection documentation](https://docs.aiogram.dev/en/v3.31.0/dispatcher/dependency_injection.html#using-type-hints).
-Flag lookup receives a plain shallow dictionary copy for the same reason.
+Flag lookup reads the selected `HandlerObject` directly from the context.
 
 The timezone extension declares aiogram's `aiogram_flag` attribute directly.
 The flag decorator's return annotation erases class types, so using it here
@@ -105,18 +109,12 @@ make test FILE=bot/tests/middlewares
 `test_data_typing.py` runs mypy and pyright against intentionally invalid uses
 of the project injection contract in `typing_tests/middleware_data/invalid.py`.
 Every marked line must produce an error in each checker. The fixture lives
-outside `bot/` so regular linting does not include expected failures. The test configures import
-paths and uses mypy's silent imported-module diagnostics to isolate the fixture
-from unrelated repository errors.
+outside `bot/` so regular linting does not include expected failures. The test
+configures import paths and uses mypy's silent imported-module diagnostics to
+isolate the fixture from unrelated repository errors.
 
 A focused check of the production middleware contract is:
 
 ```sh
 make lint FILE=bot/middlewares
 ```
-
-At the starting revision, full `make lint` stopped at 383 Ruff findings. Full
-mypy and pyright each reported two existing errors: a Message mock's `__class__`
-assignment and media-group list invariance in `handlers/prompt/generate_image.py`.
-The mock was updated with the typed middleware tests. The image-generation
-error is outside this task and remains in full-repository type checks.
