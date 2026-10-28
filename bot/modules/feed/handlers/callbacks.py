@@ -1,4 +1,6 @@
 import asyncio
+import logging
+from functools import partial
 from typing import Any
 
 from aiogram.types import CallbackQuery, InaccessibleMessage
@@ -9,6 +11,25 @@ from services.gkfeed.picker import GkfeedItemsPicker
 from ..ui.keyboards import FeedMarkup
 from ._base import BaseHandler
 from ._item_processor import GkfeedItemProcessorExtension
+
+logger = logging.getLogger(__name__)
+# Keep API requests alive after the callback handler finishes.
+_delete_tasks: set[asyncio.Task[None]] = set()
+
+
+def _finish_item_deletion(item_id: int, task: asyncio.Task[None]) -> None:
+    _delete_tasks.discard(task)
+    if task.cancelled():
+        logger.warning("Feed item deletion cancelled id=%s", item_id)
+        return
+
+    error = task.exception()
+    if error is not None:
+        logger.error(
+            "Failed to delete feed item id=%s",
+            item_id,
+            exc_info=(type(error), error, error.__traceback__),
+        )
 
 
 class ItemEventHandler(GkfeedItemProcessorExtension, BaseHandler):
@@ -30,7 +51,7 @@ class ItemEventHandler(GkfeedItemProcessorExtension, BaseHandler):
         await self._handle_event(event, data)
         await self._send_one_feed_item()
 
-    async def _handle_event(self, event: str, data: int):
+    async def _handle_event(self, event: str, data: int) -> None:
         if not isinstance(self.event, CallbackQuery):
             raise ValueError("event must be CallbackQuery")
 
@@ -39,13 +60,13 @@ class ItemEventHandler(GkfeedItemProcessorExtension, BaseHandler):
         ):
             raise ValueError("event must have message")
 
-        api = GkfeedApi(await self._gkfeed_credentials)
-
         match event:
             case FeedMarkup.data.delete:
                 await self.event.message.delete()
-                # BUG: can fail silently
-                asyncio.create_task(api.delete_item_by_id(data))
+                api = GkfeedApi(await self._gkfeed_credentials)
+                task = asyncio.create_task(api.delete_item_by_id(data))
+                _delete_tasks.add(task)
+                task.add_done_callback(partial(_finish_item_deletion, data))
             case FeedMarkup.data.keep:
                 await self.event.message.delete()
             # NOTE: Deprecated
@@ -54,7 +75,7 @@ class ItemEventHandler(GkfeedItemProcessorExtension, BaseHandler):
                 pass
                 # await self._send_items_from_feed(data)
 
-    async def _send_one_feed_item(self):
+    async def _send_one_feed_item(self) -> None:
         picker = GkfeedItemsPicker(await self._gkfeed_credentials)
 
         if item := await picker.get_next_item():
