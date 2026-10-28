@@ -1,6 +1,3 @@
-import asyncio
-import logging
-from functools import partial
 from typing import Any
 
 from aiogram.types import CallbackQuery, InaccessibleMessage
@@ -11,25 +8,6 @@ from services.gkfeed.picker import GkfeedItemsPicker
 from ..ui.keyboards import FeedMarkup
 from ._base import BaseHandler
 from ._item_processor import GkfeedItemProcessorExtension
-
-logger = logging.getLogger(__name__)
-# Keep API requests alive after the callback handler finishes.
-_delete_tasks: set[asyncio.Task[None]] = set()
-
-
-def _finish_item_deletion(item_id: int, task: asyncio.Task[None]) -> None:
-    _delete_tasks.discard(task)
-    if task.cancelled():
-        logger.warning("Feed item deletion cancelled id=%s", item_id)
-        return
-
-    error = task.exception()
-    if error is not None:
-        logger.error(
-            "Failed to delete feed item id=%s",
-            item_id,
-            exc_info=(type(error), error, error.__traceback__),
-        )
 
 
 class ItemEventHandler(GkfeedItemProcessorExtension, BaseHandler):
@@ -64,9 +42,7 @@ class ItemEventHandler(GkfeedItemProcessorExtension, BaseHandler):
             case FeedMarkup.data.delete:
                 await self.event.message.delete()
                 api = GkfeedApi(await self._gkfeed_credentials)
-                task = asyncio.create_task(api.delete_item_by_id(data))
-                _delete_tasks.add(task)
-                task.add_done_callback(partial(_finish_item_deletion, data))
+                await api.delete_item_by_id(data)
             case FeedMarkup.data.keep:
                 await self.event.message.delete()
             # NOTE: Deprecated
