@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 from bs4 import BeautifulSoup, Tag
 
+from services.feed_parser import FeedParser
 from services.http import HttpService
 
 _TWITTERBOT_HEADERS = {
@@ -25,8 +26,8 @@ class OpenGraphService:
         *,
         headers: dict[str, str] | None = None,
     ) -> OpenGraphMetadata:
-        soup = await cls.get_soup(url, headers=headers)
-        return cls.parse_soup(soup)
+        html = await cls.get_html(url, headers=headers)
+        return await FeedParser.run(cls.parse, html)
 
     @staticmethod
     async def get_soup(
@@ -35,6 +36,18 @@ class OpenGraphService:
         headers: dict[str, str] | None = None,
         use_downloader: bool = False,
     ) -> BeautifulSoup:
+        html = await OpenGraphService.get_html(
+            url, headers=headers, use_downloader=use_downloader
+        )
+        return BeautifulSoup(html, "html.parser")
+
+    @staticmethod
+    async def get_html(
+        url: str,
+        *,
+        headers: dict[str, str] | None = None,
+        use_downloader: bool = False,
+    ) -> bytes:
         request_headers = headers or _TWITTERBOT_HEADERS
         if use_downloader:
             html = await HttpService.get_with_downloader(
@@ -44,7 +57,7 @@ class OpenGraphService:
         else:
             html = await HttpService.get(url, headers=request_headers)
 
-        return BeautifulSoup(html, "html.parser")
+        return html
 
     @classmethod
     def parse(cls, html: bytes | str) -> OpenGraphMetadata:

@@ -5,9 +5,10 @@ from html import escape
 from aiogram.types import BufferedInputFile
 from bs4 import BeautifulSoup, Tag
 
+from services.feed_parser import FeedParser
 from services.gkfeed import FeedItem
 from services.http import HttpService
-from services.open_graph import OpenGraphService
+from services.open_graph import OpenGraphMetadata, OpenGraphService
 
 from ...ui.keyboards import FeedMarkup
 from . import BaseFeedItemView
@@ -15,16 +16,13 @@ from . import BaseFeedItemView
 
 class HltvFeedItemView(BaseFeedItemView):
     async def _process_hltv_item(self, item: FeedItem) -> None:
-        soup = await self._get_hltv_soup(item.link)
-        metadata = OpenGraphService.parse_soup(soup)
+        html = await OpenGraphService.get_html(item.link, use_downloader=True)
+        metadata, matchup, match_time = await FeedParser.run(
+            HltvFeedItemView._parse_hltv_page, html, item.title
+        )
 
         if metadata.image_url is None:
             return await self._send_item(item)
-
-        matchup, match_time = self._get_match_details(
-            soup,
-            metadata.title or item.title,
-        )
 
         image_data = await HttpService.get(
             self._normalize_image_url(metadata.image_url)
@@ -37,8 +35,14 @@ class HltvFeedItemView(BaseFeedItemView):
             reply_markup=FeedMarkup.get_item_markup(item.id, item.feed_id),
         )
 
-    async def _get_hltv_soup(self, url: str) -> BeautifulSoup:
-        return await OpenGraphService.get_soup(url, use_downloader=True)
+    @classmethod
+    def _parse_hltv_page(
+        cls, html: bytes, title: str
+    ) -> tuple[OpenGraphMetadata, str, str | None]:
+        soup = BeautifulSoup(html, "html.parser")
+        metadata = OpenGraphService.parse_soup(soup)
+        matchup, match_time = cls._get_match_details(soup, metadata.title or title)
+        return metadata, matchup, match_time
 
     @staticmethod
     def _normalize_image_url(image_url: str) -> str:

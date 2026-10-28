@@ -1,33 +1,40 @@
 from bs4 import BeautifulSoup, Tag
 
-from extensions.handlers.message.http import HttpExtension
+from services.feed_parser import FeedParser
 from services.gkfeed import FeedItem
+from services.http import HttpService
 
 from . import BaseFeedItemView
 
 
-class ShikiFeedItemView(BaseFeedItemView, HttpExtension):
+class ShikiFeedItemView(BaseFeedItemView):
     async def _process_shiki_item(self, item: FeedItem) -> None:
-        soup = await self._get_soup(item.link)
-
-        media_url = self._get_media_url(soup)
+        html = await HttpService.get(item.link)
+        media_url, title_name = await FeedParser.run(
+            ShikiFeedItemView._parse_shiki_page, html
+        )
         description = item.text
-        title_name = self._get_title_name(soup)
 
         await self._send_photo(item, media_url, description, title_name)
 
-    def _get_media_url(self, soup: BeautifulSoup) -> str:
+    @classmethod
+    def _parse_shiki_page(cls, html: bytes) -> tuple[str, str]:
+        soup = BeautifulSoup(html, "html.parser")
+        return cls._get_media_url(soup), cls._get_title_name(soup)
+
+    @classmethod
+    def _get_media_url(cls, soup: BeautifulSoup) -> str:
         poster_img = soup.select_one(".b-db_entry-poster picture img")
         if isinstance(poster_img, Tag):
             src = poster_img.get("src")
             if isinstance(src, str) and src.strip():
-                return self._normalize_media_url(src)
+                return cls._normalize_media_url(src)
 
         poster_meta = soup.find("meta", attrs={"itemprop": "image"})
         if isinstance(poster_meta, Tag):
             content = poster_meta.get("content")
             if isinstance(content, str) and content.strip():
-                return self._normalize_media_url(content)
+                return cls._normalize_media_url(content)
 
         picture_tag = soup.find("picture")
         if isinstance(picture_tag, Tag):
@@ -40,13 +47,13 @@ class ShikiFeedItemView(BaseFeedItemView, HttpExtension):
                 if isinstance(srcset, str) and srcset.strip():
                     candidates = srcset.rsplit(",", maxsplit=1)
                     media_url = candidates[-1].strip().split()[0]
-                    return self._normalize_media_url(media_url)
+                    return cls._normalize_media_url(media_url)
 
         meta_tag = soup.find("meta", attrs={"property": "og:image"})
         if isinstance(meta_tag, Tag):
             content = meta_tag.get("content")
             if isinstance(content, str) and content.strip():
-                return self._normalize_media_url(content)
+                return cls._normalize_media_url(content)
 
         raise ValueError("media url not found")
 
@@ -57,7 +64,8 @@ class ShikiFeedItemView(BaseFeedItemView, HttpExtension):
             return f"https:{media_url}"
         return media_url
 
-    def _get_title_name(self, soup: BeautifulSoup) -> str:
+    @staticmethod
+    def _get_title_name(soup: BeautifulSoup) -> str:
         h1_tag = soup.find("h1")
         if not isinstance(h1_tag, Tag):
             raise TypeError("h1 tag not found")

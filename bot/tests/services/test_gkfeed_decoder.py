@@ -69,7 +69,7 @@ async def test_cancellation_keeps_one_job_and_shutdown_drains_it(
         assert release.wait(5)
         return []
 
-    monkeypatch.setattr(decoder, "_decode", blocked_decode)
+    monkeypatch.setattr(decoder, "_execute", blocked_decode)
     first = asyncio.create_task(decoder.decode(b"first"))
     try:
         assert await asyncio.to_thread(entered.wait, 5)
@@ -111,7 +111,7 @@ async def test_cancelled_job_error_is_observed_and_next_decode_succeeds(
             raise ValueError("discarded response")
         return []
 
-    monkeypatch.setattr(decoder, "_decode", decode)
+    monkeypatch.setattr(decoder, "_execute", decode)
     task = asyncio.create_task(decoder.decode(b"cancelled"))
     try:
         assert await asyncio.to_thread(entered.wait, 5)
