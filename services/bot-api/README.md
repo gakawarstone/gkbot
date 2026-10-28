@@ -26,8 +26,8 @@ confirm support for these interfaces. The installed wheel also exposes them:
   `can_send_welcome_messages` in administrator responses, including those
   requested by `/admins`.
 
-This upgrade supplies library and server support. Application handlers retain
-their existing behavior; enabling new features belongs to their own changes.
+The dependency upgrade supplies library and server support. Feature changes
+that use these interfaces must follow the server rollout order below.
 
 ## Server verification and rollout order
 
@@ -63,6 +63,14 @@ After the server and bot rollout, verify polling, an existing delete callback,
 HTML text, photo upload, AI chat, and `/admins` in a controlled Telegram chat.
 Live Telegram smoke tests require deployment access and credentials and were
 not performed for this change.
+
+## Disabled button rollout
+
+PR #16 remains draft pending client evidence and explicit production approval.
+Follow the server rollout order above before deploying disabled Similar and
+carousel indicators; this PR provides no runtime activation gate. In a
+controlled Telegram chat, confirm the indicators do nothing when tapped,
+Keep/Delete still advance the feed, and carousel navigation works at both ends.
 
 ## Reproducing local checks
 
