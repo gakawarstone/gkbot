@@ -64,31 +64,13 @@ HTML text, photo upload, AI chat, and `/admins` in a controlled Telegram chat.
 Live Telegram smoke tests require deployment access and credentials and were
 not performed for this change.
 
-## Disabled inline placeholders
+## Disabled button rollout
 
-The feed's `Похожие` button and carousel page indicators use native
-`DisabledButton()` objects. They remain visible but send no callback. Keep,
-Delete, and available previous/next buttons retain their existing actions.
-Callbacks from old Similar buttons and unknown feed actions are ignored and
-do not advance the feed.
-
-Deploy these keyboard changes only after the server rollout to Bot API 10.3
-and the aiogram upgrade. The current Bot API 9.5 deployment cannot accept this
-button type. Keeping the PR in draft does not enforce deployment order at
-runtime; operators must confirm server compatibility before deploying it.
-
-After rollout, check in a controlled Telegram chat that Similar and carousel
-page numbers do nothing when tapped, Keep/Delete still advance the feed, and
-carousel arrows navigate correctly at the first and last pages.
-
-The retained stale-Similar regression checks that chat messages and saved
-items remain unchanged, using the real handler and picker with fakes at
-external service boundaries. It requires no Telegram credentials:
-
-```bash
-make test FILE=bot/tests/handlers/test_feed_callbacks.py
-make lint FILE=bot/tests/handlers/test_feed_callbacks.py
-```
+PR #16 remains draft pending client evidence and explicit production approval.
+Follow the server rollout order above before deploying disabled Similar and
+carousel indicators; this PR provides no runtime activation gate. In a
+controlled Telegram chat, confirm the indicators do nothing when tapped,
+Keep/Delete still advance the feed, and carousel navigation works at both ends.
 
 ## Reproducing local checks
 
