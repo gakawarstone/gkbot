@@ -11,11 +11,6 @@ GKBot is an async Telegram bot with a modular feed system, media tooling, and op
 - Text-to-speech via Edge TTS.
 - Wikipedia quote lookup.
 
-After `/add_feed` succeeds, `Копировать URL ленты` copies the saved URL for use
-in another feed reader. URLs longer than Telegram's
-[256-character copy limit](https://core.telegram.org/bots/api#copytextbutton)
-remain visible without a copy button.
-
 **Tech Stack**
 - Python 3.13
 - `aiogram` 3

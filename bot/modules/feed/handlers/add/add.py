@@ -1,8 +1,5 @@
-from html import escape
 from typing import Any
 from urllib.parse import urlparse
-
-from aiogram.types import CopyTextButton, InlineKeyboardButton, InlineKeyboardMarkup
 
 from services.gkfeed import GkfeedApi, GkfeedAuthService
 
@@ -31,18 +28,4 @@ class AddFeedHandler(BaseHandler):
         gkfeed = GkfeedApi(credentials)
 
         await gkfeed.add_feed_lazy(self.event.text)
-        markup: InlineKeyboardMarkup | None = None
-        if len(self.event.text) <= 256:
-            markup = InlineKeyboardMarkup(
-                inline_keyboard=[
-                    [
-                        InlineKeyboardButton(
-                            text="Копировать URL ленты",
-                            copy_text=CopyTextButton(text=self.event.text),
-                        )
-                    ]
-                ]
-            )
-        await self.event.answer(
-            f"Feed added: {escape(self.event.text)}", reply_markup=markup
-        )
+        await self.event.answer(f"Feed added: {self.event.text}")
