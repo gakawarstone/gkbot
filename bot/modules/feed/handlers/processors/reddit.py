@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from html import escape
 from urllib.parse import urlparse
 
@@ -19,160 +18,140 @@ from .video import send_video
 _REDDIT_PREVIEW_HEADERS = {
     "User-Agent": "Mozilla/5.0 (compatible; Twitterbot/1.0)",
 }
+_REDDIT_BASE_URL = "https://libreddit.qwik.space/"
 
 
-@dataclass
-class _RedditProcessor:
-    rendering: FeedRendering
-
-    _base_url = "https://libreddit.qwik.space/"
-
-    async def process(self, item: FeedItem) -> None:
-        if await self._send_reddit_preview(item):
+def create_reddit_processor(rendering: FeedRendering) -> FeedProcessor:
+    async def process(item: FeedItem) -> None:
+        if await _send_reddit_preview(rendering, item):
             return
 
-        url = self._base_url + "r/" + item.link.split("r/")[-1]
+        url = _REDDIT_BASE_URL + "r/" + item.link.split("r/")[-1]
         soup = BeautifulSoup(await HttpService.get(url), "html.parser")
         title_tag = soup.find("title")
         title = title_tag.text.strip() if title_tag else "No title"
 
         if not soup.find_all(class_="post"):
-            return await self.rendering.send_item(item)
-
-        if image_url := self._find_post_image_url(soup):
-            return await self.rendering.send_photo(item, image_url, title)
-
-        if video_url := self._find_post_video_url(soup):
-            return await send_video(self.rendering, item, video_url)
-
-        if link := self._find_post_link(soup):
-            await self._send_link_response(title, link, item)
+            return await rendering.send_item(item)
+        if image_url := _find_post_image_url(soup):
+            return await rendering.send_photo(item, image_url, title)
+        if video_url := _find_post_video_url(soup):
+            return await send_video(rendering, item, video_url)
+        if link := _find_post_link(soup):
+            await rendering.answer(
+                title.split("-")[0].strip()
+                + f'\n\n<a href="{item.link}">{title.split("-")[-1].strip()}</a>',
+                reply_markup=RedditFeedItemMarkup.get_item_markup(
+                    item.id, link, "Ссылка"
+                ),
+                disable_web_page_preview=True,
+            )
             return
-        await self._send_telegraph_response(title, item, soup)
 
-    async def _send_reddit_preview(self, item: FeedItem) -> bool:
-        try:
-            metadata = await OpenGraphService.get(
-                item.link,
-                headers=_REDDIT_PREVIEW_HEADERS,
-            )
-            if metadata.image_url is None:
-                return False
-
-            image_data = await HttpService.get(
-                metadata.image_url,
-                headers=_REDDIT_PREVIEW_HEADERS,
-            )
-        except HttpRequestError:
-            return False
-
-        await self.rendering.answer_photo(
-            BufferedInputFile(image_data, filename="reddit.jpg"),
-            caption=(
-                f'<a href="{escape(item.link, quote=True)}">'
-                f"{escape(self._get_subreddit_caption(item.link))}</a>"
+        post_content = soup.find(class_="post_body")
+        if post_content:
+            gallery = soup.find(class_="gallery")
+            if gallery:
+                post_content = gallery
+        if not isinstance(post_content, Tag):
+            post_content = BeautifulSoup("", "html.parser")
+        telegraph_url = await TelegraphAPI.create_telegraph_page(
+            title=title.split("-")[0].strip(),
+            content=HtmlToTelegraphContentConverter(_REDDIT_BASE_URL).convert(
+                post_content
             ),
-            reply_markup=FeedMarkup.get_item_markup(item.id, item.feed_id),
         )
-        return True
-
-    @staticmethod
-    def _get_subreddit_caption(link: str) -> str:
-        path_parts = urlparse(link).path.strip("/").split("/")
-        for index, path_part in enumerate(path_parts[:-1]):
-            if path_part.lower() == "r":
-                return f"r/{path_parts[index + 1]}"
-        return "Reddit"
-
-    def _find_post_image_url(self, soup: BeautifulSoup) -> str | None:
-        post = soup.find(class_="post")
-
-        if not post or not isinstance(post, Tag):
-            return None
-
-        images = post.find_all("image")
-        if images and len(images) > 0:
-            image = images[0]
-            if isinstance(image, Tag) and image.get("href"):
-                return self._normalize_link(str(image.get("href")))
-
-        imgs = post.find_all("img", attrs={"alt": "Post image"})
-        if imgs and len(imgs) > 0:
-            img = imgs[0]
-            if isinstance(img, Tag) and img.get("src"):
-                return self._normalize_link(str(img.get("src")))
-
-        return None
-
-    def _find_post_video_url(self, soup: BeautifulSoup) -> str | None:
-        video = soup.find("meta", attrs={"property": "og:video"})
-        if video and isinstance(video, Tag) and video.get("content"):
-            return self._normalize_link(str(video.get("content")))
-        return None
-
-    def _find_post_link(self, soup: BeautifulSoup) -> str | None:
-        post = soup.find(class_="post")
-
-        if not post or not isinstance(post, Tag):
-            return None
-
-        links = post.find_all(id="post_url")
-        if links and len(links) > 0:
-            link = links[0]
-            if isinstance(link, Tag) and link.get("href"):
-                return self._normalize_link(str(link.get("href")))
-        return None
-
-    async def _send_link_response(self, title: str, link: str, item: FeedItem) -> None:
-        _title = title.split("-")[0].strip()
-        link_caption = title.split("-")[-1].strip()
-
-        await self.rendering.answer(
-            _title + f'\n\n<a href="{item.link}">{link_caption}</a>',
-            reply_markup=RedditFeedItemMarkup.get_item_markup(item.id, link, "Ссылка"),
-            disable_web_page_preview=True,
-        )
-
-    async def _send_telegraph_response(
-        self, title: str, item: FeedItem, soup: BeautifulSoup
-    ) -> None:
-        telegraph_url = await self._create_telegraph_page(title, soup)
-        await self.rendering.answer(
+        await rendering.answer(
             f'<b>{title.split("-")[0]}</b>\n\n<a href="{item.link}">{title.split("-")[-1].strip()}</a>',
             reply_markup=RedditFeedItemMarkup.get_item_markup(item.id, telegraph_url),
             disable_web_page_preview=True,
         )
 
-    async def _create_telegraph_page(self, title: str, soup: BeautifulSoup) -> str:
-        post_content = self._get_post_content(soup)
-        if post_content is None:
-            post_content = BeautifulSoup("", "html.parser")
-        return await TelegraphAPI.create_telegraph_page(
-            title=title.split("-")[0].strip(),
-            content=HtmlToTelegraphContentConverter(self._base_url).convert(
-                post_content
-            ),
-        )
-
-    def _normalize_link(self, link: str) -> str:
-        if not link.startswith("https"):
-            return self._base_url + link
-        return link
-
-    def _get_post_content(self, soup: BeautifulSoup) -> Tag | None:
-        post_body = soup.find(class_="post_body")
-
-        if not post_body:
-            return None
-
-        if soup.find(class_="gallery"):
-            post_body = soup.find(class_="gallery")
-        return post_body if isinstance(post_body, Tag) else None
-
-
-def create_reddit_processor(rendering: FeedRendering) -> FeedProcessor:
     return FeedProcessor(
         "reddit",
         lambda item: item.link.startswith(("https://www.reddit.com",)),
-        _RedditProcessor(rendering).process,
+        process,
     )
+
+
+async def _send_reddit_preview(rendering: FeedRendering, item: FeedItem) -> bool:
+    try:
+        metadata = await OpenGraphService.get(
+            item.link,
+            headers=_REDDIT_PREVIEW_HEADERS,
+        )
+        if metadata.image_url is None:
+            return False
+
+        image_data = await HttpService.get(
+            metadata.image_url,
+            headers=_REDDIT_PREVIEW_HEADERS,
+        )
+    except HttpRequestError:
+        return False
+
+    await rendering.answer_photo(
+        BufferedInputFile(image_data, filename="reddit.jpg"),
+        caption=(
+            f'<a href="{escape(item.link, quote=True)}">'
+            f"{escape(_get_subreddit_caption(item.link))}</a>"
+        ),
+        reply_markup=FeedMarkup.get_item_markup(item.id, item.feed_id),
+    )
+    return True
+
+
+def _get_subreddit_caption(link: str) -> str:
+    path_parts = urlparse(link).path.strip("/").split("/")
+    for index, path_part in enumerate(path_parts[:-1]):
+        if path_part.lower() == "r":
+            return f"r/{path_parts[index + 1]}"
+    return "Reddit"
+
+
+def _find_post_image_url(soup: BeautifulSoup) -> str | None:
+    post = soup.find(class_="post")
+
+    if not post or not isinstance(post, Tag):
+        return None
+
+    images = post.find_all("image")
+    if images:
+        image = images[0]
+        if isinstance(image, Tag) and image.get("href"):
+            return _normalize_link(str(image.get("href")))
+
+    imgs = post.find_all("img", attrs={"alt": "Post image"})
+    if imgs:
+        img = imgs[0]
+        if isinstance(img, Tag) and img.get("src"):
+            return _normalize_link(str(img.get("src")))
+
+    return None
+
+
+def _find_post_video_url(soup: BeautifulSoup) -> str | None:
+    video = soup.find("meta", attrs={"property": "og:video"})
+    if video and isinstance(video, Tag) and video.get("content"):
+        return _normalize_link(str(video.get("content")))
+    return None
+
+
+def _find_post_link(soup: BeautifulSoup) -> str | None:
+    post = soup.find(class_="post")
+
+    if not post or not isinstance(post, Tag):
+        return None
+
+    links = post.find_all(id="post_url")
+    if links:
+        link = links[0]
+        if isinstance(link, Tag) and link.get("href"):
+            return _normalize_link(str(link.get("href")))
+    return None
+
+
+def _normalize_link(link: str) -> str:
+    if not link.startswith("https"):
+        return _REDDIT_BASE_URL + link
+    return link
