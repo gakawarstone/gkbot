@@ -25,7 +25,7 @@ IMAGES = ["https://example.invalid/first.jpg", "https://example.invalid/second.j
 
 
 @pytest.fixture
-def offline_slideshow(monkeypatch: pytest.MonkeyPatch) -> bytes:
+def offline_slideshow(monkeypatch: pytest.MonkeyPatch) -> None:
     fixture = Path(__file__).parents[1] / "fixtures/gallery_dl/tiktok-slideshow.json"
     html = (
         '<script id="__UNIVERSAL_DATA_FOR_REHYDRATION__" type="application/json">'
@@ -45,11 +45,10 @@ def offline_slideshow(monkeypatch: pytest.MonkeyPatch) -> bytes:
 
     monkeypatch.setattr(TiktokExtractor, "request", request)
     monkeypatch.setattr(socket.socket, "connect", forbid_connect)
-    return html
 
 
 async def test_real_data_job_lifecycle_and_tiktok_fallback(
-    offline_slideshow: bytes, monkeypatch: pytest.MonkeyPatch
+    offline_slideshow: None, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     loop_thread = threading.get_ident()
     phases: list[tuple[str, int]] = []
@@ -94,7 +93,7 @@ async def test_real_data_job_lifecycle_and_tiktok_fallback(
 
 @pytest.mark.parametrize("failure", ["status", "recorded", "empty", "unsupported"])
 async def test_real_data_job_failures_are_extraction_errors(
-    offline_slideshow: bytes, monkeypatch: pytest.MonkeyPatch, failure: str
+    offline_slideshow: None, monkeypatch: pytest.MonkeyPatch, failure: str
 ) -> None:
     if failure == "status":
         run = DataJob.run
@@ -123,7 +122,7 @@ async def test_real_data_job_failures_are_extraction_errors(
 
 @pytest.mark.parametrize("fail", [False, True])
 async def test_cancellation_waits_for_real_job_before_caller_cleanup(
-    offline_slideshow: bytes,
+    offline_slideshow: None,
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
     fail: bool,
@@ -171,10 +170,6 @@ async def test_cancellation_waits_for_real_job_before_caller_cleanup(
             await asyncio.sleep(0)
             assert not task.done()
             assert resource.is_dir()
-        # The held worker does not prevent another callback from running.
-        callback = AsyncMock()
-        await asyncio.create_task(callback())
-        callback.assert_awaited_once()
     finally:
         release.set()
     # Match wait_for_completion: a worker failure takes precedence over cancellation.

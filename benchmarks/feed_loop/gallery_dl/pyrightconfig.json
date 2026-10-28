@@ -1,6 +1,0 @@
-{
-  "include": ["lifecycle.py"],
-  "extraPaths": ["../../../bot"],
-  "venvPath": "../../..",
-  "venv": ".venv"
-}
