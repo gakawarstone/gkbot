@@ -16,18 +16,19 @@ class BaseHandler(ReminderContextManager):
     status = _Status
 
     async def render_widget(self, status_message: Text | None = None) -> None:
-        if self.ctx.message is None:
+        context = self.ctx
+        if context.message is None:
             raise ValueError("ctx.message is None")
 
         text = RemindCreator(
-            text=self.ctx.text,
-            date=self.ctx.date,
-            time=self.ctx.time,
+            text=context.text,
+            date=context.date,
+            time=context.time,
             status_message=status_message,
-            tz=self.ctx.tz,
+            tz=context.tz,
         ).as_text()
 
         try:
-            await self.ctx.message.edit_text(**text.as_kwargs())
+            await context.message.edit_text(**text.as_kwargs())
         except TelegramBadRequest:
             pass
