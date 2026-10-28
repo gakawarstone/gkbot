@@ -7,7 +7,7 @@ from typing import ClassVar
 import aiohttp
 from bs4 import BeautifulSoup
 
-from ._decoder import FeedDecoder, feed_item_from_raw_data
+from ._decoder import FeedDecoder
 from ._types import FeedItem, FeedItemSummary, GkfeedCredentials
 
 
@@ -89,15 +89,17 @@ class GkfeedApi:
             raise
         data = json.loads(resp)
         item = data["item"]
-        return self._convert_raw_data_to_feed_item(item)
+        return FeedItem(
+            id=item["id"],
+            feed_id=item["feed_id"],
+            link=item["link"],
+            title=item["title"],
+            text=item["text"],
+        )
 
     async def get_raw_item_data(self, item_id: int) -> dict:
         resp = await self._get_html(self._api_root + f"item?id={item_id}")
         return json.loads(resp)
-
-    @staticmethod
-    def _convert_raw_data_to_feed_item(raw_data: dict) -> FeedItem:
-        return feed_item_from_raw_data(raw_data)
 
     async def _get_soup(self, url: str) -> BeautifulSoup:
         html = await self._get_html(url)

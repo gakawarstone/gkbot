@@ -4,33 +4,19 @@ import multiprocessing
 from concurrent.futures import ProcessPoolExecutor
 from concurrent.futures.process import BrokenProcessPool
 
-from ._types import FeedItem, FeedItemSummary
-
-
-def feed_item_from_raw_data(raw_data: dict) -> FeedItem:
-    return FeedItem(
-        id=raw_data["id"],
-        feed_id=raw_data["feed_id"],
-        link=raw_data["link"],
-        title=raw_data["title"],
-        text=raw_data["text"],
-    )
-
-
-def feed_item_summary_from_raw_data(raw_data: dict) -> FeedItemSummary:
-    return FeedItemSummary(
-        id=raw_data["id"],
-        feed_id=raw_data["feed_id"],
-        link=raw_data["link"],
-        title=raw_data["title"],
-        date=raw_data["date"],
-    )
+from ._types import FeedItemSummary
 
 
 def _decode_items(payload: bytes) -> list[FeedItemSummary]:
     data = json.loads(payload)
     return [
-        feed_item_summary_from_raw_data(raw_item)
+        FeedItemSummary(
+            id=raw_item["id"],
+            feed_id=raw_item["feed_id"],
+            link=raw_item["link"],
+            title=raw_item["title"],
+            date=raw_item["date"],
+        )
         for raw_item in data["items"]
         if raw_item["link"]
     ]

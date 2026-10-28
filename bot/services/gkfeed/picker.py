@@ -46,24 +46,8 @@ class GkfeedItemsPicker:
     def _sort_items_by_feed(
         self, items: list[FeedItemSummary]
     ) -> list[FeedItemSummary]:
-        items_by_id = sorted(items, key=lambda x: x.id)
-
         items_by_feed: dict[int, list[FeedItemSummary]] = {}
-        for item in items_by_id:
-            feed_id = item.feed_id
-            if feed_id not in items_by_feed:
-                items_by_feed[feed_id] = []
-            items_by_feed[feed_id].append(item)
+        for item in sorted(items, key=lambda item: item.id):
+            items_by_feed.setdefault(item.feed_id, []).append(item)
 
-        final_sorted_items = []
-        processed_feed_ids = set()
-
-        for item in items_by_id:
-            feed_id = item.feed_id
-            if feed_id in processed_feed_ids:
-                continue
-
-            final_sorted_items.extend(items_by_feed[feed_id])
-            processed_feed_ids.add(feed_id)
-
-        return final_sorted_items
+        return [item for feed_items in items_by_feed.values() for item in feed_items]
