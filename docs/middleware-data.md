@@ -55,14 +55,10 @@ can also be reset to `None`.
 - `setting_name: str | None`, `setting_new_value: time | None`: the road settings
   conversation stores its selected setting and parsed time value.
 
-These remain ordinary dictionaries at runtime. Message and callback middleware
-share one bounded, dispatcher-owned `UserDataStore`, currently keyed by Telegram
-user ID across chats. New entries include `delete_queue: []`; the dictionary
-stays pinned while handlers use it. Final FSM completion releases context,
-retaining only pending deletions, and idle expiry releases abandoned entries.
-See [the retention contract](user-data-retention.md) for limits and stale FSM
-reset. Tests inject a fresh store instead of patching class-level storage;
-`test_data.py` demonstrates sharing within one active session.
+These remain ordinary dictionaries in a dispatcher-owned `UserDataStore` shared
+by messages and callbacks. The [retention contract](user-data-retention.md)
+defines its lifetime, bounds and stale FSM reset. Tests inject a fresh store;
+`test_data.py` checks sharing within a session and isolation between users.
 
 ## Handler access and boundaries
 
