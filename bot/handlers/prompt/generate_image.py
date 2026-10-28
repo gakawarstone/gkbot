@@ -14,8 +14,6 @@ from filters.command import CommandWithPrompt
 from services.agents.image_prompt_enhancer import ImagePromptEnhancer
 from services.http import HttpService
 
-_MEDIA_GROUP = list[MediaUnion]
-
 
 async def generate_image(m: Message) -> None:
     await m.delete()
@@ -32,7 +30,7 @@ async def generate_image(m: Message) -> None:
             img_url = _generate_url(prompt)
             tasks.append(tg.create_task(HttpService.get(img_url)))
 
-    media_group: _MEDIA_GROUP = [
+    media_group: list[MediaUnion] = [
         InputMediaPhoto(media=BufferedInputFile(task.result(), "image.jpg"))
         for task in tasks
     ]
