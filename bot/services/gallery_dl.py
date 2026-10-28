@@ -1,10 +1,11 @@
+import asyncio
 from dataclasses import dataclass
 from typing import Any
 
 from gallery_dl.exception import GalleryDLException, NoExtractorError
 from gallery_dl.job import DataJob
 
-from utils.async_wrapper import async_wrap
+from utils.async_cleanup import wait_for_completion
 
 
 @dataclass
@@ -33,8 +34,13 @@ class GalleryDlService:
 
     @classmethod
     async def _extract_json_data(cls, url: str) -> list[Any]:
+        # Keep the job alive until it finishes, including when the caller cancels.
+        return await wait_for_completion(asyncio.to_thread(cls._run_data_job, url))
+
+    @staticmethod
+    def _run_data_job(url: str) -> list[Any]:
         job = DataJob(url, file=None)
-        status = await async_wrap(job.run)()
+        status = job.run()
         if status or getattr(job, "exception", None):
             raise ValueError("gallery-dl failed to extract data")
         return job.data
