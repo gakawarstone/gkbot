@@ -1,18 +1,20 @@
-from typing import Any, Awaitable, Callable, Dict
+from collections.abc import Awaitable, Callable
+from typing import Any
 
 from aiogram.dispatcher.flags import get_flag
 from aiogram.dispatcher.middlewares.base import BaseMiddleware
 from aiogram.types import Message, TelegramObject
 
+from configs.commands import USER_COMMANDS
 from services.timezone import TimeZone, UserDontHaveTimeZone
 
 
 class TimeZoneMiddleware(BaseMiddleware):
     async def __call__(
         self,
-        handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
+        handler: Callable[[TelegramObject, dict[str, Any]], Awaitable[Any]],
         event: TelegramObject,
-        data: Dict[str, Any],
+        data: dict[str, Any],
     ) -> Any:
         # Check if event is a Message and has from_user
         if not isinstance(event, Message) or not event.from_user:
@@ -26,5 +28,5 @@ class TimeZoneMiddleware(BaseMiddleware):
             data["data"]["tz"] = await TimeZone.get_user_timezone(user_id)
             return await handler(event, data)
         except UserDontHaveTimeZone:
-            await event.answer("Необходима таймзона /set_tz")
+            await event.answer(f"Необходима таймзона /{USER_COMMANDS.set_tz}")
             return None

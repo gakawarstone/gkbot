@@ -7,6 +7,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import Message
 
+from configs.commands import USER_COMMANDS
 from services.timezone import InvalidTimeZone, TimeZone
 
 
@@ -15,12 +16,12 @@ class FSM(StatesGroup):
     finish = State()
 
 
-async def init_timezone_set(message: Message, state: FSMContext):
+async def init_timezone_set(message: Message, state: FSMContext) -> None:
     await state.set_state(FSM.set_timezone)
     await message.answer("Введите число от -12 до +14:")
 
 
-async def _set_timezone(message: Message, state: FSMContext):
+async def _set_timezone(message: Message, state: FSMContext) -> None:
     await state.set_state(FSM.finish)
 
     if not message.text:
@@ -38,6 +39,6 @@ async def _set_timezone(message: Message, state: FSMContext):
         await message.answer("Таймзона должна быть от -12 до 14")
 
 
-def setup(r: Router):
-    r.message.register(init_timezone_set, Command(commands="set_tz"))
+def setup(r: Router) -> None:
+    r.message.register(init_timezone_set, Command(commands=USER_COMMANDS.set_tz))
     r.message.register(_set_timezone, StateFilter(FSM.set_timezone))
