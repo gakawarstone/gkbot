@@ -8,11 +8,12 @@ from services.gkfeed import FeedItem
 
 from ...ui.keyboards import FeedMarkup
 from .._exceptions import FeedMediaExtractionError
-from . import BaseFeedItemView
+from .registry import FeedProcessor
+from .rendering import FeedRendering
 
 
-class InstagramFeedItemView(BaseFeedItemView):
-    async def _process_instagram_item(self, item: FeedItem) -> None:
+def create_instagram_processor(rendering: FeedRendering) -> FeedProcessor:
+    async def process(item: FeedItem) -> None:
         soup = BeautifulSoup(item.text, "html.parser")
 
         img_tag = soup.find("img")
@@ -40,8 +41,16 @@ class InstagramFeedItemView(BaseFeedItemView):
             raise FeedMediaExtractionError("Invalid base64 image") from error
         photo = BufferedInputFile(photo_data, filename="image.jpg")
 
-        await self.answer_photo(
+        await rendering.answer_photo(
             photo,
             caption=caption,
             reply_markup=FeedMarkup.get_item_markup(item.id, item.feed_id),
         )
+
+    return FeedProcessor(
+        "instagram",
+        lambda item: item.link.startswith(
+            ("https://instagram.com", "https://www.instagram.com")
+        ),
+        process,
+    )

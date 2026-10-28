@@ -78,6 +78,7 @@ tests were restored.
 This migration builds on registry commit
 `d59f8c789c144244dba0237793346c836cfb28e2`, published in
 [PR #46](https://github.com/gakawarstone/gkbot/pull/46), and exception prerequisite
-`6138b0c322bcadee1ad7a9f4c004f148c80a578f`. Task 12 adds the remaining source
-factories independently on the same base. Task 13 must combine both sets of
-entries in `_processor_registry` and retain the shared rendering behavior.
+`6138b0c322bcadee1ad7a9f4c004f148c80a578f`. Task 12 merges this migration and
+combines both sets of entries in `_processor_registry`, retaining the original
+source order and shared rendering behavior. Task 13 removes the empty legacy map
+and remaining aggregate inheritance and owns the matching-filter follow-up.

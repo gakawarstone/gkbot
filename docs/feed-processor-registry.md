@@ -49,12 +49,14 @@ second processor or generic web extraction, and fallback sender errors propagate
 
 ## Migration behavior
 
-`discours`, `kinogo`, `spoti`, `telegram`, `rezka`, `shiki`, `twitch` and `hltv`
-use the registry. Their inherited views and legacy entries have been removed.
-They retain the existing requests, captions, media and keyboard behavior. See
-[simple source migration](feed-simple-processors.md) for callback contracts and
-regression cases. A registry miss uses the remaining legacy dispatch; a legacy
-miss uses the generic web view. All remaining prefix routes keep their order.
+All sources now use the registry: the Discours tracer, seven
+[simple sources](feed-simple-processors.md), and ten
+[specialized sources](feed-specialized-processors.md). Their inherited views and
+legacy entries have been removed. Requests, captions, media, keyboard payloads,
+and prefix matching retain their existing behavior. A registry miss uses the
+generic web view. The empty legacy map and its dispatch loop remain until task 13
+removes the migration infrastructure. The composition preserves the original
+source order with one entry per source, including its existing aliases.
 
 Discours matching retains the original `https://discours.io` prefix semantics,
 including acceptance of longer hostnames starting with that text. This migration
@@ -81,6 +83,10 @@ and Telegram failures retain the original link fallback; programming errors and
 cancellation propagate. Further checks prevent recursive fallback, accidental
 content fallback for matching failures, and sensitive exception text in logs.
 
+`bot/tests/handlers/test_feed_specialized_processors.py` checks media payloads,
+captions, spoilers, playback metadata, download buttons, Reddit gallery content,
+and usable link responses after missing media or send failures.
+
 The registry builds on exception prerequisite commit
-`6123f94fbfd2c169df27c336becb853b46ea1fd8`, published in
+`6138b0c322bcadee1ad7a9f4c004f148c80a578f`, published in
 [PR #26](https://github.com/gakawarstone/gkbot/pull/26).
