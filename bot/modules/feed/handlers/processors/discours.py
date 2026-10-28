@@ -21,6 +21,6 @@ def create_discours_processor(
         media_url = (
             "https://assets.discours.io/unsafe/900x/" + data["data"]["thumborId"]
         )
-        await send_photo(item, str(media_url), str(title))
+        await send_photo(item, media_url, str(title))
 
     return FeedProcessor("discours", _matches_discours, process)
