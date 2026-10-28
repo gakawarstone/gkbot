@@ -7,6 +7,7 @@ from ui.buttons.sasflix import (
     PREFIX,
     SasflixDownloadButtonCallbackDataDeserializer,
 )
+from utils.status_message import temporary_status
 
 
 async def download(callback: CallbackQuery) -> None:
@@ -21,23 +22,22 @@ async def download(callback: CallbackQuery) -> None:
         callback.data
     )
     topic_url = f"https://sasflix.ru/topics/{callback_data.topic_uuid}"
-    status_message = await callback.message.answer("Cкачиваю " + topic_url)
-
-    audio = await SasflixService.get_audio(topic_url)
-    await callback.bot(
-        callback.message.answer_audio(
-            audio=URLInputFile(
-                SasflixService.get_audio_url(audio.uuid),
-                timeout=AUDIO_TRANSFER_TIMEOUT_SECONDS,
+    async with temporary_status(
+        callback.message, "Cкачиваю " + topic_url, callback=callback
+    ):
+        audio = await SasflixService.get_audio(topic_url)
+        await callback.bot(
+            callback.message.answer_audio(
+                audio=URLInputFile(
+                    SasflixService.get_audio_url(audio.uuid),
+                    timeout=AUDIO_TRANSFER_TIMEOUT_SECONDS,
+                ),
+                title=audio.title,
+                performer="GKBOT",
+                duration=audio.duration,
             ),
-            title=audio.title,
-            performer="GKBOT",
-            duration=audio.duration,
-        ),
-        request_timeout=AUDIO_TRANSFER_TIMEOUT_SECONDS,
-    )
-
-    await status_message.delete()
+            request_timeout=AUDIO_TRANSFER_TIMEOUT_SECONDS,
+        )
 
 
 def setup(router: Router) -> None:

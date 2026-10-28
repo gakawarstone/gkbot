@@ -7,6 +7,7 @@ from ui.buttons.matreshka import (
     PREFIX,
     MatreshkaDownloadButtonCallbackDataDeserializer,
 )
+from utils.status_message import temporary_status
 
 
 async def download(callback: CallbackQuery) -> None:
@@ -21,21 +22,20 @@ async def download(callback: CallbackQuery) -> None:
         callback.data
     )
     video_url = f"https://matreshka.tv/video/{callback_data.video_id}"
-    status_message = await callback.message.answer("Cкачиваю " + video_url)
-
-    video = await MatreshkaService.get_video(video_url)
-    async with MatreshkaService.download_audio(video) as audio:
-        await callback.bot(
-            callback.message.answer_audio(
-                audio=audio.input_file,
-                title=audio.title,
-                performer="GKBOT",
-                duration=audio.duration,
-            ),
-            request_timeout=AUDIO_TRANSFER_TIMEOUT_SECONDS,
-        )
-
-    await status_message.delete()
+    async with temporary_status(
+        callback.message, "Cкачиваю " + video_url, callback=callback
+    ):
+        video = await MatreshkaService.get_video(video_url)
+        async with MatreshkaService.download_audio(video) as audio:
+            await callback.bot(
+                callback.message.answer_audio(
+                    audio=audio.input_file,
+                    title=audio.title,
+                    performer="GKBOT",
+                    duration=audio.duration,
+                ),
+                request_timeout=AUDIO_TRANSFER_TIMEOUT_SECONDS,
+            )
 
 
 def setup(router: Router) -> None:

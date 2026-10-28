@@ -66,6 +66,7 @@ class _FromUser:
 
 class _Chat:
     id = ADMINS[0]
+    type = "private"
 
 
 class Event:

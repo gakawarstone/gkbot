@@ -8,6 +8,7 @@ from aiogram.types import CallbackQuery, InaccessibleMessage, InputFile, Message
 
 from services.ytdlp import YtdlpDownloader
 from services.ytdlp._types import VideoFileInfo
+from utils.status_message import temporary_status
 
 
 class VideoOptions(TypedDict, total=False):
@@ -54,18 +55,13 @@ async def handle_download(
 
     request = await prepare_request(callback.data)
     status_text = "Cкачиваю " + request.url
-    if request.use_callback_message_as_status:
-        status_message = message
-        if isinstance(status_message, Message):
-            await status_message.edit_text(status_text)
-    else:
-        status_message = await message.answer(status_text)
-
-    try:
+    async with temporary_status(
+        message,
+        status_text,
+        callback=callback,
+        reuse_message=request.use_callback_message_as_status,
+    ):
         await _send_media(message, request)
-    finally:
-        if isinstance(status_message, Message):
-            await status_message.delete()
 
 
 async def _send_media(message: Message, request: DownloadRequest) -> None:

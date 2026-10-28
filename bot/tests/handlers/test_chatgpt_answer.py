@@ -11,7 +11,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.storage.base import StorageKey
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.methods import EditMessageText
-from aiogram.types import Message
+from aiogram.types import Chat, Message, User
 from aiogram.utils.formatting import sizeof
 
 from extensions.handlers.message.markdown_render import parse_markdown
@@ -113,6 +113,9 @@ class MessageRecorder:
 
     def make_message(self, text: str = "Подождите") -> MagicMock:
         message = MagicMock(spec=Message)
+        message.chat = Chat(id=42, type="private")
+        message.from_user = User(id=7, is_bot=False, first_name="Requester")
+        message.ephemeral_message_id = None
         message.html_text = text
 
         async def edit(text: str, **kwargs: Any) -> None:

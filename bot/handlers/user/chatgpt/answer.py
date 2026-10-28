@@ -10,6 +10,7 @@ from extensions.handlers.message.markdown_render import MarkdownRenderHandlerExt
 from services.agents.image_explainer import ImageExplainer
 from services.llm import OpenRouter
 from services.llm.openrouter import DEFAULT_MODEL, StreamChunk
+from utils.status_message import StatusMessage, temporary_status
 
 from ._base import BaseHandler
 from ._response import split_response
@@ -36,13 +37,13 @@ class AnswerHandler(BaseHandler, MarkdownRenderHandlerExtension, FileHandlerExte
 
         self.ctx.messages.append(prompt)
 
-        _message = await self.event.answer("Подождите")
-        text = await self._stream_to_message(
-            _message,
-            OpenRouter(self._MODEL).stream(
-                " | ".join(self.ctx.messages), await self._get_images()
-            ),
-        )
+        async with temporary_status(self.event, "Подождите") as status:
+            text = await self._stream_to_message(
+                status,
+                OpenRouter(self._MODEL).stream(
+                    " | ".join(self.ctx.messages), await self._get_images()
+                ),
+            )
 
         self.ctx.messages.append(text)
 
@@ -76,11 +77,16 @@ class AnswerHandler(BaseHandler, MarkdownRenderHandlerExtension, FileHandlerExte
         return text
 
     async def _stream_to_message(
-        self, message: Message, stream: AsyncGenerator[StreamChunk]
+        self, message: Message | StatusMessage, stream: AsyncGenerator[StreamChunk]
     ) -> str:
         reason = ""
         text = ""
-        messages = [(message, message.html_text or "")]
+        if isinstance(message, StatusMessage):
+            status = message
+            messages: list[tuple[Message, str]] = []
+        else:
+            status = None
+            messages = [(message, message.html_text or "")]
         last_update = time.monotonic()
 
         async for chunk, chunk_type in stream:
@@ -96,18 +102,31 @@ class AnswerHandler(BaseHandler, MarkdownRenderHandlerExtension, FileHandlerExte
                     chunks = [BlockQuote(reason[-500:]).as_html()]
                 else:
                     chunks = split_response(text)
-                await self._update_messages(messages, chunks)
+                await self._update_messages(messages, chunks, status=status)
 
         await self._update_messages(
-            messages, split_response(text) or ["Модель не вернула ответ."]
+            messages,
+            split_response(text) or ["Модель не вернула ответ."],
+            status=status,
         )
         return text
 
     async def _update_messages(
-        self, messages: list[tuple[Message, str]], chunks: list[str]
+        self,
+        messages: list[tuple[Message, str]],
+        chunks: list[str],
+        *,
+        status: StatusMessage | None = None,
     ) -> None:
         for index, chunk in enumerate(chunks):
-            if index >= len(messages):
+            if not messages:
+                assert status is not None
+                message = await status.publish(
+                    chunk,
+                    parse_mode="HTML",
+                    link_preview_options=LinkPreviewOptions(is_disabled=True),
+                )
+            elif index >= len(messages):
                 message = await messages[-1][0].answer(
                     chunk,
                     parse_mode="HTML",

@@ -6,6 +6,7 @@ from aiogram.filters import or_f
 from extensions.handlers.message.base import BaseHandler
 from filters.x import XVideoLink
 from services.ytdlp import YtdlpDownloader
+from utils.status_message import temporary_status
 
 
 class YtdlpShortVideoHandler(BaseHandler):
@@ -18,22 +19,21 @@ class YtdlpShortVideoHandler(BaseHandler):
         if not hasattr(self.event, "from_user") or not self.event.from_user:
             raise ValueError("No user information available in the message.")
 
-        status_message = await self.event.answer("Скачиваю " + self.event.text)
-        await self.bot.send_chat_action(self.event.chat.id, "upload_video")
-        async with YtdlpDownloader.download_video(self.event.text) as video:
-            caption = f"<b>{self.event.from_user.username}</b> {self.event.text}"
-            await self.event.answer_video(
-                video.input_file,
-                height=video.height,
-                width=video.width,
-                duration=int(video.duration),
-                supports_streaming=True,
-                caption=caption,
-            )
-        await status_message.delete()
+        async with temporary_status(self.event, "Скачиваю " + self.event.text):
+            await self.bot.send_chat_action(self.event.chat.id, "upload_video")
+            async with YtdlpDownloader.download_video(self.event.text) as video:
+                caption = f"<b>{self.event.from_user.username}</b> {self.event.text}"
+                await self.event.answer_video(
+                    video.input_file,
+                    height=video.height,
+                    width=video.width,
+                    duration=int(video.duration),
+                    supports_streaming=True,
+                    caption=caption,
+                )
 
 
-def setup(r: Router):
+def setup(r: Router) -> None:
     r.message.register(
         YtdlpShortVideoHandler,
         or_f(
