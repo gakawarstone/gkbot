@@ -3,7 +3,7 @@ import base64
 from aiogram.types import BufferedInputFile
 from bs4 import BeautifulSoup, Tag
 
-from services.feed_parser import FeedParser
+from services.feed_parser import feed_parser
 from services.gkfeed import FeedItem
 
 from ...ui.keyboards import FeedMarkup
@@ -12,7 +12,7 @@ from . import BaseFeedItemView
 
 class InstagramFeedItemView(BaseFeedItemView):
     async def _process_instagram_item(self, item: FeedItem) -> None:
-        photo_data = await FeedParser.run(
+        photo_data = await feed_parser.run(
             InstagramFeedItemView._decode_photo, item.text
         )
         caption = item.title.split("/")[-1].split(":")[1]

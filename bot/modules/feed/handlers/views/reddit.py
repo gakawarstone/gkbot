@@ -6,7 +6,7 @@ from urllib.parse import urlparse
 from aiogram.types import BufferedInputFile
 from bs4 import BeautifulSoup, Tag
 
-from services.feed_parser import FeedParser
+from services.feed_parser import feed_parser
 from services.gkfeed import FeedItem
 from services.http import HttpRequestError, HttpService
 from services.open_graph import OpenGraphService
@@ -38,7 +38,7 @@ class RedditFeedItemView(VideoFeedItemView, BaseFeedItemView):
 
         url = self._base_url + "r/" + item.link.split("r/")[-1]
         html = await HttpService.get(url)
-        post = await FeedParser.run(RedditFeedItemView._parse_post, html)
+        post = await feed_parser.run(RedditFeedItemView._parse_post, html)
         if post is None:
             return await self._send_item(item)
 

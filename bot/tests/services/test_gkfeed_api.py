@@ -142,7 +142,7 @@ async def test_cancelled_decode_does_not_queue_jobs_or_poison_single_flight(
     release = threading.Event()
     submissions = 0
 
-    def decode(body: bytes) -> list[FeedItem]:
+    def decode(_function: object, body: bytes) -> list[FeedItem]:
         nonlocal submissions
         submissions += 1
         entered.set()

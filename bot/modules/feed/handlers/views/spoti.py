@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup, Tag
 
-from services.feed_parser import FeedParser
+from services.feed_parser import feed_parser
 from services.gkfeed import FeedItem
 from services.http import HttpService
 
@@ -10,7 +10,7 @@ from . import BaseFeedItemView
 class SpotiFeedItemView(BaseFeedItemView):
     async def _process_spoti_item(self, item: FeedItem) -> None:
         html = await HttpService.get(item.link)
-        data = await FeedParser.run(SpotiFeedItemView._parse_spoti_page, html)
+        data = await feed_parser.run(SpotiFeedItemView._parse_spoti_page, html)
         if data is None:
             return await self._send_item(item)
         media_url, title, description = data

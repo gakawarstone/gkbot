@@ -1,7 +1,7 @@
 from aiogram.types import InlineKeyboardMarkup
 from bs4 import BeautifulSoup, Tag
 
-from services.feed_parser import FeedParser
+from services.feed_parser import feed_parser
 from services.gkfeed import FeedItem
 from services.open_graph import OpenGraphMetadata, OpenGraphService
 
@@ -17,7 +17,7 @@ _DEFAULT_THUMBNAIL_URL = (
 class VKFeedItemView(BaseFeedItemView):
     async def _process_vk_item(self, item: FeedItem) -> None:
         html = await OpenGraphService.get_html(item.link)
-        metadata, title, channel_name = await FeedParser.run(
+        metadata, title, channel_name = await feed_parser.run(
             VKFeedItemView._parse_vk_page, html
         )
 

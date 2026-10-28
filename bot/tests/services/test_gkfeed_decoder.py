@@ -62,7 +62,7 @@ async def test_cancellation_keeps_one_job_and_shutdown_drains_it(
     submissions: list[bytes] = []
     loop_thread = threading.get_ident()
 
-    def blocked_decode(payload: bytes) -> list[FeedItem]:
+    def blocked_decode(_function: object, payload: bytes) -> list[FeedItem]:
         assert threading.get_ident() != loop_thread
         submissions.append(payload)
         entered.set()
@@ -104,7 +104,7 @@ async def test_cancelled_job_error_is_observed_and_next_decode_succeeds(
     entered = threading.Event()
     release = threading.Event()
 
-    def decode(payload: bytes) -> list[FeedItem]:
+    def decode(_function: object, payload: bytes) -> list[FeedItem]:
         if payload == b"cancelled":
             entered.set()
             assert release.wait(5)

@@ -9,7 +9,7 @@ from aiogram.types import FSInputFile
 from bs4 import BeautifulSoup, Tag
 
 from services.cache_dir import CacheDir
-from services.feed_parser import FeedParser
+from services.feed_parser import feed_parser
 from services.ffmpeg import FfmpegService
 from services.http import HttpService
 from services.open_graph import OpenGraphService
@@ -54,7 +54,7 @@ class MatreshkaService:
     async def get_video(cls, url: str) -> MatreshkaVideo:
         video_id = cls.get_video_id(url)
         page = await HttpService.get(url)
-        return await FeedParser.run(cls.parse_video, page, video_id)
+        return await feed_parser.run(cls.parse_video, page, video_id)
 
     @staticmethod
     def parse_video(page: bytes | str, video_id: str) -> MatreshkaVideo:

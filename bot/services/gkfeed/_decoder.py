@@ -24,12 +24,9 @@ def _decode_items(payload: bytes) -> list[FeedItem]:
     ]
 
 
-class FeedDecoder(ProcessWorker[bytes, list[FeedItem]]):
-    def __init__(self) -> None:
-        super().__init__(_decode_items)
-
+class FeedDecoder(ProcessWorker):
     async def start(self) -> None:
         await self.decode(b'{"items":[]}')
 
     async def decode(self, payload: bytes) -> list[FeedItem]:
-        return await self.run(payload)
+        return await self.run(_decode_items, payload)

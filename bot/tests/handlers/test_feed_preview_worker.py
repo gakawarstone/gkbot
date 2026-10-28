@@ -13,25 +13,24 @@ from modules.feed.handlers.callbacks import ItemEventHandler
 from modules.feed.handlers.messages import ShowFeedItemsHandler
 from modules.feed.handlers.views.reddit import RedditFeedItemView
 from modules.feed.ui.keyboards import FeedMarkup
-from services.feed_parser import FeedParser, _parse
+from services.feed_parser import feed_parser
 from services.gkfeed import FeedItem, GkfeedCredentials
 from services.gkfeed.api import GkfeedApi
 from services.http import HttpService
 from services.matreshka import MatreshkaService
 from services.open_graph import OpenGraphService
 from services.telegraph import TelegraphAPI
-from utils.process_worker import ProcessWorker
+
+pytestmark = pytest.mark.asyncio(loop_scope="session")
 
 
-@pytest.fixture
-async def parser(monkeypatch: pytest.MonkeyPatch) -> AsyncIterator[None]:
-    worker = ProcessWorker(_parse)
-    monkeypatch.setattr(FeedParser, "_worker", worker)
-    await FeedParser.on_startup()
+@pytest.fixture(scope="module", autouse=True)
+async def parser() -> AsyncIterator[None]:
+    await feed_parser.start()
     try:
         yield
     finally:
-        await FeedParser.on_shutdown()
+        await feed_parser.close()
 
 
 def _parse_until_released(started: str, release: str) -> int:
@@ -46,14 +45,13 @@ def _parse_until_released(started: str, release: str) -> int:
     return os.getpid()
 
 
-@pytest.mark.usefixtures("parser")
 async def test_delete_can_run_while_another_preview_keeps_parsing(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     started = tmp_path / "started"
     release = tmp_path / "release"
     parsing = asyncio.create_task(
-        FeedParser.run(_parse_until_released, str(started), str(release))
+        feed_parser.run(_parse_until_released, str(started), str(release))
     )
     callback = MagicMock(spec=CallbackQuery)
     callback.message = MagicMock(spec=Message)
@@ -86,7 +84,6 @@ async def test_delete_can_run_while_another_preview_keeps_parsing(
         await parsing
 
 
-@pytest.mark.usefixtures("parser")
 async def test_source_previews_keep_media_and_captions(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -156,7 +153,6 @@ async def test_source_previews_keep_media_and_captions(
     )
 
 
-@pytest.mark.usefixtures("parser")
 async def test_instagram_hltv_and_matreshka_return_ready_values(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -219,7 +215,6 @@ async def test_instagram_hltv_and_matreshka_return_ready_values(
     ) == video
 
 
-@pytest.mark.usefixtures("parser")
 async def test_reddit_fallback_converts_body_before_returning_to_handler(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -239,7 +234,7 @@ async def test_reddit_fallback_converts_body_before_returning_to_handler(
     ]
     answer.assert_awaited_once()
 
-    parsed = await FeedParser.run(
+    parsed = await feed_parser.run(
         RedditFeedItemView._parse_post,
         b'<div class="post"><img alt="Post image" src="image"></div>',
     )

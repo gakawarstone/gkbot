@@ -3,19 +3,19 @@ import multiprocessing
 from collections.abc import Callable
 from concurrent.futures import ProcessPoolExecutor
 from concurrent.futures.process import BrokenProcessPool
+from typing import Any
 
 
-class ProcessWorker[Payload, Result]:
+class ProcessWorker:
     """One reusable worker, with at most one submitted payload even on cancellation."""
 
-    def __init__(self, function: Callable[[Payload], Result]) -> None:
-        self._function = function
+    def __init__(self) -> None:
         self._pool: ProcessPoolExecutor | None = None
         self._lock = asyncio.Lock()
-        self._pending: asyncio.Task[Result] | None = None
+        self._pending: asyncio.Task[Any] | None = None
         self._closing: asyncio.Task[None] | None = None
 
-    async def run(self, payload: Payload) -> Result:
+    async def run[T](self, function: Callable[..., T], *args: Any) -> T:
         async with self._lock:
             if self._closing is not None:
                 raise RuntimeError("Process worker is closed")
@@ -25,24 +25,29 @@ class ProcessWorker[Payload, Result]:
                 await asyncio.wait([self._pending])
             if self._closing is not None:
                 raise RuntimeError("Process worker is closed")
-            pending = asyncio.create_task(asyncio.to_thread(self._execute, payload))
+            pending = asyncio.create_task(
+                asyncio.to_thread(self._execute, function, *args)
+            )
             self._pending = pending
             pending.add_done_callback(self._finished)
             return await asyncio.shield(pending)
 
-    def _execute(self, payload: Payload) -> Result:
+    async def start(self) -> None:
+        await self.run(bytes)
+
+    def _execute[T](self, function: Callable[..., T], *args: Any) -> T:
         # Pool creation, first spawn, and IPC submission must also stay off-loop.
         if self._pool is None:
             self._pool = ProcessPoolExecutor(
                 max_workers=1, mp_context=multiprocessing.get_context("spawn")
             )
         try:
-            return self._pool.submit(self._function, payload).result()
+            return self._pool.submit(function, *args).result()
         except BrokenProcessPool:
             self._shutdown()
             raise
 
-    def _finished(self, pending: asyncio.Task[Result]) -> None:
+    def _finished(self, pending: asyncio.Task[Any]) -> None:
         # Retrieve errors even when the requesting task has already been cancelled.
         if not pending.cancelled():
             pending.exception()

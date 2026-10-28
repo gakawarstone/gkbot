@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup, Tag
 
-from services.feed_parser import FeedParser
+from services.feed_parser import feed_parser
 from services.gkfeed import FeedItem
 from services.http import HttpService
 
@@ -10,7 +10,7 @@ from . import BaseFeedItemView
 class ShikiFeedItemView(BaseFeedItemView):
     async def _process_shiki_item(self, item: FeedItem) -> None:
         html = await HttpService.get(item.link)
-        media_url, title_name = await FeedParser.run(
+        media_url, title_name = await feed_parser.run(
             ShikiFeedItemView._parse_shiki_page, html
         )
         description = item.text
