@@ -32,10 +32,10 @@ def create_spoti_processor(send_photo: SendPhoto, send_item: SendItem) -> FeedPr
             return await send_item(item)
         description = str(description_tag.get("content") or "")
 
-        if description.split(" · ")[0] == "Playlist":
+        artist_name = description.split(" · ")[0]
+        if artist_name == "Playlist":
             return await send_photo(item, str(media_url), "", title)
 
-        artist_name = description.split(" · ")[0]
         release_name = title.split(" - ")[0]
         await send_photo(
             item,
