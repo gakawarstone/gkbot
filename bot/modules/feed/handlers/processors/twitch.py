@@ -8,10 +8,6 @@ from .matching import matches_source_url
 from .registry import FeedProcessor
 
 
-def _matches_twitch(item: FeedItem) -> bool:
-    return matches_source_url(item, frozenset({"www.twitch.tv"}))
-
-
 def create_twitch_processor(send_photo: SendPhoto) -> FeedProcessor:
     async def process(item: FeedItem) -> None:
         streamer_name = urlparse(item.link).path.strip("/").split("/", 1)[0]
@@ -23,4 +19,8 @@ def create_twitch_processor(send_photo: SendPhoto) -> FeedProcessor:
         thumbnail_url = f"https://static-cdn.jtvnw.net/previews-ttv/live_user_{streamer_name}-1920x1080.jpg"
         await send_photo(item, thumbnail_url, item.text or item.title, streamer_name)
 
-    return FeedProcessor("twitch", _matches_twitch, process)
+    return FeedProcessor(
+        "twitch",
+        lambda item: matches_source_url(item, frozenset({"www.twitch.tv"})),
+        process,
+    )

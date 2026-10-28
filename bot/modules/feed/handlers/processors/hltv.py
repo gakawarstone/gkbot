@@ -15,10 +15,6 @@ from .matching import matches_source_url
 from .registry import FeedProcessor
 
 
-def _matches_hltv(item: FeedItem) -> bool:
-    return matches_source_url(item, frozenset({"www.hltv.org"}))
-
-
 def create_hltv_processor(
     answer_photo: AnswerBufferedPhoto, send_item: SendItem
 ) -> FeedProcessor:
@@ -37,7 +33,11 @@ def create_hltv_processor(
             reply_markup=FeedMarkup.get_item_markup(item.id, item.feed_id),
         )
 
-    return FeedProcessor("hltv", _matches_hltv, process)
+    return FeedProcessor(
+        "hltv",
+        lambda item: matches_source_url(item, frozenset({"www.hltv.org"})),
+        process,
+    )
 
 
 def _normalize_image_url(image_url: str) -> str:

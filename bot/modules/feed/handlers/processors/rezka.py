@@ -10,10 +10,6 @@ from .registry import FeedProcessor
 _PREVIEW_HEADERS = {"User-Agent": "TelegramBot (like TwitterBot)"}
 
 
-def _matches_rezka(item: FeedItem) -> bool:
-    return matches_source_url(item, frozenset({"hdrezka.me"}))
-
-
 def create_rezka_processor(send_photo: SendPhoto, send_item: SendItem) -> FeedProcessor:
     async def process(item: FeedItem) -> None:
         item_url = urlsplit(item.link)
@@ -24,4 +20,8 @@ def create_rezka_processor(send_photo: SendPhoto, send_item: SendItem) -> FeedPr
 
         await send_photo(item, metadata.image_url, item.title)
 
-    return FeedProcessor("rezka", _matches_rezka, process)
+    return FeedProcessor(
+        "rezka",
+        lambda item: matches_source_url(item, frozenset({"hdrezka.me"})),
+        process,
+    )

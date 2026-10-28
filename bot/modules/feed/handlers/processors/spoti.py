@@ -7,10 +7,6 @@ from .matching import matches_source_url
 from .registry import FeedProcessor
 
 
-def _matches_spoti(item: FeedItem) -> bool:
-    return matches_source_url(item, frozenset({"open.spotify.com"}))
-
-
 def create_spoti_processor(send_photo: SendPhoto, send_item: SendItem) -> FeedProcessor:
     async def process(item: FeedItem) -> None:
         soup = await get_html_soup(item.link)
@@ -45,4 +41,8 @@ def create_spoti_processor(send_photo: SendPhoto, send_item: SendItem) -> FeedPr
             "Spotify Release",
         )
 
-    return FeedProcessor("spoti", _matches_spoti, process)
+    return FeedProcessor(
+        "spoti",
+        lambda item: matches_source_url(item, frozenset({"open.spotify.com"})),
+        process,
+    )
