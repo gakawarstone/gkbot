@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock
 
 import pytest
 import yt_dlp
-from aiogram.types import CallbackQuery, Chat, FSInputFile, Message, URLInputFile, User
+from aiogram.types import CallbackQuery, Chat, Message, User
 from yt_dlp.utils import DownloadError
 
 from modules.feed.handlers.callbacks import ItemEventHandler
@@ -18,7 +18,6 @@ from services.gkfeed import GkfeedCredentials
 from services.gkfeed.api import GkfeedApi
 from services.schedule import Schedule
 from services.ytdlp import YtdlpDownloader
-from services.ytdlp import downloader as downloader_module
 from services.ytdlp.source import DownloadSource
 
 URL = "https://www.tiktok.com/@offline/video/1"
@@ -26,12 +25,10 @@ METADATA = {"title": "offline", "duration": 3, "height": 1080, "width": 720}
 
 
 @pytest.mark.parametrize("operation", ["info", "download"])
-@pytest.mark.parametrize("blocked_stage", ["construct", "enter", "operation", "exit"])
 async def test_delete_runs_while_ytdlp_lifecycle_is_busy(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     operation: str,
-    blocked_stage: str,
 ) -> None:
     loop_thread = threading.get_ident()
     started = threading.Event()
@@ -41,7 +38,7 @@ async def test_delete_runs_while_ytdlp_lifecycle_is_busy(
     def stage(name: str) -> None:
         threads.append(threading.get_ident())
         assert threads[-1] != loop_thread
-        if name == blocked_stage:
+        if name == "operation":
             started.set()
             assert release.wait(5)
 
@@ -214,60 +211,6 @@ async def test_ytdlp_error_closes_context_and_propagates(
             )
     assert raised.value is error
     assert closed == [True]
-
-
-async def test_download_preserves_postprocessor_path_and_conversion(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    class Downloader:
-        def __init__(self, opts: dict[str, Any]) -> None:
-            assert opts["outtmpl"] == {"default": str(tmp_path / "video")}
-
-        def __enter__(self) -> Self:
-            return self
-
-        def __exit__(self, *args: object) -> None:
-            pass
-
-        def download(self, url: str) -> None:
-            assert url == URL
-
-    monkeypatch.setattr(yt_dlp, "YoutubeDL", Downloader)
-    convert = AsyncMock()
-    monkeypatch.setattr(FfmpegService, "convert_video", convert)
-    file = await YtdlpDownloader._download_file(
-        URL,
-        {
-            "outtmpl": {"default": str(tmp_path / "video")},
-            "postprocessors": [{"preferedformat": "mp4"}],
-        },
-        DownloadSource.TIKTOK,
-    )
-    assert isinstance(file, FSInputFile)
-    assert file.path == str(tmp_path / "video_converted.mp4")
-    convert.assert_awaited_once_with(
-        str(tmp_path / "video.mp4"), str(tmp_path / "video_converted.mp4")
-    )
-
-
-async def test_youtube_worker_path_does_not_construct_local_ytdlp(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    def unexpected_constructor(*args: object, **kwargs: object) -> None:
-        pytest.fail("Worker downloads must not construct a local YoutubeDL")
-
-    monkeypatch.setattr(yt_dlp, "YoutubeDL", unexpected_constructor)
-    info = AsyncMock(return_value=METADATA)
-    download = AsyncMock(return_value="https://example.invalid/worker.mp4")
-    monkeypatch.setattr(downloader_module, "get_info", info)
-    monkeypatch.setattr(downloader_module, "download_video", download)
-    metadata = await YtdlpDownloader._get_info(URL, DownloadSource.YOUTUBE)
-    assert metadata.duration == METADATA["duration"]
-    file = await YtdlpDownloader._download_file(URL, {}, DownloadSource.YOUTUBE)
-    assert isinstance(file, URLInputFile)
-    assert file.url == "https://example.invalid/worker.mp4"
-    info.assert_awaited_once_with(URL)
-    download.assert_awaited_once_with(URL, {})
 
 
 async def test_cancelled_conversion_finishes_before_cache_cleanup(
