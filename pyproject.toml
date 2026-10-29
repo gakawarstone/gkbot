@@ -13,7 +13,7 @@ dependencies = [
     "docx2txt",
     "varname==0.13.0",
     "yt-dlp[default]==2026.8.19",
-    "gallery-dl>=1.30.10",
+    "gallery-dl>=1.32.18",
     "edge-tts",
     "aiogram==3.31.0",
     "uvloop>=0.21.0",

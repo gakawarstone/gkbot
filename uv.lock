@@ -518,14 +518,14 @@ wheels = [
 
 [[package]]
 name = "gallery-dl"
-version = "1.32.7"
+version = "1.32.18"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "requests" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/22/dc/f44c424d3966cf040b7ef091c8e6818a94ddd7b88c844d62ba542b93b84f/gallery_dl-1.32.7.tar.gz", hash = "sha256:071635805a77ee2d3e70bd271ccd3e565ed64b200df3e03085cd899e8f893a02", size = 728700, upload-time = "2026-07-18T08:12:49.343Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ec/55/e40b8ce403489e7b3122eee28693efd885ca68256a9c6344fdfbd0842c3e/gallery_dl-1.32.18.tar.gz", hash = "sha256:1c5562af3799a0bec96be0f64d95a416aee688fd09fe3893ca3a6c87bbe65bcd", size = 763172, upload-time = "2026-10-25T09:06:40.817Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ba/64/6a33144d2e1d3d34129cfb3c990efdba5e9bb883db725bd8995cc53d9cc8/gallery_dl-1.32.7-py3-none-any.whl", hash = "sha256:38fc64cbde62331806f06c23f20ad0f96961802d21a808c08027626f45ad947a", size = 906450, upload-time = "2026-07-18T08:12:45.464Z" },
+    { url = "https://files.pythonhosted.org/packages/f5/81/03b8f628bd5c91a62c9c8152358c3b381933dc3fdf6c5aea100e8582da80/gallery_dl-1.32.18-py3-none-any.whl", hash = "sha256:f9081654ee4a0d6f2778376882ab7cecbf3e7ba15ed65b20416388b8789be535", size = 943606, upload-time = "2026-10-25T09:06:36.888Z" },
 ]
 
 [[package]]
@@ -569,7 +569,7 @@ requires-dist = [
     { name = "beautifulsoup4" },
     { name = "docx2txt" },
     { name = "edge-tts" },
-    { name = "gallery-dl", specifier = ">=1.30.10" },
+    { name = "gallery-dl", specifier = ">=1.32.18" },
     { name = "gtts" },
     { name = "notion-client", specifier = "==0.9.0" },
     { name = "openai", specifier = ">=1.82.1" },
