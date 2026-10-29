@@ -3,14 +3,11 @@
 - STATUS: OPEN
 - PRIORITY: 2
 
-## Progress, 2026-10-23
+## Proposal
 
-The [implementation proposal](../../docs/private-ai-topics.md) defines the
-command behavior, verified Telegram/aiogram contract, storage migration, and
-application test scenarios. Draft streaming PR #39 and final retention PR #37
-are published; retention already integrates typing PR #40. Runtime integration
-is waiting for explicit owner approval of context-design PR #29. The acceptance
-criteria below remain pending; the task stays open.
+See [private AI topics](../../docs/private-ai-topics.md) for behavior, integration
+boundaries, and pending checks. Runtime awaits explicit owner context-design
+approval; the task remains OPEN.
 
 ## Problem
 
