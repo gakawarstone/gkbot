@@ -22,3 +22,12 @@
 - Configuration validation rejects non-positive values.
 - Polling tests and static checks pass.
 
+## Remaining acceptance evidence
+
+Configuration and validation are implemented. Offline measurements and tuning
+instructions are in `docs/polling-concurrency.md`; the retained default is 10.
+The test review removed mock-only forwarding and field/default checks.
+
+Keep this task open until representative production/staging measurements
+confirm the default against memory and provider limits, or the owner explicitly
+accepts the offline justification and defers deployment calibration to rollout.
