@@ -7,6 +7,6 @@ __all__ = [
     "FeedItem",
     "GkfeedApi",
     "GkfeedAuthService",
-    "GkfeedItemsPicker",
     "GkfeedCredentials",
+    "GkfeedItemsPicker",
 ]

@@ -1,13 +1,13 @@
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any
 
 from extensions.handlers.context_manager import BaseContext, BaseContextManager
 
 
 @dataclass
 class RoadSettingsContext(BaseContext):
-    setting_name: Optional[str] = None
-    setting_new_value: Optional[Any] = None
+    setting_name: str | None = None
+    setting_new_value: Any | None = None
 
 
 class RoadSettingsContextManager(BaseContextManager[RoadSettingsContext]):

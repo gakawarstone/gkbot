@@ -2,107 +2,166 @@ package main
 
 import (
 	"bufio"
+	"context"
+	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 	"os/exec"
+	"os/signal"
 	"path/filepath"
 	"regexp"
+	"syscall"
+	"time"
 )
 
-func startHTTPServer(directory string, port int) *http.Server {
-	fs := http.FileServer(http.Dir(directory))
+var serveoURLPattern = regexp.MustCompile(`https?://[a-zA-Z0-9-]+\.(?:serveo\.net|serveousercontent\.com)(?:/|\b)`)
 
-	server := &http.Server{
-		Addr:    fmt.Sprintf(":%d", port),
-		Handler: fs,
+func startHTTPServer(directory string, port int) (*http.Server, <-chan error, error) {
+	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+	if err != nil {
+		return nil, nil, err
 	}
-
+	server := &http.Server{
+		Addr:              listener.Addr().String(),
+		Handler:           http.FileServer(http.Dir(directory)),
+		ReadHeaderTimeout: 10 * time.Second,
+	}
+	done := make(chan error, 1)
 	go func() {
-		fmt.Printf("Starting HTTP server to serve files from %s on port %d...\n", directory, port)
-		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			fmt.Println("Failed to start HTTP server:", err)
+		err := server.Serve(listener)
+		if errors.Is(err, http.ErrServerClosed) {
+			err = nil
 		}
+		done <- err
 	}()
-
-	return server
+	return server, done, nil
 }
 
-func startSSHTunnel(port int) (*exec.Cmd, string, error) {
-	var sshCmd *exec.Cmd
-	sshCmd = exec.Command("ssh", "-o", "StrictHostKeyChecking=no", "-R", fmt.Sprintf("80:localhost:%d", port), "serveo.net")
+type sshTunnel struct {
+	command *exec.Cmd
+	url     string
+	done    chan struct{}
+	err     error
+}
 
-	stdout, err := sshCmd.StdoutPipe()
-	if err != nil {
-		return nil, "", err
-	}
-	if err := sshCmd.Start(); err != nil {
-		return nil, "", err
-	}
-
-	scanner := bufio.NewScanner(stdout)
-	var serveoURL string
+func readServeoURL(scanner *bufio.Scanner) (string, error) {
 	for scanner.Scan() {
-		line := scanner.Text()
-		re := regexp.MustCompile(`https?://[^\s]+(?:\.serveo\.net|\.serveousercontent\.com)`)
-		if url := re.FindString(line); url != "" {
-			serveoURL = url
-			break
+		if url := serveoURLPattern.FindString(scanner.Text()); url != "" {
+			return url, nil
 		}
 	}
+	if err := scanner.Err(); err != nil {
+		return "", fmt.Errorf("read SSH output: %w", err)
+	}
+	return "", errors.New("SSH tunnel exited without a Serveo URL")
+}
 
-	return sshCmd, serveoURL, nil
+func startTunnelCommand(command *exec.Cmd) (*sshTunnel, error) {
+	stdout, err := command.StdoutPipe()
+	if err != nil {
+		return nil, err
+	}
+	command.Stderr = os.Stderr
+	if err := command.Start(); err != nil {
+		return nil, err
+	}
+	scanner := bufio.NewScanner(stdout)
+	url, err := readServeoURL(scanner)
+	if err != nil {
+		_ = command.Process.Kill()
+		_ = command.Wait()
+		return nil, err
+	}
+	tunnel := &sshTunnel{command: command, url: url, done: make(chan struct{})}
+	go func() {
+		// Drain output before Wait closes the pipe, including scanner-buffered data.
+		for scanner.Scan() {
+		}
+		tunnel.err = command.Wait()
+		if err := scanner.Err(); err != nil {
+			tunnel.err = fmt.Errorf("read SSH output: %w", err)
+		}
+		close(tunnel.done)
+	}()
+	return tunnel, nil
+}
+
+func startSSHTunnel(ctx context.Context, port int) (*sshTunnel, error) {
+	command := exec.CommandContext(ctx, "ssh", "-o", "StrictHostKeyChecking=no",
+		"-o", "ExitOnForwardFailure=yes", "-R", fmt.Sprintf("80:localhost:%d", port), "serveo.net")
+	return startTunnelCommand(command)
+}
+
+func (tunnel *sshTunnel) stop() {
+	_ = tunnel.command.Process.Kill()
+	<-tunnel.done
 }
 
 func writeURLToFile(serveoURL, directory string) error {
 	filePath := filepath.Join(directory, "serveo_url")
-	err := os.WriteFile(filePath, []byte(serveoURL), 0644)
-	if err != nil {
-		return fmt.Errorf("failed to write to file: %v", err)
+	if err := os.WriteFile(filePath, []byte(serveoURL), 0644); err != nil {
+		return fmt.Errorf("write Serveo URL: %w", err)
 	}
-
-	fmt.Printf("Serveo URL written to file: %s\n", filePath)
 	return nil
 }
 
-func main() {
-	directoryToServe := "/files" // Replace with the directory you want to serve
-	port := 8089                 // Port for the HTTP server
+type tunnelStarter func(context.Context, int) (*sshTunnel, error)
 
-	absPath, err := filepath.Abs(directoryToServe)
-	if err != nil || !fileExists(absPath) {
-		fmt.Printf("Directory %s does not exist.\n", absPath)
-		return
-	}
-
-	httpServer := startHTTPServer(directoryToServe, port)
-
-	fmt.Println("Creating SSH tunnel through serveo.net...")
-	sshTunnel, serveoURL, err := startSSHTunnel(port)
+func run(ctx context.Context, directory string, port int, startTunnel tunnelStarter) error {
+	info, err := os.Stat(directory)
 	if err != nil {
-		fmt.Println("Failed to start SSH tunnel:", err)
-		return
+		return fmt.Errorf("stat served directory: %w", err)
 	}
-	defer sshTunnel.Process.Kill()
+	if !info.IsDir() {
+		return fmt.Errorf("%s is not a directory", directory)
+	}
 
-	if serveoURL != "" {
-		fmt.Printf("Access the server at: %s\n", serveoURL)
-		err := writeURLToFile(serveoURL, absPath)
-		if err != nil {
-			fmt.Println("Error writing Serveo URL to file:", err)
+	server, serverDone, err := startHTTPServer(directory, port)
+	if err != nil {
+		return fmt.Errorf("start HTTP server: %w", err)
+	}
+	defer func() {
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := server.Shutdown(shutdownCtx); err != nil {
+			_ = server.Close()
 		}
+	}()
+
+	tunnel, err := startTunnel(ctx, port)
+	if err != nil {
+		if ctx.Err() != nil {
+			return nil
+		}
+		return fmt.Errorf("start SSH tunnel: %w", err)
 	}
-
-	select {}
-
-	if err := httpServer.Close(); err != nil {
-		fmt.Println("Error shutting down HTTP server:", err)
+	defer tunnel.stop()
+	if err := writeURLToFile(tunnel.url, directory); err != nil {
+		return err
 	}
+	defer os.Remove(filepath.Join(directory, "serveo_url"))
+	fmt.Printf("Access the server at: %s\n", tunnel.url)
 
-	fmt.Println("HTTP server and SSH tunnel closed.")
+	select {
+	case <-ctx.Done():
+		return nil
+	case err := <-serverDone:
+		return fmt.Errorf("HTTP server stopped: %v", err)
+	case <-tunnel.done:
+		if ctx.Err() != nil {
+			return nil
+		}
+		return fmt.Errorf("SSH tunnel stopped: %v", tunnel.err)
+	}
 }
 
-func fileExists(path string) bool {
-	_, err := os.Stat(path)
-	return !os.IsNotExist(err)
+func main() {
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer cancel()
+	if err := run(ctx, "/files", 8089, startSSHTunnel); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
 }

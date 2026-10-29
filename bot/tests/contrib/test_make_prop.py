@@ -1,13 +1,12 @@
 from dataclasses import dataclass
-from typing import Optional
 
 from extensions.handlers.context_manager._utils import make_prop
 
 
 @dataclass
 class FakeContext:
-    str_data: Optional[str] = None
-    integer: Optional[int] = None
+    str_data: str | None = None
+    integer: int | None = None
 
 
 def test_make_prop():

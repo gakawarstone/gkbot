@@ -1,5 +1,5 @@
 import json
-from typing import TypeAlias
+from typing import ClassVar
 
 from bs4 import BeautifulSoup, Comment, Tag
 from bs4.element import NavigableString, PageElement
@@ -8,7 +8,7 @@ from configs.env import TELEGRAPH_API_KEY
 from services.http import HttpService
 
 _NODE = BeautifulSoup | Tag | NavigableString | Comment | PageElement
-TelegraphContent: TypeAlias = str
+type TelegraphContent = str
 
 
 class TelegraphAPI:
@@ -33,7 +33,7 @@ class TelegraphAPI:
 
 
 class HtmlToTelegraphContentConverter:
-    _allowed_tags = {
+    _allowed_tags: ClassVar[set[str]] = {
         "a",
         "aside",
         "b",
@@ -59,7 +59,7 @@ class HtmlToTelegraphContentConverter:
         "ul",
         "video",
     }
-    _allowed_attrs = {"href", "src"}
+    _allowed_attrs: ClassVar[set[str]] = {"href", "src"}
 
     def __init__(self, base_url: str) -> None:
         self._base_url = base_url

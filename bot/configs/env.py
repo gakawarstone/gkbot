@@ -1,5 +1,4 @@
 import os
-from typing import Optional
 
 from dotenv import load_dotenv
 
@@ -24,12 +23,12 @@ TELEGRAPH_API_KEY = os.getenv("TELEGRAPH_API_KEY")
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 BROKER_URL = os.getenv("BROKER_URL")
 
-DB_DIALECT: Optional[str]
-DB_USER: Optional[str]
-DB_PASSWORD: Optional[str]
-DB_HOST: Optional[str]
-DB_PORT: Optional[str]
-DB_NAME: Optional[str]
+DB_DIALECT: str | None
+DB_USER: str | None
+DB_PASSWORD: str | None
+DB_HOST: str | None
+DB_PORT: str | None
+DB_NAME: str | None
 
 if DB_URL:
     DB_DIALECT = os.getenv("SQLDIALECT")

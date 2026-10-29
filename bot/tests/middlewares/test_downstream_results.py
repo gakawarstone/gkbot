@@ -22,9 +22,7 @@ def make_event(user_id: int = 1) -> MagicMock:
 
 
 def make_message_event(user_id: int = 1) -> MagicMock:
-    event = MagicMock()
-    event.__class__ = Message
-    event.from_user.id = user_id
+    event = MagicMock(spec=Message, from_user=MagicMock(id=user_id))
     event.answer = AsyncMock()
     return event
 

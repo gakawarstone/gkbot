@@ -1,12 +1,11 @@
 from dataclasses import dataclass
-from typing import Optional
 
 from extensions.handlers.context_manager import BaseContext, BaseContextManager
 
 
 @dataclass
 class _DownloadContext(BaseContext):
-    file_name: Optional[str] = None
+    file_name: str | None = None
 
 
 class DownloadContextManager(BaseContextManager[_DownloadContext]):

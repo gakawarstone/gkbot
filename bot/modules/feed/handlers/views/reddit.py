@@ -1,5 +1,4 @@
 from html import escape
-from typing import Optional
 from urllib.parse import urlparse
 
 from aiogram.types import BufferedInputFile
@@ -46,7 +45,7 @@ class RedditFeedItemView(VideoFeedItemView, BaseFeedItemView, HttpExtension):
             return await self._send_link_response(title, link, item)
         try:
             await self._send_telegraph_response(title, item, soup)
-        except Exception:
+        except (HttpRequestError, KeyError, TypeError, ValueError):
             await self._send_item(item)
 
     async def _send_reddit_preview(self, item: FeedItem) -> bool:
@@ -83,7 +82,7 @@ class RedditFeedItemView(VideoFeedItemView, BaseFeedItemView, HttpExtension):
                 return f"r/{path_parts[index + 1]}"
         return "Reddit"
 
-    def _find_post_image_url(self, soup: BeautifulSoup) -> Optional[str]:
+    def _find_post_image_url(self, soup: BeautifulSoup) -> str | None:
         post = soup.find(class_="post")
 
         if not post or not isinstance(post, Tag):
@@ -103,13 +102,13 @@ class RedditFeedItemView(VideoFeedItemView, BaseFeedItemView, HttpExtension):
 
         return None
 
-    def _find_post_video_url(self, soup: BeautifulSoup) -> Optional[str]:
+    def _find_post_video_url(self, soup: BeautifulSoup) -> str | None:
         video = soup.find("meta", attrs={"property": "og:video"})
         if video and isinstance(video, Tag) and video.get("content"):
             return self._normalize_link(str(video.get("content")))
         return None
 
-    def _find_post_link(self, soup: BeautifulSoup) -> Optional[str]:
+    def _find_post_link(self, soup: BeautifulSoup) -> str | None:
         post = soup.find(class_="post")
 
         if not post or not isinstance(post, Tag):
@@ -158,7 +157,7 @@ class RedditFeedItemView(VideoFeedItemView, BaseFeedItemView, HttpExtension):
             return self._base_url + link
         return link
 
-    def _get_post_content(self, soup: BeautifulSoup) -> Optional[Tag]:
+    def _get_post_content(self, soup: BeautifulSoup) -> Tag | None:
         post_body = soup.find(class_="post_body")
 
         if not post_body:

@@ -1,5 +1,3 @@
-from typing import Type
-
 from aiogram.types import InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
@@ -20,8 +18,8 @@ class FeedMarkupData:
 
 class BaseFeedMarkup[T: FeedMarkupButtons, S: FeedMarkupData]:
     prefix: str
-    buttons: Type[T]
-    data: Type[S]
+    buttons: type[T]
+    data: type[S]
 
     # NOTE: do not support custom handler for feed row
     #       it would be handled with handler ossosiated with FeedMarkup

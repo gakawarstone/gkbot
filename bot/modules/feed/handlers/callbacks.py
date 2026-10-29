@@ -15,7 +15,7 @@ class ItemEventHandler(GkfeedItemProcessorExtension, BaseHandler):
         data_str = getattr(self.event, "data", None)
 
         if not isinstance(data_str, str):
-            raise ValueError("Callback data is required")
+            raise TypeError("Callback data is required")
 
         parts = data_str.split(":")
         if len(parts) < 3:
@@ -31,7 +31,7 @@ class ItemEventHandler(GkfeedItemProcessorExtension, BaseHandler):
 
     async def _handle_event(self, event: str, data: int) -> None:
         if not isinstance(self.event, CallbackQuery):
-            raise ValueError("event must be CallbackQuery")
+            raise TypeError("event must be CallbackQuery")
 
         if not self.event.message or isinstance(
             self.event.message, InaccessibleMessage

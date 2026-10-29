@@ -1,13 +1,12 @@
 from dataclasses import dataclass
-from typing import TypeAlias
 
 from aiogram.types import BufferedInputFile
 from bs4 import BeautifulSoup, Tag
 
 from services.http import HttpRequestError, HttpService
 
-_Link: TypeAlias = str
-_Pixel: TypeAlias = int
+type _Link = str
+type _Pixel = int
 
 
 @dataclass
@@ -41,9 +40,9 @@ class JutSuDownloader:
         video_element = video_elements[0]
         if not isinstance(video_element, Tag):
             raise TypeError("Video element is not a Tag")
-        
+
         if not hasattr(video_element, "find_all"):
-             raise AttributeError("Video element does not have find_all method")
+            raise AttributeError("Video element does not have find_all method")
 
         sources = video_element.find_all("source")
         valid_sources = []
