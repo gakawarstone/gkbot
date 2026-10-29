@@ -5,6 +5,7 @@ from typing import Any
 from services.gkfeed import FeedItem
 
 from ._base import BaseHandler
+from ._exceptions import RECOVERABLE_FEED_ERRORS
 from .views.base import BaseWebFeedItemView
 from .views.discours import DiscoursFeedItemView
 from .views.hltv import HltvFeedItemView
@@ -81,18 +82,28 @@ class GkfeedItemProcessorExtension(
         }
 
     async def _process_item(self, item: FeedItem) -> None:
-        try:
-            for proc_key in self._processors.keys():
-                if item.link.startswith(proc_key):
-                    await self._processors[proc_key](item)
-                    return
+        for prefix, processor in self._processors.items():
+            if item.link.startswith(prefix):
+                await self._run_processor(item, processor, processor.__name__)
+                return
 
-            await self._process_base_item(item)
-        except Exception:
-            logger.exception(
-                "Failed to process feed item id=%s feed_id=%s text_length=%s",
+        await self._run_processor(item, self._process_base_item, "_process_base_item")
+
+    async def _run_processor(
+        self, item: FeedItem, processor: _ITEM_PROCESSOR, processor_name: str
+    ) -> None:
+        try:
+            await processor(item)
+        except RECOVERABLE_FEED_ERRORS as error:
+            # Exception messages and chains can contain credentials, URLs or media.
+            # Preserve the original frames, but log only the exception class name.
+            safe_error = Exception(type(error).__name__)
+            logger.error(
+                "Failed to process feed item id=%s feed_id=%s text_length=%s processor=%s",
                 item.id,
                 item.feed_id,
                 len(item.text),
+                processor_name[:80],
+                exc_info=(type(safe_error), safe_error, error.__traceback__),
             )
             await self._send_item(item)

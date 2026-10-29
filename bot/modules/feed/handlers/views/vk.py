@@ -6,6 +6,7 @@ from services.open_graph import OpenGraphMetadata, OpenGraphService
 
 from ...ui.keyboards import FeedMarkup
 from ...ui.keyboards.vk import VKFeedVideoItemMarkup
+from .._exceptions import FeedMediaExtractionError
 from . import BaseFeedItemView
 
 _DEFAULT_THUMBNAIL_URL = (
@@ -68,18 +69,18 @@ class VKFeedItemView(BaseFeedItemView):
 
     def _get_image(self, metadata: OpenGraphMetadata) -> str:
         if metadata.image_url is None:
-            raise ValueError("VK preview image meta tag not found")
+            raise FeedMediaExtractionError("VK preview image meta tag not found")
         return metadata.image_url
 
     def _get_description(self, metadata: OpenGraphMetadata) -> str:
         if metadata.description is None:
-            raise ValueError("VK description meta tag not found")
+            raise FeedMediaExtractionError("VK description meta tag not found")
         return metadata.description
 
     def _parse_title(self, soup: BeautifulSoup) -> tuple[str, str]:
         tag = soup.find("title")
         if not isinstance(tag, Tag):
-            raise ValueError("title tag not found")
+            raise FeedMediaExtractionError("title tag not found")
 
         raw_title = tag.text
         parts = raw_title.split(" | ")
@@ -95,7 +96,7 @@ class VKFeedItemView(BaseFeedItemView):
     ) -> InlineKeyboardMarkup:
         content = metadata.video_url
         if content is None:
-            raise ValueError("VK video player meta tag not found")
+            raise FeedMediaExtractionError("VK video player meta tag not found")
 
         oid_part = content.split("oid=")[-1].split("&")[0]
         id_part = content.split("id=")[-1].split("&")[0]
