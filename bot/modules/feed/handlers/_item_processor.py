@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from collections.abc import Awaitable, Callable
 from typing import Any
@@ -53,6 +54,8 @@ class GkfeedItemProcessorExtension(
     VKFeedItemView,
     BaseHandler,
 ):
+    _processing_semaphore = asyncio.Semaphore(10)
+
     @property
     def _processors(self) -> dict[str, _ITEM_PROCESSOR]:
         # TODO: create filters for processor matching instead of startswith prefixes.
@@ -81,10 +84,14 @@ class GkfeedItemProcessorExtension(
         }
 
     async def _process_item(self, item: FeedItem) -> None:
+        async with self._processing_semaphore:
+            await self._process_item_with_fallback(item)
+
+    async def _process_item_with_fallback(self, item: FeedItem) -> None:
         try:
-            for proc_key in self._processors.keys():
+            for proc_key, processor in self._processors.items():
                 if item.link.startswith(proc_key):
-                    await self._processors[proc_key](item)
+                    await processor(item)
                     return
 
             await self._process_base_item(item)
