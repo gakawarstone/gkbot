@@ -134,24 +134,19 @@ class YtdlpDownloader:
         # yt-dlp orders thumbnails from worst to best. A JPEG fallback is
         # useful when the preferred image is WebP or a storyboard.
         thumbnails = raw_info.get("thumbnails")
+        if not isinstance(thumbnails, list):
+            thumbnails = []
+        thumbnails = [item for item in thumbnails if isinstance(item, dict)]
         preferred = raw_info.get("thumbnail")
-        candidates = []
-        if isinstance(thumbnails, list):
-            if not any(
-                isinstance(thumbnail, dict)
-                and thumbnail.get("url") == preferred
-                and thumbnail.get("http_headers")
-                for thumbnail in thumbnails
-            ):
-                candidates.append(preferred)
-            candidates.extend(
-                thumbnail.get("url")
-                for thumbnail in reversed(thumbnails)
-                if isinstance(thumbnail, dict) and not thumbnail.get("http_headers")
-            )
-        else:
-            candidates.append(preferred)
-        return next((url for value in candidates if (url := cover_url(value))), None)
+        if not any(
+            item.get("url") == preferred and item.get("http_headers")
+            for item in thumbnails
+        ) and (url := cover_url(preferred)):
+            return url
+        for item in reversed(thumbnails):
+            if not item.get("http_headers") and (url := cover_url(item.get("url"))):
+                return url
+        return None
 
     @classmethod
     async def _download_file(
