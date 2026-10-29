@@ -2,6 +2,8 @@ from dataclasses import dataclass
 
 from aiogram.types import InputFile
 
+from services.video import VideoMetadata
+
 
 @dataclass
 class AudioFileInfo:
@@ -11,7 +13,7 @@ class AudioFileInfo:
 
 
 @dataclass
-class VideoFileInfo:
+class VideoFileInfo(VideoMetadata):
     input_file: InputFile
     height: int | None
     width: int | None

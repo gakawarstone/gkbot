@@ -9,6 +9,7 @@ from ui.buttons.youtube.download import (
     YoutubeDownloadButtonData,
     YoutubeDownloadButtonDataSerializer,
 )
+from ui.video import send_video
 from utils.strings import remove_emoji
 
 
@@ -61,8 +62,10 @@ async def download(callback: CallbackQuery):
             channel_title = remove_emoji(data.channel_title)
             caption = f'<b>{video.title}</b>\n\n<a href="{url}">{channel_title}</a>'
 
-            await callback.message.answer_video(
+            await send_video(
+                callback.message.answer_video,
                 video.input_file,
+                metadata=video,
                 height=video.height,
                 width=video.width,
                 duration=video.duration,

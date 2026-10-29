@@ -27,6 +27,8 @@ class YtDlp(BaseExtractor):
                     duration=video_file_info.duration,
                     height=video_file_info.height,
                     width=video_file_info.width,
+                    cover=video_file_info.cover,
+                    start_timestamp=video_file_info.start_timestamp,
                 )
         except (IndexError, ValueError, DownloadError):
             raise SourceInfoExtractFailed(self)
