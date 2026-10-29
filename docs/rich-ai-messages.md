@@ -1,188 +1,88 @@
 # Rich AI messages prototype
 
-The module bot/services/rich_messages.py is an opt-in experiment with native
-Telegram blocks. It is separate from AnswerHandler; production AI chats retain
-the HTML streaming path. There is no environment switch or automatic activation.
+The opt-in adapter in bot/services/rich_messages.py is separate from
+AnswerHandler. Production retains HTML streaming; no handler or model prompt
+selects this experiment. The current StreamChunk producer supplies text and
+reasoning, not a semantic tree. Integration needs a parser or structured-output
+producer, the original text for history/fallback, and a live rendering trial.
 
-This branch includes [streaming prerequisite PR #39](https://github.com/gakawarstone/gkbot/pull/39)
-at e24bebba1d1b697768cd72f0496472a63427e7d2, including its splitter prerequisite
-[PR #20](https://github.com/gakawarstone/gkbot/pull/20). The prototype PR uses the
-streaming branch as its base, excluding those prerequisite diffs.
-See [streaming and cancellation contracts](ai-chat-streaming.md).
+## Adapter contract
 
-## Parts and blocks
+The immutable ResponseParts tuple accepts TextPart, CodePart, MathPart,
+ReasoningPart, QuotePart, DetailsPart, and ListPart. The function
+to_rich_message(parts, draft=False, limits=...) returns InputRichMessage with
+native blocks, without HTML or Markdown fields:
 
-The function to_rich_message(parts, draft=False, limits=...) returns an
-InputRichMessage with blocks, without its HTML or Markdown fields. The semantic
-input parts are immutable dataclasses:
+- Text and code preserve literal Unicode, angle brackets, and backticks.
+  CodePart also accepts an optional language; MathPart keeps raw LaTeX.
+- Quotes and details contain block tuples. Lists contain tuples of those tuples;
+  start=None gives unordered items, otherwise decimal labels begin at start.
+- Reasoning becomes thinking in a draft. The final message preserves it in
+  collapsed details, because [thinking is draft-only](https://core.telegram.org/bots/api#inputrichblockthinking).
 
-- TextPart(text) becomes a paragraph.
-- CodePart(text, language=None) becomes preformatted code.
-- MathPart(expression) becomes a mathematical-expression block with raw LaTeX.
-- ReasoningPart(text) becomes thinking in a draft. In a final message it becomes
-  collapsed details with summary "Reasoning" and a paragraph, preserving the
-  text without including a draft-only block.
-- QuotePart(blocks, credit=None) becomes a block quotation.
-- DetailsPart(summary, blocks, is_open=False) becomes expandable details.
-- ListPart(items, start=None) becomes a list of block tuples. With start, items
-  receive decimal labels beginning at that value; otherwise it is unordered.
-  Lists, quotes, and details may contain other parts.
+Default budgets are 16 block levels, 1000 nodes, and 256 KiB of block JSON.
+List items count as nodes, not block levels; final reasoning adds a paragraph.
+These are application budgets, not Telegram limits. Iterative preflight bounds
+the tree and aggregate text before recursive Pydantic conversion. A final JSON
+size check includes structural overhead and Unicode ASCII escapes. With the
+default json.dumps serializer its character count equals its byte size; custom
+session serializers may produce different sizes. Both checks are needed:
+preflight limits conversion work, while the final check bounds the payload.
 
-For example, the following requires no manual HTML tags:
+## Delivery and lifecycle
 
-    from services.rich_messages import (
-        CodePart, DetailsPart, ListPart, MathPart, ReasoningPart, TextPart,
-        to_rich_message,
-    )
+Create one RichMessagePrototype(bot, source, enabled=True) per response; enabled
+defaults to False. Disabled/unsupported-server mode, groups, channels, and
+business messages select the caller's existing HTML path. Unspecified server
+support probes with a rich request, once per response until the first failure.
 
-    parts = (
-        ReasoningPart("Check the equation"),
-        TextPart("Пример <&> 😀"),
-        CodePart("print('<&>')", language="python"),
-        ListPart(((TextPart("first"),), (MathPart("x^2 + y^2 = z^2"),)), start=1),
-        DetailsPart("More", (TextPart("additional explanation"),)),
-    )
-    draft = to_rich_message(parts, draft=True)
-    final = to_rich_message(parts)
+- The async send(parts, html_final) method returns Message. The no-argument async
+  callback must return a Message, such as the last HTML chunk.
+- The async send_draft(parts, draft_id, html_preview) method returns bool and
+  requires a stable non-zero ID. Its no-argument async callback returns bool.
+  Requests use can_stop=True and keep_on_stop=False; completion requires send.
+- Rich requests preserve source chat/topic context even when is_topic_message
+  is false. The final message also replies to the source message.
 
-The current model producer supplies only StreamChunk(text, "content" | "reason"),
-not a parsed tree. This prototype defines and exercises a semantic-parts
-contract. It does not parse raw Markdown, change model prompts, or automatically
-classify code and lists in model text. A future handler integration must supply
-a parser or structured model output, retain the original text for history and
-fallback, and compare live rendering before activation. The benchmark provides
-paired semantic and Markdown fixtures for the same examples.
+Conversion failure or explicit API rejection calls the fallback. The instance
+then stays on HTML for remaining previews and finalization, avoiding repeated
+failed rich requests. RetryAfter observes the cooldown first. Draft network/5xx
+failures also fall back. Final network/5xx failures propagate because delivery
+is ambiguous and another send could duplicate the response. Callback errors and
+cancellation propagate.
 
-## Sending and fallback
+The caller owns the original response, model stream closure, FSM/history,
+retention, and stop registration. Reuse the [streaming lifecycle](ai-chat-streaming.md)
+and existing split_response or _stream_to_message fallback without truncation
+or another model request. This prototype does not supply private-topic/FSM
+isolation or replace required context approval/retention decisions.
 
-Create one RichMessagePrototype(bot, source, enabled=True) per response.
-The default is enabled=False. This private-chat experiment also bypasses rich
-sends for groups, channels, business messages, or server_supports_rich=False.
-Leave server support unspecified to probe with the first rich request.
-A successful request does not prove stop-control support on an older server.
+## Comparison and checks
 
-The async send(parts, html_final) method persists a response and returns a
-Message. Its no-argument async fallback must return a Message, such as the last
-message produced by the existing HTML path. The rich request copies the source
-chat and message_thread_id explicitly, even if is_topic_message is false, and
-replies to the source message.
-
-The async send_draft(parts, draft_id, html_preview) method returns bool. The
-caller provides a stable, non-zero draft ID and a no-argument async HTML preview
-callback returning bool. Rich drafts use can_stop=True and keep_on_stop=False.
-Completion must call send; a draft alone is temporary.
-
-Conversion failure or an explicit Telegram API rejection selects the callback
-once. The instance then stays on HTML for the rest of that response, including
-subsequent previews and finalization. A fresh response can probe again.
-TelegramRetryAfter waits for the supplied cooldown before fallback. Draft
-network and server failures also select HTML. Final-send network and 5xx errors
-propagate, because the server may already have persisted the message; retrying
-via HTML could duplicate it. This matches the streaming prerequisite's policy
-for ambiguous final-message delivery. Callback errors and CancelledError
-propagate without retry.
-
-The callback owns the original response and source context. It must use the
-existing split_response or _stream_to_message path, without truncation or a new
-model request. Tests exercise the actual edit/split implementation with a large
-rejected rich response, preserving every rendered character and the topic.
-
-The adapter does not own model streaming, cancellation registration, FSM state,
-history, or context retention. Future handler integration must reuse
-_private_response, active_generations, stop_generation, and stream closure from
-PR #39. This experiment does not establish topic/FSM isolation or change any
-required approval or retention policy for private topics.
-
-## Limits and validation
-
-The default budgets are 16 block levels, 1000 nodes including list items and
-the extra final reasoning paragraph, and 256 KiB for serialized block JSON.
-These are application budgets, not claimed Telegram limits. List-item wrappers
-count as nodes but do not add a block level. An iterative walk checks depth,
-width, and aggregate text size before recursive conversion. Conversion then
-checks JSON size with Python's default json.dumps, matching aiogram's default
-serializer and its ASCII escapes for Unicode. A custom session serializer can
-have different wire sizes. Over-budget output selects the unchanged HTML
-fallback, rather than dropping or clipping parts.
-
-The installed aiogram 3.31.0 uses discriminated input-block unions. Its
-[3.29.1 changelog](https://docs.aiogram.dev/en/latest/changelog.html) describes
-the fix for exponential nested-block validation. Tests check nested output
-content, a large response at the depth limit, and rejection of a 2000-level tree
-without a recursion failure. A subprocess watchdog gives 16-level conversion
-and serialization a generous 10-second bound. No
-millisecond threshold is imposed on shared CI.
-
-## Local comparison
-
-Run without a bot token or network access to Telegram:
+Run the existing fixtures and checks:
 
     PYTHONPATH=bot .venv/bin/python -m tests.benchmarks.rich_messages --iterations 100
-
-On 2026-10-23 with Python 3.13.11, aiogram 3.31.0, and Pydantic 2.12.5, median
-conversion plus serialization times over 100 iterations were:
-
-- Plain text: rich 0.0096 ms and 100 bytes; HTML 0.0023 ms and 31 bytes.
-- Mixed reasoning, code, lists, math, quote, and details: rich 0.0633 ms and
-  702 bytes; HTML 0.0101 ms and 191 bytes.
-- Details trees with 4, 8, and 16 block levels: rich 0.0239, 0.0430, and
-  0.0812 ms respectively. HTML flattens the corresponding examples to text.
-- Large Unicode response: rich 0.4704 ms and 217412 bytes; HTML 0.8346 ms and
-  128078 bytes. This response exceeds normal-message limits and would require
-  the existing splitter on the HTML path.
-
-The HTML renderer supports bold and code, while list labels, math delimiters,
-and quote markers remain text; it has no native expandable details. Rich
-fixtures carry these as native blocks, with literal special characters preserved
-in string values. Tests assert the native payload, not a simulated Telegram
-client screenshot. The numbers above measure construction and encoded content
-fields only. They exclude the network, request envelopes, full HTML splitting,
-and Telegram client layout, so they do not establish end-to-end latency or
-visual parity. Rich conversion includes its budget checks.
-
-Locally tested failure behavior differs at explicit final-message rejection:
-the experiment invokes HTML fallback, while the existing final HTML path
-propagates API errors. Both propagate ambiguous final delivery and cancellation.
-The experiment sends no rich requests when disabled and stops trying rich after
-the first failed preview. Successful draft/final tests use real aiogram methods
-with a recording session and no HTML or Markdown fields in the rich request.
-
-The running server was reported as Bot API 9.5 by the prerequisite audit; the
-Compose image is pinned to 10.3. Neither this change nor merging that pin deploys
-it. Follow [server rollout instructions](../services/bot-api/README.md).
-Live client rendering, time to first preview, final-send latency, and failure
-behavior against both server versions still need a controlled Telegram trial.
-Keep the experiment disabled in production until that comparison is complete.
-
-## Checks
-
     make test FILE='bot/tests/services/test_rich_messages.py bot/tests/handlers/test_chatgpt_rich_fallback.py'
-    make test
-    make lint FILE='bot/tests/services/test_rich_messages.py bot/tests/handlers/test_chatgpt_rich_fallback.py'
+    make lint FILE=bot/services/rich_messages.py
 
-Results after the test review: 22 focused tests passed; the full suite passed
-with 222 passed and 13 skipped. The revised test files pass Ruff, typos, mypy,
-and pyright. Retained tests protect literal text and nested block content,
-conversion bounds, topic routing, complete HTML fallback output, cooldowns,
-and cancellation without duplicate delivery. Pure defaults/argument guards,
-mock-only forwarding, and duplicated API scenarios were removed.
-Full make lint stops at 381 existing Ruff findings. A separate archive of the
-prerequisite commit produces the same count. No production handler, dependency,
-deployment, root checkout, or .env was changed by this prototype.
+The local baseline from 2026-10-23, implementation commit 55db4f6, used Python
+3.13.11, aiogram 3.31.0, and Pydantic 2.12.5. Over 100 iterations, mixed content
+took 0.0633 ms median/702 bytes for rich and 0.0101 ms/191 bytes for HTML.
+Rich details trees at 4/8/16 levels took 0.0239/0.0430/0.0812 ms. A large Unicode
+example took 0.4704 ms/217412 bytes for rich and 0.8346 ms/128078 bytes for HTML.
 
-## Official API contract
+Those measurements include construction and serialization, not network, full
+HTML splitting, or Telegram layout. HTML retains math/list/quote markers as
+text and has no expandable details; rich fixtures encode native blocks.
+The retained tests check literal content, nested ordering, depth/node/escaped
+payload bounds, complete HTML fallback output and topic, cooldowns, cancellation,
+and duplicate-send prevention. A subprocess bounds 16-level conversion to
+10 seconds without imposing a flaky millisecond CI threshold.
+The [aiogram 3.29.1 fix](https://docs.aiogram.dev/en/latest/changelog.html) explains
+the discriminated-union change that removed exponential nested validation.
 
-- [InputRichMessage](https://core.telegram.org/bots/api#inputrichmessage) requires
-  exactly one of blocks, HTML, or Markdown.
-- [RichText](https://core.telegram.org/bots/api#richtext) accepts plain strings.
-  There is no RichTextPlain class in the installed wheel.
-- [Input rich blocks](https://core.telegram.org/bots/api#inputrichblock) define
-  paragraph, preformatted code, math, lists, quotes, and details.
-- [Thinking blocks](https://core.telegram.org/bots/api#inputrichblockthinking)
-  are draft-only and cannot appear in a persisted message.
-- [Rich drafts](https://core.telegram.org/bots/api#sendrichmessagedraft) target
-  private chats, expire after 30 seconds, and require a persistent final send.
-- [aiogram list items](https://docs.aiogram.dev/en/latest/api/types/input_rich_block_list_item.html)
-  expose numeric value and label type on outgoing list items. Incoming list
-  items instead have a required rendered label; input and output JSON are
-  different contracts.
+Keep production disabled until a controlled Telegram comparison measures
+rendering, first-preview/final-send latency, and failure behavior. Follow the
+[server rollout instructions](../services/bot-api/README.md); a pinned image does
+not establish the running server version or stop-control support. Drafts expire
+after 30 seconds without updates. No live Telegram trial or deployment was done.

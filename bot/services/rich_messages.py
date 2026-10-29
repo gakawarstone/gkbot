@@ -111,17 +111,15 @@ def _check_parts(
 ) -> None:
     # Walk iteratively before calling recursive Pydantic constructors. This also
     # rejects cycles and excessive width before allocating a converted tree.
-    pending = [(part, 1) for part in parts[: limits.max_nodes + 1]]
     if len(parts) > limits.max_nodes:
         raise RichMessageConversionError("Too many rich blocks")
+    pending = [(part, 1) for part in parts]
     nodes = 0
     text_size = 0
     while pending:
         part, depth = pending.pop()
         nodes += 1
-        if depth > limits.max_depth or nodes > limits.max_nodes:
-            raise RichMessageConversionError("Rich block tree exceeds budgets")
-        children: ResponseParts = ()
+        child_groups: tuple[ResponseParts, ...] = ()
         texts: tuple[str, ...]
         match part:
             case TextPart(text):
@@ -130,32 +128,29 @@ def _check_parts(
                 texts = (text,)
                 if not draft:
                     nodes += 1
-                    if depth + 1 > limits.max_depth or nodes > limits.max_nodes:
-                        raise RichMessageConversionError(
-                            "Reasoning exceeds tree budget"
-                        )
+                    depth += 1
             case CodePart(text, language):
                 texts = (text, language or "")
             case MathPart(expression):
                 texts = (expression,)
             case QuotePart(blocks, credit):
-                children, texts = blocks, (credit or "",)
+                child_groups, texts = (blocks,), (credit or "",)
             case DetailsPart(summary, blocks):
-                children, texts = blocks, (summary,)
+                child_groups, texts = (blocks,), (summary,)
             case ListPart(items, start):
                 nodes += len(items)  # List items also occupy the payload tree.
-                if nodes > limits.max_nodes or (start is not None and start < 1):
+                if start is not None and start < 1:
                     raise RichMessageConversionError("Invalid or oversized rich list")
-                for item in items:
-                    if len(item) + nodes + len(pending) > limits.max_nodes:
-                        raise RichMessageConversionError("Too many rich blocks")
-                    pending.extend((child, depth + 1) for child in item)
+                child_groups = items
                 texts = ()
             case _:
                 raise RichMessageConversionError("Unsupported response part")
-        if len(children) + nodes + len(pending) > limits.max_nodes:
-            raise RichMessageConversionError("Too many rich blocks")
-        pending.extend((child, depth + 1) for child in children)
+        if depth > limits.max_depth or nodes + len(pending) > limits.max_nodes:
+            raise RichMessageConversionError("Rich block tree exceeds budgets")
+        for children in child_groups:
+            if len(children) + nodes + len(pending) > limits.max_nodes:
+                raise RichMessageConversionError("Too many rich blocks")
+            pending.extend((child, depth + 1) for child in children)
         for text in texts:
             # len() first avoids encoding an arbitrarily large string.
             if not isinstance(text, str) or len(text) > limits.max_payload_bytes:
@@ -224,9 +219,8 @@ def to_rich_message(
     )
     # Match aiogram's default JSON serializer, including ASCII escapes. UTF-8
     # model_dump_json() can underestimate its wire size for non-ASCII text.
-    payload = json.dumps(message.model_dump(mode="json", exclude_none=True)).encode(
-        "utf-8"
-    )
+    # Default json.dumps produces ASCII, so its character count is its byte size.
+    payload = json.dumps(message.model_dump(mode="json", exclude_none=True))
     if len(payload) > limits.max_payload_bytes:
         raise RichMessageConversionError("Rich JSON exceeds payload budget")
     return message
