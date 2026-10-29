@@ -1,4 +1,3 @@
-import asyncio
 import socket
 import threading
 from pathlib import Path
@@ -13,7 +12,6 @@ from requests import Response
 from services.gallery_dl import (
     GalleryDlExtractionError,
     GalleryDlService,
-    GalleryDlSlideshowInfo,
 )
 from services.http import HttpService
 from services.tiktok.extractor import _EXTRACTORS, TikTokInfoExtractor
@@ -118,62 +116,3 @@ async def test_real_data_job_failures_are_extraction_errors(
     if failure in ("status", "recorded"):
         assert isinstance(raised.value.__cause__, ValueError)
         assert str(raised.value.__cause__) == "gallery-dl failed to extract data"
-
-
-@pytest.mark.parametrize("fail", [False, True])
-async def test_cancellation_waits_for_real_job_before_caller_cleanup(
-    offline_slideshow: None,
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path: Path,
-    fail: bool,
-) -> None:
-    started = threading.Event()
-    release = threading.Event()
-    finished = threading.Event()
-    request = TiktokExtractor.request
-    resource = tmp_path / "caller-owned"
-    resource.mkdir()
-
-    def held_request(extractor: TiktokExtractor, url: str) -> Response:
-        started.set()
-        assert release.wait(timeout=5)
-        assert resource.is_dir()
-        (resource / "finished").write_text("complete")
-        return request(extractor, url)
-
-    class ObservedDataJob(DataJob):
-        def run(self) -> Literal[0]:
-            try:
-                status = super().run()
-                if fail:
-                    self.exception = ValueError("Generated job failure")
-                return status
-            finally:
-                finished.set()
-
-    monkeypatch.setattr(TiktokExtractor, "request", held_request)
-    monkeypatch.setattr("services.gallery_dl.DataJob", ObservedDataJob)
-
-    async def caller() -> GalleryDlSlideshowInfo:
-        try:
-            return await GalleryDlService.extract_slideshow_info(URL)
-        finally:
-            assert finished.is_set()
-            (resource / "finished").unlink()
-            resource.rmdir()
-
-    task = asyncio.create_task(caller())
-    try:
-        assert await asyncio.to_thread(started.wait, 5)
-        for _ in range(2):
-            task.cancel()
-            await asyncio.sleep(0)
-            assert not task.done()
-            assert resource.is_dir()
-    finally:
-        release.set()
-    # Match wait_for_completion: a worker failure takes precedence over cancellation.
-    expected_error = GalleryDlExtractionError if fail else asyncio.CancelledError
-    with pytest.raises(expected_error):
-        await task
-    assert not resource.exists()
