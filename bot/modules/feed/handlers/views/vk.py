@@ -1,6 +1,7 @@
 from aiogram.types import InlineKeyboardMarkup
 from bs4 import BeautifulSoup, Tag
 
+from services.feed_parser import feed_parser
 from services.gkfeed import FeedItem
 from services.open_graph import OpenGraphMetadata, OpenGraphService
 
@@ -15,15 +16,15 @@ _DEFAULT_THUMBNAIL_URL = (
 
 class VKFeedItemView(BaseFeedItemView):
     async def _process_vk_item(self, item: FeedItem) -> None:
-        soup = await OpenGraphService.get_soup(item.link)
-        metadata = OpenGraphService.parse_soup(soup)
+        html = await OpenGraphService.get_html(item.link)
+        metadata, title, channel_name = await feed_parser.run(
+            VKFeedItemView._parse_vk_page, html
+        )
 
         if not self._is_media_item(metadata):
-            return await self._send_text_item(item, soup, metadata)
+            return await self._send_text_item(item, channel_name, metadata)
 
         media_url = self._get_image(metadata)
-        title, channel_name = self._parse_title(soup)
-
         reply_markup = None
         if self._is_video_item(metadata):
             reply_markup = self._get_video_markup(item, metadata)
@@ -39,12 +40,10 @@ class VKFeedItemView(BaseFeedItemView):
     async def _send_text_item(
         self,
         item: FeedItem,
-        soup: BeautifulSoup,
+        channel_name: str,
         metadata: OpenGraphMetadata,
     ) -> None:
         description = self._get_description(metadata)
-        _, channel_name = self._parse_title(soup)
-
         await self.answer(
             f"<b>{description.replace('<br>', '\n')}</b>\n\n<a href='{item.link}'>{channel_name}</a>",
             reply_markup=FeedMarkup.get_item_markup(item.id, item.feed_id),
@@ -76,10 +75,18 @@ class VKFeedItemView(BaseFeedItemView):
             raise ValueError("VK description meta tag not found")
         return metadata.description
 
-    def _parse_title(self, soup: BeautifulSoup) -> tuple[str, str]:
+    @classmethod
+    def _parse_vk_page(cls, html: bytes) -> tuple[OpenGraphMetadata, str, str]:
+        soup = BeautifulSoup(html, "html.parser")
+        metadata = OpenGraphService.parse_soup(soup)
+        title, channel_name = cls._parse_title(soup)
+        return metadata, title, channel_name
+
+    @staticmethod
+    def _parse_title(soup: BeautifulSoup) -> tuple[str, str]:
         tag = soup.find("title")
         if not isinstance(tag, Tag):
-            raise ValueError("title tag not found")
+            raise ValueError("title tag not found")  # noqa: TRY004
 
         raw_title = tag.text
         parts = raw_title.split(" | ")
