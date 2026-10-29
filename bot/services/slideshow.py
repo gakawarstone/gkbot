@@ -1,6 +1,7 @@
 import asyncio
 import shutil
 from pathlib import Path
+from typing import ClassVar
 
 from services.audio import AudioService
 from services.cache_dir import CacheDir
@@ -8,21 +9,22 @@ from services.ffmpeg_runner import FfmpegRunner
 from utils.async_cleanup import wait_for_completion
 
 
-class FfmpegService:
+class SlideshowRenderer:
+    """Prepare web images and audio, then render a slideshow with fixed options."""
+
     SLIDESHOW_WIDTH = 720
     SLIDESHOW_HEIGHT = 1080
 
-    __resize_image_options = [
+    __resize_image_options: ClassVar[list[str]] = [
         "-vf",
         (
             "scale=trunc(oh*a/2)*2:720,"
             "pad=max(iw\\,ih*9/16):max(ih\\,iw*16/9):(ow-iw)/2:(oh-ih)/2:black"
         ),
     ]
-    __make_slideshow_options = [
+    __make_slideshow_options: ClassVar[list[str]] = [
         "-c:v",
         "libx264",
-        "-shortest",
         "-vf",
         f"scale={SLIDESHOW_WIDTH}:{SLIDESHOW_HEIGHT}",
         "-r",
@@ -35,6 +37,7 @@ class FfmpegService:
     async def make_slideshow_from_web(
         cls, images_urls: list[str], audio_url: str | None
     ) -> bytes:
+        """Return MP4 bytes and clean up owned files after rendering finishes."""
         cache_dir = CacheDir()
         try:
             output_path = cache_dir.get_file_path("slideshow.mp4")
@@ -51,7 +54,11 @@ class FfmpegService:
     async def make_slideshow_file_from_web(
         cls, images_urls: list[str], audio_url: str | None, output_path: str
     ) -> None:
-        """Write into a caller-owned directory, kept alive for the later upload."""
+        """Write output and intermediates into an existing caller-owned directory.
+
+        The caller keeps this directory alive through rendering and upload,
+        including waiting for rendering to finish before cancellation cleanup.
+        """
         work_dir = str(Path(output_path).parent)
         await cls.download_and_prepare_images(images_urls, work_dir)
         if audio_url:
@@ -94,11 +101,7 @@ class FfmpegService:
         command += ["-pattern_type", "glob", "-i", images_input]
 
         if audio_input:
-            command += ["-stream_loop", "-1", "-i", audio_input]
-            command += cls.__make_slideshow_options
-        else:
-            opts = cls.__make_slideshow_options.copy()
-            opts.remove("-shortest")
-            command += opts
+            command += ["-stream_loop", "-1", "-i", audio_input, "-shortest"]
+        command += cls.__make_slideshow_options
 
         return FfmpegRunner.build_command(inputs=[], output=output_path, props=command)

@@ -11,10 +11,10 @@ from aiogram.types import FSInputFile
 
 from services.audio import AudioService
 from services.cache_dir import CacheDir
-from services.ffmpeg import FfmpegService
 from services.ffmpeg_runner import FfmpegRunner
 from services.http import HttpService
 from services.schedule import Schedule, Task
+from services.slideshow import SlideshowRenderer
 from services.tiktok import TikTokService, _TikTokCacheDir
 from services.tiktok.exceptions import TikTokInfoExtractionFailed
 from services.tiktok.extractor import TikTokInfoExtractor
@@ -91,28 +91,20 @@ async def test_download_writes_off_loop_and_survives_return(
 
 
 @pytest.mark.parametrize("audio_url", [None, "https://example.invalid/music"])
-async def test_slideshow_keeps_ffmpeg_output_without_bytes_round_trip(
+async def test_slideshow_output_remains_available_until_scheduled_cleanup(
     cache_root: Path,
     scheduled: list[Task],
     monkeypatch: pytest.MonkeyPatch,
     audio_url: str | None,
 ) -> None:
-    output_paths: list[str] = []
-
     async def run(command: list[str]) -> None:
-        output_paths.append(command[-1])
         Path(command[-1]).write_bytes(b"generated slideshow")
 
-    def unexpected_save(*args: object) -> None:
-        pytest.fail("Slideshow output must not be read and saved again")
-
-    monkeypatch.setattr(CacheDir, "save_file", unexpected_save)
-    monkeypatch.setattr(FfmpegService, "download_and_prepare_images", AsyncMock())
+    monkeypatch.setattr(SlideshowRenderer, "download_and_prepare_images", AsyncMock())
     monkeypatch.setattr(AudioService, "download_and_prepare_audio", AsyncMock())
     monkeypatch.setattr(FfmpegRunner, "run", run)
     info = InfoVideoTikTok(None, None, audio_url, ["https://example.invalid/image"])
     input_file = await get_video(info, monkeypatch)
-    assert output_paths == [str(input_file.path)]
     assert Path(input_file.path).read_bytes() == b"generated slideshow"
     assert len(list(cache_root.iterdir())) == 1
     await scheduled[0].run()
@@ -144,7 +136,9 @@ async def test_failed_preparation_cleans_directory(
         info = InfoVideoTikTok(None, None, None, ["https://example.invalid/image"])
         error = CalledProcessError(1, "ffmpeg")
         monkeypatch.setattr(
-            FfmpegService, "download_and_prepare_images", AsyncMock(side_effect=error)
+            SlideshowRenderer,
+            "download_and_prepare_images",
+            AsyncMock(side_effect=error),
         )
     elif failure == "schedule":
         monkeypatch.setattr(Schedule, "run_task_after", AsyncMock(side_effect=error))
@@ -201,13 +195,24 @@ async def test_cancelled_write_finishes_before_cleanup(
     assert scheduled == []
 
 
+@pytest.mark.parametrize("slideshow", [False, True])
 async def test_scheduled_cleanup_defers_during_upload(
-    cache_root: Path, scheduled: list[Task], monkeypatch: pytest.MonkeyPatch
+    cache_root: Path,
+    scheduled: list[Task],
+    monkeypatch: pytest.MonkeyPatch,
+    slideshow: bool,
 ) -> None:
-    monkeypatch.setattr(HttpService, "get", AsyncMock(return_value=b"v" * 100_000))
-    input_file = await get_video(
-        InfoVideoTikTok("https://example.invalid/video", None, None, None), monkeypatch
-    )
+    payload = b"v" * 100_000
+    monkeypatch.setattr(HttpService, "get", AsyncMock(return_value=payload))
+    info = InfoVideoTikTok("https://example.invalid/video", None, None, None)
+    if slideshow:
+
+        async def render(urls: list[str], audio: str | None, output: str) -> None:
+            Path(output).write_bytes(payload)
+
+        monkeypatch.setattr(SlideshowRenderer, "make_slideshow_file_from_web", render)
+        info = InfoVideoTikTok(None, None, None, ["image"])
+    input_file = await get_video(info, monkeypatch)
     reader = input_file.read(Bot("12345678:token"))
     assert await anext(reader)
     await scheduled[0].run()
@@ -247,7 +252,7 @@ async def test_cancelled_slideshow_finishes_before_cleanup(
         await release.wait()
         Path(command[-1]).write_bytes(b"slideshow")
 
-    monkeypatch.setattr(FfmpegService, "download_and_prepare_images", AsyncMock())
+    monkeypatch.setattr(SlideshowRenderer, "download_and_prepare_images", AsyncMock())
     monkeypatch.setattr(FfmpegRunner, "run", run)
     monkeypatch.setattr(
         TikTokInfoExtractor,
@@ -286,7 +291,7 @@ async def test_metadata_probe_failure_keeps_uploadable_file(
     async def run(command: list[str]) -> None:
         Path(command[-1]).write_bytes(b"slideshow")
 
-    monkeypatch.setattr(FfmpegService, "download_and_prepare_images", AsyncMock())
+    monkeypatch.setattr(SlideshowRenderer, "download_and_prepare_images", AsyncMock())
     monkeypatch.setattr(FfmpegRunner, "run", run)
     monkeypatch.setattr(
         VideoMetadataService,
