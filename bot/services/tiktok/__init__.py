@@ -1,4 +1,5 @@
 import asyncio
+import os
 from collections import Counter
 from collections.abc import AsyncGenerator
 from contextlib import aclosing
@@ -8,9 +9,11 @@ from typing import ClassVar
 from aiogram import Bot
 from aiogram.types import FSInputFile
 
+from configs.services.tiktok import MAX_VIDEO_SIZE_BYTES, MAX_VIDEO_WIDTH
 from services.cache_dir import CacheDir
 from services.ffmpeg import FfmpegService
 from services.http import HttpService
+from utils.async_cleanup import wait_for_completion
 
 from .exceptions import TikTokInfoExtractionFailed, TikTokVideoUrlExtractionFailed
 from .extractor import TikTokInfoExtractor
@@ -104,30 +107,15 @@ class TikTokService:
     async def __create_cached_input_file(cls, info: InfoVideoTikTok) -> FSInputFile:
         video = await HttpService.get(info.video_url) if info.video_url else None
         cache_dir = _TikTokCacheDir()
-        prepared = asyncio.create_task(cls.__prepare_video(info, cache_dir, video))
         scheduled = False
         try:
-            await cls.__wait_for_preparation(prepared)
+            await wait_for_completion(cls.__prepare_video(info, cache_dir, video))
             await cache_dir.delete_after(minutes=5)
             scheduled = True
             return _TikTokInputFile(cache_dir)
         finally:
             if not scheduled:
                 await cache_dir._delete()
-
-    @staticmethod
-    async def __wait_for_preparation(prepared: asyncio.Task[None]) -> None:
-        """Finish file writes and ffmpeg before allowing cancellation to clean up."""
-        cancellation: asyncio.CancelledError | None = None
-        while not prepared.done():
-            try:
-                await asyncio.shield(prepared)
-            except asyncio.CancelledError as error:
-                if cancellation is None:
-                    cancellation = error
-        prepared.result()
-        if cancellation is not None:
-            raise cancellation
 
     @classmethod
     async def __prepare_video(
@@ -141,3 +129,10 @@ class TikTokService:
             )
         else:
             raise TikTokInfoExtractionFailed("")
+
+        video_path = cache_dir.get_file_path("video.mp4")
+        compressed_path = await FfmpegService.compress_video_if_needed(
+            video_path, max_size_bytes=MAX_VIDEO_SIZE_BYTES, max_width=MAX_VIDEO_WIDTH
+        )
+        if compressed_path != video_path:
+            await asyncio.to_thread(os.replace, compressed_path, video_path)

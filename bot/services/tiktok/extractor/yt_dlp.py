@@ -28,7 +28,7 @@ class YtDlp(BaseExtractor):
                     height=video_file_info.height,
                     width=video_file_info.width,
                 )
-        except (IndexError, ValueError, DownloadError):
+        except (IndexError, TypeError, ValueError, DownloadError):
             raise SourceInfoExtractFailed(self)
 
     async def _get_video_input_file(self, url: str) -> InputFile:
@@ -45,7 +45,7 @@ class YtDlp(BaseExtractor):
                 url, cleanup_delay_minutes=5
             ) as video_file_info:
                 return await self._get_video_file_url_from_info(video_file_info)
-        except (IndexError, ValueError, OSError, DownloadError):
+        except (IndexError, TypeError, ValueError, OSError, DownloadError):
             raise SourceInfoExtractFailed(self)
 
     async def _get_video_file_url_from_info(
@@ -54,7 +54,7 @@ class YtDlp(BaseExtractor):
         try:
             fs_input_file = video_file_info.input_file
             if not isinstance(fs_input_file, FSInputFile):
-                raise ValueError("Input file is not an FSInputFile instance")
+                raise TypeError("Input file is not an FSInputFile instance")
 
             serveo_url = self._get_serveo_url()
             if serveo_url is None:
@@ -62,7 +62,7 @@ class YtDlp(BaseExtractor):
 
             video_path = "/".join(str(fs_input_file.path).split("/")[-3:])
             return serveo_url + "/" + video_path
-        except (IndexError, ValueError, DownloadError):
+        except (IndexError, TypeError, ValueError, DownloadError):
             raise SourceInfoExtractFailed(self)
 
     @classmethod
