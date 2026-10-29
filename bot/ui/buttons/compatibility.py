@@ -1,12 +1,11 @@
 """Read old URL-bearing callbacks while all new buttons use native packing."""
 
-from typing import Any, cast
+from typing import Any
 
 from aiogram.filters import Filter
 from aiogram.filters.callback_data import CallbackData
 from aiogram.types import CallbackQuery
 
-from ui.buttons.download import DownloadAction
 from ui.buttons.porno365 import Porno365DownloadButtonCallbackData
 from ui.buttons.vk import VKDownloadButtonCallbackData
 from utils.vk import parse_vk_reference
@@ -28,27 +27,16 @@ def unpack_callback[T: CallbackData](model: type[T], payload: str) -> T:
     _, raw_action, raw_status, value = parts
     if raw_status not in {"True", "False"}:
         raise ValueError("Legacy status must be True or False")
-    action = DownloadAction(raw_action)
-    status = raw_status == "True"
+    fields: dict[str, object] = {
+        "action": raw_action,
+        "use_callback_message_as_status": raw_status == "True",
+    }
     if model is VKDownloadButtonCallbackData:
-        return cast(
-            T,
-            VKDownloadButtonCallbackData.from_reference(
-                parse_vk_reference(value),
-                action=action,
-                use_callback_message_as_status=status,
-            ),
-        )
-    if action is not DownloadAction.video:
-        raise ValueError("Porno365 only supports video downloads")
-    return cast(
-        T,
-        Porno365DownloadButtonCallbackData(
-            action=DownloadAction.video,
-            use_callback_message_as_status=status,
-            page_url=value,
-        ),
-    )
+        reference = parse_vk_reference(value)
+        fields.update(reference_kind=reference.kind, reference_value=reference.value)
+    else:
+        fields["page_url"] = value
+    return model.model_validate(fields)
 
 
 class LegacyDownloadCallbackFilter(Filter):

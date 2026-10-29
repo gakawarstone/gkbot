@@ -49,16 +49,10 @@ VK support audio.
 
 ## Callback compatibility and migration
 
-The six download button families now use typed aiogram CallbackData filters.
-Adapters accept the injected model and retain raw-payload validation for direct
-`download(callback)` callers. New VK/Porno365 buttons use a pipe separator;
-existing messages remain supported through a strict legacy filter. All boolean
-and action fields are validated before URL resolution or status creation.
-Unknown events no longer reach the former status-only path. The generic helper
-still accepts `media_type=None` for other callers.
-
-See [callback data](callback-data.md) for prefixes, fields and compatibility.
-Carousel callbacks are outside this contract.
+Typed callback filters reject malformed actions/status before source work.
+Direct `download(callback)` calls remain supported. See [callback data](callback-data.md)
+for wire formats and compatibility with existing keyboards. The shared helper
+still accepts `media_type=None`; carousel callbacks are outside this contract.
 
 ## Tests
 

@@ -1,5 +1,3 @@
-from functools import partial
-
 from aiogram import Router
 from aiogram.types import CallbackQuery
 
@@ -8,27 +6,23 @@ from ui.buttons.compatibility import LegacyDownloadCallbackFilter, unpack_callba
 from ui.buttons.vk import VKDownloadButtonCallbackData
 
 
-async def _prepare_request(
-    callback_data: str, *, data: VKDownloadButtonCallbackData | None = None
-) -> DownloadRequest:
-    if data is None:
-        data = unpack_callback(VKDownloadButtonCallbackData, callback_data)
-    return DownloadRequest(
-        url=data.reference.download_url,
-        media_type=data.action.media_type,
-        use_callback_message_as_status=data.use_callback_message_as_status,
-    )
-
-
 async def download(
     callback: CallbackQuery,
     callback_data: VKDownloadButtonCallbackData | None = None,
 ) -> None:
-    await handle_download(
-        callback,
-        partial(_prepare_request, data=callback_data),
-        raise_on_invalid_callback=True,
-    )
+    async def prepare_request(payload: str) -> DownloadRequest:
+        data = (
+            callback_data
+            if callback_data is not None
+            else unpack_callback(VKDownloadButtonCallbackData, payload)
+        )
+        return DownloadRequest(
+            url=data.reference.download_url,
+            media_type=data.action.media_type,
+            use_callback_message_as_status=data.use_callback_message_as_status,
+        )
+
+    await handle_download(callback, prepare_request, raise_on_invalid_callback=True)
 
 
 def setup(r: Router) -> None:
