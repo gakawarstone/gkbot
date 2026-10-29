@@ -2,171 +2,127 @@
 
 Status: proposed, awaiting an explicit owner decision. Audited on 2026-10-23
 against GKBot `dfdecceb2e97824e924538bf7720c2547a7156a7`.
-No runtime or deployment changes are authorized by this document yet.
 
 ## Recommendation and decision gate
 
 Choose **A: retain the external gkbroker protocol**. The current client and a
 running local worker already use it. Harden the client through the shared-payload
-and bounded-polling tasks below. Keep broker and worker deployment outside root
-Compose for this change. Do not restore the deleted supervisor.
+and bounded-polling tasks. Keep broker/worker deployment outside root Compose.
 
-Owner selection: **pending**. Record the selected option, owner, date, and any
-changes to the proposed schema and failure policy here before implementation.
-The owner must also confirm which broker and worker revision production GKBot
-uses, without sharing endpoint credentials. A source match alone does not prove
-the production deployment uses that revision.
+Owner selection: **pending**. Record the selected option, owner, date, and accepted
+schema/failure policy here before runtime or deployment changes. The owner must
+also confirm production GKBot's broker and worker revision without sharing
+credentials. The local observations below do not establish that pairing.
 
 ## Verified contract map
 
-### Caller and environment
+### Caller, environment and deployment
 
 - [YtdlpDownloader](../bot/services/ytdlp/downloader.py) sends URLs matching
-  `^https://(?:www\.)?youtu` to the remote worker for metadata and downloads.
-  Other sources use local yt-dlp. Source detection changes are a separate task.
-- [workers/yt_dlp.py](../bot/workers/yt_dlp.py) enqueues
+  `^https://(?:www\.)?youtu` to the worker; other sources use local yt-dlp.
+  [workers/yt_dlp.py](../bot/workers/yt_dlp.py) sends `POST /enqueue` with
   `{"function":"ytdlp.extract_info","data":["<video-url>"]}` or
-  `{"function":"ytdlp.download_video","data":["<video-url>",{}]}` with
-  `POST /enqueue`, then reads `GET /result/<task_id>`.
-- Enqueue currently requires only `response["task_id"]`. Polling reads
-  `response["status"]` until exactly `completed`, then performs another GET for
-  `response["result"]`. There is no overall deadline or terminal-failure handling.
-- `get_info` JSON-decodes the result string. The downloader then expects a dict
-  with `title`, and uses optional duration/dimensions. `download_video` expects a
-  downloadable URL string and constructs `URLInputFile`. Audio also downloads the
-  returned URL into local storage for ffmpeg preparation.
+  `{"function":"ytdlp.download_video","data":["<video-url>",{}]}`.
+  It polls `GET /result/<task_id>` until `completed`, then fetches the result
+  again. There is no overall deadline or terminal-failure handling.
+- Metadata is a JSON string decoded to a dict with `title` and optional
+  duration/dimensions. Downloads return a URL consumed by `URLInputFile`; audio
+  also downloads that URL locally for ffmpeg preparation.
 - [configs/env.py](../bot/configs/env.py) loads optional `BROKER_URL` at import
-  time through python-dotenv. Missing configuration fails at the worker call with
-  `ValueError`. No broker token/header configuration exists in this client.
-  `YOUTUBE_API_KEY` belongs to the separate YouTube metadata API integration.
-- [HttpService](../bot/services/http.py) creates a session per call. Its JSON
-  helpers do not check HTTP status. They translate some aiohttp exceptions into
-  `HttpRequestError`; other connection, timeout, JSON and schema errors can escape.
-  There is no worker-specific request deadline.
-
-### Compose and deployment
-
-- [Root Compose](../docker-compose.yml) starts only `gkbot`, loads `.env`, and
-  uses bridge networking. It provides no broker, worker, service discovery name,
-  or broker dependency. `BROKER_URL` can enter through `env_file` despite not
-  appearing in the explicit `environment` block.
-- [.env.dist](../.env.dist) and [README](../README.md) omit `BROKER_URL`.
-  Copying the template alone therefore does not configure YouTube downloads.
-- [Deploy workflow](../.github/workflows/deploy.yml) runs `make docker-update`
-  over SSH on `master`. The
-  [2026-10-23 run](https://github.com/gakawarstone/gkbot/actions/runs/39924776988)
-  succeeded at `fc194644844b5eb5041649f14c4fd46a27ca2cf8`. It does not identify
-  the deployed broker address or worker revision.
+  time through python-dotenv. Missing configuration raises `ValueError` at the
+  worker call. There is no broker auth configuration. `YOUTUBE_API_KEY` belongs
+  to the separate YouTube API integration.
+- [HttpService](../bot/services/http.py) has no worker deadline or HTTP status
+  check. It translates only some request errors into `HttpRequestError`;
+  transport, timeout, JSON and schema failures have no common worker contract.
+- [Root Compose](../docker-compose.yml) starts only `gkbot` with bridge networking.
+  It loads `BROKER_URL` through `.env`, but provides no broker/worker service or
+  dependency. [.env.dist](../.env.dist) and [README](../README.md) omit the setting.
+  [Deploy](../.github/workflows/deploy.yml) runs `make docker-update` over SSH on
+  `master`; it does not identify the deployed broker or worker revision.
 - [Commit 02c5be1](https://github.com/gakawarstone/gkbot/commit/02c5be136aeaa5d735a3c0d9380b3d397eb113c4)
-  deleted `services/ytdlp_workers_supervisor`. Its historical `GET /fetch` read
-  URL/ID pairs from `/files/tasks`; `POST /upload` accepted multipart `id` and
-  `video`. It had no `/enqueue`, result-state endpoint, or compatible function
-  dispatch. It is not a current local alternative.
-- `services/bot-api` is Telegram's Bot API service.
-  `services/serveo_file_server` serves files through an SSH tunnel. Neither
-  implements a task broker or the removed supervisor protocol.
+  deleted `services/ytdlp_workers_supervisor`. Its `GET /fetch` read URL/ID pairs
+  from `/files/tasks`; `POST /upload` accepted multipart `id` and `video`.
+  It had no enqueue, result-state or function-dispatch contract. The remaining
+  `services/bot-api` and `services/serveo_file_server` provide Telegram's API and
+  tunneled file serving, respectively, not task brokering.
 
-### External broker and running worker evidence
+### Broker and running worker
 
-The owner's public [gkbroker source](https://github.com/gakawarstone/gkbroker/tree/1cd7dbde74c888053e32abebbaea08615585474a)
-was read at commit `1cd7dbde74c888053e32abebbaea08615585474a`.
-The authoritative files are
+Broker source was checked at
+[`1cd7dbde74c888053e32abebbaea08615585474a`](https://github.com/gakawarstone/gkbroker/tree/1cd7dbde74c888053e32abebbaea08615585474a).
+The contracts come from
 [api.py](https://github.com/gakawarstone/gkbroker/blob/1cd7dbde74c888053e32abebbaea08615585474a/app/api.py),
 [models.py](https://github.com/gakawarstone/gkbroker/blob/1cd7dbde74c888053e32abebbaea08615585474a/app/models.py),
 [broker.py](https://github.com/gakawarstone/gkbroker/blob/1cd7dbde74c888053e32abebbaea08615585474a/app/broker.py),
 and [tasks.py](https://github.com/gakawarstone/gkbroker/blob/1cd7dbde74c888053e32abebbaea08615585474a/app/tasks.py).
-Its README omits failure and cancellation details present in the code.
 
-- `POST /enqueue` accepts `function: str`, `data: list` and responds with
+- `POST /enqueue` accepts `function: str`, `data: list`, returning
   `task_id: str`, `status: "pending"`.
-- Workers claim tasks with `GET /get_task?function=<name>`. Claiming changes
-  `pending` to `processing`. No available task returns null fields.
-- `POST /submit_result` accepts `task_id: str`, `result: str` and sets
-  `completed`. `POST /submit_error` accepts `task_id: str`,
-  `error_message: str` and sets `failed`, storing that message in `result`.
-- `GET /result/<task_id>` responds with `task_id`, `status`, and `result`.
-  The status enum is exactly `pending`, `processing`, `completed`, `failed`.
-  Result is nullable string. A missing task returns HTTP 404 with
-  `{"detail":"Task not found"}`.
-- `DELETE /cancel/<task_id>` deletes a pending task and responds with
-  `status: "cancelled"`. Later result reads return 404. `cancelled` is not a
-  stored/result status. Processing tasks cannot be cancelled through this API.
-- Storage is in memory. Restart loses tasks. There is no worker lease/requeue
-  mechanism after claiming a task. Completed/failed tasks expire based on creation
-  time after one day, checked hourly. Pending/processing tasks do not expire.
+- `GET /get_task?function=<name>` claims a task and changes it to `processing`.
+  No available task returns null fields.
+- `POST /submit_result` accepts `task_id: str`, `result: str`, setting `completed`.
+  `POST /submit_error` accepts `task_id: str`, `error_message: str`, setting
+  `failed` and storing that message in `result`.
+- `GET /result/<task_id>` returns `task_id`, `status`, `result`. Stored statuses
+  are exactly `pending`, `processing`, `completed`, `failed`; result is nullable
+  string. Missing tasks return HTTP 404, `{"detail":"Task not found"}`.
+- `DELETE /cancel/<task_id>` deletes a pending task and returns `cancelled`.
+  Later GET returns 404; `cancelled` is not a stored/result status. Processing
+  tasks cannot be cancelled through this API.
+- Storage is in memory; restart loses tasks. There is no worker lease/requeue.
+  Completed/failed tasks expire one day after creation, checked hourly.
+  Pending/processing tasks do not expire.
 
-Read-only Docker inspection found a running `gkworker-ytdlp-app-1` container.
-Its `/app/main.py` SHA-256 was
+Read-only inspection found running container `gkworker-ytdlp-app-1`, whose
+`/app/main.py` SHA-256 was
 `54bc1fb0e03c118d2d7d76f30b97b4ab42220a6c5db19b174ba874aa2a5c43c1`.
-It claims both `ytdlp.*` functions through `/get_task`, returns JSON metadata or a
-presigned download URL through `/submit_result`, and uses a hard-coded broker
-address. Its download URL expires after 3600 seconds.
+It claims both `ytdlp.*` functions using a hard-coded broker address and submits
+JSON metadata or a presigned download URL, valid for 3600 seconds.
 
-**Worker errors also go through `/submit_result`.** The worker catches extraction
-and download exceptions and submits a string containing
-`{"status":"failed","error":"<message>"}`. Thus the outer task can be
-`completed` while the actual operation failed. The running worker does not call
-`/submit_error`. Failed result submission can leave a task in `processing`.
+**Worker errors also go through `/submit_result`.** Extraction/download exceptions
+produce the result string `{"status":"failed","error":"<message>"}`. The outer
+task is then `completed` despite operation failure. This worker does not call
+`/submit_error`; failed submission can leave a task in `processing`.
 
-Read-only probes of that worker's configured broker returned HTTP 200 for
-`/openapi.json`, with the six routes above and matching enqueue/result/error input
-schemas, and HTTP 404 for a fresh unused task ID. No tasks were submitted, claimed,
-cancelled, or changed. OpenAPI has no response schema for the result endpoint, so
-the four stored statuses are source-verified, not observed live task transitions.
-The deployed broker's exact commit is not exposed by these probes.
+Read-only probes of its broker returned OpenAPI HTTP 200 with these six routes
+and matching input schemas, and HTTP 404 for a fresh unused task ID. OpenAPI has
+no result response schema; stored statuses are source-verified, not observed live
+transitions. The deployed broker commit is unknown. No tasks were changed.
 
-No GKBot container was running on this Docker host, and `BROKER_URL` was unset in
-the audit shell. The root checkout and its `.env` were not read or changed.
-Consequently the production bot-to-broker pairing remains unverified. This is the
-specific deployment fact the owner still needs to confirm. Endpoint addresses,
-credentials, cookies, signed URLs, task payloads and container logs are omitted.
+No GKBot container was running locally, and the audit shell had no `BROKER_URL`.
+The root checkout and its `.env` were not accessed. Production pairing remains
+unverified; endpoint addresses, credentials, signed URLs and logs are omitted.
 
 ## Bounded alternatives
 
 ### A. Retain the external broker, recommended
 
-Cost is limited to client validation, shared payload retrieval, bounded polling,
-handler cleanup and configuration documentation after approval. No broker API or
-worker migration is required. A later worker fix can use `/submit_error`, while
-the client retains compatibility with existing embedded error results.
+Low migration cost: client validation, shared payload retrieval, bounded polling,
+handler cleanup and configuration docs. No broker API or worker migration is
+required. Existing embedded failures must remain supported even if a later worker
+starts using `/submit_error`.
 
-Failures remain external service outages, lost tasks on broker restart, stuck
-processing tasks, and expired download URLs. The proposed client policy below
-makes those failures finite and explicit. It does not provide server cancellation
-or prevent worker work from continuing after the client deadline.
+Outages, broker restart, stuck tasks and URL expiry remain possible. The client
+policy below bounds waiting, but cannot stop worker work after its deadline.
+Validate with stubbed transport and a disposable broker using the cases below.
 
-Test with stubbed transport and a disposable broker: all statuses, lost/removed
-tasks, legacy embedded errors, invalid results, HTTP errors, hung requests and
-deadline expiry. Exercise both YouTube callbacks and Shorts handler cleanup.
+### B. Add a compatible local broker
 
-### B. Add a compatible local broker service
+Medium cost: pin/package the broker, configure Compose networking, health checks
+and a reachable worker. A broker alone cannot download videos. Keep A's schema;
+local deployment alone does not add persistence or leases. Queue reset invalidates
+existing task IDs. In addition to A's tests, smoke-test worker connectivity,
+download/file access, worker death and broker restart in disposable Compose.
 
-Keep the same wire schema and worker functions, but add a pinned broker artifact,
-Compose networking, endpoint configuration, health checks and an explicit worker
-connection path. A broker by itself does not download videos. An external worker
-must reach the local broker, or a compatible worker must also be deployed.
+### C. Design a supervisor replacement
 
-Cost is medium and includes ownership of broker/worker packaging and operations.
-The published broker uses memory, so simply adding Compose does not solve task
-loss, stuck processing or durability. A queue reset during migration invalidates
-existing task IDs. Persistence or leases would require separate broker changes.
-
-Reuse A's client tests, then add disposable Compose smoke tests for worker
-connectivity, a completed download, worker death, broker restart and file access
-from the bot. Do not add this deployment before the owner chooses it.
-
-### C. Build a replacement using the old supervisor approach
-
-Cost is high. The deleted code provides file transfer and a task-list file, not a
-replacement for broker state. A new design must supply task creation, function and
-options transport, metadata results, failure state, cancellation, concurrency,
-file publication/retention and access from the bot. There is no supported
-supervisor protocol to switch to by changing an endpoint.
-
-Partial uploads, missing metadata, stale task files and supervisor restarts would
-need defined recovery behavior. Test the new state machine, concurrent claims,
-upload interruption, task isolation, restart recovery and both caller result types
-before cutover. Choosing C requires another reviewed protocol design before code.
+High cost: the deleted code only transferred files and read a task-list file.
+A replacement needs task creation, functions/options, metadata, failure state,
+cancellation, concurrency and file publication/retention. Partial uploads, stale
+task files and restarts need recovery rules. Test concurrent claims, interrupted
+uploads, isolation, restart recovery and both result types. Choosing C requires
+another reviewed protocol design before implementation.
 
 ## Proposed contract for A or compatible B, not yet approved
 
@@ -242,6 +198,3 @@ credentials or signed download URLs into logs or user messages.
   errors; no repeated GET on completion; hung requests; deadlines; and propagated
   local cancellation. Integration tests must use an isolated broker, not live
   production enqueue/claim routes.
-
-The documentation PR can be reviewed now. Runtime work remains blocked until the
-owner's selection and accepted policy are recorded here.
