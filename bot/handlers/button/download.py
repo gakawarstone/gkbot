@@ -56,16 +56,14 @@ async def handle_download(
     status_text = "Cкачиваю " + request.url
     if request.use_callback_message_as_status:
         status_message = message
-        if isinstance(status_message, Message):
-            await status_message.edit_text(status_text)
+        await status_message.edit_text(status_text)
     else:
         status_message = await message.answer(status_text)
 
     try:
         await _send_media(message, request)
     finally:
-        if isinstance(status_message, Message):
-            await status_message.delete()
+        await status_message.delete()
 
 
 async def _send_media(message: Message, request: DownloadRequest) -> None:
