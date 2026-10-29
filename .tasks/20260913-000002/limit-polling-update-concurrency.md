@@ -22,24 +22,12 @@
 - Configuration validation rejects non-positive values.
 - Polling tests and static checks pass.
 
-## Progress on 2026-10-23
+## Remaining acceptance evidence
 
-Implemented environment configuration, positive-integer validation, explicit
-task-based polling, and dispatcher forwarding tests. The existing default of
-10 is retained. See `docs/polling-concurrency.md` and
-`bot/benchmarks/polling.py` for the reproducible offline `/img` burst benchmark.
-At limit 10 it measured 10 active updates, 40 simulated provider requests,
-200.60 MiB traced peak allocation, and 448.17 MiB process peak RSS.
+Configuration and validation are implemented. Offline measurements and tuning
+instructions are in `docs/polling-concurrency.md`; the retained default is 10.
+The test review removed mock-only forwarding and field/default checks.
 
-Checks: 144 tests passed, 13 skipped. `make lint FILE=...` passes for all seven
-changed Python files. Full lint still reports 377 existing Ruff findings,
-compared with 383 on the starting HEAD.
-
-The production resource acceptance criterion remains open. The offline
-benchmark does not establish live handler throughput or deployed account
-quotas. To finish, measure the representative production/staging workload
-against its memory budget and provider limits, then confirm or lower the
-default. Alternatively, the owner can explicitly accept 10 as a starting
-default backed by the offline measurement and defer deployment-specific
-calibration to rollout. Keep this task until that decision or measurement.
-
+Keep this task open until representative production/staging measurements
+confirm the default against memory and provider limits, or the owner explicitly
+accepts the offline justification and defers deployment calibration to rollout.

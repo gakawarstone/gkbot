@@ -57,23 +57,21 @@ async def benchmark(limit: int, count: int, payload_mib: int, delay: float) -> N
         finally:
             metrics.active_requests -= 1
 
-    async def upload(media: list[InputMediaPhoto]) -> None:
-        assert len(media) == 4
-        for photo in media:
-            image = cast(BufferedInputFile, photo.media)
-            assert len(image.data) == payload_size
-            metrics.uploaded_bytes += len(image.data)
-        await asyncio.sleep(delay)
-
     @dataclass
     class ImageMessage:
+        # Mocks retain uploaded buffers in call history and distort peak memory.
         text: str | None
 
         async def delete(self) -> None:
             pass
 
         async def answer_media_group(self, media: list[InputMediaPhoto]) -> None:
-            await upload(media)
+            assert len(media) == 4
+            for photo in media:
+                image = cast(BufferedInputFile, photo.media)
+                assert len(image.data) == payload_size
+                metrics.uploaded_bytes += len(image.data)
+            await asyncio.sleep(delay)
 
     async def handle(message: Message) -> None:
         metrics.active_updates += 1
