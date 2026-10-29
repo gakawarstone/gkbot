@@ -2,7 +2,6 @@ from typing import Any, Awaitable, Callable, Dict
 
 from aiogram.dispatcher.middlewares.base import BaseMiddleware
 from aiogram.types import TelegramObject, User
-from sqlalchemy import select
 
 from configs import db
 from models.users import Users
@@ -20,9 +19,7 @@ class RegisterUserMiddleware(BaseMiddleware):
             raise ValueError("Event does not contain a user")
 
         async with db.SessionLocal() as session:
-            stmt = select(Users).where(Users.user_id == user.id)
-            result = await session.execute(stmt)
-            existing_user = result.scalar_one_or_none()
+            existing_user = await session.get(Users, user.id)
 
             if not existing_user:
                 new_user = Users(

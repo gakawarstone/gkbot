@@ -1,8 +1,6 @@
 from datetime import timedelta
 from typing import Optional
 
-from sqlalchemy import select
-
 from configs import db
 from models.timezone import TimeZone as _TimeZone
 
@@ -28,9 +26,7 @@ class TimeZone:
     @classmethod
     async def _get_tz_by_user_id(cls, user_id: int) -> Optional[timedelta]:
         async with db.SessionLocal() as session:
-            stmt = select(_TimeZone).where(_TimeZone.user_id == user_id)
-            result = await session.execute(stmt)
-            tzinfo = result.scalar_one_or_none()
+            tzinfo = await session.get(_TimeZone, user_id)
             if tzinfo is None:
                 return None
             return tzinfo.tz
@@ -49,10 +45,7 @@ class TimeZone:
     @classmethod
     async def _set_tz_by_user_id(cls, user_id: int, tz: timedelta) -> None:
         async with db.SessionLocal() as session:
-            # Check if exists
-            stmt = select(_TimeZone).where(_TimeZone.user_id == user_id)
-            result = await session.execute(stmt)
-            existing = result.scalar_one_or_none()
+            existing = await session.get(_TimeZone, user_id)
             if existing:
                 existing.tz = tz
             else:

@@ -45,10 +45,8 @@ certifi==2026.2.25
     #   httpx
     #   requests
     #   yt-dlp
-cffi==2.1.1 ; implementation_name != 'cpython' or platform_python_implementation != 'PyPy'
-    # via
-    #   brotlicffi
-    #   cryptography
+cffi==2.1.1 ; implementation_name != 'cpython'
+    # via brotlicffi
 charset-normalizer==3.4.5
     # via requests
 click==8.1.8
@@ -57,8 +55,6 @@ colorama==0.4.6 ; sys_platform == 'win32'
     # via
     #   click
     #   tqdm
-cryptography==50.0.2
-    # via google-auth
 distro==1.9.0
     # via openai
 docx2txt==0.9
@@ -73,48 +69,14 @@ frozenlist==1.8.0
     #   aiosignal
 gallery-dl==1.32.7
     # via gkbot
-google-ai-generativelanguage==0.6.15
-    # via google-generativeai
-google-api-core==2.25.2
-    # via
-    #   google-ai-generativelanguage
-    #   google-api-python-client
-    #   google-generativeai
-google-api-python-client==2.201.0
-    # via google-generativeai
-google-auth==2.62.0
-    # via
-    #   google-ai-generativelanguage
-    #   google-api-core
-    #   google-api-python-client
-    #   google-auth-httplib2
-    #   google-generativeai
-google-auth-httplib2==0.4.4
-    # via google-api-python-client
-google-generativeai==0.8.6
-    # via gkbot
-googleapis-common-protos==1.75.0
-    # via
-    #   google-api-core
-    #   grpcio-status
 greenlet==3.5.6
     # via sqlalchemy
-grpcio==1.84.1
-    # via
-    #   google-api-core
-    #   grpcio-status
-grpcio-status==1.71.2
-    # via google-api-core
 gtts==2.5.4
     # via gkbot
 h11==0.16.0
     # via httpcore
 httpcore==1.0.9
     # via httpx
-httplib2==0.32.0
-    # via
-    #   google-api-python-client
-    #   google-auth-httplib2
 httpx==0.28.1
     # via
     #   notion-client
@@ -147,43 +109,23 @@ propcache==0.4.1
     # via
     #   aiohttp
     #   yarl
-proto-plus==1.28.2
-    # via
-    #   google-ai-generativelanguage
-    #   google-api-core
-protobuf==5.29.6
-    # via
-    #   google-ai-generativelanguage
-    #   google-api-core
-    #   google-generativeai
-    #   googleapis-common-protos
-    #   grpcio-status
-    #   proto-plus
-pyasn1==0.6.4
-    # via pyasn1-modules
-pyasn1-modules==0.4.2
-    # via google-auth
-pycparser==3.0 ; (implementation_name != 'PyPy' and implementation_name != 'cpython') or (implementation_name == 'cpython' and platform_python_implementation != 'PyPy')
+pycparser==3.0 ; implementation_name != 'PyPy' and implementation_name != 'cpython'
     # via cffi
 pycryptodomex==3.23.0
     # via yt-dlp
 pydantic==2.12.5
     # via
     #   aiogram
-    #   google-generativeai
     #   openai
 pydantic-core==2.41.5
     # via pydantic
 pymysql==1.2.3
     # via aiomysql
-pyparsing==3.3.3
-    # via httplib2
 python-dotenv==1.2.2
     # via gkbot
 requests==2.32.5
     # via
     #   gallery-dl
-    #   google-api-core
     #   gtts
     #   wikipedia
     #   youtube-search
@@ -199,9 +141,7 @@ sqlalchemy==2.1.6
 tabulate==0.10.0
     # via edge-tts
 tqdm==4.67.3
-    # via
-    #   google-generativeai
-    #   openai
+    # via openai
 typing-extensions==4.15.0
     # via
     #   aiogram
@@ -209,8 +149,6 @@ typing-extensions==4.15.0
     #   alembic
     #   beautifulsoup4
     #   edge-tts
-    #   google-generativeai
-    #   grpcio
     #   openai
     #   pydantic
     #   pydantic-core
@@ -218,8 +156,6 @@ typing-extensions==4.15.0
     #   typing-inspection
 typing-inspection==0.4.2
     # via pydantic
-uritemplate==4.2.0
-    # via google-api-python-client
 urllib3==2.6.3
     # via
     #   requests

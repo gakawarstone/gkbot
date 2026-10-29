@@ -1,5 +1,3 @@
-from sqlalchemy import select
-
 from configs import db
 from models.gkfeed import GkFeed
 
@@ -10,9 +8,7 @@ class GkfeedAuthService:
     async def login(self, user_id: int, login: str, password: str) -> bool:
         """Save user's credentials for GkFeed."""
         async with db.SessionLocal() as session:
-            stmt = select(GkFeed).where(GkFeed.user_id == user_id)
-            result = await session.execute(stmt)
-            existing = result.scalar_one_or_none()
+            existing = await session.get(GkFeed, user_id)
 
             if existing:
                 existing.login = login
@@ -26,9 +22,7 @@ class GkfeedAuthService:
     async def get_credentials(self, user_id: int) -> GkfeedCredentials:
         """Get user's credentials for GkFeed."""
         async with db.SessionLocal() as session:
-            stmt = select(GkFeed).where(GkFeed.user_id == user_id)
-            result = await session.execute(stmt)
-            raw_credentials = result.scalar_one_or_none()
+            raw_credentials = await session.get(GkFeed, user_id)
 
             if raw_credentials is None:
                 raise ValueError(f"No GkFeed credentials found for user {user_id}")
