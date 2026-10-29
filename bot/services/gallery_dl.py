@@ -1,9 +1,10 @@
-import asyncio
 from dataclasses import dataclass
 from typing import Any
 
 from gallery_dl.exception import GalleryDLException, NoExtractorError
 from gallery_dl.job import DataJob
+
+from utils.async_wrapper import async_wrap
 
 
 @dataclass
@@ -32,7 +33,7 @@ class GalleryDlService:
 
     @classmethod
     async def _extract_json_data(cls, url: str) -> list[Any]:
-        return await asyncio.to_thread(cls._run_data_job, url)
+        return await async_wrap(cls._run_data_job)(url)
 
     @staticmethod
     def _run_data_job(url: str) -> list[Any]:
