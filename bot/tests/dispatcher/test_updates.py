@@ -161,7 +161,9 @@ async def test_callback_reaches_delete_handler_and_shares_injected_user_data(
     harness.invocations.clear()
     harness.create_user.reset_mock()
 
-    await harness.feed(callback_update(deleteMessageButtonPrefix))
+    await harness.dispatcher.feed_raw_update(
+        harness.bot, callback_update(deleteMessageButtonPrefix)
+    )
 
     invocation = harness.invocations[0]
     assert invocation.user_data is message_invocation.user_data
@@ -177,7 +179,10 @@ async def test_inline_query_reaches_choice_handler_without_message_side_effects(
     dispatcher_harness: DispatcherHarness,
 ) -> None:
     harness = dispatcher_harness
-    assert await harness.feed(inline_update("lst only-choice")) is True
+    result = await harness.dispatcher.feed_raw_update(
+        harness.bot, inline_update("lst only-choice")
+    )
+    assert result is True
 
     assert len(harness.invocations) == 1
     harness.create_user.assert_awaited_once_with(
@@ -231,7 +236,7 @@ async def test_unmatched_updates_do_not_invoke_unrelated_handlers(
     dispatcher_harness: DispatcherHarness, update: dict[str, object]
 ) -> None:
     harness = dispatcher_harness
-    assert await harness.feed(update) is UNHANDLED
+    assert await harness.dispatcher.feed_raw_update(harness.bot, update) is UNHANDLED
     assert harness.invocations == []
     assert harness.session.calls == []
     harness.create_user.assert_not_awaited()

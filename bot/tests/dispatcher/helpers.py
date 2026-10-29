@@ -9,13 +9,12 @@ from unittest.mock import AsyncMock
 import pytest
 from aiogram import Bot, Dispatcher
 from aiogram.client.session.base import BaseSession
-from aiogram.dispatcher.middlewares.base import BaseMiddleware
 from aiogram.fsm.context import FSMContext
 from aiogram.methods import AnswerInlineQuery, DeleteMessage, SendDocument, SendMessage
 from aiogram.methods.base import TelegramMethod, TelegramType
-from aiogram.types import Chat, Message, TelegramObject
+from aiogram.types import Chat, Message
 
-from middlewares.data import MiddlewareData, MiddlewareHandler, UserData
+from middlewares.data import UserData
 
 USER_ID = 7001
 ADMIN_IDS = [9001, 9002]
@@ -66,37 +65,10 @@ class RecordingSession(BaseSession):
 
 @dataclass
 class Invocation:
-    callback: object
     state: FSMContext | None
     state_before: str | None
     user_data: UserData | None
     data_before: UserData | None
-
-
-class ObserveInvocation(BaseMiddleware):
-    def __init__(self, invocations: list[Invocation]) -> None:
-        self.invocations = invocations
-
-    async def __call__(  # type: ignore[override]  # pyright: ignore[reportIncompatibleMethodOverride]
-        self,
-        handler: MiddlewareHandler,
-        event: TelegramObject,
-        data: MiddlewareData,
-    ) -> Any:
-        selected_handler = data.get("handler")
-        assert selected_handler is not None
-        state = data.get("state")
-        user_data = data.get("data")
-        self.invocations.append(
-            Invocation(
-                callback=selected_handler.callback,
-                state=state,
-                state_before=await state.get_state() if state else None,
-                user_data=user_data,
-                data_before=user_data.copy() if user_data is not None else None,
-            )
-        )
-        return await handler(event, data)
 
 
 def raw_user(user_id: int = USER_ID) -> dict[str, Any]:
@@ -161,12 +133,9 @@ class DispatcherHarness:
     set_timezone: AsyncMock
     invocations: list[Invocation] = field(default_factory=list)
 
-    async def feed(self, update: dict[str, Any]) -> Any:
-        return await self.dispatcher.feed_raw_update(self.bot, update)
-
     async def message(self, text: str, *, user_id: int = USER_ID) -> Any:
-        return await self.feed(
-            {"update_id": 1, "message": raw_message(text, user_id=user_id)}
+        return await self.dispatcher.feed_raw_update(
+            self.bot, {"update_id": 1, "message": raw_message(text, user_id=user_id)}
         )
 
     def state(self, user_id: int = USER_ID) -> FSMContext:

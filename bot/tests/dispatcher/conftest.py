@@ -1,12 +1,14 @@
 import socket
 from collections.abc import AsyncIterator
 from datetime import timedelta
-from typing import NoReturn
+from typing import Any, NoReturn
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from aiogram import Bot, Dispatcher
+from aiogram.dispatcher.event.bases import NextMiddlewareType
 from aiogram.fsm.storage.memory import MemoryStorage
+from aiogram.types import TelegramObject
 
 from bot import handlers, middlewares, modules
 from bot.middlewares.user_data import UserDataMiddleware
@@ -15,7 +17,7 @@ from services.timezone import TimeZone
 from tests.dispatcher.helpers import (
     ADMIN_IDS,
     DispatcherHarness,
-    ObserveInvocation,
+    Invocation,
     RecordingSession,
 )
 
@@ -54,13 +56,32 @@ async def dispatcher_harness(
     harness = DispatcherHarness(
         dispatcher, bot, session, find_user, create_user, get_timezone, set_timezone
     )
-    observer = ObserveInvocation(harness.invocations)
+
+    invocations = harness.invocations
+
+    async def observe_invocation(
+        handler: NextMiddlewareType[TelegramObject],
+        event: TelegramObject,
+        data: dict[str, Any],
+    ) -> Any:
+        state = data.get("state")
+        user_data = data.get("data")
+        invocations.append(
+            Invocation(
+                state=state,
+                state_before=await state.get_state() if state else None,
+                user_data=user_data,
+                data_before=user_data.copy() if user_data is not None else None,
+            )
+        )
+        return await handler(event, data)
+
     for event in (
         dispatcher.message,
         dispatcher.callback_query,
         dispatcher.inline_query,
     ):
-        event.middleware(observer)
+        event.middleware(observe_invocation)
     try:
         yield harness
     finally:
