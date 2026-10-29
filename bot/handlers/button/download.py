@@ -4,7 +4,7 @@ from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from typing import Literal, TypedDict
 
-from aiogram.types import CallbackQuery, InaccessibleMessage, InputFile, Message
+from aiogram.types import CallbackQuery, InaccessibleMessage, InputFile
 
 from services.ytdlp import YtdlpDownloader
 from services.ytdlp._types import VideoFileInfo
@@ -60,9 +60,7 @@ async def download(
         status_message = await message.answer("Cкачиваю " + request.url)
 
     try:
-        if request.use_callback_message_as_status and isinstance(
-            status_message, Message
-        ):
+        if request.use_callback_message_as_status:
             await status_message.edit_text("Cкачиваю " + request.url)
 
         if request.media_type == "audio":
@@ -87,5 +85,4 @@ async def download(
                     **options,
                 )
     finally:
-        if isinstance(status_message, Message):
-            await status_message.delete()
+        await status_message.delete()
