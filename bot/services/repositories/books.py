@@ -1,49 +1,87 @@
 from typing import Any
 
+from sqlalchemy import delete, select, update
+
+from configs import db
 from models.books import Book
 
 
 class BooksRepository:
     @classmethod
+    async def get_or_create_book(
+        cls, name: str, author: str, chapters_cnt: int, user_id: int
+    ) -> tuple[Book, bool]:
+        async with db.SessionLocal() as session:
+            stmt = select(Book).where(
+                Book.name == name,
+                Book.author == author,
+                Book.chapters_cnt == chapters_cnt,
+                Book.user_id == user_id,
+            )
+            result = await session.execute(stmt)
+            book = result.scalars().first()
+            if book is not None:
+                return book, False
+            book = Book(
+                name=name, author=author, chapters_cnt=chapters_cnt, user_id=user_id
+            )
+            session.add(book)
+            await session.commit()
+            return book, True
+
+    @classmethod
     async def get_all_user_books(cls, user_id: int) -> list[Book]:
-        return await Book.filter(user_id=user_id).all()
+        async with db.SessionLocal() as session:
+            stmt = select(Book).where(Book.user_id == user_id)
+            result = await session.execute(stmt)
+            return list(result.scalars().all())
 
     @classmethod
     async def get_user_book_by_id(cls, book_id: int, user_id: int) -> Book:
-        book = await Book.filter(id=book_id, user_id=user_id).first()
-        if book is None:
-            raise ValueError(
-                f"Book with id={book_id} not found for user with id={user_id}"
-            )
-        return book
+        async with db.SessionLocal() as session:
+            stmt = select(Book).where(Book.id == book_id, Book.user_id == user_id)
+            result = await session.execute(stmt)
+            book = result.scalar_one_or_none()
+            if book is None:
+                raise ValueError(
+                    f"Book with id={book_id} not found for user with id={user_id}"
+                )
+            return book
 
-    @classmethod  # FIXME
+    @classmethod
     async def edit_book_property(
         cls, book_id: int, property_name: str, new_property_value: Any
-    ):
-        kwargs = {property_name: new_property_value}
-        await Book.filter(id=book_id).update(**kwargs)
+    ) -> None:
+        async with db.SessionLocal() as session:
+            stmt = (
+                update(Book)
+                .where(Book.id == book_id)
+                .values({property_name: new_property_value})
+            )
+            await session.execute(stmt)
+            await session.commit()
 
     @classmethod
     async def delete_book(cls, book: Book) -> None:
-        await Book.filter(id=book.id).delete()
+        async with db.SessionLocal() as session:
+            stmt = delete(Book).where(Book.id == book.id)
+            await session.execute(stmt)
+            await session.commit()
 
     @classmethod
     async def increment_book_current_chapter(cls, book: Book) -> Book:
         if book.current_chapter < book.chapters_cnt:
             book.current_chapter += 1
-            await cls.__update_book_current_chapter(book, book.current_chapter)
+            await cls.edit_book_property(
+                book.id, "current_chapter", book.current_chapter
+            )
         return book
 
     @classmethod
     async def decrement_book_current_chapter(cls, book: Book) -> Book:
         if book.current_chapter > 0:
             book.current_chapter -= 1
-            await cls.__update_book_current_chapter(book, book.current_chapter)
+            await cls.edit_book_property(
+                book.id, "current_chapter", book.current_chapter
+            )
         return book
-
-    @classmethod
-    async def __update_book_current_chapter(
-        cls, book: Book, current_chapter: int
-    ) -> None:
-        await Book.filter(id=book.id).update(current_chapter=current_chapter)

@@ -1,3 +1,4 @@
+from configs import db
 from models.road import PomodoroStats
 
 
@@ -6,7 +7,16 @@ class Pomodoro:
 
     @classmethod
     async def increment_today_stat(cls, user_id: int) -> int:
-        user, _ = await cls.__model.get_or_create(user_id=user_id)
-        cnt = user.today_cnt + 1
-        await cls.__model.filter(user_id=user.user_id).update(today_cnt=cnt)
-        return cnt
+        async with db.SessionLocal() as session:
+            user = await session.get(cls.__model, user_id)
+
+            if not user:
+                user = cls.__model(user_id=user_id, today_cnt=1, total_cnt=0)
+                session.add(user)
+                cnt = 1
+            else:
+                user.today_cnt += 1
+                cnt = user.today_cnt
+
+            await session.commit()
+            return cnt

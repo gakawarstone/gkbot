@@ -5,7 +5,8 @@ from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, ReplyKeyboardRemove
 
-from models.road import Habits  # FIXME
+from configs import db
+from models.road import Habits
 
 from ..states import FSM
 
@@ -32,7 +33,9 @@ async def get_habit_name(message: Message, state: FSMContext, data: dict):
     )
 
 
-async def get_habit_notify_time(message: Message, state: FSMContext, data: dict):
+async def get_habit_notify_time(
+    message: Message, state: FSMContext, data: dict
+) -> None:
     await state.set_state(FSM.finish)
 
     if message.text is None:
@@ -44,11 +47,15 @@ async def get_habit_notify_time(message: Message, state: FSMContext, data: dict)
     time = datetime.strptime(message.text, "%H:%M").time()
     data["habit_notify_time"] = time
 
-    await Habits.create(
-        user_id=message.from_user.id,
-        name=data["habit_name"],
-        notify_time=data["habit_notify_time"],
-    )
+    async with db.SessionLocal() as session:
+        session.add(
+            Habits(
+                user_id=message.from_user.id,
+                name=data["habit_name"],
+                notify_time=data["habit_notify_time"],
+            )
+        )
+        await session.commit()
     await message.answer("Привычка добавлена")
 
 

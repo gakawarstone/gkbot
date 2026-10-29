@@ -6,12 +6,15 @@ import pytest
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import Message
 
+from configs import db
 from middlewares.delete_queue import DeleteQueueMiddleware
 from middlewares.not_enough_rights import NotEnoughRightsMiddleware
 from middlewares.register_user import RegisterUserMiddleware
 from middlewares.timezone import TimeZoneMiddleware
 from middlewares.user_data import UserDataMiddleware
+from models.users import Users
 from services.timezone import UserDontHaveTimeZone
+from tests.mocks.db import use_db
 
 
 def make_event(user_id: int = 1) -> MagicMock:
@@ -22,8 +25,7 @@ def make_event(user_id: int = 1) -> MagicMock:
 
 
 def make_message_event(user_id: int = 1) -> MagicMock:
-    event = MagicMock()
-    event.__class__ = Message
+    event = MagicMock(spec=Message, from_user=MagicMock())
     event.from_user.id = user_id
     event.answer = AsyncMock()
     return event
@@ -36,38 +38,39 @@ def _clear_user_data() -> Any:
     UserDataMiddleware._UserDataMiddleware__data.clear()  # type: ignore[attr-defined]
 
 
+@use_db
 async def test_register_user_returns_downstream_result() -> None:
     middleware = RegisterUserMiddleware()
     handler = AsyncMock(return_value="ok")
     event = make_event()
+    async with db.SessionLocal() as session:
+        session.add(Users(user_id=1, user_name="Original User"))
+        await session.commit()
 
-    with (
-        patch("middlewares.register_user.Users.filter") as mock_filter,
-        patch("middlewares.register_user.Users.create") as mock_create,
-    ):
-        mock_filter.return_value.first = AsyncMock(return_value=MagicMock())
-        result = await middleware(handler, event, {})
+    result = await middleware(handler, event, {})
 
     assert result == "ok"
     handler.assert_awaited_once()
-    mock_create.assert_not_awaited()
+    async with db.SessionLocal() as session:
+        user = await session.get(Users, 1)
+        assert user is not None
+        assert user.user_name == "Original User"
 
 
+@use_db
 async def test_register_user_creates_missing_user_and_returns_result() -> None:
     middleware = RegisterUserMiddleware()
     handler = AsyncMock(return_value="ok")
     event = make_event()
 
-    with (
-        patch("middlewares.register_user.Users.filter") as mock_filter,
-        patch("middlewares.register_user.Users.create") as mock_create,
-    ):
-        mock_filter.return_value.first = AsyncMock(return_value=None)
-        mock_create.return_value = AsyncMock()
-        result = await middleware(handler, event, {})
+    result = await middleware(handler, event, {})
 
     assert result == "ok"
-    mock_create.assert_awaited_once()
+    handler.assert_awaited_once()
+    async with db.SessionLocal() as session:
+        user = await session.get(Users, 1)
+        assert user is not None
+        assert user.user_name == "Test User"
 
 
 async def test_user_data_returns_downstream_result() -> None:

@@ -1,9 +1,13 @@
 import asyncio
 import logging
 import pickle
+from collections.abc import Awaitable, Callable
 from datetime import datetime, timedelta, timezone
-from typing import Any, Awaitable, Callable, ClassVar
+from typing import Any, ClassVar
 
+from sqlalchemy import delete, select
+
+from configs import db
 from models.tasks import Task as _Model
 
 logger = logging.getLogger(__name__)
@@ -26,15 +30,23 @@ class Task:
 class TasksStorage:
     async def add(self, task: Task, time: datetime) -> None:
         callback_dump = pickle.dumps(task)
-        await _Model.create(callback=callback_dump, datetime=time)
+        async with db.SessionLocal() as session:
+            new_task = _Model(callback=callback_dump, datetime=time)
+            session.add(new_task)
+            await session.commit()
 
     async def get_all(self) -> list[tuple[Task, datetime, int]]:
-        return [
-            (pickle.loads(i.callback), i.datetime, i.id) for i in await _Model.all()
-        ]
+        async with db.SessionLocal() as session:
+            stmt = select(_Model)
+            result = await session.execute(stmt)
+            tasks = result.scalars().all()
+            return [(pickle.loads(i.callback), i.datetime, i.id) for i in tasks]
 
     async def remove_by_id(self, id: int) -> None:
-        [await i.delete() for i in await _Model.filter(id=id).all()]
+        async with db.SessionLocal() as session:
+            stmt = delete(_Model).where(_Model.id == id)
+            await session.execute(stmt)
+            await session.commit()
 
 
 class Schedule:
@@ -75,7 +87,7 @@ class Schedule:
             if time.timestamp() <= cls.__get_now_timestamp():
                 try:
                     await task.run()
-                except Exception:
+                except Exception:  # noqa: BLE001 - isolate failures in arbitrary task callbacks
                     if cls.__register_failure(id):
                         await cls.__tasks.remove_by_id(id)
                     continue
@@ -94,7 +106,10 @@ class Schedule:
             )
             return True
         logger.exception(
-            "Scheduled task %s failed, attempt %s/%s", id, attempts, cls.__max_task_attempts
+            "Scheduled task %s failed, attempt %s/%s",
+            id,
+            attempts,
+            cls.__max_task_attempts,
         )
         return False
 
