@@ -152,10 +152,7 @@ class FfmpegService:
             await cls._run_command(second_pass)
         finally:
             for suffix in ("-0.log", "-0.log.mbtree"):
-                try:
-                    os.remove(passlog_path + suffix)
-                except FileNotFoundError:
-                    pass
+                Path(passlog_path + suffix).unlink(missing_ok=True)
 
     @classmethod
     async def get_video_metadata(cls, input_path: str) -> dict[str, int]:

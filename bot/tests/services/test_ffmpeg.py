@@ -204,7 +204,6 @@ async def test_size_limited_encoding_calculates_two_pass_bitrate() -> None:
         patch.object(
             FfmpegService, "_run_command", new_callable=AsyncMock
         ) as run_command,
-        patch("services.ffmpeg.os.remove"),
     ):
         await FfmpegService._compress_video_to_size(
             "input.mp4", "output.mp4", max_size_bytes=15 * 1024 * 1024, max_width=720
