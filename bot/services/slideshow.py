@@ -25,7 +25,6 @@ class SlideshowRenderer:
     __make_slideshow_options: ClassVar[list[str]] = [
         "-c:v",
         "libx264",
-        "-shortest",
         "-vf",
         f"scale={SLIDESHOW_WIDTH}:{SLIDESHOW_HEIGHT}",
         "-r",
@@ -102,11 +101,7 @@ class SlideshowRenderer:
         command += ["-pattern_type", "glob", "-i", images_input]
 
         if audio_input:
-            command += ["-stream_loop", "-1", "-i", audio_input]
-            command += cls.__make_slideshow_options
-        else:
-            opts = cls.__make_slideshow_options.copy()
-            opts.remove("-shortest")
-            command += opts
+            command += ["-stream_loop", "-1", "-i", audio_input, "-shortest"]
+        command += cls.__make_slideshow_options
 
         return FfmpegRunner.build_command(inputs=[], output=output_path, props=command)
