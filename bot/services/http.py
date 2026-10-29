@@ -41,15 +41,6 @@ class HttpService:
     _session: ClassVar[aiohttp.ClientSession | None] = None
 
     @classmethod
-    def _get_session(cls) -> aiohttp.ClientSession:
-        # No await between checking and creating: concurrent requests share it.
-        if cls._session is None or cls._session.closed:
-            cls._session = aiohttp.ClientSession(
-                timeout=cls.timeout, cookie_jar=aiohttp.DummyCookieJar()
-            )
-        return cls._session
-
-    @classmethod
     async def close(cls) -> None:
         """Release the application session after all request users have stopped."""
         if cls._session is not None:
@@ -74,7 +65,11 @@ class HttpService:
         except ValueError as error:
             raise HttpRequestError(f"Invalid request URL: {error}") from error
         try:
-            async with cls._get_session().request(
+            if cls._session is None or cls._session.closed:
+                cls._session = aiohttp.ClientSession(
+                    timeout=cls.timeout, cookie_jar=aiohttp.DummyCookieJar()
+                )
+            async with cls._session.request(
                 method, request_url, headers=headers, **kwargs
             ) as response:
                 response.raise_for_status()
