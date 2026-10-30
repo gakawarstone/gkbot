@@ -20,4 +20,5 @@ class BotConfig:
     parse_mode: str
     admins: list[int]
     api_url: str = "https://api.telegram.org"
-    polling_tasks_concurrency_limit: int = 10
+    # Callbacks must reach their delete handler even while downloads are busy.
+    polling_tasks_concurrency_limit: int | None = None
