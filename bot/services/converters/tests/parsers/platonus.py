@@ -6,7 +6,6 @@ class PlatonusParser:
     __choice_tag = "<variant>"
     __tags = (__question_tag, __choice_tag)
 
-    # FIXME: if end ofl line is not empty last question isn't append
     @classmethod
     def parse_lines(cls, lines: list[str]) -> list[Question]:
         questions = []
@@ -33,7 +32,7 @@ class PlatonusParser:
         return Question(title, choices)
 
     @classmethod
-    def _validate_question_buffer(cls, question_buffer) -> bool:
+    def _validate_question_buffer(cls, question_buffer: list[str]) -> bool:
         if not question_buffer[0].strip().startswith(cls.__question_tag):
             return False
 
@@ -53,5 +52,4 @@ class PlatonusParser:
         for tag in tags:
             if line.startswith(tag):
                 return line.split(tag)[1]
-        else:
-            return line
+        return line

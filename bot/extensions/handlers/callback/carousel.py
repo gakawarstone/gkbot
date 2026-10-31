@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Any, Type
+from typing import Any
 
 from aiogram.types import InputMediaPhoto, Message
 
@@ -9,7 +9,7 @@ from .base import BaseHandler
 
 
 class CarouselWidgetEventHandlerExtension[T: BaseCarouselMarkup](BaseHandler):
-    _markup: Type[T]
+    _markup: type[T]
 
     async def _parse_callback(self) -> tuple[str, int, str]:
         if not self.event.data:
@@ -49,21 +49,19 @@ class CarouselWidgetEventHandlerExtension[T: BaseCarouselMarkup](BaseHandler):
         media: InputMediaPhoto,
         media_len: int,
         media_current_num: int,
-    ):
+    ) -> None:
         if not self.event.message:
             raise ValueError("No message to edit")
 
         if not isinstance(self.event.message, Message):
-            raise ValueError("Callback message is not of type Message")
+            raise TypeError("Callback message is not of type Message")
 
         message = self.event.message
         await message.edit_media(media)
         # await message.edit_caption(caption=f'<a href="{item.link}">Link</a>')
-        # Get the get_item_markup method from the concrete implementation
-        get_item_markup = getattr(self._markup, "get_item_markup")
         await message.edit_reply_markup(
-            reply_markup=get_item_markup(
-                int(data),  # FIXME: str instead of int
+            reply_markup=self._markup.get_item_markup(
+                data,
                 media_len,
                 media_current_num,
             )
