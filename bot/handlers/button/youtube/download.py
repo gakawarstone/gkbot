@@ -1,8 +1,16 @@
 from aiogram import F, Router
-from aiogram.types import CallbackQuery, InaccessibleMessage, Message, URLInputFile
+from aiogram.types import CallbackQuery, URLInputFile
 
+from handlers.button.download import (
+    DownloadRequest,
+    VideoOptions,
+    get_media_type,
+)
+from handlers.button.download import (
+    download as download_media,
+)
 from services.youtube import YoutubeApiService
-from services.ytdlp import YtdlpDownloader
+from services.ytdlp._types import VideoFileInfo
 from ui.buttons.youtube.download import (
     PREFIX,
     YoutubeDownloadButtonCallbackDataDeserializer,
@@ -12,68 +20,39 @@ from ui.buttons.youtube.download import (
 from utils.strings import remove_emoji
 
 
-def _get_video_url(yt_video_code: str) -> str:
-    return "https://www.youtube.com/watch?v=" + yt_video_code
-
-
-def _is_button_callback(
-    callback: CallbackQuery, button_data: YoutubeDownloadButtonData
-) -> bool:
-    if callback.data is None:
-        return False
-
-    return callback.data.startswith(
-        YoutubeDownloadButtonDataSerializer.get_full_prefix(button_data)
+async def _prepare_request(callback_data: str) -> DownloadRequest:
+    data = YoutubeDownloadButtonCallbackDataDeserializer.deserialize(callback_data)
+    return DownloadRequest(
+        url="https://www.youtube.com/watch?v=" + data.yt_video_code,
+        use_callback_message_as_status=data.use_callback_message_as_status,
+        media_type=get_media_type(
+            callback_data,
+            video_prefix=YoutubeDownloadButtonDataSerializer.get_full_prefix(
+                YoutubeDownloadButtonData.video
+            ),
+            audio_prefix=YoutubeDownloadButtonDataSerializer.get_full_prefix(
+                YoutubeDownloadButtonData.audio
+            ),
+        ),
     )
 
 
-async def download(callback: CallbackQuery):
-    if callback.message is None or isinstance(callback.message, InaccessibleMessage):
-        return
-
-    deserializer = YoutubeDownloadButtonCallbackDataDeserializer()
-    if callback.data is None:
-        return
-
-    data = deserializer.deserialize(callback.data)
-    url = _get_video_url(data.yt_video_code)
-
-    if not data.use_callback_message_as_status:
-        status_message = await callback.message.answer("Cкачиваю " + url)
-    else:
-        status_message = callback.message
-        if isinstance(status_message, Message):
-            await status_message.edit_text("Cкачиваю " + url)
-
-    if _is_button_callback(callback, YoutubeDownloadButtonData.audio):
-        async with YtdlpDownloader.download_audio(url) as audio:
-            await callback.message.answer_audio(
-                audio=audio.input_file,
-                title=audio.title,
-                performer="GKBOT",
-                duration=audio.duration,
-            )
-
-    if _is_button_callback(callback, YoutubeDownloadButtonData.video):
-        async with YtdlpDownloader.download_video(url) as video:
-            data = await YoutubeApiService.get_video_data(url)
-
-            channel_title = remove_emoji(data.channel_title)
-            caption = f'<b>{video.title}</b>\n\n<a href="{url}">{channel_title}</a>'
-
-            await callback.message.answer_video(
-                video.input_file,
-                height=video.height,
-                width=video.width,
-                duration=video.duration,
-                supports_streaming=True,
-                caption=caption,
-                thumbnail=URLInputFile(data.thumbnail_url),
-            )
-
-    if isinstance(status_message, Message):
-        await status_message.delete()
+async def _video_options(url: str, video: VideoFileInfo) -> VideoOptions:
+    data = await YoutubeApiService.get_video_data(url)
+    channel_title = remove_emoji(data.channel_title)
+    return {
+        "caption": f'<b>{video.title}</b>\n\n<a href="{url}">{channel_title}</a>',
+        "thumbnail": URLInputFile(data.thumbnail_url),
+    }
 
 
-def setup(r: Router):
+async def download(callback: CallbackQuery) -> None:
+    await download_media(
+        callback,
+        prepare_request=_prepare_request,
+        video_options=_video_options,
+    )
+
+
+def setup(r: Router) -> None:
     r.callback_query.register(download, F.data.startswith(PREFIX))
