@@ -2,8 +2,6 @@ from core.commands import Commands as _Commands
 
 
 class _UserCommands(_Commands):
-    add_tasks = "add_tasks"
-    trash = "trash"
     start = "start"
     bomber = "bomber"
     add_remind = "add_remind"
@@ -12,7 +10,6 @@ class _UserCommands(_Commands):
     sub = "sub"
     list = "list"
     road = "road"
-    get_trash = "get_trash"
     books = "books"
     start_timer = "start_timer"
     platonus2indigo = "platonus2indigo"
