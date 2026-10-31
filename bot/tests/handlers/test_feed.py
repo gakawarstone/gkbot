@@ -1,4 +1,5 @@
-from typing import Callable, override
+from collections.abc import Callable
+from typing import ClassVar, override
 from unittest.mock import patch
 
 import pytest
@@ -6,6 +7,7 @@ import pytest
 from modules.feed import ShowFeedItemsHandler
 from services.gkfeed import (
     FeedItem,
+    FeedItemSummary,
     GkfeedCredentials,
     GkfeedItemsPicker,
 )
@@ -16,7 +18,7 @@ from . import Bot, Event
 
 class MockedGkfeedItemsPicker(GkfeedItemsPicker):
     # TODO: use Event(text=link) and get_next_item this link
-    LINKS = [
+    LINKS: ClassVar[list[str]] = [
         "https://trashbox.ru/link/2025-03-10-iphone-17-air-iphone-17-pro",
         "https://www.youtube.com/watch?v=5WMmPoHbQOo",
         "https://ranobe.me/ranobe24/6117",
@@ -28,7 +30,7 @@ class MockedGkfeedItemsPicker(GkfeedItemsPicker):
 
     @override
     async def get_next_item(
-        self, is_item_valid: Callable[[FeedItem], bool] = lambda _: True
+        self, is_item_valid: Callable[[FeedItemSummary], bool] = lambda _: True
     ) -> FeedItem | None:  # type: ignore[override]
         while self._index < len(self.LINKS):
             i = self._index
@@ -40,7 +42,9 @@ class MockedGkfeedItemsPicker(GkfeedItemsPicker):
                 link=self.LINKS[i],
                 text="",
             )
-            if is_item_valid(item):
+            if is_item_valid(
+                FeedItemSummary(item.id, item.feed_id, item.link, item.title, "")
+            ):
                 return item
 
         return None
