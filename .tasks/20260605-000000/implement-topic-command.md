@@ -3,6 +3,12 @@
 - STATUS: OPEN
 - PRIORITY: 2
 
+## Proposal
+
+See [private AI topics](../../docs/private-ai-topics.md) for behavior, integration
+boundaries, and pending checks. Runtime awaits explicit owner context-design
+approval; the task remains OPEN.
+
 ## Problem
 
 Telegram private topics could isolate several AI conversations for one user. The current FSM and middleware data are keyed by user, so adding `/topic` without thread-aware storage would mix conversation state between topics.
