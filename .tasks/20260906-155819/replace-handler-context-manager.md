@@ -3,6 +3,14 @@
 - STATUS: OPEN
 - PRIORITY: 2
 
+## Progress
+
+The [replacement design proposal](../../docs/handler-context-replacement.md)
+inventories all six production contexts and their consumers, compares the four
+approaches, and defines the recommended explicit-key API, runtime validation,
+migration, session risks, and test plan. Owner approval is pending. Production
+code is unchanged; keep this task open until the decision is recorded.
+
 ## Problem
 
 The handler context manager derives field names through `varname` stack inspection and validates values with exact runtime type identity. Parameterized types such as `list[str]` fail and require raw-type workarounds.
