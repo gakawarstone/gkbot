@@ -7,18 +7,18 @@ from ui.buttons.vk import (
     VKDownloadButtonCallbackDataSerializer,
     VKDownloadButtonData,
 )
-from utils.vk import get_vk_id
+from utils.vk import parse_vk_reference
 
 from .... import integration_test
 
 
 @integration_test
 @pytest.mark.asyncio(loop_scope="session")
-async def test_download_audio():
+async def test_download_audio() -> None:
     url = "https://vk.com/video-50883936_456244451"
-    vk_id = get_vk_id(url)
+    reference = parse_vk_reference(url)
     callback_data = VKDownloadButtonCallbackDataSerializer.serialize(
         VKDownloadButtonData.audio,
-        VKDownloadButtonCallbackData(vk_id=vk_id),
+        VKDownloadButtonCallbackData(reference=reference),
     )
     await download(CallbackEvent(callback_data))  # type:ignore

@@ -7,20 +7,21 @@ from ui.buttons.vk import (
     VKDownloadButtonCallbackData,
     VKDownloadButtonData,
 )
+from utils.vk import VKReference
 
 
 class VkMarkup:
     @staticmethod
-    def get_download_dialog(vk_id: str) -> InlineKeyboardMarkup:
+    def get_download_dialog(reference: VKReference) -> InlineKeyboardMarkup:
         builder = InlineKeyboardBuilder()
         builder.row(
             VKDownloadButtonBuilder.build(
                 button_data=VKDownloadButtonData.audio,
-                callback_data=VKDownloadButtonCallbackData(vk_id, True),
+                callback_data=VKDownloadButtonCallbackData(reference, True),
             ),
             VKDownloadButtonBuilder.build(
                 button_data=VKDownloadButtonData.video,
-                callback_data=VKDownloadButtonCallbackData(vk_id, True),
+                callback_data=VKDownloadButtonCallbackData(reference, True),
             ),
             deleteMessageButton,
         )

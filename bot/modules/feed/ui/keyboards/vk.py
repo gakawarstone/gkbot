@@ -1,3 +1,4 @@
+from aiogram.types import InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from ui.buttons.vk import (
@@ -5,7 +6,7 @@ from ui.buttons.vk import (
     VKDownloadButtonCallbackData,
     VKDownloadButtonData,
 )
-from utils.vk import get_vk_id
+from utils.vk import parse_vk_reference
 
 from . import BaseFeedMarkup, FeedMarkupButtons, FeedMarkupData
 
@@ -15,18 +16,18 @@ class VKFeedVideoItemMarkup(BaseFeedMarkup):
     data = FeedMarkupData
 
     @classmethod
-    def get_item_markup(cls, item_id: int, url: str):
-        vk_id = get_vk_id(url)
+    def get_item_markup(cls, item_id: int, url: str) -> InlineKeyboardMarkup:
+        reference = parse_vk_reference(url)
         return InlineKeyboardBuilder(
             [
                 [
                     VKDownloadButtonBuilder.build(
                         VKDownloadButtonData.audio,
-                        VKDownloadButtonCallbackData(vk_id),
+                        VKDownloadButtonCallbackData(reference),
                     ),
                     VKDownloadButtonBuilder.build(
                         VKDownloadButtonData.video,
-                        VKDownloadButtonCallbackData(vk_id),
+                        VKDownloadButtonCallbackData(reference),
                     ),
                 ],
                 cls._get_feed_buttons_row(item_id),

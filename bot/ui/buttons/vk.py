@@ -3,6 +3,8 @@ from enum import Enum
 
 from aiogram.types import InlineKeyboardButton
 
+from utils.vk import VKReference, parse_vk_reference
+
 PREFIX = "vkbtn"
 
 
@@ -32,7 +34,7 @@ class VKDownloadButtonData(Enum):
 
 @dataclass
 class VKDownloadButtonCallbackData:
-    vk_id: str
+    reference: VKReference
     use_callback_message_as_status: bool = False
 
 
@@ -54,7 +56,7 @@ class VKDownloadButtonCallbackDataSerializer:
         base = VKDownloadButtonDataSerializer.get_full_prefix(button_data)
         return base + (
             f"{callback_data.use_callback_message_as_status}:"
-            f"{callback_data.vk_id}"
+            f"{callback_data.reference.value}"
         )
 
 
@@ -62,11 +64,9 @@ class VKDownloadButtonCallbackDataDeserializer:
     @staticmethod
     def deserialize(callback_data: str) -> VKDownloadButtonCallbackData:
         _, _, raw_status, raw_vk_id = callback_data.split(":", 3)
-        vk_id = raw_vk_id
+        reference = parse_vk_reference(raw_vk_id)
         use_callback_message_as_status = raw_status != "False"
-        return VKDownloadButtonCallbackData(
-            vk_id, use_callback_message_as_status
-        )
+        return VKDownloadButtonCallbackData(reference, use_callback_message_as_status)
 
 
 class VKDownloadButtonBuilder:
