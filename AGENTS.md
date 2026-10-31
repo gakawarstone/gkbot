@@ -35,6 +35,10 @@ To run tests on a specific file:
 make test FILE=tests/test_file.py
 ```
 
+Do not write tests for reversible, low-impact changes or tests that only repeat
+the implementation. When tests are needed, verify meaningful behavior, including
+regressions where appropriate.
+
 To format code:
 
 ```bash
