@@ -1,27 +1,29 @@
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any, ClassVar, cast
 
 from extensions.handlers.context_manager import BaseContext, BaseContextManager
+from middlewares.data import UserData
 from tests.mocks.message import fake_event
 
 
 @dataclass
 class FakeContext(BaseContext):
-    str_data: Optional[str] = None
-    integer: Optional[int] = None
-    any: Optional[Any] = None
+    str_data: str | None = None
+    integer: int | None = None
+    any: Any | None = None
 
 
 class FakeContextManager(BaseContextManager[FakeContext]):
     props = FakeContext
-    __user_data: dict[str, Any] = {}
+    __user_data: ClassVar[dict[str, Any]] = {}
 
     async def handle(self) -> Any:
         pass
 
     @property
-    def user_data(self) -> dict:
-        return self.__user_data
+    def user_data(self) -> UserData:
+        # Synthetic dataclass fields exercise the legacy dynamic context boundary.
+        return cast(UserData, self.__user_data)
 
 
 def test_get_prop():
