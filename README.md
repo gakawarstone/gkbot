@@ -51,6 +51,10 @@ docker compose up --build
 For the local Telegram server version, compatibility checks, and rollout order,
 see [Bot API compatibility](services/bot-api/README.md).
 
+The [Telegram Stars evaluation](docs/decisions/telegram-stars-monetization.md)
+recommends keeping the bot free for now and records the requirements for a
+future payment proposal.
+
 **Configuration**
 Required:
 - `BOT_TOKEN`
