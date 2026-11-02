@@ -1,18 +1,10 @@
-from collections.abc import Sequence
-
 from aiogram import Bot
 from aiogram.client.session.middlewares.base import (
     BaseRequestMiddleware,
     NextRequestMiddlewareType,
 )
 from aiogram.exceptions import TelegramBadRequest
-from aiogram.methods import (
-    AnswerInlineQuery,
-    AnswerWebAppQuery,
-    Response,
-    SavePreparedInlineMessage,
-    TelegramMethod,
-)
+from aiogram.methods import Response, TelegramMethod
 from aiogram.methods.base import TelegramType
 from aiogram.types import InlineKeyboardMarkup
 
@@ -24,19 +16,8 @@ class CallbackDataMiddleware(BaseRequestMiddleware):
         bot: Bot,
         method: TelegramMethod[TelegramType],
     ) -> Response[TelegramType]:
-        sources: Sequence[object]
-        candidate: object = method
-        if isinstance(candidate, AnswerInlineQuery):
-            sources = candidate.results
-        elif isinstance(candidate, (AnswerWebAppQuery, SavePreparedInlineMessage)):
-            sources = [candidate.result]
-        else:
-            sources = [method]
-
-        for source in sources:
-            markup = getattr(source, "reply_markup", None)
-            if not isinstance(markup, InlineKeyboardMarkup):
-                continue
+        markup = getattr(method, "reply_markup", None)
+        if isinstance(markup, InlineKeyboardMarkup):
             for row in markup.inline_keyboard:
                 for button in row:
                     if button.callback_data is None:
