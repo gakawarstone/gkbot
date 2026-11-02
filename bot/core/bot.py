@@ -10,6 +10,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 import handlers
 import middlewares
 import modules
+from middlewares.callback_data import CallbackDataMiddleware
 
 from .default_commands import DefaultCommands
 from .notifier import Notifier
@@ -30,6 +31,7 @@ class BotStarter:
         session = AiohttpSession(  # NOTE timeout
             api=TelegramAPIServer.from_base(config.api_url), timeout=300.0
         )
+        session.middleware.register(CallbackDataMiddleware())
         self.bot = Bot(
             token=config.token,
             default=DefaultBotProperties(parse_mode=config.parse_mode),

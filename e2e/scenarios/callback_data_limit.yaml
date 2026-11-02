@@ -1,0 +1,29 @@
+name: Callback data limit uses UTF-8 bytes
+timeout: 20
+steps:
+  - send:
+      text: /start_timer
+  - expect:
+      method: sendMessage
+      text: Введите название таймера
+  - send:
+      text: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+  - expect:
+      method: sendMessage
+      text: Таймер aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa запущен
+      callback_data: stop_timer:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+  - click:
+      callback_data: stop_timer:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+  - expect:
+      method: editMessageText
+      text_contains: Таймер aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa остановлен
+  - send:
+      text: /start_timer
+  - expect:
+      method: sendMessage
+      text: Введите название таймера
+  - send:
+      text: яяяяяяяяяяяяяяяяяяяяяяяяяяя
+  - expect:
+      method: sendDocument
+      text_contains: callback_data must be 1–64 bytes (got 65)
