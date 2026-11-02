@@ -22,7 +22,7 @@ def _is_button_callback(
     )
 
 
-async def download(callback: CallbackQuery) -> None:
+async def download(callback: CallbackQuery):
     if callback.message is None or isinstance(callback.message, InaccessibleMessage):
         raise ValueError("Callback message is inaccessible or None")
 
@@ -31,7 +31,7 @@ async def download(callback: CallbackQuery) -> None:
         raise ValueError("Callback data cannot be None")
 
     data = deserializer.deserialize(callback.data)
-    url = reconstruct_vk_url(data.vk_id or callback.message.text or "")
+    url = reconstruct_vk_url(data.vk_id)
 
     if not data.use_callback_message_as_status:
         status_message = await callback.message.answer("Cкачиваю " + url)
@@ -63,5 +63,5 @@ async def download(callback: CallbackQuery) -> None:
         await status_message.delete()
 
 
-def setup(r: Router) -> None:
+def setup(r: Router):
     r.callback_query.register(download, F.data.startswith(PREFIX))

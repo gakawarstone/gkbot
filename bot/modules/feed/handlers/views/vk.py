@@ -100,5 +100,5 @@ class VKFeedItemView(BaseFeedItemView):
         oid_part = content.split("oid=")[-1].split("&")[0]
         id_part = content.split("id=")[-1].split("&")[0]
 
-        video_id = f"video{oid_part}_{id_part}"
-        return VKFeedVideoItemMarkup.get_item_markup(item.id, video_id)
+        video_link = f"https://vk.com/video{oid_part}_{id_part}"
+        return VKFeedVideoItemMarkup.get_item_markup(item.id, video_link)

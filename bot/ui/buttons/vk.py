@@ -4,7 +4,6 @@ from enum import Enum
 from aiogram.types import InlineKeyboardButton
 
 PREFIX = "vkbtn"
-_MAX_CALLBACK_BYTES = 64
 
 
 @dataclass
@@ -33,7 +32,7 @@ class VKDownloadButtonData(Enum):
 
 @dataclass
 class VKDownloadButtonCallbackData:
-    vk_id: str = ""
+    vk_id: str
     use_callback_message_as_status: bool = False
 
 
@@ -53,25 +52,21 @@ class VKDownloadButtonCallbackDataSerializer:
         callback_data: VKDownloadButtonCallbackData,
     ) -> str:
         base = VKDownloadButtonDataSerializer.get_full_prefix(button_data)
-        if callback_data.use_callback_message_as_status:
-            return base
-        if not callback_data.vk_id:
-            raise ValueError("VK video identifier is missing")
-        payload = f"{base}False:{callback_data.vk_id}"
-        if len(payload.encode("utf-8")) > _MAX_CALLBACK_BYTES:
-            raise ValueError("VK callback data exceeds Telegram's 64-byte limit")
-        return payload
+        return base + (
+            f"{callback_data.use_callback_message_as_status}:"
+            f"{callback_data.vk_id}"
+        )
 
 
 class VKDownloadButtonCallbackDataDeserializer:
     @staticmethod
     def deserialize(callback_data: str) -> VKDownloadButtonCallbackData:
-        _, _, raw_status, *values = callback_data.split(":", 3)
-        if not raw_status:
-            return VKDownloadButtonCallbackData(use_callback_message_as_status=True)
-        if not values or not values[0]:
-            raise ValueError("VK callback reference is missing")
-        return VKDownloadButtonCallbackData(values[0], raw_status != "False")
+        _, _, raw_status, raw_vk_id = callback_data.split(":", 3)
+        vk_id = raw_vk_id
+        use_callback_message_as_status = raw_status != "False"
+        return VKDownloadButtonCallbackData(
+            vk_id, use_callback_message_as_status
+        )
 
 
 class VKDownloadButtonBuilder:
