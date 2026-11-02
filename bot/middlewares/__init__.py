@@ -1,6 +1,5 @@
-from aiogram import Bot, Dispatcher
+from aiogram import Dispatcher
 
-from .callback_data import CallbackDataMiddleware
 from .delete_queue import DeleteQueueMiddleware
 from .not_enough_rights import NotEnoughRightsMiddleware
 from .register_user import RegisterUserMiddleware
@@ -8,9 +7,7 @@ from .timezone import TimeZoneMiddleware
 from .user_data import UserDataMiddleware
 
 
-def setup(dp: Dispatcher, bot: Bot) -> None:
-    bot.session.middleware(CallbackDataMiddleware())
-
+def setup(dp: Dispatcher):
     dp.message.middleware(RegisterUserMiddleware())
     dp.message.middleware(UserDataMiddleware())
     dp.message.middleware(TimeZoneMiddleware())
