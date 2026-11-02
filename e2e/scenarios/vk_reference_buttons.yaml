@@ -19,3 +19,14 @@ steps:
       method: sendMessage
       text: https://vk.cc/video-123_456
       callback_data: vkbtn:dlmp4:True:https://vk.cc/video-123_456
+  - send:
+      text: https://vk.cc/abc?ref=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+  - expect:
+      method: sendMessage
+      text: https://vk.cc/abc?ref=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+      callback_data: vkbtn:dlmp4:True:~
+  - click:
+      callback_data: vkbtn:dlmp4:True:~
+  - expect:
+      method: editMessageText
+      text: Cкачиваю https://vk.cc/abc?ref=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa

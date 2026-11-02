@@ -29,7 +29,7 @@ async def download(callback: CallbackQuery) -> None:
     if callback.data is None:
         raise ValueError("Callback data cannot be None")
 
-    data = deserializer.deserialize(callback.data)
+    data = deserializer.deserialize(callback.data, callback.message.text)
     url = data.reference.download_url
 
     if not data.use_callback_message_as_status:
