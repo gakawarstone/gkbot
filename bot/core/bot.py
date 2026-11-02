@@ -10,7 +10,6 @@ from aiogram.fsm.storage.memory import MemoryStorage
 import handlers
 import middlewares
 import modules
-from middlewares.callback_data import CallbackDataMiddleware
 
 from .default_commands import DefaultCommands
 from .notifier import Notifier
@@ -31,7 +30,6 @@ class BotStarter:
         session = AiohttpSession(  # NOTE timeout
             api=TelegramAPIServer.from_base(config.api_url), timeout=300.0
         )
-        session.middleware.register(CallbackDataMiddleware())
         self.bot = Bot(
             token=config.token,
             default=DefaultBotProperties(parse_mode=config.parse_mode),
@@ -43,12 +41,12 @@ class BotStarter:
         self.polling_tasks_concurrency_limit = config.polling_tasks_concurrency_limit
 
     async def __on_startup(self) -> None:
+        middlewares.setup(self.dp, self.bot)
         await Notifier.setup(self.bot)
         await DefaultCommands(self.default_commands).set(self.bot)
 
         await run_startup_hooks(self.startup_hooks)
 
-        middlewares.setup(self.dp)
         handlers.setup(self.dp)
         modules.setup(self.dp)
         await self.dp.start_polling(
