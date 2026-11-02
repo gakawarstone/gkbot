@@ -6,7 +6,6 @@ from ui.buttons.vk import (
     VKDownloadButtonCallbackData,
     VKDownloadButtonData,
 )
-from utils.vk import parse_vk_reference
 
 from . import BaseFeedMarkup, FeedMarkupButtons, FeedMarkupData
 
@@ -16,18 +15,17 @@ class VKFeedVideoItemMarkup(BaseFeedMarkup):
     data = FeedMarkupData
 
     @classmethod
-    def get_item_markup(cls, item_id: int, url: str) -> InlineKeyboardMarkup:
-        reference = parse_vk_reference(url)
+    def get_item_markup(cls, item_id: int, video_id: str) -> InlineKeyboardMarkup:
         return InlineKeyboardBuilder(
             [
                 [
                     VKDownloadButtonBuilder.build(
                         VKDownloadButtonData.audio,
-                        VKDownloadButtonCallbackData(reference),
+                        VKDownloadButtonCallbackData(video_id),
                     ),
                     VKDownloadButtonBuilder.build(
                         VKDownloadButtonData.video,
-                        VKDownloadButtonCallbackData(reference),
+                        VKDownloadButtonCallbackData(video_id),
                     ),
                 ],
                 cls._get_feed_buttons_row(item_id),

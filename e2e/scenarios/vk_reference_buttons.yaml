@@ -1,4 +1,4 @@
-name: VK links keep their reference in download buttons
+name: VK download buttons use the message link
 timeout: 30
 steps:
   - send:
@@ -6,27 +6,32 @@ steps:
   - expect:
       method: sendMessage
       text: https://vk.com/wall-123_456
-      callback_data: vkbtn:dlmp4:True:wall-123_456
-  - send:
-      text: https://vkvideo.ru/video-123_456
-  - expect:
-      method: sendMessage
-      text: https://vkvideo.ru/video-123_456
-      callback_data: vkbtn:dlmp4:True:video-123_456
-  - send:
-      text: https://vk.cc/video-123_456
-  - expect:
-      method: sendMessage
-      text: https://vk.cc/video-123_456
-      callback_data: vkbtn:dlmp4:True:https://vk.cc/video-123_456
-  - send:
-      text: https://vk.cc/abc?ref=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-  - expect:
-      method: sendMessage
-      text: https://vk.cc/abc?ref=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-      callback_data: vkbtn:dlmp4:True:~
+      callback_data: "vkbtn:dlmp4:"
   - click:
-      callback_data: vkbtn:dlmp4:True:~
+      callback_data: "vkbtn:dlmp4:"
+  - expect:
+      method: editMessageText
+      text: Cкачиваю https://vk.com/wall-123_456
+  - send:
+      text: https://vkvideo.ru/video-123_456
+  - expect:
+      method: sendMessage
+      text: https://vkvideo.ru/video-123_456
+      callback_data: "vkbtn:dlmp4:"
+  - send:
+      text: https://vk.cc/video-123_456
+  - expect:
+      method: sendMessage
+      text: https://vk.cc/video-123_456
+      callback_data: "vkbtn:dlmp4:"
+  - send:
+      text: https://vk.cc/abc?ref=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+  - expect:
+      method: sendMessage
+      text: https://vk.cc/abc?ref=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+      callback_data: "vkbtn:dlmp4:"
+  - click:
+      callback_data: "vkbtn:dlmp4:"
   - expect:
       method: editMessageText
       text: Cкачиваю https://vk.cc/abc?ref=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa

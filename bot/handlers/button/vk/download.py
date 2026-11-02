@@ -8,6 +8,7 @@ from ui.buttons.vk import (
     VKDownloadButtonData,
     VKDownloadButtonDataSerializer,
 )
+from utils.vk import reconstruct_vk_url
 
 
 def _is_button_callback(
@@ -29,8 +30,8 @@ async def download(callback: CallbackQuery) -> None:
     if callback.data is None:
         raise ValueError("Callback data cannot be None")
 
-    data = deserializer.deserialize(callback.data, callback.message.text)
-    url = data.reference.download_url
+    data = deserializer.deserialize(callback.data)
+    url = reconstruct_vk_url(data.vk_id or callback.message.text or "")
 
     if not data.use_callback_message_as_status:
         status_message = await callback.message.answer("Cкачиваю " + url)
