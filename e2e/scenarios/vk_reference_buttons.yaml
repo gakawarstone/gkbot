@@ -1,0 +1,21 @@
+name: VK links keep their reference in download buttons
+timeout: 30
+steps:
+  - send:
+      text: https://vk.com/wall-123_456
+  - expect:
+      method: sendMessage
+      text: https://vk.com/wall-123_456
+      callback_data: vkbtn:dlmp4:True:wall-123_456
+  - send:
+      text: https://vkvideo.ru/video-123_456
+  - expect:
+      method: sendMessage
+      text: https://vkvideo.ru/video-123_456
+      callback_data: vkbtn:dlmp4:True:video-123_456
+  - send:
+      text: https://vk.cc/video-123_456
+  - expect:
+      method: sendMessage
+      text: https://vk.cc/video-123_456
+      callback_data: vkbtn:dlmp4:True:https://vk.cc/video-123_456
