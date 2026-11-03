@@ -12,4 +12,4 @@ class InitAddBookHandler(BaseHandler):
         await self.event.delete()
         self.clean_context()
         text = BookCreatorComponent().render()
-        self.set(self.keys.message, (await self.event.answer(text)))
+        self.set(self.props.message, (await self.event.answer(text)))
