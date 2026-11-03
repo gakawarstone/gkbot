@@ -1,9 +1,9 @@
 # Private AI topics
 
-Proposal only. `/topic` is not enabled and the task remains OPEN. Runtime
-integration is blocked on explicit owner approval of context-design
-[PR #29](https://github.com/gakawarstone/gkbot/pull/29); its documentation is not
-an implemented runtime dependency. This review does not grant that approval.
+Proposal only. `/topic` is not enabled and the task remains OPEN. Context
+[PR #29](https://github.com/gakawarstone/gkbot/pull/29) now contains the runtime
+implementation requested by the owner. Integration awaits an agreed common base
+for the published prerequisites, so this PR does not duplicate their diffs.
 
 ## User behavior
 
@@ -87,16 +87,18 @@ traceback delivery remains separate from the user-facing error.
 - Retention [PR #37](https://github.com/gakawarstone/gkbot/pull/37), reviewed head
   `b4a1a4684e257dca6fed98fb6813c49d6c046de3`, already integrates typing
   [#40](https://github.com/gakawarstone/gkbot/pull/40). Use the whole head rather
-  than `dd6264c` alone. `acquire(key)` needs a matching
+  than `dd6264c` alone. Its remote head is now `9f69188576040379e807c7217ea4c2bb450f2685`;
+  agree the updated commit set before integration. `acquire(key)` needs a matching
   `release(key, entry, session_active=final_status)` in `finally`. Keep the
   published TTL/capacity/cleanup and typed handler contracts; do not repeat them.
 - Context design [#29](https://github.com/gakawarstone/gkbot/pull/29), reviewed
-  head `7baef250f81a6b4a335e4aa7ac52009777a714af`, proposes explicit field keys
-  while retaining typed `ctx` and the mutable mapping. The simplified validation
-  policy and identity guarantees remain subject to owner approval. Do not
-  implement the replacement or treat its documentation commit as runtime code.
+  runtime head `fd8edc398313d17ab5f85447396bfb2cba17ac32`, implements explicit
+  `set("field", value)` and `clean_context(*preserve)` while retaining dataclass
+  `ctx`, injected mutable `user_data`, existing keys and object identity. Current
+  types and `list[str]` elements are checked; `varname` is removed. The manager
+  still does not choose session identity. Reuse this implementation.
 
-After the required decision, integrate published commit sets in this worktree
+After agreeing the integration base, integrate published commit sets in this worktree
 with a PR base excluding prerequisite diff. Do not duplicate their implementations
 or merge their PRs automatically.
 

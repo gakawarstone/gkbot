@@ -6,8 +6,8 @@
 ## Proposal
 
 See [private AI topics](../../docs/private-ai-topics.md) for behavior, integration
-boundaries, and pending checks. Runtime awaits explicit owner context-design
-approval; the task remains OPEN.
+boundaries, and pending checks. Context runtime is published; integration awaits
+a common prerequisite base. The task remains OPEN.
 
 ## Problem
 
