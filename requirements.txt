@@ -50,8 +50,6 @@ docx2txt==0.9
     # via gkbot
 edge-tts==7.2.7
     # via gkbot
-executing==2.2.1
-    # via varname
 frozenlist==1.8.0
     # via
     #   aiohttp
@@ -136,8 +134,6 @@ typing-inspection==0.4.2
 urllib3==2.6.3
     # via requests
 uvloop==0.22.1
-    # via gkbot
-varname==0.13.0
     # via gkbot
 wikipedia==1.4.0
     # via gkbot

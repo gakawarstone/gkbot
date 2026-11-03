@@ -1,7 +1,7 @@
 # Proposal to replace handler context field lookup
 
-Status: proposed, awaiting explicit task-owner approval before runtime work.
-This documentation PR does not record that approval.
+Status: implementation requested by the owner on 2026-11-03. The design below
+records the proposal used for the implementation in this PR.
 
 Audited on 2026-10-23 at `dfdecceb2e97824e924538bf7720c2547a7156a7`, using
 Python 3.13.11 and the locked aiogram 3.26.0 installation.
@@ -196,7 +196,7 @@ repository-wide import/base-class and call-site inventory.
    is per-user; Dispatcher defaults to `FSMStrategy.USER_IN_CHAT`. Those are
    separate storage/isolation decisions.
 
-## Runtime validation policy to approve
+## Runtime validation policy
 
 Support the annotations actually needed by these schemas: nullable concrete
 classes, `Any`, and `list[str] | None`. Accept both `Optional[T]` and `T | None`
@@ -225,7 +225,7 @@ registry, compiled rules, or custom exception class is needed.
   Direct middleware writes and in-place list mutation bypass `set`; validate
   them on the next `ctx` read. This matches the existing mutable mapping contract.
 
-## Migration and session compatibility
+## Migration and session compatibility (original plan)
 
 After owner approval, make one runtime change in the existing manager package:
 
@@ -252,10 +252,10 @@ adapter is proposed.
 The shared flat `"message"` key and per-user scope remain existing limitations.
 Private-topics work owns mapping isolation by `bot/chat/user/message_thread_id`
 and draft/status/error routing. Its mapping should enter through `user_data`;
-this manager does not determine session identity. This proposal is not an
-implemented runtime prerequisite for that work.
+this manager does not determine session identity. The implementation uses the existing mapping contract; private-topic isolation
+remains separate work.
 
-## Required checks for the runtime PR
+## Checks proposed for the runtime PR
 
 - Preserve the seven existing manager tests with explicit keys and fresh mappings.
   Replace the `make_prop` test with variable/wrapper key tests. Check unknown
@@ -308,6 +308,4 @@ these official references:
 
 ## Owner decision
 
-Approve the explicit-key dataclass view, current-type validation plus `list[str]`,
-and preservation of the storage boundary, or choose an alternative above.
-The task stays open until the decision is recorded. Runtime remains unchanged.
+On 2026-11-03 the owner requested implementation of this proposal in the PR.

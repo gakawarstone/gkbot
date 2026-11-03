@@ -11,7 +11,6 @@ dependencies = [
     "youtube-search",
     "tortoise-orm==0.21.6",
     "docx2txt",
-    "varname==0.13.0",
     "yt-dlp==2026.3.17",
     "gallery-dl>=1.30.10",
     "edge-tts",
