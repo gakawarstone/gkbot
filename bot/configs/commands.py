@@ -23,6 +23,7 @@ class _UserCommands(_Commands):
     sort_sources = "sort_sources"
     cvision = "cvision"
     chat = "chat"
+    topic = "topic"
     login_feed = "login_feed"
     exit = "exit"
 

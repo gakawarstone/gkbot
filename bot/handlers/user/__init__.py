@@ -18,6 +18,7 @@ from . import (
     tasks,
     timer,
     timezone,
+    topic,
     tts,
     wiki,
 )
@@ -25,6 +26,7 @@ from . import (
 
 def setup(r: Router):
     # Register first so active FSM handlers cannot consume /exit as regular input.
+    topic.setup(r)
     exit.setup(r)
     tts.setup(r)
     tasks.setup(r)

@@ -3,6 +3,7 @@ DEFAULT_COMMANDS = {
     "feed": "read gkfeed",
     "list": "list of possible bot commands",
     "chat": "start AI chat",
+    "topic": "create a private AI topic",
     "exit": "exit current mode",
     "road": "road to the dream",
     "bomber": "use it for call someone",

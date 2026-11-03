@@ -17,7 +17,11 @@ class TikTokVideoHandler(BaseHandler):
 
         link = self._tiktok_link
         status_message = await self.event.answer(f"Скачиваю {link}")
-        await self.bot.send_chat_action(self.event.chat.id, "upload_video")
+        await self.bot.send_chat_action(
+            self.event.chat.id,
+            "upload_video",
+            message_thread_id=self.event.message_thread_id,
+        )
 
         try:
             await self._send_tiktok_video(link)

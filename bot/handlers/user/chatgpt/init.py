@@ -21,11 +21,13 @@ class InitHandler(BaseHandler):
             """
         )
 
-        await self.event.answer(
+        response = self.event.answer(
             "AI-чат включён. Все следующие сообщения будут отправлены модели. "
             "Чтобы выйти, нажми кнопку ниже или отправь /exit.",
             reply_markup=ChatMarkup.menu,
         )
+        response.message_thread_id = self.event.message_thread_id
+        await response
         await self.state.set_state(FSM.get_message)
 
     @override
