@@ -22,7 +22,7 @@ class DateInputHandler(BaseHandler, OneTimeMessageHandlerExtension):
                 raise InvalidDateInput
 
             _date = self._validate_input(text)
-            self.set(self.props.date, _date)
+            self.set("date", _date)
             await self.render_widget()
 
             self._set_one_time_message((await self.event.answer("Введите время")))

@@ -1,66 +1,85 @@
 from collections.abc import MutableMapping
-from typing import Any, cast
+from dataclasses import fields
+from types import UnionType
+from typing import Any, Union, cast, get_args, get_origin, get_type_hints
 
 from ..base import BaseHandler as _BaseHandler
-from ._types import BaseContext, Property
-from ._utils import get_hint, make_args_names_list, make_prop
+from ._types import BaseContext
 
 
 class BaseContextManager[T: BaseContext](_BaseHandler):
     props: type[T]
 
+    def _schema(self) -> dict[str, Any]:
+        hints = get_type_hints(self.props)
+        schema = {field.name: hints[field.name] for field in fields(self.props)}
+        for name, hint in schema.items():
+            origin = get_origin(hint)
+            if origin in (Union, UnionType):
+                args = get_args(hint)
+                if len(args) != 2 or type(None) not in args:
+                    raise TypeError(
+                        f"Unsupported annotation for {self.props.__name__}.{name}"
+                    )
+                hint = next(arg for arg in args if arg is not type(None))
+            if (
+                hint is Any
+                or hint == list[str]
+                or (isinstance(hint, type) and hint not in (list, dict, tuple, set))
+            ):
+                continue
+            raise TypeError(f"Unsupported annotation for {self.props.__name__}.{name}")
+        return schema
+
+    def _validate(self, name: str, hint: Any, value: Any) -> None:
+        origin = get_origin(hint)
+        nullable = origin in (Union, UnionType) and type(None) in get_args(hint)
+        if nullable:
+            hint = next(arg for arg in get_args(hint) if arg is not type(None))
+        if hint is Any or (value is None and nullable):
+            return
+        if hint == list[str]:
+            if type(value) is list:
+                for index, item in enumerate(value):
+                    if type(item) is not str:
+                        raise ValueError(
+                            f"{self.props.__name__}.{name}[{index}]: expected str, got {type(item).__name__}"
+                        )
+                return
+            expected = "list[str]"
+        else:
+            if type(value) is hint:
+                return
+            expected = hint.__name__
+        raise ValueError(
+            f"{self.props.__name__}.{name}: expected {expected}, got {type(value).__name__}"
+        )
+
     @property
     def ctx(self) -> T:
-        props_name_list: list[str] = [
-            prop_name for prop_name in dir(self.props) if not prop_name.startswith("__")
-        ]
-
-        context_args = {}
-        for prop_name in props_name_list:
-            prop = Property(prop_name, get_hint(self.props, prop_name))
-            context_args[prop_name] = self._try_get_prop(prop)
-
-        return self.props(**context_args)
+        schema = self._schema()
+        values = {name: self.user_data.get(name) for name in schema}
+        for name, value in values.items():
+            self._validate(name, schema[name], value)
+        return self.props(**values)
 
     @property
     def _context_values(self) -> MutableMapping[str, Any]:
-        # The legacy context manager validates dynamic dataclass fields at runtime.
-        # Keep its writes separate from statically checked middleware keys.
+        # Schema-validated dynamic keys cross the typed UserData boundary here.
         return cast(MutableMapping[str, Any], self.user_data)
 
-    def set(self, prop: Any, value: Any) -> None:
-        """Example: self.ctx.set(self.props.string, str())"""
-        prop = make_prop(prop, self.props)
+    def set(self, prop: str, value: Any) -> None:
+        schema = self._schema()
+        if prop not in schema:
+            raise KeyError(prop)
+        self._validate(prop, schema[prop], value)
+        self._context_values[prop] = value
 
-        if type(value) is not prop.type and prop.type is not Any:
-            raise ValueError
-
-        self._context_values[prop.name] = value
-
-    def clean_context(self, *args: Any) -> None:
-        """
-        Example: self.clean_context(self.props.string)
-        where self.props.string not cleaning
-        """
-        for prop_name in dir(self.props):
-            if prop_name.startswith("__"):
-                continue
-
-            exclude = make_args_names_list(*args)
-            if prop_name in exclude:
-                continue
-
-            prop = Property(prop_name, get_hint(self.props, prop_name))
-
-            self._reset_prop(prop)
-
-    def _reset_prop(self, prop: Property) -> None:
-        self._context_values[prop.name] = None
-
-    def _try_get_prop(self, prop: Property) -> Any | None:
-        value = self._try_get_from_user_data(prop.name)
-
-        if value is not None and type(value) is not prop.type and prop.type is not Any:
-            raise ValueError
-
-        return value
+    def clean_context(self, *preserve: str) -> None:
+        schema = self._schema()
+        for name in preserve:
+            if name not in schema:
+                raise KeyError(name)
+        for name in schema:
+            if name not in preserve:
+                self._context_values[name] = None
