@@ -17,7 +17,11 @@ class InstagramPostDownloadHandler(BaseHandler):
             return None
 
         status_message = await self.event.answer(f"Скачиваю {text}")
-        await self.bot.send_chat_action(self.event.chat.id, "upload_photo")
+        await self.bot.send_chat_action(
+            self.event.chat.id,
+            "upload_photo",
+            message_thread_id=self.event.message_thread_id,
+        )
         try:
             photos = await InstagramService.get_photos_album(text)
             await self._send_photos(photos)

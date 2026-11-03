@@ -19,7 +19,11 @@ class YtdlpShortVideoHandler(BaseHandler):
             raise ValueError("No user information available in the message.")
 
         status_message = await self.event.answer("Скачиваю " + self.event.text)
-        await self.bot.send_chat_action(self.event.chat.id, "upload_video")
+        await self.bot.send_chat_action(
+            self.event.chat.id,
+            "upload_video",
+            message_thread_id=self.event.message_thread_id,
+        )
         async with YtdlpDownloader.download_video(self.event.text) as video:
             caption = f"<b>{self.event.from_user.username}</b> {self.event.text}"
             await self.event.answer_video(

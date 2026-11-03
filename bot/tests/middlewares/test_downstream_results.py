@@ -3,6 +3,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from aiogram.exceptions import TelegramBadRequest
+from aiogram.fsm.context import FSMContext
+from aiogram.fsm.storage.base import StorageKey
+from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.types import Message
 
 from middlewares.data import MiddlewareData, require_user_data
@@ -66,7 +69,8 @@ async def test_user_data_returns_downstream_result() -> None:
     middleware = UserDataMiddleware()
     handler = AsyncMock(return_value="ok")
 
-    result = await middleware(handler, make_event(7), {})
+    state = FSMContext(MemoryStorage(), StorageKey(bot_id=1, chat_id=7, user_id=7))
+    result = await middleware(handler, make_event(7), {"state": state})
 
     assert result == "ok"
     handler.assert_awaited_once()

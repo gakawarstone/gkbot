@@ -1,10 +1,12 @@
+import logging
 import traceback
 from datetime import datetime
 from typing import Any, cast
 
 from aiogram import Router
+from aiogram.exceptions import TelegramAPIError
 from aiogram.handlers import ErrorHandler as _BaseHandler
-from aiogram.types import BufferedInputFile
+from aiogram.types import BufferedInputFile, Message
 from aiogram.types.error_event import ErrorEvent
 
 
@@ -14,6 +16,23 @@ class ErrorHandler(_BaseHandler):
         self._admins = admins
 
     async def handle(self) -> Any:
+        update = self._error_event.update
+        message = update.message
+        if message is None and update.callback_query is not None:
+            candidate = update.callback_query.message
+            if isinstance(candidate, Message):
+                message = candidate
+        if message is not None and message.message_thread_id is not None:
+            try:
+                response = message.answer(
+                    "Не удалось обработать сообщение. Попробуй ещё раз."
+                )
+                response.message_thread_id = message.message_thread_id
+                await response
+            except TelegramAPIError:
+                logging.getLogger(__name__).warning(
+                    "Cannot deliver error response in source topic"
+                )
         for admin in self._admins:
             await self.bot.send_document(
                 chat_id=admin, document=self._traceback_file, caption=self._caption

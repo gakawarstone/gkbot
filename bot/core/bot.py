@@ -6,6 +6,7 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.client.session.aiohttp import AiohttpSession
 from aiogram.client.telegram import TelegramAPIServer
 from aiogram.fsm.storage.memory import MemoryStorage
+from aiogram.fsm.strategy import FSMStrategy
 
 import handlers
 import middlewares
@@ -24,8 +25,6 @@ async def run_startup_hooks(hooks: Iterable[StartupHook]) -> None:
 
 
 class BotStarter:
-    __storage = MemoryStorage()
-
     def __init__(self, config: BotConfig):
         session = AiohttpSession(  # NOTE timeout
             api=TelegramAPIServer.from_base(config.api_url), timeout=300.0
@@ -35,7 +34,11 @@ class BotStarter:
             default=DefaultBotProperties(parse_mode=config.parse_mode),
             session=session,
         )
-        self.dp = Dispatcher(storage=self.__storage, admins=config.admins)
+        self.dp = Dispatcher(
+            storage=MemoryStorage(),
+            fsm_strategy=FSMStrategy.USER_IN_TOPIC,
+            admins=config.admins,
+        )
         self.default_commands = config.default_commands
         self.startup_hooks = config.startup_hooks
         self.polling_tasks_concurrency_limit = config.polling_tasks_concurrency_limit

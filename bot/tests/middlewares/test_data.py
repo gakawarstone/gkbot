@@ -36,11 +36,13 @@ async def test_user_context_is_shared_between_messages_and_callbacks() -> None:
             await data["state"].set_state("FSM:waiting")
 
     message = MagicMock(spec=Message, from_user=MagicMock(id=7))
-    callback = MagicMock(spec=CallbackQuery, from_user=MagicMock(id=7))
+    callback = MagicMock(spec=CallbackQuery, from_user=MagicMock(id=7), message=message)
     other_user = MagicMock(spec=Message, from_user=MagicMock(id=8))
     message_data: MiddlewareData = {"state": state}
     callback_data: MiddlewareData = {"state": state}
-    other_data: MiddlewareData = {}
+    other_data: MiddlewareData = {
+        "state": FSMContext(MemoryStorage(), StorageKey(bot_id=1, chat_id=1, user_id=8))
+    }
 
     await middleware(keep_session, message, message_data)
     user_data = require_user_data(message_data)

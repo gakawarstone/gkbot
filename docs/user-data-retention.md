@@ -1,8 +1,8 @@
 # Middleware user data retention
 
 `UserDataMiddleware` injects a mutable `UserData` dictionary as `data["data"]`.
-One dispatcher-owned `UserDataStore` serves messages and callbacks, currently
-keyed by Telegram user ID across chats. Each new dictionary contains
+One dispatcher-owned `UserDataStore` serves messages and callbacks, keyed by the
+resolved `FSMContext.key` for bot/chat/user/topic isolation. Each new dictionary contains
 `delete_queue: []`. Separate dispatchers have separate stores.
 
 The [middleware inventory](middleware-data.md#user-cache-inventory) lists the
@@ -58,5 +58,5 @@ A new entry with a nonterminal FSM needs the reset described above.
 `cleanup(key)` reports whether an entry existed and defers removal while pinned.
 `clear()` applies cleanup to all entries and cancels timers; middleware `close()`
 runs it at dispatcher shutdown. `expire()` also permits an explicit idle sweep.
-Keys accept `Hashable` objects. Any future chat/topic keys must consume slots in
-this same bounded store rather than a separate unbounded mapping.
+Keys accept `Hashable` objects. Every chat/topic session consumes a slot in this
+same bounded store, with no separate unbounded topic mapping.

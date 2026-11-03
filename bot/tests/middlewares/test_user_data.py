@@ -49,6 +49,8 @@ def make_event(
     event = MagicMock(spec=event_type)
     event.from_user = MagicMock(id=user_id)
     event.answer = AsyncMock()
+    if event_type is CallbackQuery:
+        event.message = MagicMock(spec=Message)
     return event
 
 
@@ -206,7 +208,7 @@ async def test_callback_after_cleanup_resets_stale_fsm_before_handler(
         await state.set_state("FSM:get_message")
 
     await middleware(start, make_event(), {"state": state})
-    store.cleanup(1)
+    store.cleanup(state.key)
     await state.set_data({"draft": "stale"})
     event = make_event(event_type=CallbackQuery)
     handler = AsyncMock()
@@ -306,7 +308,7 @@ async def test_failed_fsm_lookup_still_releases_pin(
         nonlocal handler_finished
         handler_finished = True
 
-    state = MagicMock(spec=FSMContext)
+    state = MagicMock(spec=FSMContext, key=StorageKey(bot_id=1, chat_id=1, user_id=1))
     state.get_state = AsyncMock(side_effect=get_state)
 
     with pytest.raises(OSError, match="storage unavailable"):
