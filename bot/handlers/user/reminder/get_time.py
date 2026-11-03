@@ -4,6 +4,7 @@ from typing import Any
 from extensions.handlers.message.one_time_extension import (
     OneTimeMessageHandlerExtension,
 )
+
 from ._base import BaseHandler
 from ._exceptions import InvalidTimeInput
 from ._states import FSM
@@ -19,7 +20,7 @@ class TimeInputHandler(BaseHandler, OneTimeMessageHandlerExtension):
                 raise InvalidTimeInput
 
             _time = self._validate_time(self.event.text)
-            self.set(self.props.time, _time)
+            self.set("time", _time)
             await CreateRemindHandler(self.event, data=self.user_data).handle()
         except InvalidTimeInput:
             await self.state.set_state(FSM.get_time)

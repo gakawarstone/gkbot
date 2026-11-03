@@ -5,8 +5,9 @@ from extensions.handlers.message.file_extension import (
     NoFileException,
 )
 from extensions.handlers.message.text_document import send_text_document
-from services.docx import DocxReader
 from services.converters.tests.platonus2indigo import Platonus2Indigo
+from services.docx import DocxReader
+
 from ._states import FSM
 
 

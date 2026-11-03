@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 
 from services.http import HttpService
+
 from ..types import InfoVideoTikTok
 
 

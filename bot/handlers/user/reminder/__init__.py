@@ -2,11 +2,12 @@ from aiogram import Router
 from aiogram.filters import Command, StateFilter
 
 from configs.commands import USER_COMMANDS
+
 from ._states import FSM
-from .start import InitHandler
-from .get_text import TextInputHandler
 from .get_date import DateInputHandler
+from .get_text import TextInputHandler
 from .get_time import TimeInputHandler
+from .start import InitHandler
 
 
 def setup(r: Router):

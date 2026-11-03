@@ -1,6 +1,7 @@
-from notion_client import AsyncClient
-from typing import Optional
 from datetime import datetime
+from typing import Optional
+
+from notion_client import AsyncClient
 
 from configs.env import NOTION_API_TOKEN
 

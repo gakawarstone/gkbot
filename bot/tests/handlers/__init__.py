@@ -1,6 +1,7 @@
 from typing import Optional
 
 from configs.admins import ADMINS
+
 from .. import INTEGRATION_TEST
 
 BREAKPOINTS_ON_DELETE = 1
@@ -8,10 +9,11 @@ BREAKPOINTS_ON_DELETE = 1
 
 if INTEGRATION_TEST:
     from aiogram import Bot as _AiogramBot
+    from aiogram.client.default import DefaultBotProperties
     from aiogram.client.session.aiohttp import AiohttpSession
     from aiogram.client.telegram import TelegramAPIServer
-    from aiogram.client.default import DefaultBotProperties
-    from configs.env import BOT_TOKEN, API_SERVER_URL
+
+    from configs.env import API_SERVER_URL, BOT_TOKEN
 
     # Ensure BOT_TOKEN and API_SERVER_URL are not None for integration tests
     if BOT_TOKEN is None:

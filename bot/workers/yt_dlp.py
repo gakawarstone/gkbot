@@ -1,6 +1,6 @@
-from typing import Any, Sequence
 import asyncio
 import json
+from typing import Any, Sequence
 
 from configs.env import BROKER_URL
 from services.http import HttpService

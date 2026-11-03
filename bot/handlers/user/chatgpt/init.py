@@ -1,6 +1,7 @@
 from typing import Any, override
 
 from ui.keyboards.chat import ChatMarkup
+
 from ._base import BaseHandler
 from ._states import FSM
 
@@ -28,6 +29,6 @@ class InitHandler(BaseHandler):
         await self.state.set_state(FSM.get_message)
 
     @override
-    def clean_context(self, *args):
+    def clean_context(self, *args: str) -> None:
         super().clean_context(*args)
-        self.set(self.props.messages, [])
+        self.set("messages", [])

@@ -4,10 +4,11 @@ from typing import Any
 from extensions.handlers.message.one_time_extension import (
     OneTimeMessageHandlerExtension,
 )
+from ui.keyboards.reminder import RemindMarkup
+
 from ._base import BaseHandler
 from ._exceptions import InvalidDateInput
 from ._states import FSM
-from ui.keyboards.reminder import RemindMarkup
 
 
 class DateInputHandler(BaseHandler, OneTimeMessageHandlerExtension):
@@ -21,7 +22,7 @@ class DateInputHandler(BaseHandler, OneTimeMessageHandlerExtension):
                 raise InvalidDateInput
 
             _date = self._validate_input(text)
-            self.set(self.props.date, _date)
+            self.set("date", _date)
             await self.render_widget()
 
             self._set_one_time_message((await self.event.answer("Введите время")))

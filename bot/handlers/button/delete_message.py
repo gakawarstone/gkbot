@@ -1,5 +1,5 @@
+from aiogram import F, Router
 from aiogram.types import CallbackQuery, Message
-from aiogram import Router, F
 
 from ui.buttons.delete_message import deleteMessageButtonPrefix
 

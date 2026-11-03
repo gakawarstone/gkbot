@@ -1,14 +1,14 @@
 from datetime import datetime
 
 from aiogram import Router
-from aiogram.fsm.state import State, StatesGroup
+from aiogram.filters import Command
 from aiogram.filters.state import StateFilter
 from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import Message
-from aiogram.filters import Command
 
-from services.notion_api import Database
 from configs.commands import USER_COMMANDS
+from services.notion_api import Database
 
 tasks = Database("67f38400c29f4137ac285fe6569567e2")
 

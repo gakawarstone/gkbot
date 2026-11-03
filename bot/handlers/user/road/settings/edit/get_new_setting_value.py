@@ -3,6 +3,7 @@ from datetime import time
 from typing import Any
 
 from services.repositories.road_settings import RoadSettingsRepository
+
 from ...states import FSM
 from .._context import RoadSettingsContextManager
 
@@ -20,7 +21,7 @@ class GetNewSettingValueHandler(RoadSettingsContextManager):
             raise ValueError("event.text is None")
 
         value = self._validate_time(self.event.text)
-        self.set(self.props.setting_new_value, value)
+        self.set("setting_new_value", value)
 
         user_id = self.event.from_user.id
         setting_name = self.ctx.setting_name

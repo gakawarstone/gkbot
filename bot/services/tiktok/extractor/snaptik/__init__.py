@@ -1,9 +1,10 @@
-from re import findall
 from ast import literal_eval
+from re import findall
 
 from services.http import HttpService
-from ...types import InfoVideoTikTok
+
 from ...exceptions import TikTokInvalidUrl
+from ...types import InfoVideoTikTok
 from .._base import BaseExtractor
 from ..exceptions import SourceInfoExtractFailed
 from ._decoder import decoder

@@ -13,9 +13,9 @@ class EditHandler(EditBookPropertyContextManager, BaseHandler):
 
         event, book = callback_data
 
-        self.set(self.props.book_id, book.id)
-        self.set(self.props.property_name, event)
+        self.set("book_id", book.id)
+        self.set("property_name", event)
 
         await InitEditBookPropertyHandler(
-            self.event.message, state=self.state, data=self.data["data"]
+            self.event.message, state=self.state, data=self.user_data
         ).handle()

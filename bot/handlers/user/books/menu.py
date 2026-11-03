@@ -1,12 +1,14 @@
 from aiogram import Router
-from aiogram.filters import Command, StateFilter, or_f, and_f
+from aiogram.filters import Command, StateFilter, and_f, or_f
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, ReplyKeyboardRemove
 
-from ui.static import Images
-from filters.not_command import NotCommandFilter
-from ui.keyboards.books import MenuMarkup
 from configs.commands import USER_COMMANDS
+from filters.not_command import NotCommandFilter
+from middlewares.data import UserData
+from ui.keyboards.books import MenuMarkup
+from ui.static import Images
+
 from .messages import delete, show
 from .messages.add.start import InitAddBookHandler
 from .messages.edit_property.choose_book import choose_book
@@ -22,7 +24,9 @@ async def show_menu(message: Message, state: FSMContext):
     await state.set_state(FSM.check_menu_command)
 
 
-async def check_menu_command(message: Message, state: FSMContext, data: dict):
+async def check_menu_command(
+    message: Message, state: FSMContext, data: UserData
+) -> None:
     match message.text:
         case MenuMarkup.buttons.add_new_book:
             await InitAddBookHandler(message, state=state, data=data)

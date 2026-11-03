@@ -1,8 +1,7 @@
 from dataclasses import dataclass
-from typing import Optional, Any
+from typing import Any, Optional
 
-
-from extensions.handlers.context_manager import BaseContextManager, BaseContext
+from extensions.handlers.context_manager import BaseContext, BaseContextManager
 
 
 @dataclass

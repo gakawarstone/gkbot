@@ -1,8 +1,9 @@
 from typing import Any
 
 from extensions.handlers.callback.base import BaseHandler
-from ._context import RoadSettingsContextManager
+
 from ..states import FSM
+from ._context import RoadSettingsContextManager
 
 
 class EditSettingsHandler(BaseHandler, RoadSettingsContextManager):
@@ -13,7 +14,7 @@ class EditSettingsHandler(BaseHandler, RoadSettingsContextManager):
 
         setting_name = self._parse_callback()
         self.clean_context()
-        self.set(self.props.setting_name, setting_name)
+        self.set("setting_name", setting_name)
 
         await self.event.message.answer(f"Введите новое значение для {setting_name}")
         await self.state.set_state(FSM.get_new_setting_value)

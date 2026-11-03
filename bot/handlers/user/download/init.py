@@ -3,6 +3,7 @@ from typing import Any
 from extensions.handlers.message.one_time_extension import (
     OneTimeMessageHandlerExtension,
 )
+
 from ._base import BaseHandler
 from ._states import FSM
 
