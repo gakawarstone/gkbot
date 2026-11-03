@@ -1,28 +1,20 @@
-from dataclasses import fields
-from enum import StrEnum
-from types import UnionType
-from typing import Any, Union, get_args, get_origin, get_type_hints
+from typing import Any
 
 from ..base import BaseHandler as _BaseHandler
-from ._types import BaseContext
+from ._types import BaseContext, ContextField
 
 
-class BaseContextManager[T: BaseContext, K: StrEnum](_BaseHandler):
+class BaseContextManager[T: BaseContext](_BaseHandler):
     props: type[T]
-    keys: type[K]
 
-    def _schema(self) -> dict[str, Any]:
-        hints = get_type_hints(self.props)
-        schema = {field.name: hints[field.name] for field in fields(self.props)}
-        for name, hint in schema.items():
-            origin = get_origin(hint)
-            if origin in (Union, UnionType):
-                args = get_args(hint)
-                if len(args) != 2 or type(None) not in args:
-                    raise TypeError(
-                        f"Unsupported annotation for {self.props.__name__}.{name}"
-                    )
-                hint = next(arg for arg in args if arg is not type(None))
+    def _schema(self) -> dict[str, ContextField[Any]]:
+        schema: dict[str, ContextField[Any]] = {}
+        for cls in reversed(self.props.__mro__):
+            for name, value in vars(cls).items():
+                if isinstance(value, ContextField):
+                    schema[name] = value
+        for name, field in schema.items():
+            hint = field.value_type
             if (
                 hint is Any
                 or hint == list[str]
@@ -32,19 +24,16 @@ class BaseContextManager[T: BaseContext, K: StrEnum](_BaseHandler):
             raise TypeError(f"Unsupported annotation for {self.props.__name__}.{name}")
         return schema
 
-    def _validate(self, name: str, hint: Any, value: Any) -> None:
-        origin = get_origin(hint)
-        nullable = origin in (Union, UnionType) and type(None) in get_args(hint)
-        if nullable:
-            hint = next(arg for arg in get_args(hint) if arg is not type(None))
-        if hint is Any or (value is None and nullable):
+    def _validate(self, field: ContextField[Any], value: Any) -> None:
+        hint = field.value_type
+        if hint is Any or value is None:
             return
         if hint == list[str]:
             if type(value) is list:
                 for index, item in enumerate(value):
                     if type(item) is not str:
                         raise ValueError(
-                            f"{self.props.__name__}.{name}[{index}]: expected str, got {type(item).__name__}"
+                            f"{self.props.__name__}.{field.name}[{index}]: expected str, got {type(item).__name__}"
                         )
                 return
             expected = "list[str]"
@@ -53,7 +42,7 @@ class BaseContextManager[T: BaseContext, K: StrEnum](_BaseHandler):
                 return
             expected = hint.__name__
         raise ValueError(
-            f"{self.props.__name__}.{name}: expected {expected}, got {type(value).__name__}"
+            f"{self.props.__name__}.{field.name}: expected {expected}, got {type(value).__name__}"
         )
 
     @property
@@ -61,23 +50,25 @@ class BaseContextManager[T: BaseContext, K: StrEnum](_BaseHandler):
         schema = self._schema()
         values = {name: self.user_data.get(name) for name in schema}
         for name, value in values.items():
-            self._validate(name, schema[name], value)
+            self._validate(schema[name], value)
         return self.props(**values)
 
-    def set(self, prop: K, value: Any) -> None:
-        if not isinstance(prop, self.keys):
-            raise KeyError(prop)
+    def set[V](self, prop: ContextField[V], value: V | None) -> None:
         schema = self._schema()
-        if prop not in schema:
+        if not isinstance(prop, ContextField) or schema.get(prop.name) is not prop:
             raise KeyError(prop)
-        self._validate(prop, schema[prop], value)
-        self.user_data[prop.value] = value
+        self._validate(prop, value)
+        self.user_data[prop.name] = value
 
-    def clean_context(self, *preserve: K) -> None:
+    def clean_context(self, *preserve: ContextField[Any]) -> None:
         schema = self._schema()
-        for key in preserve:
-            if not isinstance(key, self.keys) or key not in schema:
-                raise KeyError(key)
+        for field in preserve:
+            if (
+                not isinstance(field, ContextField)
+                or schema.get(field.name) is not field
+            ):
+                raise KeyError(field)
+        preserved = {field.name for field in preserve}
         for name in schema:
-            if name not in preserve:
+            if name not in preserved:
                 self.user_data[name] = None

@@ -13,8 +13,8 @@ class EditHandler(EditBookPropertyContextManager, BaseHandler):
 
         event, book = callback_data
 
-        self.set(self.keys.book_id, book.id)
-        self.set(self.keys.property_name, event)
+        self.set(self.props.book_id, book.id)
+        self.set(self.props.property_name, event)
 
         await InitEditBookPropertyHandler(
             self.event.message, state=self.state, data=self.data["data"]
