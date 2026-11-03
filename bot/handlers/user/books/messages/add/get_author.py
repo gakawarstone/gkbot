@@ -8,5 +8,5 @@ class GetAuthorHandler(BaseHandler):
     async def handle(self) -> Any:
         await self.state.set_state(FSM.get_chapters_cnt)
         await self.event.delete()
-        self.set("author", self.event.text)
+        self.set(self.keys.author, self.event.text)
         await self.render_widget()

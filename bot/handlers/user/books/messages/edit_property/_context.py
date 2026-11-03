@@ -1,8 +1,9 @@
 from abc import ABC
-from typing import Optional
 from dataclasses import dataclass
+from enum import StrEnum, auto
+from typing import Optional
 
-from extensions.handlers.context_manager import BaseContextManager, BaseContext
+from extensions.handlers.context_manager import BaseContext, BaseContextManager
 
 
 @dataclass
@@ -12,5 +13,14 @@ class _EditBookPropertyContext(BaseContext):
     book_id: Optional[int] = None
 
 
-class EditBookPropertyContextManager(BaseContextManager[_EditBookPropertyContext], ABC):
+class _EditBookPropertyKeys(StrEnum):
+    property_name = auto()
+    new_value = auto()
+    book_id = auto()
+
+
+class EditBookPropertyContextManager(
+    BaseContextManager[_EditBookPropertyContext, _EditBookPropertyKeys], ABC
+):
     props = _EditBookPropertyContext
+    keys: type[_EditBookPropertyKeys] = _EditBookPropertyKeys

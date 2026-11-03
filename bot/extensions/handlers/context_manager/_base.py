@@ -1,4 +1,5 @@
 from dataclasses import fields
+from enum import StrEnum
 from types import UnionType
 from typing import Any, Union, get_args, get_origin, get_type_hints
 
@@ -6,8 +7,9 @@ from ..base import BaseHandler as _BaseHandler
 from ._types import BaseContext
 
 
-class BaseContextManager[T: BaseContext](_BaseHandler):
+class BaseContextManager[T: BaseContext, K: StrEnum](_BaseHandler):
     props: type[T]
+    keys: type[K]
 
     def _schema(self) -> dict[str, Any]:
         hints = get_type_hints(self.props)
@@ -62,18 +64,20 @@ class BaseContextManager[T: BaseContext](_BaseHandler):
             self._validate(name, schema[name], value)
         return self.props(**values)
 
-    def set(self, prop: str, value: Any) -> None:
+    def set(self, prop: K, value: Any) -> None:
+        if not isinstance(prop, self.keys):
+            raise KeyError(prop)
         schema = self._schema()
         if prop not in schema:
             raise KeyError(prop)
         self._validate(prop, schema[prop], value)
-        self.user_data[prop] = value
+        self.user_data[prop.value] = value
 
-    def clean_context(self, *preserve: str) -> None:
+    def clean_context(self, *preserve: K) -> None:
         schema = self._schema()
-        for name in preserve:
-            if name not in schema:
-                raise KeyError(name)
+        for key in preserve:
+            if not isinstance(key, self.keys) or key not in schema:
+                raise KeyError(key)
         for name in schema:
             if name not in preserve:
                 self.user_data[name] = None
