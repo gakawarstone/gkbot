@@ -1,122 +1,66 @@
 # Private AI topics
 
-Proposal only. `/topic` is not enabled and the task remains OPEN. Context
-[PR #29](https://github.com/gakawarstone/gkbot/pull/29) now contains the runtime
-implementation requested by the owner. Integration awaits an agreed common base
-for the published prerequisites, so this PR does not duplicate their diffs.
+`/topic <name>` creates a topic in an ordinary private bot chat. The default name
+is `AI-чат`; names longer than 128 characters are rejected without starting a flow.
+Open the new topic and send `/chat` to start its AI conversation. Users select
+existing topics through Telegram's topic list. User-created topics work the same
+way. Creating a topic does not reset or switch the source conversation.
 
-## User behavior
+`/chat` restarts history only in the current topic. `/exit` ends only that topic's
+flow. The unthreaded conversation is a separate session. Histories remain in
+memory, subject to [retention](user-data-retention.md), and disappear on restart.
 
-`/topic <name>` creates a private topic, using `AI-чат` when no name is supplied.
-Reject names longer than 128 characters without entering another FSM step.
-Send the new topic a welcome explaining `/chat` and `/exit`. `/chat` starts or
-restarts AI history only in that topic; `/exit` ends only that topic's flow.
-Creating a topic leaves the source conversation unchanged. Users select existing
-topics through Telegram, without an application-level selected-topic pointer.
-User-created topics use the same `/chat` entrypoint; plain text does not enable AI.
+## Availability and errors
 
-Register `/topic` before state-specific text handlers so it cannot become an AI
-prompt. Advertise it only when isolation and rejection paths are implemented.
-The ordinary private conversation remains a separate session. Telegram topics
-can outlive their in-memory histories, which expire or disappear on restart.
+Enable private topic mode through BotFather. The command checks
+`getMe.has_topics_enabled`; user topic-creation permissions do not gate the bot's
+command. Groups, channel direct messages, business chats, and bots without topic
+mode receive an explanation and a `/chat` alternative without changing FSM state.
+See Telegram's [private topics guide](https://core.telegram.org/bots/features#topics-in-private-chats)
+and [creation API](https://core.telegram.org/bots/api#createforumtopic).
 
-## Support and failures
+Creation is never retried automatically: a transport failure may hide a created
+topic. Check the topic list before trying again. If only the welcome fails, the
+bot reports that the topic exists and `/chat` can be sent there. Creation does not
+start AI mode or allocate another topic-to-session registry.
 
-Private topics require BotFather topic mode. `getMe.has_topics_enabled` checks
-bot capability; `allows_users_to_create_topics` describes user creation rights,
-not the bot command's permission. `createForumTopic` supports private chats and
-names of 1 to 128 characters. See the official
-[private topics guide](https://core.telegram.org/bots/features#topics-in-private-chats),
-[capability fields](https://core.telegram.org/bots/api#user), and
-[creation method](https://core.telegram.org/bots/api#createforumtopic).
+No production setting or deployment was changed. Native draft stop controls
+require Bot API 10.3; see [streaming](ai-chat-streaming.md) and the
+[server rollout procedure](../services/bot-api/README.md).
 
-Accept only ordinary private bot chats. Unsupported chat types, business chats,
-and absent topic capability receive a clear explanation and `/chat` alternative
-without changing state/history. Channel `direct_messages_topic_id` is a separate
-mechanism and is outside this command's scope.
+## Session identity
 
-Handle concrete Telegram errors: distinguish unsupported/inaccessible requests
-from transient failures. Do not automatically retry ambiguous creation failures,
-which could create duplicates. If creation succeeds but the welcome fails, report
-that the topic exists and `/chat` can be sent there; do not create it again.
-Creation itself does not enter AI FSM state. No live capability check, BotFather
-change, or deployment has been performed. Server rollout belongs to the
-[existing operator procedure](../services/bot-api/README.md).
+The dispatcher uses `FSMStrategy.USER_IN_TOPIC`. Middleware passes the resolved
+`FSMContext.key` to the existing bounded store for both acquire and release.
+This covers bot, chat, user, topic and the existing business/destiny fields;
+unthreaded chats use `thread_id=None`. Each topic consumes a slot in the same
+store. FSM and middleware storage belong to the dispatcher.
 
-## Session isolation and routing
+Callbacks use their source message's topic and callback sender. Inline callbacks
+and inaccessible messages cannot load another conversation's data. Updates with
+no resolved FSM receive a restart explanation instead of a user-only fallback.
+The existing typed `UserData` dictionary, required deletion queue, active-handler
+pins, TTL, capacity rejection and expired-session reset are retained.
 
-Use `FSMStrategy.USER_IN_TOPIC` and the resolved `FSMContext.key` for middleware
-storage, covering bot/chat/user/thread and the existing business/destiny fields.
-An unthreaded chat uses `thread_id=None`. Callbacks use their source message's
-topic and callback sender. Missing/inaccessible topic context must not select
-another conversation. See [aiogram's strategy contract](https://docs.aiogram.dev/en/latest/dispatcher/finite_state_machine/strategy.html).
+AI replies, initialization, `/exit`, drafts, splits, media chat actions, and user
+errors preserve the source topic. Administrator tracebacks remain operational
+notifications. Stop updates use streaming's bot/chat/thread/draft registry and
+source-owned generator closure; no `from_user` or injected FSM is required.
 
-Change both acquire and release keys in the existing bounded `UserDataStore`.
-Use one store for messages/callbacks, with each topic counting toward its capacity;
-do not add another topic mapping. Preserve typed `UserData`, its required
-`delete_queue: []`, and the injected `data["data"]` boundary. Context managers
-consume that mapping and do not construct session identity.
+## Verification
 
-Preserve retention's pins through the handler and final FSM lookup, deferred
-cleanup, and expired-session reset before a selected handler can use missing
-history. AI's temporary `finish` during generation is not session completion.
-Serialize overlapping updates within one session while allowing different topics
-to progress. Stop updates must cancel without waiting on the generation's lock.
+`bot/tests/handlers/test_private_topics.py` exercises the production dispatcher,
+context managers and bounded middleware with a local recording Bot session and
+a controlled model stream. Scenarios cover simultaneous topics and an unthreaded
+conversation, callbacks, reset/exit, stop/upstream failure, topic creation and
+welcome failure, unsupported requests, capacity pressure and topic-local expiry.
+The existing streaming tests cover long HTML splits and draft fallback routing.
 
-Carry the source `message_thread_id` through replies, validation, status/actions,
-drafts, split/fallback messages, and user-facing errors. Explicit routing is
-needed where `Message.answer()` would drop a thread without `is_topic_message`.
-The creation welcome targets the new topic. Edits retain their message identity;
-a deleted topic must not trigger fallback to the unthreaded chat. Administrator
-traceback delivery remains separate from the user-facing error.
+```sh
+make test FILE='bot/tests/handlers/test_private_topics.py bot/tests/middlewares bot/tests/handlers/test_chatgpt_drafts.py'
+testgram run e2e/scenarios/chat_exit.yaml
+```
 
-## Dependencies to reuse
-
-- Streaming [PR #39](https://github.com/gakawarstone/gkbot/pull/39), reviewed head
-  `d069c1f50b39584444dd71a5cbb2f0edc2e933c2`, retains source-topic sends and a
-  cancellation registry keyed by `(bot_id, chat_id, message_thread_id, draft_id)`.
-  Stop updates have no `from_user`; use the saved source context. Preserve
-  `_private_response(stream) -> str | None`, where `None` means stopped, and the
-  existing draft/send helpers. Fallback remains
-  `_stream_to_message(message, stream, *, text='', reason='')`, also callable
-  with two arguments. Continue the same model stream; the source handler owns
-  `aclosing`. Preserve raw history, safe splitting, and concurrent `/exit` state.
-  Native stop requires server 10.3; stalled drafts can expire after 30 seconds.
-  Splitter prerequisite [#20](https://github.com/gakawarstone/gkbot/pull/20) is
-  merged; #39 still targets its parent branch. Do not rebuild that stack here.
-- Retention [PR #37](https://github.com/gakawarstone/gkbot/pull/37), reviewed head
-  `b4a1a4684e257dca6fed98fb6813c49d6c046de3`, already integrates typing
-  [#40](https://github.com/gakawarstone/gkbot/pull/40). Use the whole head rather
-  than `dd6264c` alone. Its remote head is now `9f69188576040379e807c7217ea4c2bb450f2685`;
-  agree the updated commit set before integration. `acquire(key)` needs a matching
-  `release(key, entry, session_active=final_status)` in `finally`. Keep the
-  published TTL/capacity/cleanup and typed handler contracts; do not repeat them.
-- Context design [#29](https://github.com/gakawarstone/gkbot/pull/29), reviewed
-  runtime head `fd8edc398313d17ab5f85447396bfb2cba17ac32`, implements explicit
-  `set("field", value)` and `clean_context(*preserve)` while retaining dataclass
-  `ctx`, injected mutable `user_data`, existing keys and object identity. Current
-  types and `list[str]` elements are checked; `varname` is removed. The manager
-  still does not choose session identity. Reuse this implementation.
-
-After agreeing the integration base, integrate published commit sets in this worktree
-with a PR base excluding prerequisite diff. Do not duplicate their implementations
-or merge their PRs automatically.
-
-## Acceptance checks still required
-
-- Through the real dispatcher/middleware, run two simultaneous topics for one
-  user plus an unthreaded chat. Verify distinct FSM/history/queue objects and
-  callbacks; include other users/chats/bots and unavailable callback context.
-- Restart, exit, expire, or cancel topic A while B streams. Only A may change.
-  Exercise capacity pressure, pins, cleanup, and the existing typed-data tests.
-- Record real outgoing methods for welcome, replies, status/actions, drafts,
-  long splits, fallback, and errors. Verify source threads even when response
-  metadata lacks the topic flag; avoid mocks that discard routing metadata.
-- Test `/topic` during AI mode, default/Unicode/overlong names, user-created
-  topics, unsupported chats/capabilities, API/network failures, and welcome
-  failure. Assert clear responses, unchanged source state, and no partial flow,
-  duplicate creation, or cross-topic fallback.
-
-Run existing relevant regressions and scoped static checks with the implementation.
-The previous offline aiogram probe confirmed topic-key/answer/callback behavior;
-it does not satisfy these application criteria. Keep the task file until they pass.
+The PR is based on `task-20261103-private-topics-prerequisites`, which integrates
+the agreed retention, typing, streaming and enum context snapshots. Topic changes
+are kept out of that base. Live Telegram smoke tests have not been performed.

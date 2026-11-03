@@ -6,7 +6,7 @@ from typing import Any, cast
 from aiogram import Router
 from aiogram.exceptions import TelegramAPIError
 from aiogram.handlers import ErrorHandler as _BaseHandler
-from aiogram.types import BufferedInputFile
+from aiogram.types import BufferedInputFile, Message
 from aiogram.types.error_event import ErrorEvent
 
 
@@ -16,8 +16,13 @@ class ErrorHandler(_BaseHandler):
         self._admins = admins
 
     async def handle(self) -> Any:
-        message = self._error_event.update.message
-        if message is not None:
+        update = self._error_event.update
+        message = update.message
+        if message is None and update.callback_query is not None:
+            candidate = update.callback_query.message
+            if isinstance(candidate, Message):
+                message = candidate
+        if message is not None and message.message_thread_id is not None:
             try:
                 response = message.answer(
                     "Не удалось обработать сообщение. Попробуй ещё раз."

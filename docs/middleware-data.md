@@ -56,7 +56,8 @@ can also be reset to `None`.
   conversation stores its selected setting and parsed time value.
 
 These remain ordinary dictionaries in a dispatcher-owned `UserDataStore` shared
-by messages and callbacks. The [retention contract](user-data-retention.md)
+by messages and callbacks, keyed by the resolved bot/chat/user/topic FSM key.
+The [retention contract](user-data-retention.md)
 defines its lifetime, bounds and stale FSM reset. Tests inject a fresh store;
 `test_data.py` checks sharing within a session and isolation between users.
 

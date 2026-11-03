@@ -2,6 +2,11 @@ name: AI chat exposes and handles explicit exit
 timeout: 15
 steps:
   - send:
+      text: /topic
+  - expect:
+      method: sendMessage
+      text_contains: Темы в личном чате сейчас недоступны
+  - send:
       text: /chat
   - expect:
       method: sendMessage

@@ -8,6 +8,7 @@ from typing import Any
 import pytest
 from aiogram import Bot, Router
 from aiogram.exceptions import TelegramBadRequest, TelegramNetworkError
+from aiogram.fsm.context import FSMContext
 from aiogram.methods import (
     CreateForumTopic,
     GetMe,
@@ -120,7 +121,7 @@ class TopicApp:
             ),
         )
 
-    def state(self, thread: int | None) -> Any:
+    def state(self, thread: int | None) -> FSMContext:
         state = self.dp.fsm.resolve_context(
             self.bot, chat_id=7, user_id=7, thread_id=thread
         )
@@ -329,3 +330,43 @@ async def test_unsupported_creation_never_changes_source_flow(failure: str) -> N
         )
         assert isinstance(app.session.requests[-1], SendMessage)
         assert app.session.requests[-1].message_thread_id == 11
+
+
+async def test_topic_capacity_and_expiry_do_not_erase_other_history(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    now = 0.0
+    prompts: list[str] = []
+
+    async def stream(
+        self: OpenRouter, prompt: str, images: list[str] | None = None
+    ) -> AsyncGenerator[StreamChunk]:
+        prompts.append(prompt)
+        yield StreamChunk("reply", "content")
+
+    monkeypatch.setattr(OpenRouter, "stream", stream)
+    async with app_context() as app:
+        app.middleware.store = UserDataStore(
+            max_entries=2, idle_ttl=10, clock=lambda: now
+        )
+        await app.send("/chat", 11)
+        await app.send("/chat", 22)
+        await app.send("/chat", 33)
+        assert await app.state(33).get_state() is None
+        busy = app.session.requests[-1]
+        assert (
+            isinstance(busy, SendMessage)
+            and "Бот занят" in busy.text
+            and busy.message_thread_id == 33
+        )
+        now = 5
+        await app.send("keep B", 22)
+        now = 11
+        app.middleware.store.expire()
+        await app.send("expired A", 11)
+        assert await app.state(11).get_state() is None
+        assert await app.state(22).get_state() == FSM.get_message.state
+        await app.send("again B", 22)
+        assert len(prompts) == 2
+        assert "keep B" in prompts[-1] and "expired A" not in prompts[-1]
+        assert len(app.middleware.store) <= 2

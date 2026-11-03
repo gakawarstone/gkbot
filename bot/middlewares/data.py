@@ -1,4 +1,4 @@
-"""Shared contracts for aiogram injection and the per-user conversation cache."""
+"""Shared contracts for aiogram injection and the per-session conversation cache."""
 
 from collections.abc import Awaitable, Callable
 from datetime import date as Date
@@ -25,7 +25,7 @@ class RestartableHandler(Protocol):
 
 
 class UserData(TypedDict, total=False):
-    """Values retained between updates for one Telegram user.
+    """Values retained between updates for one bot/chat/user/topic session.
 
     The queue exists as soon as UserDataMiddleware has run. Other fields are
     populated by a flagged middleware or a conversation step, and may be absent.

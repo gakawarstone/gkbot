@@ -17,7 +17,11 @@ async def create_topic(message: Message, bot: Bot, command: CommandObject) -> No
         request.message_thread_id = message.message_thread_id
         await request
 
-    if message.chat.type != ChatType.PRIVATE or message.business_connection_id:
+    if (
+        message.chat.type != ChatType.PRIVATE
+        or message.chat.is_direct_messages
+        or message.business_connection_id
+    ):
         await respond(
             "Команда /topic работает только в личном чате с ботом. Используй /chat для AI-чата."
         )
