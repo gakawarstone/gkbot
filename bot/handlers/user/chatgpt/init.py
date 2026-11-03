@@ -1,9 +1,9 @@
 from typing import Any, override
 
+from extensions.handlers.context_manager import ContextField
 from ui.keyboards.chat import ChatMarkup
 
 from ._base import BaseHandler
-from ._context import _ChatGPTKeys
 from ._states import FSM
 
 
@@ -32,6 +32,6 @@ class InitHandler(BaseHandler):
         await self.state.set_state(FSM.get_message)
 
     @override
-    def clean_context(self, *args: _ChatGPTKeys) -> None:
+    def clean_context(self, *args: ContextField[Any]) -> None:
         super().clean_context(*args)
-        self.set(self.keys.messages, [])
+        self.set(self.props.messages, [])

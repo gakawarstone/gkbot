@@ -21,7 +21,7 @@ class GetNewSettingValueHandler(RoadSettingsContextManager):
             raise ValueError("event.text is None")
 
         value = self._validate_time(self.event.text)
-        self.set(self.keys.setting_new_value, value)
+        self.set(self.props.setting_new_value, value)
 
         user_id = self.event.from_user.id
         setting_name = self.ctx.setting_name
@@ -39,7 +39,7 @@ class GetNewSettingValueHandler(RoadSettingsContextManager):
     # FIX: from reminder move to contrib
     def _validate_time(self, _time: str) -> time:
         try:
-            tzinfo = datetime.timezone.utc
+            tzinfo = datetime.UTC
             return time(minute=int(_time), tzinfo=tzinfo)
         except ValueError:
             raise InvalidTimeInput

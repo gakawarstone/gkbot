@@ -1,18 +1,13 @@
-from dataclasses import dataclass
-from enum import StrEnum, auto
+from extensions.handlers.context_manager import (
+    BaseContext,
+    BaseContextManager,
+    ContextField,
+)
 
-from extensions.handlers.context_manager import BaseContext, BaseContextManager
 
-
-@dataclass
 class _ChatGPTContext(BaseContext):
-    messages: list[str] | None = None
+    messages = ContextField[list[str]](list[str])
 
 
-class _ChatGPTKeys(StrEnum):
-    messages = auto()
-
-
-class ChatGPTContextManager(BaseContextManager[_ChatGPTContext, _ChatGPTKeys]):
+class ChatGPTContextManager(BaseContextManager[_ChatGPTContext]):
     props = _ChatGPTContext
-    keys: type[_ChatGPTKeys] = _ChatGPTKeys

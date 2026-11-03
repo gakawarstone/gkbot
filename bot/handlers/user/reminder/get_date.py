@@ -22,19 +22,15 @@ class DateInputHandler(BaseHandler, OneTimeMessageHandlerExtension):
                 raise InvalidDateInput
 
             _date = self._validate_input(text)
-            self.set(self.keys.date, _date)
+            self.set(self.props.date, _date)
             await self.render_widget()
 
-            self._set_one_time_message((await self.event.answer("Введите время")))
+            self._set_one_time_message(await self.event.answer("Введите время"))
         except InvalidDateInput:
             await self.state.set_state(FSM.get_date)
             await self.render_widget(status_message=self.status.invalid_date)
             self._set_one_time_message(
-                (
-                    await self.event.answer(
-                        "Введите дату", reply_markup=RemindMarkup.date
-                    )
-                )
+                await self.event.answer("Введите дату", reply_markup=RemindMarkup.date)
             )
 
     def _validate_input(self, text: str) -> date:

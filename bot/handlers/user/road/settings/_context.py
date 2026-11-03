@@ -1,23 +1,16 @@
-from dataclasses import dataclass
-from enum import StrEnum, auto
-from typing import Any, Optional
+from typing import Any
 
-from extensions.handlers.context_manager import BaseContext, BaseContextManager
+from extensions.handlers.context_manager import (
+    BaseContext,
+    BaseContextManager,
+    ContextField,
+)
 
 
-@dataclass
 class RoadSettingsContext(BaseContext):
-    setting_name: Optional[str] = None
-    setting_new_value: Optional[Any] = None
+    setting_name = ContextField[str](str)
+    setting_new_value = ContextField[Any](Any)
 
 
-class _RoadSettingsKeys(StrEnum):
-    setting_name = auto()
-    setting_new_value = auto()
-
-
-class RoadSettingsContextManager(
-    BaseContextManager[RoadSettingsContext, _RoadSettingsKeys]
-):
+class RoadSettingsContextManager(BaseContextManager[RoadSettingsContext]):
     props = RoadSettingsContext
-    keys: type[_RoadSettingsKeys] = _RoadSettingsKeys
