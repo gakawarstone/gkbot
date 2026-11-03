@@ -9,7 +9,7 @@ Python 3.13.11 and the locked aiogram 3.26.0 installation.
 ## Recommendation
 
 Keep the six dataclass context schemas and their existing flat storage keys.
-Replace expression-based field lookup with explicit string keys and validate
+Replace stack-based field lookup with named enum keys and validate
 current field types and the elements of `messages` on reads and writes. Keep
 the synchronous manager API over the mapping supplied as `handler.user_data`. This removes
 `varname` without changing storage ownership, FSM state names, or user flows.
@@ -17,16 +17,20 @@ the synchronous manager API over the mapping supplied as `handler.user_data`. Th
 The proposed call contract is:
 
 ```python
-self.set("file_name", self.event.text)
-self.clean_context("book_id", "property_name")
+self.set(self.keys.book_id, book.id)
+self.clean_context(self.keys.book_id, self.keys.property_name)
 context = self.ctx
 ```
 
 `ctx` remains a typed dataclass view. `props` remains the schema class, but callers
 stop passing `self.props.field` or `self.ctx.field` as keys. The arguments of
 `clean_context` are explicit keys to preserve, matching today's exclusion behavior.
-An unknown set or exclusion key raises `KeyError` before any mutation. A wrapper
-may forward the strings normally; caller stack depth has no meaning.
+Each manager exposes `keys`, a `StrEnum` whose member values match its dataclass
+fields. Handlers use attributes, so misspelled names are caught by type checking.
+The manager rejects keys from other contexts before mutation and stores plain
+string values in the existing mapping. A test checks schema/key agreement.
+Declaring both the dataclass fields and enum members is a deliberate tradeoff.
+Caller stack depth has no meaning.
 
 Use `dataclasses.fields` for schema fields and `typing.get_type_hints` for resolved
 annotations. Class methods and other non-field attributes must never become
@@ -74,7 +78,7 @@ Schema `_DownloadContext`, manager `DownloadContextManager`, defined in
 - `download/get_name.py`, `GetNameHandler`, writes it.
 - `download/download.py`, `DownloadHandler`, reads it for `FSInputFile`.
 
-Use the literal `"file_name"` for writes. Preserve the optional read and existing
+Use `self.keys.file_name` for writes. Preserve the optional read and existing
 download behavior. Message deletion queues are middleware data, outside this schema.
 
 ### Reminder
@@ -137,7 +141,7 @@ Schema `_AddBookContext`, manager `AddBookContextManager`, defined in
 - `create.py`, `CreateBookHandler`, reads name/author/count for model creation
   and renders the result.
 
-Replace the four writer keys with string literals. Keep widget identity and
+Use the four named keys for writes. Keep widget identity and
 the nested-handler mapping handoff.
 
 ### Edit book property
@@ -184,7 +188,7 @@ repository-wide import/base-class and call-site inventory.
 ## Alternatives considered
 
 1. Explicit keys with the existing dataclass view, recommended. Keep typed
-   `ctx.field` reads and check string keys against the schema at runtime.
+   `ctx.field` reads and check the named enum keys against the schema at runtime.
 2. Dataclass serialization. `asdict` copies objects and does not validate types.
    Serializing live widget messages is unnecessary; retain dataclasses as views.
 3. `TypedDict`. Literal indexing helps static checking but needs the same runtime
@@ -218,7 +222,7 @@ registry, compiled rules, or custom exception class is needed.
   Raise the existing `ValueError` for a value mismatch, adding the schema/key,
   failing list index when applicable, and expected/actual type. Never include
   stored values. Failed reads/writes must leave the mapping unchanged.
-- `clean_context(*preserve: str) -> None` checks every exclusion key first, then
+- `clean_context(*preserve: StrEnum) -> None` checks every exclusion key first, then
   sets only this schema's other keys to `None`, including absent keys. It must
   recover invalid old values and preserve unrelated data without reading it.
 - Keep object identity, including live `Message` objects and history lists.
@@ -246,7 +250,7 @@ work even when old values fail validation.
 Both current stores are in memory and lose sessions on process restart. Test
 compatibility by prepopulating mappings with the old key/value layout, without
 adding a serializer or a session migration system. Old expression-based callers
-and new string-key callers must change together; no stack-based compatibility
+and new enum-key callers must change together; no stack-based compatibility
 adapter is proposed.
 
 The shared flat `"message"` key and per-user scope remain existing limitations.
