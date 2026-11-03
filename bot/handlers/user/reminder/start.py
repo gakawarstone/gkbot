@@ -14,7 +14,7 @@ class InitHandler(BaseHandler, UseTimeZoneHandlerExtension):  # type: ignore[mis
     async def handle(self) -> Any:
         await self.state.set_state(FSM.get_text)
         await self.event.delete()
-        self.clean_context("tz")
-        self.set("tz", self.tz)
+        self.clean_context(self.keys.tz)
+        self.set(self.keys.tz, self.tz)
         text = RemindCreator().render()
-        self.set("message", (await self.event.answer(text)))
+        self.set(self.keys.message, (await self.event.answer(text)))

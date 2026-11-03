@@ -3,6 +3,7 @@ from typing import Any, override
 from ui.keyboards.chat import ChatMarkup
 
 from ._base import BaseHandler
+from ._context import _ChatGPTKeys
 from ._states import FSM
 
 
@@ -29,6 +30,6 @@ class InitHandler(BaseHandler):
         await self.state.set_state(FSM.get_message)
 
     @override
-    def clean_context(self, *args: str) -> None:
+    def clean_context(self, *args: _ChatGPTKeys) -> None:
         super().clean_context(*args)
-        self.set("messages", [])
+        self.set(self.keys.messages, [])
