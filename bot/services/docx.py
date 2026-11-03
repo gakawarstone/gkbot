@@ -1,7 +1,7 @@
 from io import BytesIO
+from zipfile import BadZipfile
 
 import docx2txt  # type: ignore
-from zipfile import BadZipfile
 
 
 class DocxReader:

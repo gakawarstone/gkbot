@@ -1,11 +1,11 @@
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+from ui.buttons.delete_message import deleteMessageButton
 from ui.buttons.youtube.download import (
     YoutubeDownloadButtonBuilder,
     YoutubeDownloadButtonCallbackData,
     YoutubeDownloadButtonData,
 )
-from ui.buttons.delete_message import deleteMessageButton
 
 
 class YtdlpMarkup:

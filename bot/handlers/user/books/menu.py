@@ -1,12 +1,13 @@
 from aiogram import Router
-from aiogram.filters import Command, StateFilter, or_f, and_f
+from aiogram.filters import Command, StateFilter, and_f, or_f
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, ReplyKeyboardRemove
 
-from ui.static import Images
+from configs.commands import USER_COMMANDS
 from filters.not_command import NotCommandFilter
 from ui.keyboards.books import MenuMarkup
-from configs.commands import USER_COMMANDS
+from ui.static import Images
+
 from .messages import delete, show
 from .messages.add.start import InitAddBookHandler
 from .messages.edit_property.choose_book import choose_book

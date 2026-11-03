@@ -1,7 +1,7 @@
 from datetime import datetime
 from email import utils
 
-from .exceptions import TimerNotStartedException, TimerNotFinishedException
+from .exceptions import TimerNotFinishedException, TimerNotStartedException
 
 
 class Timer:

@@ -1,8 +1,8 @@
 from typing import Any
 
-from .change_property import ChangeBookPropertyHandler
 from ._base import BaseHandler
 from ._states import FSM
+from .change_property import ChangeBookPropertyHandler
 
 
 class GetNewPropertyValueHandler(BaseHandler):

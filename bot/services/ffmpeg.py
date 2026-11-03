@@ -4,9 +4,10 @@ import shutil
 import subprocess
 from pathlib import Path
 from subprocess import CompletedProcess
-from typing import Any
+from typing import Any, ClassVar
 
 from services.cache_dir import CacheDir
+from utils.async_cleanup import wait_for_completion
 from utils.async_wrapper import async_wrap
 
 
@@ -16,14 +17,14 @@ class FfmpegService:
 
     _semaphore = asyncio.Semaphore(1)
 
-    __resize_image_options = [
+    __resize_image_options: ClassVar[list[str]] = [
         "-vf",
         (
             "scale=trunc(oh*a/2)*2:720,"
             "pad=max(iw\\,ih*9/16):max(ih\\,iw*16/9):(ow-iw)/2:(oh-ih)/2:black"
         ),
     ]
-    __make_slideshow_options = [
+    __make_slideshow_options: ClassVar[list[str]] = [
         "-c:v",
         "libx264",
         "-shortest",
@@ -35,43 +36,62 @@ class FfmpegService:
         "yuv420p",
     ]
 
-    __convert_to_voice_options = ["-acodec", "libopus"]
+    __convert_to_voice_options: ClassVar[list[str]] = ["-acodec", "libopus"]
 
     @classmethod
     async def convert_music_to_voice(cls, music: bytes) -> bytes:
         cache_dir = CacheDir()
+        try:
+            cache_dir.save_file("music.mp3", music)
 
-        cache_dir.save_file("music.mp3", music)
+            command = cls._build_command(
+                inputs=[cache_dir.get_file_path("music.mp3")],
+                output=cache_dir.get_file_path("voice.ogg"),
+                props=cls.__convert_to_voice_options,
+            )
 
-        command = cls._build_command(
-            inputs=[f"{cache_dir.path}/music.mp3"],
-            output=f"{cache_dir.path}/voice.ogg",
-            props=cls.__convert_to_voice_options,
-        )
-
-        await cls._run_command(command)
-
-        content = open(f"{cache_dir.path}/voice.ogg", "rb").read()
-        cache_dir.delete()
-        return content
+            await wait_for_completion(cls._run_command(command))
+            return Path(cache_dir.get_file_path("voice.ogg")).read_bytes()
+        finally:
+            cache_dir.delete()
 
     @classmethod
     async def convert_video(cls, input_path: str, output_path: str) -> None:
-        command = cls._build_command(
-            inputs=[input_path],
-            output=output_path,
-            props=[
+        probe = await cls._run_command(
+            [
+                "ffprobe",
+                "-v",
+                "error",
+                "-select_streams",
+                "v:0",
+                "-show_entries",
+                "stream=codec_name,pix_fmt",
+                "-of",
+                "csv=p=0",
+                input_path,
+            ],
+            capture_output=True,
+            text=True,
+        )
+        # Telegram-compatible H.264 needs no video re-encoding, even for long clips.
+        video_options = (
+            ["-c:v", "copy"]
+            if probe.stdout.strip() == "h264,yuv420p"
+            else [
                 "-c:v",
                 "libx264",
                 "-preset",
                 "veryfast",
                 "-threads",
                 "1",
-                "-c:a",
-                "aac",
                 "-pix_fmt",
                 "yuv420p",
-            ],
+            ]
+        )
+        command = cls._build_command(
+            inputs=[input_path],
+            output=output_path,
+            props=video_options + ["-c:a", "aac"],
         )
         await cls._run_command(command)
 
@@ -113,10 +133,14 @@ class FfmpegService:
         cache_dir = CacheDir()
         try:
             output_path = cache_dir.get_file_path("slideshow.mp4")
-            await cls.make_slideshow_file_from_web(images_urls, audio_url, output_path)
-            return await asyncio.to_thread(Path(output_path).read_bytes)
+            await wait_for_completion(
+                cls.make_slideshow_file_from_web(images_urls, audio_url, output_path)
+            )
+            return await wait_for_completion(
+                asyncio.to_thread(Path(output_path).read_bytes)
+            )
         finally:
-            await asyncio.to_thread(cache_dir.delete)
+            await wait_for_completion(asyncio.to_thread(cache_dir.delete))
 
     @classmethod
     async def make_slideshow_file_from_web(

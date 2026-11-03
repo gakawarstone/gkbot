@@ -2,7 +2,7 @@ from datetime import timedelta
 
 import pytest
 
-from services.timezone import TimeZone, UserDontHaveTimeZone, InvalidTimeZone
+from services.timezone import InvalidTimeZone, TimeZone, UserDontHaveTimeZone
 
 INVALID_TZ_SET = [timedelta(hours=-12, minutes=-1), timedelta(hours=14, seconds=1)]
 

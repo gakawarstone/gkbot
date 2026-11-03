@@ -2,9 +2,10 @@ from aiogram.types import InputFile
 
 from services.gkfeed import FeedItem
 from services.tiktok import TikTokService
+
+from ...ui.keyboards import FeedMarkup
 from . import BaseFeedItemView
 from .video import VideoFeedItemView
-from ...ui.keyboards import FeedMarkup
 
 
 class TikTokFeedItemView(VideoFeedItemView, BaseFeedItemView):

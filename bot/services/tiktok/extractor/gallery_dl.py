@@ -1,5 +1,6 @@
 from services.gallery_dl import GalleryDlExtractionError, GalleryDlService
 from services.http import HttpRequestError
+
 from ..types import InfoVideoTikTok
 from ._base import BaseExtractor
 from .exceptions import SourceInfoExtractFailed

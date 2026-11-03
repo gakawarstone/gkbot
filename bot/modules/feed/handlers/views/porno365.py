@@ -1,7 +1,7 @@
-from services.gkfeed import FeedItem
-from services.open_graph import OpenGraphService
 from modules.feed.handlers.views.base import BaseWebFeedItemView
 from modules.feed.ui.keyboards.porno365 import Porno365FeedItemMarkup
+from services.gkfeed import FeedItem
+from services.open_graph import OpenGraphService
 
 
 class Porno365FeedItemView(BaseWebFeedItemView):

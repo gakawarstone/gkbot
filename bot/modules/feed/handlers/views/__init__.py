@@ -1,7 +1,8 @@
-from aiogram.types import CallbackQuery, InlineKeyboardMarkup, Message, URLInputFile
 from aiogram.exceptions import TelegramBadRequest
+from aiogram.types import CallbackQuery, InlineKeyboardMarkup, Message, URLInputFile
 
 from services.gkfeed import FeedItem
+
 from ...ui.keyboards import FeedMarkup
 from .._base import BaseHandler
 

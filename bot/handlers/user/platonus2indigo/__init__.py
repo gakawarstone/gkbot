@@ -2,9 +2,10 @@ from aiogram import Router
 from aiogram.filters import Command, StateFilter
 
 from configs.commands import USER_COMMANDS
+
 from ._states import FSM
-from .start import init
 from .convert_file import ConvertFileHandler
+from .start import init
 
 
 def setup(r: Router):

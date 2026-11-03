@@ -1,12 +1,13 @@
 from aiogram import Router
-from aiogram.types import Message
 from aiogram.filters import Command, StateFilter
+from aiogram.types import Message
 
 from configs.commands import USER_COMMANDS
+
 from ._states import FSM
-from .init import InitHandler
-from .get_name import GetNameHandler
 from .download import DownloadHandler
+from .get_name import GetNameHandler
+from .init import InitHandler
 
 F: Message
 

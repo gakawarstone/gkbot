@@ -1,4 +1,4 @@
-from ..types import Question, Choice
+from ..types import Choice, Question
 
 
 class PlatonusParser:

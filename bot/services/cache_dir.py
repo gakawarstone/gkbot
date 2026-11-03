@@ -21,7 +21,10 @@ class CacheDir:
         return self.path + file_name
 
     def delete(self) -> None:
-        shutil.rmtree(self.path)
+        try:
+            shutil.rmtree(self.path)
+        except FileNotFoundError:
+            pass
 
     async def _delete(self) -> None:
         self.delete()

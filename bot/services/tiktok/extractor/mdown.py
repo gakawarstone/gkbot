@@ -1,12 +1,12 @@
+import requests
 from bs4 import BeautifulSoup
 from bs4.element import Tag
 
-import requests
-
 from utils.async_wrapper import async_wrap
+
 from ..types import InfoVideoTikTok
-from .exceptions import SourceInfoExtractFailed
 from ._base import BaseExtractor
+from .exceptions import SourceInfoExtractFailed
 
 
 class Mdown(BaseExtractor, requests.Session):

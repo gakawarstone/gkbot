@@ -48,6 +48,9 @@ python bot/main.py
 docker compose up --build
 ```
 
+For the local Telegram server version, compatibility checks, and rollout order,
+see [Bot API compatibility](services/bot-api/README.md).
+
 **Configuration**
 Required:
 - `BOT_TOKEN`

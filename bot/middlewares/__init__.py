@@ -1,10 +1,10 @@
 from aiogram import Dispatcher
 
-from .register_user import RegisterUserMiddleware
-from .user_data import UserDataMiddleware
-from .timezone import TimeZoneMiddleware
 from .delete_queue import DeleteQueueMiddleware
 from .not_enough_rights import NotEnoughRightsMiddleware
+from .register_user import RegisterUserMiddleware
+from .timezone import TimeZoneMiddleware
+from .user_data import UserDataMiddleware
 
 
 def setup(dp: Dispatcher):

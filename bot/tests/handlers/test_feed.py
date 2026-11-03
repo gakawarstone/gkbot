@@ -1,14 +1,15 @@
-from typing import override, Callable
+from typing import Callable, override
 from unittest.mock import patch
 
 import pytest
 
+from modules.feed import ShowFeedItemsHandler
 from services.gkfeed import (
     FeedItem,
-    GkfeedItemsPicker,
     GkfeedCredentials,
+    GkfeedItemsPicker,
 )
-from modules.feed import ShowFeedItemsHandler
+
 from .. import integration_test
 from . import Bot, Event
 

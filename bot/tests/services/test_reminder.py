@@ -2,9 +2,9 @@ from datetime import datetime
 
 import pytest
 
-from tests.mocks.db import use_db
-from services.schedule import TasksStorage
 from services.reminder import Reminder
+from services.schedule import TasksStorage
+from tests.mocks.db import use_db
 
 
 @pytest.mark.asyncio
