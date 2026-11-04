@@ -57,8 +57,6 @@ docx2txt==0.9
     # via gkbot
 edge-tts==7.2.7
     # via gkbot
-executing==2.2.1
-    # via varname
 frozenlist==1.8.0
     # via
     #   aiohttp
@@ -152,8 +150,6 @@ urllib3==2.6.3
     #   requests
     #   yt-dlp
 uvloop==0.22.1
-    # via gkbot
-varname==0.13.0
     # via gkbot
 websockets==17.1
     # via yt-dlp
