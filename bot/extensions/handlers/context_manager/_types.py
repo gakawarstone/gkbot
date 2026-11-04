@@ -4,7 +4,7 @@ from typing import Any, overload
 
 
 class ContextField[T]:
-    def __init__(self, value_type: Any) -> None:
+    def __init__(self, value_type: type[T]) -> None:
         self.value_type = value_type
         self.name = ""
 

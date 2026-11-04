@@ -6,7 +6,7 @@ from extensions.handlers.context_manager import (
 
 
 class _DownloadContext(BaseContext):
-    file_name = ContextField[str](str)
+    file_name = ContextField(str)
 
 
 class DownloadContextManager(BaseContextManager[_DownloadContext]):

@@ -11,18 +11,18 @@ from tests.mocks.message import fake_event
 
 
 class FakeContext(BaseContext):
-    str_data = ContextField[str](str)
-    integer = ContextField[int](int)
-    any = ContextField[Any](Any)
-    messages = ContextField[list[str]](list[str])
+    str_data = ContextField(str)
+    integer = ContextField(int)
+    any = ContextField(cast(type[Any], Any))
+    messages = ContextField(list[str])
 
     def method(self) -> None:
         pass
 
 
 class OtherContext(BaseContext):
-    unknown = ContextField[str](str)
-    method = ContextField[int](int)
+    unknown = ContextField(str)
+    method = ContextField(int)
 
 
 class FakeContextManager(BaseContextManager[FakeContext]):
@@ -109,7 +109,7 @@ def test_validation_handles_optional_any_and_exact_types() -> None:
 
 def test_unsupported_annotation_fails_before_mutation() -> None:
     class UnsupportedContext(BaseContext):
-        value = ContextField[dict[str, str]](dict[str, str])
+        value = ContextField(dict[str, str])
 
     class UnsupportedManager(FakeContextManager):
         props = UnsupportedContext

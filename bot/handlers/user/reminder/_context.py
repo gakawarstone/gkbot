@@ -12,11 +12,11 @@ from extensions.handlers.context_manager import (
 
 
 class _ReminderContext(BaseContext):
-    text = ContextField[str](str)
-    tz = ContextField[timedelta](timedelta)
-    date = ContextField[date_type](date_type)
-    time = ContextField[time_type](time_type)
-    message = ContextField[Message](Message)
+    text = ContextField(str)
+    tz = ContextField(timedelta)
+    date = ContextField(date_type)
+    time = ContextField(time_type)
+    message = ContextField(Message)
 
 
 class ReminderContextManager(BaseContextManager[_ReminderContext]):

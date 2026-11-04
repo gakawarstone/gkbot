@@ -6,9 +6,9 @@ from extensions.handlers.context_manager import (
 
 
 class _EditBookPropertyContext(BaseContext):
-    property_name = ContextField[str](str)
-    new_value = ContextField[str](str)
-    book_id = ContextField[int](int)
+    property_name = ContextField(str)
+    new_value = ContextField(str)
+    book_id = ContextField(int)
 
 
 class EditBookPropertyContextManager(BaseContextManager[_EditBookPropertyContext]):

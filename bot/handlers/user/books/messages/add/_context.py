@@ -8,10 +8,10 @@ from extensions.handlers.context_manager import (
 
 
 class _AddBookContext(BaseContext):
-    name = ContextField[str](str)
-    author = ContextField[str](str)
-    chapter_cnt = ContextField[int](int)
-    message = ContextField[Message](Message)
+    name = ContextField(str)
+    author = ContextField(str)
+    chapter_cnt = ContextField(int)
+    message = ContextField(Message)
 
 
 class AddBookContextManager(BaseContextManager[_AddBookContext]):

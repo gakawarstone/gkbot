@@ -11,13 +11,20 @@ created to assign the storage key; handler calls do not inspect the stack.
 
 ```python
 class DownloadContext(BaseContext):
-    file_name = ContextField[str](str)
+    file_name = ContextField(str)
 
 self.set(self.props.file_name, self.event.text)
 filename = self.ctx.file_name
 ```
 
-Each field is optional. A type checker can detect an unknown attribute or a value
+Each field is optional. Mypy and Pyright infer the field type from the argument,
+including `list[str]`; the constructor annotation also lets them reject an
+explicit mismatch such as `ContextField[str](int)`. Python does not enforce the
+generic parameter at runtime: if type checking is bypassed, validation uses the
+constructor argument. The unconstrained `Any` field uses `cast(type[Any], Any)`
+to keep `Any` as its runtime sentinel and satisfy Pyright.
+
+A type checker can detect an unknown attribute or a value
 that is incompatible with a field. `set` also rejects a field belonging to a
 different context, validates the value, and stores it under the existing string
 key. `ctx` validates values before returning a view. The view retains references

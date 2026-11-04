@@ -6,7 +6,7 @@ from extensions.handlers.context_manager import (
 
 
 class _ChatGPTContext(BaseContext):
-    messages = ContextField[list[str]](list[str])
+    messages = ContextField(list[str])
 
 
 class ChatGPTContextManager(BaseContextManager[_ChatGPTContext]):
