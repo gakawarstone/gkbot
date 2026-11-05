@@ -142,14 +142,14 @@ async def test_cancelled_decode_does_not_queue_jobs_or_poison_single_flight(
     release = threading.Event()
     submissions = 0
 
-    def decode(body: bytes) -> list[FeedItem]:
+    def decode(_function: object, body: bytes) -> list[FeedItem]:
         nonlocal submissions
         submissions += 1
         entered.set()
         assert release.wait(5)
         return [FeedItem(1, 10, "one", "title", "text")]
 
-    monkeypatch.setattr(api._items_decoder, "_decode", decode)
+    monkeypatch.setattr(api._items_decoder, "_execute", decode)
     first = asyncio.create_task(consume(api))
     waiters: list[asyncio.Task[list[FeedItem]]] = []
     try:

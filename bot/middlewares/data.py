@@ -29,7 +29,7 @@ class UserData(TypedDict, total=False):
 
     The queue exists as soon as UserDataMiddleware has run. Other fields are
     populated by a flagged middleware or a conversation step, and may be absent.
-    Legacy context-manager fields can also be reset to None.
+    ContextField values can also be reset to None.
     """
 
     delete_queue: Required[list[Message]]
@@ -50,7 +50,7 @@ class UserData(TypedDict, total=False):
     new_value: str | None
     book_id: int | None
     setting_name: str | None
-    setting_new_value: Time | None
+    setting_new_value: object | None
 
 
 class MiddlewareData(AiogramMiddlewareData, total=False):

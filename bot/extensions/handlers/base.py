@@ -38,6 +38,4 @@ class BaseHandler(_BaseHandler[Event], ABC):
         return state
 
     def _try_get_from_user_data(self, prop: str) -> Any:
-        # Legacy dataclass contexts use runtime field names. Their manager checks
-        # values against the dataclass annotations before exposing them.
         return self.user_data.get(prop)

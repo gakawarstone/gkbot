@@ -32,7 +32,7 @@ an empty list for a new user, including a first callback update. One-time messag
 extensions and the pomodoro restart flow append messages. DeleteQueueMiddleware
 consumes the pending batch before the next message handler runs.
 
-All remaining keys may be absent. Fields managed by the legacy context manager
+All remaining keys may be absent. Fields managed by the context manager
 can also be reset to `None`.
 
 - `tz: timedelta | None`: timezone middleware and reminder context write it;
@@ -52,8 +52,9 @@ can also be reset to `None`.
   add-book conversation stores book details.
 - `property_name: str | None`, `new_value: str | None`, `book_id: int | None`:
   the edit-book conversation stores the selected property, value and book.
-- `setting_name: str | None`, `setting_new_value: time | None`: the road settings
-  conversation stores its selected setting and parsed time value.
+- `setting_name: str | None`, `setting_new_value: object | None`: the road settings
+  conversation stores its selected setting and parsed value. Its ContextField
+  accepts any value; the current time-setting handler writes a `time`.
 
 These remain ordinary dictionaries at runtime. Message and callback middleware
 instances share the existing cache keyed by Telegram user ID, across chats.
@@ -70,8 +71,7 @@ share a typed base constructor and `user_data`/`state` properties. Their base
 keeps `context` as a reference to aiogram's injection dictionary. One cast at
 that framework boundary avoids storing a second copy of `data` and `state`.
 A handler that does not use these dependencies can omit them when instantiated
-directly;
-accessing an omitted dependency raises an explicit error. The `tz` property
+directly. Accessing an omitted dependency raises an explicit error. The `tz` property
 checks for an available offset and returns `timedelta`.
 
 Use `.get()` or a membership check for optional keys before consuming them.
@@ -80,11 +80,10 @@ but both reject assigning an unchecked `.get()` result to a non-optional type.
 Both reject a missing required queue, unknown keys, incompatible values and
 wrongly typed constructor dependencies.
 
-The legacy dataclass context manager accepts runtime field names and validates
-values against reflected annotations. Its dynamic writes use one explicit
-`MutableMapping[str, Any]` boundary. Replacing that API belongs to the separate
-context-manager task. Common injected values do not pass through that
-dynamic-write boundary.
+The context manager uses typed `ContextField` descriptors and validates their
+values against the declared schema. Its writes use runtime field names at one
+`MutableMapping[str, Any]` boundary. Common injected values do not pass through
+that dynamic-write boundary.
 Aiogram's arbitrary downstream result and extra framework constructor kwargs
 also retain `Any` at framework boundaries.
 
