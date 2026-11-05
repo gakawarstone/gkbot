@@ -6,7 +6,6 @@ class PlatonusParser:
     __choice_tag = "<variant>"
     __tags = (__question_tag, __choice_tag)
 
-    # FIXME: if end ofl line is not empty last question isn't append
     @classmethod
     def parse_lines(cls, lines: list[str]) -> list[Question]:
         questions = []
