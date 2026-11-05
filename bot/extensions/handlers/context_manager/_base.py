@@ -1,4 +1,5 @@
-from typing import Any
+from collections.abc import MutableMapping
+from typing import Any, cast
 
 from ..base import BaseHandler as _BaseHandler
 from ._types import BaseContext, ContextField
@@ -6,6 +7,11 @@ from ._types import BaseContext, ContextField
 
 class BaseContextManager[T: BaseContext](_BaseHandler):
     props: type[T]
+
+    @property
+    def _context_values(self) -> MutableMapping[str, Any]:
+        # ContextField names are dynamic and validated against the context schema.
+        return cast(MutableMapping[str, Any], self.user_data)
 
     def _schema(self) -> dict[str, ContextField[Any]]:
         schema: dict[str, ContextField[Any]] = {}
@@ -58,7 +64,7 @@ class BaseContextManager[T: BaseContext](_BaseHandler):
         if not isinstance(prop, ContextField) or schema.get(prop.name) is not prop:
             raise KeyError(prop)
         self._validate(prop, value)
-        self.user_data[prop.name] = value
+        self._context_values[prop.name] = value
 
     def clean_context(self, *preserve: ContextField[Any]) -> None:
         schema = self._schema()
@@ -71,4 +77,4 @@ class BaseContextManager[T: BaseContext](_BaseHandler):
         preserved = {field.name for field in preserve}
         for name in schema:
             if name not in preserved:
-                self.user_data[name] = None
+                self._context_values[name] = None

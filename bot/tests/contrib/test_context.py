@@ -36,7 +36,7 @@ class FakeContextManager(BaseContextManager[FakeContext]):
         pass
 
     @property
-    def user_data(self) -> dict[str, Any]:
+    def user_data(self) -> dict[str, Any]:  # type: ignore[override]  # pyright: ignore[reportIncompatibleMethodOverride]
         return self._user_data
 
 
@@ -146,7 +146,7 @@ def test_all_production_contexts_read_legacy_data() -> None:
             self._data = data
 
         @property
-        def user_data(self) -> dict[str, Any]:
+        def user_data(self) -> dict[str, Any]:  # type: ignore[override]  # pyright: ignore[reportIncompatibleMethodOverride]
             return self._data
 
         async def handle(self) -> None:
