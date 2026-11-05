@@ -10,7 +10,6 @@ dependencies = [
     "beautifulsoup4",
     "youtube-search",
     "tortoise-orm==0.21.6",
-    "docx2txt",
     "yt-dlp[default]==2026.8.19",
     "gallery-dl>=1.32.18",
     "edge-tts",
