@@ -1,5 +1,3 @@
-from typing import Any
-
 from models.books import Book
 
 
@@ -17,12 +15,39 @@ class BooksRepository:
             )
         return book
 
-    @classmethod  # FIXME
+    @classmethod
     async def edit_book_property(
-        cls, book_id: int, property_name: str, new_property_value: Any
-    ):
-        kwargs = {property_name: new_property_value}
-        await Book.filter(id=book_id).update(**kwargs)
+        cls,
+        book_id: int,
+        user_id: int,
+        property_name: str,
+        new_property_value: str | None,
+    ) -> None:
+        if property_name not in {"name", "author", "current_chapter", "chapters_cnt"}:
+            raise ValueError("Это поле нельзя изменить")
+        if not isinstance(new_property_value, str) or not new_property_value.strip():
+            raise ValueError("Введите непустое текстовое значение")
+
+        value: str | int = new_property_value.strip()
+        query = Book.filter(id=book_id, user_id=user_id)
+        if property_name in {"current_chapter", "chapters_cnt"}:
+            try:
+                value = int(value)
+            except ValueError as exc:
+                raise ValueError("Введите целое число") from exc
+            if value < 0:
+                raise ValueError("Число глав не может быть отрицательным")
+            if value > 2147483647:
+                raise ValueError("Число глав слишком велико")
+            if property_name == "current_chapter":
+                query = query.filter(chapters_cnt__gte=value)
+            else:
+                query = query.filter(current_chapter__lte=value)
+
+        if not await query.update(**{property_name: value}):
+            if not await Book.filter(id=book_id, user_id=user_id).exists():
+                raise ValueError("Книга не найдена")
+            raise ValueError("Прогресс не может превышать общее число глав")
 
     @classmethod
     async def delete_book(cls, book: Book) -> None:
