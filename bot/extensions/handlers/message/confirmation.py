@@ -7,21 +7,22 @@ from aiogram.types import Message
 
 from ui.keyboards.bool import BoolMarkup
 
+from .base import BaseHandler
 
-async def ask_confirmation(
-    message: Message,
-    state: FSMContext,
-    data: dict[str, Any],
-    text: str,
-    on_yes: Callable[[], Awaitable[Any]],
-    waiting_state: State,
-    finished_state: State,
-    on_no: Callable[[], Awaitable[Any]] | None = None,
-) -> None:
-    prompt = await message.answer(text, reply_markup=BoolMarkup.yes_or_no)
-    data["delete_queue"].append(prompt)
-    await state.set_state(waiting_state)
-    data["confirmation"] = (on_yes, on_no, finished_state)
+
+class ConfirmationHandlerExtension(BaseHandler):
+    async def ask_confirmation(
+        self,
+        text: str,
+        on_yes: Callable[[], Awaitable[Any]],
+        waiting_state: State,
+        finished_state: State,
+        on_no: Callable[[], Awaitable[Any]] | None = None,
+    ) -> None:
+        prompt = await self.event.answer(text, reply_markup=BoolMarkup.yes_or_no)
+        self.user_data["delete_queue"].append(prompt)
+        await self.state.set_state(waiting_state)
+        self.user_data["confirmation"] = (on_yes, on_no, finished_state)
 
 
 async def choose_bool(
