@@ -38,5 +38,5 @@ prefixes, splits at most three colons to preserve URLs, and requires legacy
 emit these two old formats. Removing support requires a separate decision about
 existing messages; malformed values are not part of that compatibility contract.
 
-The [shared lifecycle](download-callbacks.md) continues to own media/status work
-and cleanup. Carousel callbacks remain outside this protocol.
+The shared download lifecycle continues to own media/status work and cleanup.
+Carousel callbacks remain outside this protocol.
