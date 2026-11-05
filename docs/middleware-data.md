@@ -56,12 +56,10 @@ can also be reset to `None`.
   conversation stores its selected setting and parsed value. Its ContextField
   accepts any value; the current time-setting handler writes a `time`.
 
-These remain ordinary dictionaries at runtime. Message and callback middleware
-instances share the existing cache keyed by Telegram user ID, across chats.
-This change does not add eviction or alter cache ownership. Tests can replace
-`UserDataMiddleware._UserDataMiddleware__data` with a fresh dictionary using
-pytest's `monkeypatch.setattr`; `test_data.py` demonstrates isolation without
-clearing another dispatcher's cache.
+These remain ordinary dictionaries in a dispatcher-owned `UserDataStore` shared
+by messages and callbacks. The [retention contract](user-data-retention.md)
+defines its lifetime, bounds and stale FSM reset. Tests inject a fresh store;
+`test_data.py` checks sharing within a session and isolation between users.
 
 ## Handler access and boundaries
 
