@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from aiogram.types import InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
@@ -19,7 +21,7 @@ class SasflixFeedItemMarkup(BaseFeedMarkup):
             [
                 [
                     SasflixDownloadButtonBuilder.build(
-                        SasflixDownloadButtonCallbackData(topic_uuid)
+                        SasflixDownloadButtonCallbackData(topic_uuid=UUID(topic_uuid))
                     )
                 ],
                 cls._get_feed_buttons_row(item_id),

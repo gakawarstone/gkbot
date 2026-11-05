@@ -1,83 +1,48 @@
-from dataclasses import dataclass
-from enum import Enum
+from typing import Self
 
 from aiogram.types import InlineKeyboardButton
+from pydantic import model_validator
 
-from utils.vk import VKReference, parse_vk_reference
+from utils.vk import VKReference, VKReferenceKind
 
-PREFIX = "vkbtn"
+from .download import CallbackIdentifier, DownloadAction, DownloadCallbackData
 
-
-@dataclass
-class _BaseVKDownloadButtonData:
-    event: str
-    text: str
-    prefix: str = PREFIX
+PREFIX = "vk2"
 
 
-@dataclass
-class _VKDownloadAudioButtonData(_BaseVKDownloadButtonData):
-    event: str = "dlmp3"
-    text: str = "Аудио"
+class VKDownloadButtonCallbackData(DownloadCallbackData, prefix=PREFIX, sep="|"):
+    reference_kind: VKReferenceKind
+    reference_value: CallbackIdentifier
 
+    @model_validator(mode="after")
+    def validate_reference(self) -> Self:
+        VKReference(self.reference_kind, self.reference_value)
+        return self
 
-@dataclass
-class _VKDownloadVideoButtonData(_BaseVKDownloadButtonData):
-    event: str = "dlmp4"
-    text: str = "Видео"
+    @property
+    def reference(self) -> VKReference:
+        return VKReference(self.reference_kind, self.reference_value)
 
-
-class VKDownloadButtonData(Enum):
-    audio = _VKDownloadAudioButtonData()
-    video = _VKDownloadVideoButtonData()
-
-
-@dataclass
-class VKDownloadButtonCallbackData:
-    reference: VKReference
-    use_callback_message_as_status: bool = False
-
-
-class VKDownloadButtonDataSerializer:
-    @staticmethod
-    def get_full_prefix(
-        button_data: VKDownloadButtonData,
-    ) -> str:
-        data = button_data.value
-        return f"{data.prefix}:{data.event}:"
-
-
-class VKDownloadButtonCallbackDataSerializer:
-    @staticmethod
-    def serialize(
-        button_data: VKDownloadButtonData,
-        callback_data: VKDownloadButtonCallbackData,
-    ) -> str:
-        base = VKDownloadButtonDataSerializer.get_full_prefix(button_data)
-        return base + (
-            f"{callback_data.use_callback_message_as_status}:"
-            f"{callback_data.reference.value}"
+    @classmethod
+    def from_reference(
+        cls,
+        reference: VKReference,
+        *,
+        action: DownloadAction,
+        use_callback_message_as_status: bool = False,
+    ) -> Self:
+        return cls(
+            action=action,
+            use_callback_message_as_status=use_callback_message_as_status,
+            reference_kind=reference.kind,
+            reference_value=reference.value,
         )
-
-
-class VKDownloadButtonCallbackDataDeserializer:
-    @staticmethod
-    def deserialize(callback_data: str) -> VKDownloadButtonCallbackData:
-        _, _, raw_status, raw_vk_id = callback_data.split(":", 3)
-        reference = parse_vk_reference(raw_vk_id)
-        use_callback_message_as_status = raw_status != "False"
-        return VKDownloadButtonCallbackData(reference, use_callback_message_as_status)
 
 
 class VKDownloadButtonBuilder:
     @staticmethod
-    def build(
-        button_data: VKDownloadButtonData,
-        callback_data: VKDownloadButtonCallbackData,
-    ) -> InlineKeyboardButton:
+    def build(callback_data: VKDownloadButtonCallbackData) -> InlineKeyboardButton:
         return InlineKeyboardButton(
-            text=button_data.value.text,
-            callback_data=VKDownloadButtonCallbackDataSerializer.serialize(
-                button_data, callback_data
-            ),
+            text=callback_data.action.label,
+            callback_data=callback_data.pack(),
         )

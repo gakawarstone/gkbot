@@ -23,7 +23,7 @@ class MatreshkaFeedItemMarkup(BaseFeedMarkup):
             [
                 [
                     MatreshkaDownloadButtonBuilder.build(
-                        MatreshkaDownloadButtonCallbackData(video_id)
+                        MatreshkaDownloadButtonCallbackData(video_id=video_id)
                     )
                 ],
                 cls._get_feed_buttons_row(item_id),
