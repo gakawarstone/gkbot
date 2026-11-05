@@ -1,8 +1,10 @@
 from aiogram import Router
 from aiogram.filters import StateFilter
 
+from extensions.handlers.message.confirmation import choose_bool
+
 from ..states import FSM
-from .pomodoro import PomodoroHandler, choose_bool
+from .pomodoro import PomodoroHandler
 
 __all__ = ["PomodoroHandler"]
 
