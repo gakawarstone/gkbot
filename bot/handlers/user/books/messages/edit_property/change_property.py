@@ -16,7 +16,7 @@ class ChangeBookPropertyHandler(BaseHandler):
             raise ValueError("property_name is required")
 
         if self.event.from_user is None:
-            await self.state.set_state(EditFSM.get_new_value)
+            await self.state.set_state(FSM.check_menu_command)
             await self.event.answer("Не удалось определить пользователя")
             return
 
