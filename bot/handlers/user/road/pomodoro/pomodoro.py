@@ -1,11 +1,13 @@
 from typing import Any
 
-from aiogram.types import ReplyKeyboardRemove
+from aiogram.fsm.context import FSMContext
+from aiogram.types import Message, ReplyKeyboardRemove
 
 from services.pomodoro import Pomodoro as PomodoroService
+from ui.keyboards.bool import BoolMarkup
 
+from ..states import FSM
 from ._base import BaseHandler
-from .restart import ask_to_restart
 
 
 class PomodoroHandler(BaseHandler):
@@ -33,7 +35,22 @@ class PomodoroHandler(BaseHandler):
             user_id=self.event.from_user.id
         )
         await self.event.answer(
-            "<b>Поздравляю</b> вы получили <b>[<i>%s</i>🍅]</b>" % cnt
+            f"<b>Поздравляю</b> вы получили <b>[<i>{cnt}</i>🍅]</b>"
         )
 
-        await ask_to_restart(self, "Хотите начать новый помидор?")
+        message = await self.event.answer(
+            "Хотите начать новый помидор?", reply_markup=BoolMarkup.yes_or_no
+        )
+        self.user_data["delete_queue"].append(message)
+        await self.state.set_state(FSM.choose_bool)
+        self.user_data["callback"] = self
+
+
+async def choose_bool(message: Message, state: FSMContext, data: dict) -> None:
+    callback: PomodoroHandler | None = data.pop("callback", None)
+    if callback is None:
+        return
+    await state.set_state(FSM.finish)
+    await message.delete()
+    if message.text in (BoolMarkup.buttons.yes, "y"):
+        await callback.handle()

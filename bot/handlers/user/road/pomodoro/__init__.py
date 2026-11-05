@@ -2,8 +2,7 @@ from aiogram import Router
 from aiogram.filters import StateFilter
 
 from ..states import FSM
-from .pomodoro import PomodoroHandler
-from .restart import choose_bool
+from .pomodoro import PomodoroHandler, choose_bool
 
 __all__ = ["PomodoroHandler"]
 
