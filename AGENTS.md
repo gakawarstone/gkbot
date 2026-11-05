@@ -60,3 +60,6 @@ make format FILE=bot/core/bot.py
 - Import only what's needed, at the top
 - Use descriptive variable names
 - Keep functions small and focused
+- Set the appropriate FSM `finish` state at the start of each handler so an
+  unexpected failure does not leave the user stuck in an intermediate state.
+  For recoverable input errors, explicitly restore the state needed for retry.

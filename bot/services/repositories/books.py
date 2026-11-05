@@ -25,7 +25,7 @@ class BooksRepository:
     ) -> None:
         if property_name not in {"name", "author", "current_chapter", "chapters_cnt"}:
             raise ValueError("Это поле нельзя изменить")
-        if not isinstance(new_property_value, str) or not new_property_value.strip():
+        if not new_property_value or not new_property_value.strip():
             raise ValueError("Введите непустое текстовое значение")
 
         value: str | int = new_property_value.strip()
@@ -35,19 +35,15 @@ class BooksRepository:
                 value = int(value)
             except ValueError as exc:
                 raise ValueError("Введите целое число") from exc
-            if value < 0:
-                raise ValueError("Число глав не может быть отрицательным")
-            if value > 2147483647:
-                raise ValueError("Число глав слишком велико")
+            if not 0 <= value <= 2147483647:
+                raise ValueError("Введите число глав от 0 до 2147483647")
             if property_name == "current_chapter":
                 query = query.filter(chapters_cnt__gte=value)
             else:
                 query = query.filter(current_chapter__lte=value)
 
         if not await query.update(**{property_name: value}):
-            if not await Book.filter(id=book_id, user_id=user_id).exists():
-                raise ValueError("Книга не найдена")
-            raise ValueError("Прогресс не может превышать общее число глав")
+            raise ValueError("Книга не найдена или прогресс превышает число глав")
 
     @classmethod
     async def delete_book(cls, book: Book) -> None:
