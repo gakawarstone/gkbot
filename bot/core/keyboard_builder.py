@@ -1,5 +1,3 @@
-from typing import Optional
-
 from aiogram.types.keyboard_button import KeyboardButton
 from aiogram.types.reply_keyboard_markup import ReplyKeyboardMarkup
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
@@ -11,12 +9,22 @@ class KeyboardBuilder:
         cls,
         buttons: list[list[str]],
         hide: bool = True,
-        placeholder: Optional[str] = None,
+        placeholder: str | None = None,
     ) -> ReplyKeyboardMarkup:
         """add telegram keyboard with row of {buttons}"""
-        return ReplyKeyboardBuilder(  # TODO: use markup?
-            markup=[cls.__row_as_buttons(row) for row in buttons]
-        ).as_markup(
+        keyboard = [cls.__row_as_buttons(row) for row in buttons]
+        for row in keyboard:
+            if len(row) > ReplyKeyboardBuilder.max_width:
+                raise ValueError(
+                    f"Row {row!r} is too long (max width: {ReplyKeyboardBuilder.max_width})"
+                )
+        if sum(map(len, keyboard)) > ReplyKeyboardBuilder.max_buttons:
+            raise ValueError(
+                "Too much buttons detected Max allowed count - "
+                f"{ReplyKeyboardBuilder.max_buttons}"
+            )
+        return ReplyKeyboardMarkup(
+            keyboard=keyboard,
             resize_keyboard=True,
             one_time_keyboard=hide,
             input_field_placeholder=placeholder,
