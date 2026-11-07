@@ -48,13 +48,13 @@ class ApiExtractor(BaseExtractor):
             if re.search(r"\bmusic\b|\bmime_type=audio_mpeg\b", video_url):
                 video_url = ""
 
-            return {
-                "video_url": video_url,
-                "music_url": music_url,
-                "images_urls": images_urls,
-                "height": height,
-                "width": width,
-                "duration": duration,
-            }
+            return ExtractedVideoData(
+                video_url=video_url,
+                music_url=music_url,
+                images_urls=images_urls,
+                height=height,
+                width=width,
+                duration=duration,
+            )
         except (AttributeError, IndexError, KeyError, TypeError, ValueError) as error:
             raise SerializationError from error

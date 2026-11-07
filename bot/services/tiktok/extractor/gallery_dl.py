@@ -9,10 +9,10 @@ class GalleryDl(BaseExtractor):
 
     async def _extract_video_data(self, url: str) -> ExtractedVideoData:
         slideshow_info = await GalleryDlService.extract_slideshow_info(url)
-        return {
-            "music_url": slideshow_info.music_url,
-            "images_urls": slideshow_info.images_urls,
-            "height": slideshow_info.height,
-            "width": slideshow_info.width,
-            "duration": slideshow_info.duration,
-        }
+        return ExtractedVideoData(
+            music_url=slideshow_info.music_url,
+            images_urls=slideshow_info.images_urls,
+            height=slideshow_info.height,
+            width=slideshow_info.width,
+            duration=slideshow_info.duration,
+        )

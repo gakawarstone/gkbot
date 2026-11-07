@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
 from collections.abc import Iterator
 from contextlib import contextmanager
-from typing import ClassVar, TypedDict
+from dataclasses import dataclass, field
+from typing import ClassVar
 from urllib.parse import urlsplit, urlunsplit
 
 from aiogram.types import InputFile
@@ -13,16 +14,17 @@ from ..types import InfoVideoTikTok
 from .exceptions import SourceInfoExtractFailed
 
 
-class ExtractedVideoData(TypedDict, total=False):
+@dataclass
+class ExtractedVideoData:
     """Provider data. Omitted fields receive defaults in BaseExtractor."""
 
-    video_url: str | None
-    video_input_file: InputFile | None
-    music_url: str | None
-    images_urls: list[str] | None
-    height: int | None
-    width: int | None
-    duration: int | None
+    video_url: str | None = None
+    video_input_file: InputFile | None = None
+    music_url: str | None = ""
+    images_urls: list[str] | None = field(default_factory=list)
+    height: int | None = None
+    width: int | None = None
+    duration: int | None = None
 
 
 class BaseExtractor(ABC):
@@ -45,13 +47,13 @@ class BaseExtractor(ABC):
                 url = await self._extract_full_url(url)
             data = await self._extract_video_data(url)
             return InfoVideoTikTok(
-                video_url=data.get("video_url"),
-                video_input_file=data.get("video_input_file"),
-                music_url=data.get("music_url", ""),
-                images_urls=data.get("images_urls", []),
-                height=data.get("height"),
-                width=data.get("width"),
-                duration=data.get("duration"),
+                video_url=data.video_url,
+                video_input_file=data.video_input_file,
+                music_url=data.music_url,
+                images_urls=data.images_urls,
+                height=data.height,
+                width=data.width,
+                duration=data.duration,
             )
 
     @abstractmethod
@@ -91,7 +93,7 @@ class VideoUrlExtractor(BaseExtractor):
         video_url = (await self._get_video_links(url))[0]
         if not video_url:
             raise ValueError("Provider returned an empty video URL")
-        return {"video_url": video_url}
+        return ExtractedVideoData(video_url=video_url)
 
     @abstractmethod
     async def _get_video_links(self, url: str) -> list[str]:

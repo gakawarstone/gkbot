@@ -17,12 +17,12 @@ class YtDlp(BaseExtractor):
         async with YtdlpDownloader.download_video(
             url, cleanup_delay_minutes=5
         ) as video_file_info:
-            return {
-                "video_input_file": video_file_info.input_file,
-                "duration": video_file_info.duration,
-                "height": video_file_info.height,
-                "width": video_file_info.width,
-            }
+            return ExtractedVideoData(
+                video_input_file=video_file_info.input_file,
+                duration=video_file_info.duration,
+                height=video_file_info.height,
+                width=video_file_info.width,
+            )
 
     async def _get_video_input_file(self, url: str) -> InputFile:
         async with YtdlpDownloader.download_video(

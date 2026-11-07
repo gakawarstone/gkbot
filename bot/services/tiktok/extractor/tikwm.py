@@ -34,11 +34,11 @@ class TikWm(BaseExtractor):
             if not images and not post["play"]:
                 raise SerializationError
             music_url = (post.get("music_info") or {}).get("play") or post.get("music")
-            return {
-                "video_url": video_url,
-                "music_url": urljoin(cls._base_url, music_url) if music_url else None,
-                "images_urls": [urljoin(cls._base_url, image) for image in images],
-                "duration": None if images else post.get("duration"),
-            }
+            return ExtractedVideoData(
+                video_url=video_url,
+                music_url=urljoin(cls._base_url, music_url) if music_url else None,
+                images_urls=[urljoin(cls._base_url, image) for image in images],
+                duration=None if images else post.get("duration"),
+            )
         except (AttributeError, KeyError, TypeError, ValueError) as error:
             raise SerializationError from error
