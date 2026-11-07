@@ -5,7 +5,7 @@
 
 ## Problem
 
-The YouTube downloader expects an external broker with `/enqueue` and `/result/<task_id>`. Root Compose does not provide that service, while the repository's worker supervisor exposes `/upload` and `/fetch`. The intended deployment contract is unclear.
+The YouTube downloader expects an external broker with `/enqueue` and `/result/<task_id>`. Root Compose does not provide that service. The former supervisor exposing `/upload` and `/fetch` was deleted in commit `02c5be1`; it is not a current local alternative. The intended deployment contract needs an explicit owner decision.
 
 ## Plan
 
@@ -21,3 +21,10 @@ The YouTube downloader expects an external broker with `/enqueue` and `/result/<
 - The owner has explicitly selected the target architecture.
 - Implementation starts only after that decision is recorded.
 
+## Decision pending
+
+The [decision record](../../docs/youtube-worker-contract.md) contains the verified
+2026-10-23 contract map, alternatives and proposed downstream policy. Recommendation
+is A, retain the external broker. Production pairing and the owner's architecture
+selection remain unconfirmed. Keep this task OPEN and downstream runtime work
+blocked until the owner selects an option and the decision is recorded.
