@@ -11,7 +11,7 @@ class AudioDownloadOptions(DownloadOptions):
     }
 
     vk = {
-        "format": "ba",
+        "format": "ba[ext=m4a]/ba/bestaudio/best",
         "concurrent_fragment_downloads": 100,
         "force_ipv4": True,
     }
@@ -50,7 +50,13 @@ class VideoDownloadOptions(DownloadOptions):
     }
 
     vk = {
-        "format": "bv[ext=mp4]+ba[ext=m4a]/b[ext=mp4]",
+        "format": (
+            "bv[ext=mp4]+ba[ext=m4a]"
+            "/bv[ext=mp4]+ba"
+            "/b[ext=mp4]"
+            "/best"
+        ),
         "concurrent_fragment_downloads": 100,
         "force_ipv4": True,
+        "merge_output_format": "mp4",
     }
