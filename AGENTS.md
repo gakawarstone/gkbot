@@ -4,8 +4,7 @@ This file contains information about using various tools and commands in this pr
 
 ## Important Rules
 
-- Commits are allowed and must follow Conventional Commits.
-- Do not run other history-changing git commands.
+- Use Conventional Commits
 - Follow all coding conventions strictly
 
 ## Build/Lint/Test Commands
