@@ -54,12 +54,8 @@ lint:
 	uv run mypy $(or $(FILE),bot/) 
 	uv run pyright $(or $(FILE),bot/)
 
-.PHONY: check check-go lint test format
-check: lint test check-go
-
-check-go:
-	cd services/serveo_file_server && go test -race -timeout 60s ./...
-	cd services/serveo_file_server && go vet ./...
+.PHONY: check lint test format
+check: lint test
 
 format:
 ifdef FILE

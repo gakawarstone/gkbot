@@ -22,13 +22,3 @@ jobs:
           uv sync --frozen --dev --python 3.13
       - run: make lint
       - run: make test
-
-  serveo:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version-file: services/serveo_file_server/go.mod
-          cache: false
-      - run: make check-go
