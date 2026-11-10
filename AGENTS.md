@@ -4,9 +4,7 @@ This file contains information about using various tools and commands in this pr
 
 ## Important Rules
 
-- Git commands are allowed for read-only inspection, including `git diff`,
-  `git diff --cached`, and `git status --short`
-- Do NOT create commits or run history-changing git commands
+- Use Conventional Commits
 - Follow all coding conventions strictly
 
 ## Build/Lint/Test Commands
