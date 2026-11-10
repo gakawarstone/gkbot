@@ -3,6 +3,7 @@ from datetime import time
 from typing import Any
 
 from services.repositories.road_settings import RoadSettingsRepository
+
 from ...states import FSM
 from .._context import RoadSettingsContextManager
 
@@ -38,7 +39,7 @@ class GetNewSettingValueHandler(RoadSettingsContextManager):
     # FIX: from reminder move to contrib
     def _validate_time(self, _time: str) -> time:
         try:
-            tzinfo = datetime.timezone.utc
+            tzinfo = datetime.UTC
             return time(minute=int(_time), tzinfo=tzinfo)
         except ValueError:
             raise InvalidTimeInput

@@ -1,7 +1,8 @@
-from urllib.parse import urlparse
 from typing import Any
+from urllib.parse import urlparse
 
 from services.gkfeed import GkfeedApi, GkfeedAuthService
+
 from ._base import BaseHandler
 from ._states import FSM
 

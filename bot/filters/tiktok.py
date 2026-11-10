@@ -1,7 +1,7 @@
 import re
 
 from aiogram.filters import BaseFilter
-from aiogram.types import Message, InlineQuery
+from aiogram.types import InlineQuery, Message
 
 
 class TikTokVideoLink(BaseFilter):

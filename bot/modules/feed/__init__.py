@@ -1,11 +1,12 @@
-from aiogram import Router, F
+from aiogram import F, Router
 from aiogram.filters import Command
 
 from configs.commands import USER_COMMANDS
-from .ui.keyboards import FeedMarkup
+
 from .handlers import add, auth
-from .handlers.messages import ShowFeedItemsHandler
 from .handlers.callbacks import ItemEventHandler
+from .handlers.messages import ShowFeedItemsHandler
+from .ui.keyboards import FeedMarkup
 
 
 def setup(r: Router):

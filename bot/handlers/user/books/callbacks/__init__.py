@@ -1,6 +1,7 @@
 from aiogram import F, Router
 
 from ui.keyboards.books import EventsMarkup, PropertiesMarkup
+
 from .edit_properties import EditHandler
 from .events import EventsHandler
 

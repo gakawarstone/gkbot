@@ -1,8 +1,8 @@
-from aiogram import Router, Bot
+from aiogram import Bot, Router
+from aiogram.enums import ChatType
 from aiogram.filters import Command, and_f
 from aiogram.types import Message
 
-from core.types import ChatType
 from filters.chat_type import ChatTypeFilter
 
 
@@ -16,6 +16,6 @@ def setup(r: Router):
         tag_all_admins,
         and_f(
             Command(commands=["admins"]),
-            ChatTypeFilter(chat_type=[ChatType.group, ChatType.super_group]),
+            ChatTypeFilter(chat_type=[ChatType.GROUP, ChatType.SUPERGROUP]),
         ),
     )

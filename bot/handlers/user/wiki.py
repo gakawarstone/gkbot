@@ -1,12 +1,11 @@
 from aiogram import Router
-from aiogram.types import Message
-from aiogram.fsm.context import FSMContext
 from aiogram.filters import Command, StateFilter
+from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-
-from services.wiki import WikiApi, QuoteNotFound
+from aiogram.types import Message
 
 from configs.commands import USER_COMMANDS
+from services.wiki import QuoteNotFound, WikiApi
 
 
 class FSM(StatesGroup):
@@ -31,7 +30,7 @@ async def get_data(message: Message, state: FSMContext):
     try:
         quote = WikiApi.get_quote(message.text)
         await message.answer(
-            "Нашел кое-что по запросу <b>%s</b> 👇\n\n" % message.text + quote
+            f"Нашел кое-что по запросу <b>{message.text}</b> 👇\n\n" + quote
         )
     except QuoteNotFound:
         await message.answer("Я ничего не нашел 🙂")

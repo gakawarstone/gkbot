@@ -4,6 +4,7 @@ from extensions.handlers.message.one_time_extension import (
     OneTimeMessageHandlerExtension,
 )
 from ui.keyboards.reminder import RemindMarkup
+
 from ._base import BaseHandler
 from ._states import FSM
 
@@ -15,5 +16,5 @@ class TextInputHandler(BaseHandler, OneTimeMessageHandlerExtension):
         self.set(self.props.text, self.event.text)
         await self.render_widget()
         self._set_one_time_message(
-            (await self.event.answer("Введите дату", reply_markup=RemindMarkup.date))
+            await self.event.answer("Введите дату", reply_markup=RemindMarkup.date)
         )

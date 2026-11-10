@@ -1,14 +1,14 @@
 from datetime import datetime
 
 from aiogram import Router
-from aiogram.fsm.state import State, StatesGroup
+from aiogram.filters import Command
 from aiogram.filters.state import StateFilter
 from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import Message
-from aiogram.filters import Command
 
-from services.notion_api import Database
 from configs.commands import USER_COMMANDS
+from services.notion_api import Database
 
 tasks = Database("67f38400c29f4137ac285fe6569567e2")
 
@@ -52,7 +52,7 @@ async def get_subject(message: Message, state: FSMContext):
     await message.answer("Отправьте дедлайн")
 
 
-async def get_deadline(message: Message, state: FSMContext):
+async def get_deadline(message: Message, state: FSMContext) -> None:
     await state.set_state(TaskStates.finish)
     if message.text is None:
         await state.set_state(TaskStates.deadline)
@@ -61,16 +61,17 @@ async def get_deadline(message: Message, state: FSMContext):
 
     try:
         deadline = datetime.strptime(message.text, "%d.%m.%Y")
-        # Retrieve the row from the FSM context
-        user_data = await state.get_data()
-        row = user_data.get("row")
-        if row:
-            await row.set_date("Deadline", deadline)
-            await row.set_select("Status", "Не начато")
-        await message.answer("Спасибо")
-    except Exception:
+    except ValueError:
         await state.set_state(TaskStates.deadline)
         await message.answer("Дата некорректна [01.01.1970]")
+        return
+
+    user_data = await state.get_data()
+    row = user_data.get("row")
+    if row:
+        await row.set_date("Deadline", deadline)
+        await row.set_select("Status", "Не начато")
+    await message.answer("Спасибо")
 
 
 def setup(r: Router):

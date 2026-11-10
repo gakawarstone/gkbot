@@ -1,8 +1,6 @@
 from aiogram import Router
 
-from . import menu
-from . import callbacks
-from . import messages
+from . import callbacks, menu, messages
 
 
 def setup(r: Router):

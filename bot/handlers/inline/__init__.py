@@ -1,6 +1,6 @@
 from aiogram import Router
 
-from . import tiktok, youtube, chance, choose_list, joke
+from . import chance, choose_list, joke, tiktok, youtube
 
 
 def setup(r: Router):

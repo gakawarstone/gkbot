@@ -1,7 +1,8 @@
 from urllib.parse import urlparse
 
-from services.gkfeed import FeedItem
 from extensions.handlers.message.http import HttpExtension
+from services.gkfeed import FeedItem
+
 from . import BaseFeedItemView
 
 

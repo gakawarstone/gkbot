@@ -1,6 +1,8 @@
 from typing import Any, override
 
+from extensions.handlers.context_manager import ContextField
 from ui.keyboards.chat import ChatMarkup
+
 from ._base import BaseHandler
 from ._states import FSM
 
@@ -28,6 +30,6 @@ class InitHandler(BaseHandler):
         await self.state.set_state(FSM.get_message)
 
     @override
-    def clean_context(self, *args):
+    def clean_context(self, *args: ContextField[Any]) -> None:
         super().clean_context(*args)
         self.set(self.props.messages, [])

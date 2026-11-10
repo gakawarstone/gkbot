@@ -1,0 +1,13 @@
+name: TikTok slideshow download sends uploaded video
+timeout: 90
+steps:
+  - send:
+      text: https://vt.tiktok.com/ZSgaSnRm4/
+  - expect:
+      method: sendMessage
+      text: Скачиваю https://vt.tiktok.com/ZSgaSnRm4/
+  - expect:
+      method: sendVideo
+      media_type: video
+      filename: video.mp4
+      duration: 9

@@ -1,12 +1,6 @@
 from aiogram import Router
 
-from . import tiktok
-from . import ytdlp
-from . import jutsu
-from . import ytdlp_short
-from . import instagram
-from . import tts
-from . import vk
+from . import instagram, jutsu, tiktok, tts, vk, ytdlp, ytdlp_short
 
 
 def setup(r: Router):

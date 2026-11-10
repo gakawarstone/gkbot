@@ -1,12 +1,13 @@
 from datetime import timedelta
 
 from aiogram import Router
-from aiogram.types import Message
-from aiogram.fsm.context import FSMContext
-from aiogram.filters.state import StateFilter
-from aiogram.fsm.state import State, StatesGroup
-from services.timezone import TimeZone, InvalidTimeZone
 from aiogram.filters import Command
+from aiogram.filters.state import StateFilter
+from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import State, StatesGroup
+from aiogram.types import Message
+
+from services.timezone import InvalidTimeZone, TimeZone
 
 
 class FSM(StatesGroup):

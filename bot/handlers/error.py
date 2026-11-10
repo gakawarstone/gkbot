@@ -1,10 +1,10 @@
 import traceback
-from typing import Any, cast
 from datetime import datetime
+from typing import Any, cast
 
 from aiogram import Router
-from aiogram.types import BufferedInputFile
 from aiogram.handlers import ErrorHandler as _BaseHandler
+from aiogram.types import BufferedInputFile
 from aiogram.types.error_event import ErrorEvent
 
 
