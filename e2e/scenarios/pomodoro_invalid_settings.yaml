@@ -1,0 +1,96 @@
+name: Invalid Pomodoro settings leave saved values unchanged
+timeout: 25
+steps:
+  - send:
+      text: /road
+  - expect:
+      method: sendMessage
+      text_contains: инструмент
+  - send:
+      text: "3"
+  - expect:
+      method: sendMessage
+      text: Настройки
+  - click:
+      button_text: "Время работы: 15"
+  - expect:
+      method: sendMessage
+      text_contains: Введите новое значение
+  - send:
+      text: "25"
+  - expect:
+      method: sendMessage
+      text: Изменено
+  - send:
+      text: "3"
+  - expect:
+      method: sendMessage
+      text: Настройки
+  - click:
+      button_text: "Время работы: 25"
+  - expect:
+      method: sendMessage
+      text_contains: Введите новое значение
+  - send:
+      text: abc
+  - expect_none:
+      method: sendMessage
+      text: Изменено
+      duration: 0.5
+  - send:
+      text: /road
+  - expect:
+      method: sendMessage
+      text_contains: инструмент
+  - send:
+      text: "3"
+  - expect:
+      method: sendMessage
+      text: Настройки
+  - click:
+      button_text: "Время работы: 25"
+  - expect:
+      method: sendMessage
+      text_contains: Введите новое значение
+  - send:
+      text: "-1"
+  - expect_none:
+      method: sendMessage
+      text: Изменено
+      duration: 0.5
+  - send:
+      text: /road
+  - expect:
+      method: sendMessage
+      text_contains: инструмент
+  - send:
+      text: "3"
+  - expect:
+      method: sendMessage
+      text: Настройки
+  - click:
+      button_text: "Время работы: 25"
+  - expect:
+      method: sendMessage
+      text_contains: Введите новое значение
+  - send:
+      text: "60"
+  - expect_none:
+      method: sendMessage
+      text: Изменено
+      duration: 0.5
+  - send:
+      text: /road
+  - expect:
+      method: sendMessage
+      text_contains: инструмент
+  - send:
+      text: "3"
+  - expect:
+      method: sendMessage
+      text: Настройки
+  - click:
+      button_text: "Время работы: 25"
+  - expect:
+      method: sendMessage
+      text_contains: Введите новое значение
