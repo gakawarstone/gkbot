@@ -8,13 +8,11 @@ from services.schedule import Schedule
 
 
 async def on_shutdown() -> None:
-    try:
-        await feed_parser.close()
-        await GkfeedApi.on_shutdown()
-        await Schedule.on_shutdown()
-        await Tortoise.close_connections()
-    finally:
-        await HttpService.close()
+    await feed_parser.close()
+    await GkfeedApi.on_shutdown()
+    await Schedule.on_shutdown()
+    await Tortoise.close_connections()
+    await HttpService.close()
 
 
 def setup(r: Router) -> None:
