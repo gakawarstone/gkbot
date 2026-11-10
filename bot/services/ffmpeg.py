@@ -2,6 +2,7 @@ import asyncio
 import json
 import shutil
 from pathlib import Path
+from typing import ClassVar
 
 from services.cache_dir import CacheDir
 from services.ffmpeg_runner import FfmpegRunner
@@ -12,14 +13,14 @@ class FfmpegService:
     SLIDESHOW_WIDTH = 720
     SLIDESHOW_HEIGHT = 1080
 
-    __resize_image_options = [
+    __resize_image_options: ClassVar[list[str]] = [
         "-vf",
         (
             "scale=trunc(oh*a/2)*2:720,"
             "pad=max(iw\\,ih*9/16):max(ih\\,iw*16/9):(ow-iw)/2:(oh-ih)/2:black"
         ),
     ]
-    __make_slideshow_options = [
+    __make_slideshow_options: ClassVar[list[str]] = [
         "-c:v",
         "libx264",
         "-shortest",
@@ -31,7 +32,7 @@ class FfmpegService:
         "yuv420p",
     ]
 
-    __convert_to_voice_options = ["-acodec", "libopus"]
+    __convert_to_voice_options: ClassVar[list[str]] = ["-acodec", "libopus"]
 
     @classmethod
     async def convert_music_to_voice(cls, music: bytes) -> bytes:
@@ -52,21 +53,41 @@ class FfmpegService:
 
     @classmethod
     async def convert_video(cls, input_path: str, output_path: str) -> None:
-        command = FfmpegRunner.build_command(
-            inputs=[input_path],
-            output=output_path,
-            props=[
+        probe = await FfmpegRunner.run(
+            [
+                "ffprobe",
+                "-v",
+                "error",
+                "-select_streams",
+                "v:0",
+                "-show_entries",
+                "stream=codec_name,pix_fmt",
+                "-of",
+                "csv=p=0",
+                input_path,
+            ],
+            capture_output=True,
+            text=True,
+        )
+        # Telegram-compatible H.264 needs no video re-encoding, even for long clips.
+        video_options = (
+            ["-c:v", "copy"]
+            if probe.stdout.strip() == "h264,yuv420p"
+            else [
                 "-c:v",
                 "libx264",
                 "-preset",
                 "veryfast",
                 "-threads",
                 "1",
-                "-c:a",
-                "aac",
                 "-pix_fmt",
                 "yuv420p",
-            ],
+            ]
+        )
+        command = FfmpegRunner.build_command(
+            inputs=[input_path],
+            output=output_path,
+            props=video_options + ["-c:a", "aac"],
         )
         await FfmpegRunner.run(command)
 
