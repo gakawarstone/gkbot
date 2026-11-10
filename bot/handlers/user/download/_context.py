@@ -1,11 +1,12 @@
-from dataclasses import dataclass
+from extensions.handlers.context_manager import (
+    BaseContext,
+    BaseContextManager,
+    ContextField,
+)
 
-from extensions.handlers.context_manager import BaseContext, BaseContextManager
 
-
-@dataclass
 class _DownloadContext(BaseContext):
-    file_name: str | None = None
+    file_name = ContextField(str)
 
 
 class DownloadContextManager(BaseContextManager[_DownloadContext]):

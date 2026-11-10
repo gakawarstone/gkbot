@@ -57,21 +57,41 @@ class FfmpegService:
 
     @classmethod
     async def convert_video(cls, input_path: str, output_path: str) -> None:
-        command = cls._build_command(
-            inputs=[input_path],
-            output=output_path,
-            props=[
+        probe = await cls._run_command(
+            [
+                "ffprobe",
+                "-v",
+                "error",
+                "-select_streams",
+                "v:0",
+                "-show_entries",
+                "stream=codec_name,pix_fmt",
+                "-of",
+                "csv=p=0",
+                input_path,
+            ],
+            capture_output=True,
+            text=True,
+        )
+        # Telegram-compatible H.264 needs no video re-encoding, even for long clips.
+        video_options = (
+            ["-c:v", "copy"]
+            if probe.stdout.strip() == "h264,yuv420p"
+            else [
                 "-c:v",
                 "libx264",
                 "-preset",
                 "veryfast",
                 "-threads",
                 "1",
-                "-c:a",
-                "aac",
                 "-pix_fmt",
                 "yuv420p",
-            ],
+            ]
+        )
+        command = cls._build_command(
+            inputs=[input_path],
+            output=output_path,
+            props=video_options + ["-c:a", "aac"],
         )
         await cls._run_command(command)
 

@@ -4,12 +4,10 @@ from typing import ClassVar
 
 from services.http import HttpService
 
-from ..types import InfoVideoTikTok
-from ._base import BaseExtractor
-from .exceptions import SourceInfoExtractFailed
+from ._base import VideoUrlExtractor
 
 
-class Tikdown(BaseExtractor):
+class Tikdown(VideoUrlExtractor):
     _base_url = "https://tikdown.org/"
     _headers: ClassVar[dict[str, str]] = {
         "origin": "https://tikdown.org",
@@ -26,24 +24,6 @@ class Tikdown(BaseExtractor):
         "x-requested-with": "XMLHttpRequest",
     }
 
-    async def get_video_info(self, url: str) -> InfoVideoTikTok:
-        try:
-            response = InfoVideoTikTok(
-                video_url=await self.get_video_file_url(url),
-                video_input_file=None,
-                music_url="",
-                images_urls=[],
-            )
-            return response
-        except (IndexError, ValueError):
-            raise SourceInfoExtractFailed(self)
-
-    async def get_video_file_url(self, url: str) -> str:
-        try:
-            return (await self._get_video_links(url))[0]
-        except (IndexError, ValueError):
-            raise SourceInfoExtractFailed(self)
-
     async def _get_video_links(self, url: str) -> list[str]:
         res_text = (await HttpService.get(self._base_url)).decode("utf-8")
         _token = re.findall(r'type\="hidden".*?value\="([0-9a-zA-Z]+)"', res_text)[0]
@@ -56,6 +36,8 @@ class Tikdown(BaseExtractor):
             )
         ).decode("utf-8")
         js = json.loads(resp)
+        if not isinstance(js, dict):
+            raise TypeError("Tikdown returned a non-object response")
         if js.get("status"):
             video = re.findall(r"\"(https?://.*?\.mp4)\"", js["html"])[0]
             return [video]

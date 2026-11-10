@@ -33,8 +33,12 @@ class GalleryDlService:
 
     @classmethod
     async def _extract_json_data(cls, url: str) -> list[Any]:
+        return await async_wrap(cls._run_data_job)(url)
+
+    @staticmethod
+    def _run_data_job(url: str) -> list[Any]:
         job = DataJob(url, file=None)
-        status = await async_wrap(job.run)()
+        status = job.run()
         if status or getattr(job, "exception", None):
             raise ValueError("gallery-dl failed to extract data")
         return job.data

@@ -1,11 +1,12 @@
-from dataclasses import dataclass
+from extensions.handlers.context_manager import (
+    BaseContext,
+    BaseContextManager,
+    ContextField,
+)
 
-from extensions.handlers.context_manager import BaseContext, BaseContextManager
 
-
-@dataclass
 class _ChatGPTContext(BaseContext):
-    messages: list | None = None  # BUG: list[str] not works
+    messages = ContextField(list[str])
 
 
 class ChatGPTContextManager(BaseContextManager[_ChatGPTContext]):

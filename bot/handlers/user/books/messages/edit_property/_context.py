@@ -1,15 +1,15 @@
-from abc import ABC
-from dataclasses import dataclass
+from extensions.handlers.context_manager import (
+    BaseContext,
+    BaseContextManager,
+    ContextField,
+)
 
-from extensions.handlers.context_manager import BaseContext, BaseContextManager
 
-
-@dataclass
 class _EditBookPropertyContext(BaseContext):
-    property_name: str | None = None
-    new_value: str | None = None
-    book_id: int | None = None
+    property_name = ContextField(str)
+    new_value = ContextField(str)
+    book_id = ContextField(int)
 
 
-class EditBookPropertyContextManager(BaseContextManager[_EditBookPropertyContext], ABC):
+class EditBookPropertyContextManager(BaseContextManager[_EditBookPropertyContext]):
     props = _EditBookPropertyContext

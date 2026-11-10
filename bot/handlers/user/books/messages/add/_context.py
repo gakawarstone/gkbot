@@ -1,16 +1,17 @@
-from dataclasses import dataclass
-
 from aiogram.types import Message
 
-from extensions.handlers.context_manager import BaseContext, BaseContextManager
+from extensions.handlers.context_manager import (
+    BaseContext,
+    BaseContextManager,
+    ContextField,
+)
 
 
-@dataclass
 class _AddBookContext(BaseContext):
-    name: str | None = None
-    author: str | None = None
-    chapter_cnt: int | None = None
-    message: Message | None = None
+    name = ContextField(str)
+    author = ContextField(str)
+    chapter_cnt = ContextField(int)
+    message = ContextField(Message)
 
 
 class AddBookContextManager(BaseContextManager[_AddBookContext]):
