@@ -106,7 +106,7 @@ class YtdlpDownloader:
             )
 
         if not isinstance(raw_info, dict):
-            raise ValueError("yt-dlp returned invalid metadata")
+            raise TypeError("yt-dlp returned invalid metadata")
 
         return _YtDlpInfo(
             duration=raw_info.get("duration") or 0,

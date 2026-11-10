@@ -12,7 +12,7 @@ from services.gkfeed import (
     GkfeedItemsPicker,
 )
 
-from .. import integration_test
+from .. import requires_integration
 from . import Bot, Event
 
 
@@ -56,7 +56,9 @@ class MockedHandler(ShowFeedItemsHandler):
         return Bot()
 
 
-@integration_test
+@requires_integration(
+    "Telegram Bot API credentials, ADMIN_IDS and live article/YouTube endpoints and the yt-dlp worker"
+)
 @pytest.mark.asyncio(loop_scope="session")
 @pytest.mark.parametrize(
     "link",
@@ -74,4 +76,4 @@ async def test_handler(link: str) -> None:
         ),
         patch("modules.feed.handlers.messages.Message", Event),
     ):
-        await MockedHandler(event=Event(breakpoint_at_delete=False)).handle()  # type: ignore[arg-type]
+        await MockedHandler(event=Event()).handle()  # type: ignore[arg-type]
