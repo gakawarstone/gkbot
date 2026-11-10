@@ -10,10 +10,8 @@ dependencies = [
     "beautifulsoup4",
     "youtube-search",
     "tortoise-orm==0.21.6",
-    "docx2txt",
-    "varname==0.13.0",
     "yt-dlp[default]==2026.8.19",
-    "gallery-dl>=1.30.10",
+    "gallery-dl>=1.32.18",
     "edge-tts",
     "aiogram==3.31.0",
     "uvloop>=0.21.0",
@@ -28,7 +26,10 @@ dev = [
     "pyright>=1.1.408",
     "pytest>=8.3.5",
     "pytest-asyncio>=0.25.3",
+    "ruff==0.17.2",
     "types-requests>=2.32.4.20250611",
+    "types-yt-dlp>=2026.8.19.20261008",
+    "typos==1.51.1",
 ]
 
 [tool.pyright]
@@ -55,4 +56,17 @@ extend-select = ["I001"]
 known-first-party = ["bot"]
 
 [tool.mypy]
+mypy_path = "$MYPY_CONFIG_FILE_DIR/bot"
+explicit_package_bases = true
+
+# These installed dependencies ship neither stubs nor a py.typed marker.
+# Keep missing internal imports and typed third-party imports as errors.
+[[tool.mypy.overrides]]
+module = [
+    "gallery_dl.*",
+    "gtts.*",
+    "varname.*",
+    "youtube_search",
+    "wikipedia.*",
+]
 ignore_missing_imports = true

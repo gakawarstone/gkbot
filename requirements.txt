@@ -53,17 +53,13 @@ colorama==0.4.6 ; sys_platform == 'win32'
     #   tqdm
 distro==1.9.0
     # via openai
-docx2txt==0.9
-    # via gkbot
 edge-tts==7.2.7
     # via gkbot
-executing==2.2.1
-    # via varname
 frozenlist==1.8.0
     # via
     #   aiohttp
     #   aiosignal
-gallery-dl==1.32.7
+gallery-dl==1.32.18
     # via gkbot
 gtts==2.5.4
     # via gkbot
@@ -152,8 +148,6 @@ urllib3==2.6.3
     #   requests
     #   yt-dlp
 uvloop==0.22.1
-    # via gkbot
-varname==0.13.0
     # via gkbot
 websockets==17.1
     # via yt-dlp

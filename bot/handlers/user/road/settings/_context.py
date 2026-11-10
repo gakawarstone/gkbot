@@ -1,13 +1,15 @@
-from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any, cast
 
-from extensions.handlers.context_manager import BaseContext, BaseContextManager
+from extensions.handlers.context_manager import (
+    BaseContext,
+    BaseContextManager,
+    ContextField,
+)
 
 
-@dataclass
 class RoadSettingsContext(BaseContext):
-    setting_name: Optional[str] = None
-    setting_new_value: Optional[Any] = None
+    setting_name = ContextField(str)
+    setting_new_value = ContextField(cast(type[Any], Any))
 
 
 class RoadSettingsContextManager(BaseContextManager[RoadSettingsContext]):

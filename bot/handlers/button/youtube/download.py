@@ -38,11 +38,11 @@ async def _prepare_request(callback_data: str) -> DownloadRequest:
 
 
 async def _video_options(url: str, video: VideoFileInfo) -> VideoOptions:
-    data = await YoutubeApiService.get_video_data(url)
-    channel_title = remove_emoji(data.channel_title)
+    video_data = await YoutubeApiService.get_video_data(url)
+    channel_title = remove_emoji(video_data.channel_title)
     return {
         "caption": f'<b>{video.title}</b>\n\n<a href="{url}">{channel_title}</a>',
-        "thumbnail": URLInputFile(data.thumbnail_url),
+        "thumbnail": URLInputFile(video_data.thumbnail_url),
     }
 
 

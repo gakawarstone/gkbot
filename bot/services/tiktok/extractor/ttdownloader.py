@@ -2,39 +2,17 @@ import re
 
 import requests
 
-from services.http import HttpRequestError, HttpService
 from utils.async_wrapper import async_wrap
 
-from ..types import InfoVideoTikTok
-from ._base import BaseExtractor
-from .exceptions import SourceInfoExtractFailed
+from ._base import BaseExtractor, VideoUrlExtractor
 
 
-class TTDownloader(BaseExtractor, requests.Session):
+class TTDownloader(VideoUrlExtractor, requests.Session):
+    _expected_errors = (*BaseExtractor._expected_errors, requests.RequestException)
+    _normalize_url = True
+    # TTDownloader returns the soundtrack for photo posts.
+    _supports_photo_posts = False
     _base_url = "https://ttdownloader.com/"
-
-    async def get_video_info(self, url: str) -> InfoVideoTikTok:
-        try:
-            response = InfoVideoTikTok(
-                video_url=await self.get_video_file_url(url),
-                video_input_file=None,
-                music_url="",
-                images_urls=[],
-            )
-            return response
-        except (IndexError, ValueError):
-            raise SourceInfoExtractFailed(self)
-
-    async def get_video_file_url(self, url: str) -> str:
-        try:
-            full_url = (await HttpService.get_redirected_url(url)).split("?")[0]
-            # TTDownloader returns the soundtrack for photo posts.
-            if "/photo/" in full_url:
-                raise SourceInfoExtractFailed(self)
-            links = await self._get_video_links(full_url)
-            return links[0]
-        except (HttpRequestError, IndexError, ValueError):
-            raise SourceInfoExtractFailed(self)
 
     async def _get_video_links(self, url: str) -> list[str]:
         return await async_wrap(self.__get_video_links_sync)(url)
