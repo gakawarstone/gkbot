@@ -56,9 +56,9 @@ async def download(callback: CallbackQuery):
 
     if _is_button_callback(callback, YoutubeDownloadButtonData.video):
         async with YtdlpDownloader.download_video(url) as video:
-            data = await YoutubeApiService.get_video_data(url)
+            video_data = await YoutubeApiService.get_video_data(url)
 
-            channel_title = remove_emoji(data.channel_title)
+            channel_title = remove_emoji(video_data.channel_title)
             caption = f'<b>{video.title}</b>\n\n<a href="{url}">{channel_title}</a>'
 
             await callback.message.answer_video(
@@ -68,7 +68,7 @@ async def download(callback: CallbackQuery):
                 duration=video.duration,
                 supports_streaming=True,
                 caption=caption,
-                thumbnail=URLInputFile(data.thumbnail_url),
+                thumbnail=URLInputFile(video_data.thumbnail_url),
             )
 
     if isinstance(status_message, Message):

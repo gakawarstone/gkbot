@@ -1,6 +1,4 @@
-from typing import Type
-
-from aiogram.types import InlineKeyboardButton
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 
 class CarouselMarkupButtons:
@@ -15,8 +13,14 @@ class CarouselMarkupData:
 
 class BaseCarouselMarkup[T: CarouselMarkupButtons, S: CarouselMarkupData]:
     prefix: str
-    buttons: Type[T]
-    data: Type[S]
+    buttons: type[T]
+    data: type[S]
+
+    @classmethod
+    def get_item_markup(
+        cls, item_id: int, media_len: int, media_current_num: int
+    ) -> InlineKeyboardMarkup:
+        raise NotImplementedError
 
     @classmethod
     def _get_carousel_navs_row(
