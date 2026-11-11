@@ -5,10 +5,10 @@ from html import escape
 from aiogram.types import BufferedInputFile
 from bs4 import BeautifulSoup, Tag
 
-from services.feed_parser import feed_parser
 from services.gkfeed import FeedItem
 from services.http import HttpService
 from services.open_graph import OpenGraphMetadata, OpenGraphService
+from workers.feed_parser import feed_parser
 
 from ...ui.keyboards import FeedMarkup
 from . import BaseFeedItemView

@@ -1,9 +1,9 @@
 from aiogram import Router
 from tortoise import Tortoise
 
-from services.feed_parser import feed_parser
 from services.gkfeed.api import GkfeedApi
 from services.schedule import Schedule
+from workers.feed_parser import feed_parser
 
 
 async def on_shutdown() -> None:
