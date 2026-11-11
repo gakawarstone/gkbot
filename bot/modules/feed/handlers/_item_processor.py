@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from collections.abc import Awaitable, Callable
 from typing import Any
@@ -32,10 +33,6 @@ _ITEM_PROCESSOR = Callable[[FeedItem], Awaitable[Any]]
 logger = logging.getLogger(__name__)
 
 
-class _RedactedFeedError(Exception):
-    """Keep error type and stack frames without URL/payload-bearing messages."""
-
-
 class GkfeedItemProcessorExtension(
     SasflixFeedItemView,
     HltvFeedItemView,
@@ -58,6 +55,8 @@ class GkfeedItemProcessorExtension(
     VKFeedItemView,
     BaseHandler,
 ):
+    _processing_semaphore = asyncio.Semaphore(10)
+
     @property
     def _processor_registry(self) -> FeedProcessorRegistry:
         return FeedProcessorRegistry((create_discours_processor(self._send_photo),))
@@ -89,20 +88,20 @@ class GkfeedItemProcessorExtension(
         }
 
     async def _process_item(self, item: FeedItem) -> None:
-        entry = self._processor_registry.resolve(item)
-        if entry is not None:
-            await self._run_processor(item, entry.process, entry.source_id)
-            return
-
-        for prefix, processor in self._processors.items():
-            if item.link.startswith(prefix):
-                processor_name = getattr(
-                    processor, "__name__", type(processor).__name__
-                )
-                await self._run_processor(item, processor, processor_name)
+        async with self._processing_semaphore:
+            entry = self._processor_registry.resolve(item)
+            if entry is not None:
+                await self._run_processor(item, entry.process, entry.source_id)
                 return
 
-        await self._run_processor(item, self._process_base_item, "_process_base_item")
+            for prefix, processor in self._processors.items():
+                if item.link.startswith(prefix):
+                    await self._run_processor(item, processor, processor.__name__)
+                    return
+
+            await self._run_processor(
+                item, self._process_base_item, "_process_base_item"
+            )
 
     async def _run_processor(
         self, item: FeedItem, processor: _ITEM_PROCESSOR, processor_name: str
@@ -112,7 +111,7 @@ class GkfeedItemProcessorExtension(
         except RECOVERABLE_FEED_ERRORS as error:
             # Exception messages and chains can contain credentials, URLs or media.
             # Preserve the original frames, but log only the exception class name.
-            safe_error = _RedactedFeedError(type(error).__name__)
+            safe_error = Exception(type(error).__name__)
             logger.error(
                 "Failed to process feed item id=%s feed_id=%s text_length=%s processor=%s",
                 item.id,

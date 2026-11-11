@@ -1,5 +1,6 @@
 import asyncio
 import traceback
+from collections.abc import AsyncIterator
 from dataclasses import replace
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -10,10 +11,22 @@ from aiogram.methods import SendPhoto
 from aiogram.types import Message, User
 
 from modules.feed.handlers.messages import ShowFeedItemsHandler
+from services.feed_parser import feed_parser
 from services.gkfeed import FeedItem
 from services.http import HttpRequestError
+from utils.process_worker import ProcessWorker
 
 PHOTO_METHOD = SendPhoto(chat_id=1, photo="https://example.invalid/photo.jpg")
+
+
+@pytest.fixture(autouse=True)
+async def isolated_feed_parser() -> AsyncIterator[None]:
+    worker = ProcessWorker()
+    with patch.object(feed_parser, "run", worker.run):
+        try:
+            yield
+        finally:
+            await worker.close()
 
 
 @pytest.fixture
