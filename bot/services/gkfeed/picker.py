@@ -1,40 +1,38 @@
-from typing import Callable
+from collections.abc import Callable
+from typing import ClassVar
 
-from ._types import FeedItem
+from ._types import FeedItem, FeedItemSummary
 from .api import GkfeedApi
 from .auth import GkfeedCredentials
 
 
 class GkfeedItemsPicker:
-    _items_pocket: dict[str, set[int]] = {}
+    _items_pocket: ClassVar[dict[str, set[int]]] = {}
 
-    def __init__(self, credentials: GkfeedCredentials):
+    def __init__(self, credentials: GkfeedCredentials) -> None:
         self.__credentials = credentials
         self._items_pocket.setdefault(credentials.login, set())
 
     async def get_next_item(
-        self, is_item_valid: Callable[[FeedItem], bool] = lambda _: True
+        self, is_item_valid: Callable[[FeedItemSummary], bool] = lambda _: True
     ) -> FeedItem | None:
-        item = None
         api = GkfeedApi(self.__credentials)
-        items: list[FeedItem] = []
+        items = [item async for item in api.get_user_items()]
 
-        async for _item in api.get_user_items():
-            items.append(_item)
-
-        for _item in self._sort_items_by_feed(items):
-            if not is_item_valid(_item):
+        for summary in self._sort_items_by_feed(items):
+            if not is_item_valid(summary) or self._is_item_in_pocket(summary.id):
                 continue
 
-            if not self._is_item_in_pocket(_item.id):
-                item = _item
-                self._save_to_pocket(item.id)
-                break
+            item = await api.get_item_by_item_id(summary.id)
+            # Another picker may have delivered this ID while detail loaded.
+            if item is None or self._is_item_in_pocket(item.id):
+                continue
 
-        if not item:
-            self._clean_pocket()
+            self._save_to_pocket(item.id)
+            return item
 
-        return item
+        self._clean_pocket()
+        return None
 
     def _is_item_in_pocket(self, item_id: int) -> bool:
         return item_id in self._items_pocket[self.__credentials.login]
@@ -45,25 +43,11 @@ class GkfeedItemsPicker:
     def _clean_pocket(self) -> None:
         self._items_pocket[self.__credentials.login] = set()
 
-    def _sort_items_by_feed(self, items: list[FeedItem]) -> list[FeedItem]:
-        items_by_id = sorted(items, key=lambda x: x.id)
+    def _sort_items_by_feed(
+        self, items: list[FeedItemSummary]
+    ) -> list[FeedItemSummary]:
+        items_by_feed: dict[int, list[FeedItemSummary]] = {}
+        for item in sorted(items, key=lambda item: item.id):
+            items_by_feed.setdefault(item.feed_id, []).append(item)
 
-        items_by_feed: dict[int, list[FeedItem]] = {}
-        for item in items_by_id:
-            feed_id = item.feed_id
-            if feed_id not in items_by_feed:
-                items_by_feed[feed_id] = []
-            items_by_feed[feed_id].append(item)
-
-        final_sorted_items = []
-        processed_feed_ids = set()
-
-        for item in items_by_id:
-            feed_id = item.feed_id
-            if feed_id in processed_feed_ids:
-                continue
-
-            final_sorted_items.extend(items_by_feed[feed_id])
-            processed_feed_ids.add(feed_id)
-
-        return final_sorted_items
+        return [item for feed_items in items_by_feed.values() for item in feed_items]
