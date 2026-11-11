@@ -1,5 +1,4 @@
 from datetime import timedelta
-from typing import Optional
 
 from models.timezone import TimeZone as _TimeZone
 
@@ -18,12 +17,12 @@ class InvalidTimeZone(Exception):
 class TimeZone:
     @classmethod
     async def get_user_timezone(cls, user_id: int) -> timedelta:
-        if not (tz := await cls._get_tz_by_user_id(user_id)):
+        if (tz := await cls._get_tz_by_user_id(user_id)) is None:
             raise UserDontHaveTimeZone
         return tz
 
     @classmethod
-    async def _get_tz_by_user_id(cls, user_id: int) -> Optional[timedelta]:
+    async def _get_tz_by_user_id(cls, user_id: int) -> timedelta | None:
         tzinfo = await _TimeZone.filter(user_id=user_id).first()
         if type(tzinfo) is not _TimeZone:
             return None
@@ -38,10 +37,8 @@ class TimeZone:
     @classmethod
     def __validate_timezone(cls, tz: timedelta) -> bool:
         seconds = tz.total_seconds()
-        return _MIN_TZ <= seconds and seconds <= _MAX_TZ
+        return _MIN_TZ <= seconds <= _MAX_TZ
 
-    @classmethod  # FIXME update or create didnt work
+    @classmethod
     async def _set_tz_by_user_id(cls, user_id: int, tz: timedelta) -> None:
-        if await cls._get_tz_by_user_id(user_id):
-            await _TimeZone.filter(user_id=user_id).delete()
-        await _TimeZone.create(user_id=user_id, tz=tz)
+        await _TimeZone.update_or_create(user_id=user_id, defaults={"tz": tz})
