@@ -33,7 +33,7 @@ async def _prepare_request(callback_data: str) -> DownloadRequest:
 
 
 async def _video_options(url: str, video: VideoFileInfo) -> VideoOptions:
-    return {"has_spoiler": True}
+    return VideoOptions(has_spoiler=True)
 
 
 async def download(callback: CallbackQuery) -> None:

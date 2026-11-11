@@ -9,11 +9,12 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from aiogram.types import CallbackQuery, FSInputFile, Message
 
+from handlers.button.pornhub.download import download as download_pornhub
 from handlers.button.porno365.download import download as download_porno365
 from handlers.button.vk.download import download as download_vk
 from handlers.button.youtube.download import download as download_youtube
 from services.porno365 import Porno365Service
-from services.youtube import YoutubeApiService
+from services.youtube import YoutubeApiService, YoutubeVideoData
 from services.ytdlp import YtdlpDownloader
 from services.ytdlp._types import AudioFileInfo, VideoFileInfo
 
@@ -175,3 +176,36 @@ async def test_cancellation_cleans_download_and_status(state: DownloadState) -> 
     assert raised.value is state.error
     assert state.visible_messages == {"callback"}
     assert not state.media_path.exists()
+
+
+async def test_youtube_video_keeps_caption_and_thumbnail(state: DownloadState) -> None:
+    state.callback.data = "ytbtn:dlmp4:False:oRxuDeZRFx8"
+    state.metadata.return_value = YoutubeVideoData(
+        title="Metadata title",
+        channel_title="Channel",
+        thumbnail_url="https://example.com/thumb.jpg",
+    )
+
+    await download_youtube(state.callback)
+
+    call = state.callback.message.answer_video.await_args
+    assert call is not None
+    assert call.kwargs["caption"] == (
+        '<b>Video title</b>\n\n<a href="https://www.youtube.com/watch?v=oRxuDeZRFx8">Channel</a>'
+    )
+    assert call.kwargs["thumbnail"].url == "https://example.com/thumb.jpg"
+
+
+@pytest.mark.parametrize("source", ["pornhub", "porno365"])
+async def test_adult_video_keeps_spoiler(state: DownloadState, source: str) -> None:
+    if source == "pornhub":
+        state.callback.data = "phbtn:dlmp4:False:ph123"
+        await download_pornhub(state.callback)
+    else:
+        state.callback.data = "p365btn:dlmp4:False:https://porno365.example/video/123"
+        state.resolve_url.return_value = "https://cdn.example/video.mp4"
+        await download_porno365(state.callback)
+
+    call = state.callback.message.answer_video.await_args
+    assert call is not None
+    assert call.kwargs["has_spoiler"] is True

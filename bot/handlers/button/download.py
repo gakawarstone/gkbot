@@ -2,7 +2,7 @@
 
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
-from typing import Literal, TypedDict
+from typing import Literal
 
 from aiogram.types import CallbackQuery, InaccessibleMessage, InputFile
 
@@ -19,10 +19,11 @@ class DownloadRequest:
     media_type: MediaType | None
 
 
-class VideoOptions(TypedDict, total=False):
-    caption: str
-    thumbnail: InputFile
-    has_spoiler: bool
+@dataclass(frozen=True)
+class VideoOptions:
+    caption: str | None = None
+    thumbnail: InputFile | None = None
+    has_spoiler: bool | None = None
 
 
 def get_media_type(
@@ -73,8 +74,10 @@ async def download(
                 )
         elif request.media_type == "video":
             async with YtdlpDownloader.download_video(request.url) as video:
-                options: VideoOptions = (
-                    await video_options(request.url, video) if video_options else {}
+                options = (
+                    await video_options(request.url, video)
+                    if video_options
+                    else VideoOptions()
                 )
                 await message.answer_video(
                     video.input_file,
@@ -82,7 +85,9 @@ async def download(
                     width=video.width,
                     duration=video.duration,
                     supports_streaming=True,
-                    **options,
+                    caption=options.caption,
+                    thumbnail=options.thumbnail,
+                    has_spoiler=options.has_spoiler,
                 )
     finally:
         await status_message.delete()
