@@ -10,7 +10,6 @@ from . import (
     download,
     exit,
     list,
-    platonus2indigo,
     reminder,
     road,
     sort_sources,
@@ -34,7 +33,6 @@ def setup(r: Router) -> None:
     books.setup(r)
     timezone.setup(r)
     list.setup(r)
-    platonus2indigo.setup(r)
     download.setup(r)
     asura.setup(r)
     sort_sources.setup(r)

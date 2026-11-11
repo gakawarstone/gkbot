@@ -9,7 +9,6 @@ DEFAULT_COMMANDS = {
     "start_timer": "start timer",
     "admins": "tag all admins",
     "books": "personal book shelf",
-    "platonus2indigo": "convert test",
     "dl": "download file",
     "tts": "text to speech",
     "sort_sources": "sort sources",
