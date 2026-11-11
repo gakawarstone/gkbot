@@ -15,7 +15,6 @@ def _get_required_env(key: str) -> str:
 BOT_TOKEN = _get_required_env("BOT_TOKEN")
 ADMIN_IDS = _get_required_env("ADMIN_IDS")
 
-NOTION_API_TOKEN = os.getenv("NOTION_API_TOKEN")
 DB_URL = os.getenv("DB_URL")
 API_SERVER_URL = os.getenv("API_SERVER_URL")
 YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
