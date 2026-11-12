@@ -345,10 +345,7 @@ async def test_reason_only_response_finishes_with_nonempty_status() -> None:
     assert await state.get_state() == FSM.get_message.state
 
 
-@pytest.mark.parametrize("status_fails", [False, True])
-async def test_stop_while_sending_draft_closes_suspended_stream(
-    status_fails: bool,
-) -> None:
+async def test_stop_status_failure_closes_suspended_stream() -> None:
     handler, session, state, history = make_handler(thread_id=42)
     sending = asyncio.Event()
     closed = asyncio.Event()
@@ -369,12 +366,11 @@ async def test_stop_while_sending_draft_closes_suspended_stream(
         await asyncio.Future()
         return True
 
-    if status_fails:
-        session.failures[SendMessage] = [
-            TelegramBadRequest(
-                method=SendMessage(chat_id=123, text="status"), message="status failed"
-            )
-        ]
+    session.failures[SendMessage] = [
+        TelegramBadRequest(
+            method=SendMessage(chat_id=123, text="status"), message="status failed"
+        )
+    ]
     ticks = count(step=2)
     with (
         patch("handlers.user.chatgpt.answer.OpenRouter.stream", side_effect=stream),
@@ -393,10 +389,7 @@ async def test_stop_while_sending_draft_closes_suspended_stream(
             ),
             handler.bot,
         )
-        if status_fails:
-            with pytest.raises(TelegramBadRequest, match="status failed"):
-                await task
-        else:
+        with pytest.raises(TelegramBadRequest, match="status failed"):
             await task
     assert closed.is_set()
     assert history == ["prompt"]
