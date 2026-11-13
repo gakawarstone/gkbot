@@ -14,8 +14,8 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import LinkPreviewOptions, Message, MessageGenerationStopped
 from aiogram.utils.formatting import BlockQuote
 
-from services.ai_response import split_response
 from services.llm.openrouter import StreamChunk
+from ui.ai_response import split_response
 
 logger = logging.getLogger(__name__)
 DRAFT_MESSAGE_LIMIT = 4096

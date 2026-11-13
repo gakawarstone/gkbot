@@ -1,4 +1,4 @@
-from services.ai_chat_stream import (
+from ui.ai_chat_stream import (
     ActiveGeneration,
     GenerationKey,
     active_generations,

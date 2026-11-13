@@ -10,9 +10,9 @@ from aiogram.types import Message
 from extensions.handlers.message.file_extension import FileHandlerExtension
 from extensions.handlers.message.markdown_render import MarkdownRenderHandlerExtension
 from services.agents.image_explainer import ImageExplainer
-from services.ai_chat_stream import AIChatStream
 from services.llm import OpenRouter
 from services.llm.openrouter import DEFAULT_MODEL, StreamChunk
+from ui.ai_chat_stream import AIChatStream
 
 from ._base import BaseHandler
 from ._states import FSM

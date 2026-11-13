@@ -47,6 +47,12 @@ To format a specific file:
 make format FILE=bot/core/bot.py
 ```
 
+## Architecture Verification
+
+- For new or changed code, keep Telegram-specific `aiogram` imports and
+  presentation logic in UI or handler modules, not services. Verify this boundary
+  during review; address existing violations when they are within scope.
+
 ## Code Style Guidelines
 
 - Use ruff for formatting
