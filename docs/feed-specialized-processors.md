@@ -31,30 +31,6 @@ resolving a source perform no network requests or credential lookups. The
 [registry contract](feed-processor-registry.md) and centralized
 [exception policy](feed-processor-exceptions.md) are unchanged.
 
-Task 11's published commit is merged into this branch to provide a linear PR
-stack. The composition includes all simple and specialized sources with one
-Discours entry. Task 13 removes the remaining empty legacy map, dispatch loop,
-and aggregate handler inheritance, and owns the matching-filter follow-up.
-
-## Preserved responses
-
-- VK retains text, photo, and video-preview branches. The video preview derives
-  the download identity from player metadata, including the `video` prefix in
-  values such as `video-42_99`.
-- Stories derives its video caption from raw feed data. TikTok forwards the input
-  file, dimensions, duration, and streaming flag. Instagram decodes its inline
-  base64 image and keeps its existing caption extraction.
-- Reddit tries an Open Graph preview before its alternate page. The alternate
-  page can produce a photo, video, URL button, or Telegraph page. Gallery content
-  still goes through Telegraph, not an album upload. The URL button uses the
-  shared feed action row; no `fdreddit` callback is emitted.
-- YouTube preserves its thumbnail and channel caption and handles unavailable
-  videos with the generic link response. Pornhub and Porno365 keep preview
-  spoilers. Pornhub without a `viewkey` keeps only feed action buttons.
-- Sasflix checks audio availability before loading preview metadata and keeps the
-  topic UUID in its download button. Matreshka uses its video result's ID, title,
-  and image. Their missing-image paths retain the generic link response.
-
 The existing keyboard builders and download handlers are unchanged. Callback
 formats remain:
 
@@ -69,9 +45,5 @@ formats remain:
 | Sasflix audio | `sasflixbtn:<topic_uuid>` |
 | Matreshka audio | `matreshkabtn:<video_id>` |
 
-The specialized regression tests exercise real registry dispatch and response
-callbacks for both message and callback events. They assert media, captions,
-spoilers, literal keyboard payloads, and compatibility with the existing download
-deserializers. They also cover local missing-media fallback, recoverable source
-failures, Telegram send failures, unexpected errors, cancellation, and a failing
-fallback sender.
+Existing behavioral tests cover media payloads, captions, spoilers, playback
+metadata, callback payloads, Reddit gallery content, and usable fallback links.
