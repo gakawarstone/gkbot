@@ -2,8 +2,8 @@ from dataclasses import dataclass
 
 from bs4 import BeautifulSoup, Tag
 
-from services.feed_parser import feed_parser
 from services.http import HttpService
+from workers.feed_parser import feed_parser
 
 _TWITTERBOT_HEADERS = {
     "User-Agent": "Mozilla/5.0 (compatible; Twitterbot/1.0)",

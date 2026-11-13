@@ -6,11 +6,11 @@ from urllib.parse import urlparse
 from aiogram.types import BufferedInputFile
 from bs4 import BeautifulSoup, Tag
 
-from services.feed_parser import feed_parser
 from services.gkfeed import FeedItem
 from services.http import HttpRequestError, HttpService
 from services.open_graph import OpenGraphService
 from services.telegraph import HtmlToTelegraphContentConverter, TelegraphAPI
+from workers.feed_parser import feed_parser
 
 from ...ui.keyboards import FeedMarkup
 from ...ui.keyboards.reddit import RedditFeedItemMarkup

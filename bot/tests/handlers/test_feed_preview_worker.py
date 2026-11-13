@@ -13,13 +13,13 @@ from modules.feed.handlers.callbacks import ItemEventHandler
 from modules.feed.handlers.messages import ShowFeedItemsHandler
 from modules.feed.handlers.views.reddit import RedditFeedItemView
 from modules.feed.ui.keyboards import FeedMarkup
-from services.feed_parser import feed_parser
 from services.gkfeed import FeedItem, GkfeedCredentials
 from services.gkfeed.api import GkfeedApi
 from services.http import HttpService
 from services.matreshka import MatreshkaService
 from services.open_graph import OpenGraphService
 from services.telegraph import TelegraphAPI
+from workers.feed_parser import feed_parser
 
 pytestmark = pytest.mark.asyncio(loop_scope="session")
 

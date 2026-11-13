@@ -9,11 +9,11 @@ from aiogram.types import FSInputFile
 from bs4 import BeautifulSoup, Tag
 
 from services.cache_dir import CacheDir
-from services.feed_parser import feed_parser
 from services.ffmpeg import FfmpegService
 from services.http import HttpService
 from services.open_graph import OpenGraphService
 from services.ytdlp._types import AudioFileInfo
+from workers.feed_parser import feed_parser
 
 _HLS_URL_PATTERN = re.compile(r'https:(?:\\u002F){2}[^"]+?master\.m3u8\?[^"]+')
 

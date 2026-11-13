@@ -3,8 +3,8 @@ import base64
 from aiogram.types import BufferedInputFile
 from bs4 import BeautifulSoup, Tag
 
-from services.feed_parser import feed_parser
 from services.gkfeed import FeedItem
+from workers.feed_parser import feed_parser
 
 from ...ui.keyboards import FeedMarkup
 from . import BaseFeedItemView
