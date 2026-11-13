@@ -4,6 +4,7 @@ This file contains information about using various tools and commands in this pr
 
 ## Important Rules
 
+- Use Conventional Commits
 - Git commands are allowed for read-only inspection, including `git diff`,
   `git diff --cached`, and `git status --short`
 - Do NOT create commits or run history-changing git commands
@@ -35,6 +36,10 @@ To run tests on a specific file:
 ```bash
 make test FILE=tests/test_file.py
 ```
+
+Do not write tests for reversible, low-impact changes or tests that only repeat
+the implementation. When tests are needed, verify meaningful behavior, including
+regressions where appropriate.
 
 To format code:
 

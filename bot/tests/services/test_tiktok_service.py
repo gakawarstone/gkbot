@@ -11,6 +11,7 @@ from aiogram.types import FSInputFile
 
 from services.cache_dir import CacheDir
 from services.ffmpeg import FfmpegService
+from services.ffmpeg_runner import FfmpegRunner
 from services.http import HttpService
 from services.schedule import Schedule, Task
 from services.tiktok import TikTokService, _TikTokCacheDir
@@ -106,7 +107,7 @@ async def test_slideshow_keeps_ffmpeg_output_without_bytes_round_trip(
     monkeypatch.setattr(CacheDir, "save_file", unexpected_save)
     monkeypatch.setattr(FfmpegService, "download_and_prepare_images", AsyncMock())
     monkeypatch.setattr(FfmpegService, "download_and_prepare_audio", AsyncMock())
-    monkeypatch.setattr(FfmpegService, "_run_command", run)
+    monkeypatch.setattr(FfmpegRunner, "run", run)
     info = InfoVideoTikTok(None, None, audio_url, ["https://example.invalid/image"])
     input_file = await get_video(info, monkeypatch)
     assert output_paths == [str(input_file.path)]
@@ -245,7 +246,7 @@ async def test_cancelled_slideshow_finishes_before_cleanup(
         Path(command[-1]).write_bytes(b"slideshow")
 
     monkeypatch.setattr(FfmpegService, "download_and_prepare_images", AsyncMock())
-    monkeypatch.setattr(FfmpegService, "_run_command", run)
+    monkeypatch.setattr(FfmpegRunner, "run", run)
     monkeypatch.setattr(
         TikTokInfoExtractor,
         "get_video_info",
@@ -284,7 +285,7 @@ async def test_metadata_probe_failure_keeps_uploadable_file(
         Path(command[-1]).write_bytes(b"slideshow")
 
     monkeypatch.setattr(FfmpegService, "download_and_prepare_images", AsyncMock())
-    monkeypatch.setattr(FfmpegService, "_run_command", run)
+    monkeypatch.setattr(FfmpegRunner, "run", run)
     monkeypatch.setattr(
         FfmpegService,
         "get_video_metadata",

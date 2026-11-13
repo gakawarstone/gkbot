@@ -5,6 +5,19 @@ from models.books import Book
 
 class BooksRepository:
     @classmethod
+    async def create_book(
+        cls,
+        name: str | None,
+        author: str | None,
+        chapters_cnt: int | None,
+        user_id: int,
+    ) -> bool:
+        _, is_created = await Book.get_or_create(
+            name=name, author=author, chapters_cnt=chapters_cnt, user_id=user_id
+        )
+        return is_created
+
+    @classmethod
     async def get_all_user_books(cls, user_id: int) -> list[Book]:
         return await Book.filter(user_id=user_id).all()
 
