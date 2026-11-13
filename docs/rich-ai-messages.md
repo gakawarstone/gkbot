@@ -1,8 +1,9 @@
 # Rich AI messages prototype
 
-The opt-in adapter in bot/services/rich_messages.py is separate from
-AnswerHandler. Production retains HTML streaming; no handler or model prompt
-selects this experiment. The current StreamChunk producer supplies text and
+The opt-in adapter in bot/ui/rich_messages.py exposes ui.rich_messages.
+Its Telegram presentation belongs in UI under the architecture rule from #39.
+It is separate from AnswerHandler. Production retains HTML streaming; no handler
+or model prompt selects this experiment. The current StreamChunk producer supplies text and
 reasoning, not a semantic tree. Integration needs a parser or structured-output
 producer, the original text for history/fallback, and a live rendering trial.
 
@@ -62,8 +63,8 @@ isolation or replace required context approval/retention decisions.
 Run the existing fixtures and checks:
 
     PYTHONPATH=bot .venv/bin/python -m tests.benchmarks.rich_messages --iterations 100
-    make test FILE='bot/tests/services/test_rich_messages.py bot/tests/handlers/test_chatgpt_rich_fallback.py'
-    make lint FILE=bot/services/rich_messages.py
+    make test FILE='bot/tests/ui/test_rich_messages.py bot/tests/handlers/test_chatgpt_rich_fallback.py'
+    make lint FILE=bot/ui/rich_messages.py
 
 The local baseline from 2026-10-23, implementation commit 55db4f6, used Python
 3.13.11, aiogram 3.31.0, and Pydantic 2.12.5. Over 100 iterations, mixed content

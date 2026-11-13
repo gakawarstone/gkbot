@@ -28,7 +28,7 @@ from aiogram.methods import (
 )
 from aiogram.types import Chat, Message, RichMessage
 
-from services.rich_messages import (
+from ui.rich_messages import (
     CodePart,
     DetailsPart,
     ListPart,
@@ -158,7 +158,7 @@ def test_nested_conversion_finishes_within_timeout() -> None:
             sys.executable,
             "-c",
             (
-                "from services.rich_messages import DetailsPart, TextPart, to_rich_message\n"
+                "from ui.rich_messages import DetailsPart, TextPart, to_rich_message\n"
                 "parts = (TextPart('Привет 😀'),)\n"
                 "for _ in range(15):\n"
                 "    parts = (DetailsPart('More', parts),)\n"
@@ -319,7 +319,7 @@ async def test_rate_limit_waits_before_fallback() -> None:
             chat_id=123, draft_id=1, text="original response"
         )
 
-    with patch("services.rich_messages.asyncio.sleep", side_effect=cooldown):
+    with patch("ui.rich_messages.asyncio.sleep", side_effect=cooldown):
         await prototype.send_draft((TextPart("original response"),), 1, fallback)
     assert calls == ["cooldown", "fallback"]
     assert isinstance(session.requests[-1], SendMessageDraft)

@@ -14,7 +14,7 @@ from time import perf_counter_ns
 import aiogram
 
 from extensions.handlers.message.markdown_render import parse_markdown, render_html
-from services.rich_messages import (
+from ui.rich_messages import (
     CodePart,
     DetailsPart,
     ListPart,

@@ -6,8 +6,8 @@ from aiogram.methods import SendRichMessage
 from aiogram.types import InputRichMessage, Message
 
 from extensions.handlers.message.markdown_render import parse_markdown
-from services.rich_messages import RichMessageLimits, RichMessagePrototype, TextPart
 from tests.handlers.test_chatgpt_drafts import chunks_stream, make_handler, visible_text
+from ui.rich_messages import RichMessageLimits, RichMessagePrototype, TextPart
 
 
 @pytest.mark.parametrize("rejected_by_server", [True, False])
