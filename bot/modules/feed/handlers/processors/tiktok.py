@@ -2,6 +2,7 @@ from services.gkfeed import FeedItem
 from services.tiktok import TikTokService
 
 from ...ui.keyboards import FeedMarkup
+from .matching import matches_source_url
 from .registry import FeedProcessor
 from .rendering import FeedRendering
 
@@ -22,6 +23,6 @@ def create_tiktok_processor(rendering: FeedRendering) -> FeedProcessor:
 
     return FeedProcessor(
         "tiktok",
-        lambda item: item.link.startswith(("https://www.tiktok",)),
+        lambda item: matches_source_url(item, frozenset({"www.tiktok.com"})),
         process,
     )

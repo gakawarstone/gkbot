@@ -152,6 +152,19 @@ def payload_rows(markup: InlineKeyboardMarkup) -> list[list[str | None]]:
     ]
 
 
+@pytest.mark.parametrize(
+    ("link", "source"),
+    [
+        ("https://matreshka.tv/other/1", None),
+    ],
+)
+def test_nonvideo_matreshka_page_does_not_select_video_processor(
+    handler: SpecializedHandler, item: FeedItem, link: str, source: str | None
+) -> None:
+    entry = handler._processor_registry.resolve(replace(item, link=link))
+    assert (entry.source_id if entry else None) == source
+
+
 def assert_plain_link(bot: MagicMock, item: FeedItem) -> None:
     caption = {
         "youtube": "youtube",

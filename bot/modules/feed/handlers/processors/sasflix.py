@@ -3,6 +3,7 @@ from services.open_graph import OpenGraphService
 from services.sasflix import SasflixService
 
 from ...ui.keyboards.sasflix import SasflixFeedItemMarkup
+from .matching import matches_source_url
 from .registry import FeedProcessor
 from .rendering import FeedRendering
 
@@ -27,6 +28,6 @@ def create_sasflix_processor(rendering: FeedRendering) -> FeedProcessor:
 
     return FeedProcessor(
         "sasflix",
-        lambda item: item.link.startswith(("https://sasflix.ru/",)),
+        lambda item: matches_source_url(item, frozenset({"sasflix.ru"})),
         process,
     )

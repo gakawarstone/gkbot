@@ -2,6 +2,7 @@ from modules.feed.ui.keyboards.pornhub import PornhubFeedItemMarkup
 from services.gkfeed import FeedItem
 from services.open_graph import OpenGraphService
 
+from .matching import matches_source_url
 from .registry import FeedProcessor
 from .rendering import FeedRendering
 
@@ -27,8 +28,8 @@ def create_pornhub_processor(rendering: FeedRendering) -> FeedProcessor:
 
     return FeedProcessor(
         "pornhub",
-        lambda item: item.link.startswith(
-            ("https://www.pornhub.com", "https://de.pornhub.org", "https://pornhub.org")
+        lambda item: matches_source_url(
+            item, frozenset({"www.pornhub.com", "de.pornhub.org", "pornhub.org"})
         ),
         process,
     )

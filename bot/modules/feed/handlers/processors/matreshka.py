@@ -2,6 +2,7 @@ from services.gkfeed import FeedItem
 from services.matreshka import MatreshkaService
 
 from ...ui.keyboards.matreshka import MatreshkaFeedItemMarkup
+from .matching import matches_source_url
 from .registry import FeedProcessor
 from .rendering import FeedRendering
 
@@ -25,6 +26,8 @@ def create_matreshka_processor(rendering: FeedRendering) -> FeedProcessor:
 
     return FeedProcessor(
         "matreshka",
-        lambda item: item.link.startswith(("https://matreshka.tv/video/",)),
+        lambda item: matches_source_url(
+            item, frozenset({"matreshka.tv"}), path_prefix="/video/"
+        ),
         process,
     )

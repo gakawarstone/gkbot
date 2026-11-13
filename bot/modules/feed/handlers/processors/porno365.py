@@ -2,6 +2,7 @@ from modules.feed.ui.keyboards.porno365 import Porno365FeedItemMarkup
 from services.gkfeed import FeedItem
 from services.open_graph import OpenGraphService
 
+from .matching import matches_source_url
 from .registry import FeedProcessor
 from .rendering import FeedRendering
 
@@ -23,6 +24,8 @@ def create_porno365_processor(rendering: FeedRendering) -> FeedProcessor:
 
     return FeedProcessor(
         "porno365",
-        lambda item: item.link.startswith(("http://porno365.broker",)),
+        lambda item: matches_source_url(
+            item, frozenset({"porno365.broker"}), scheme="http"
+        ),
         process,
     )

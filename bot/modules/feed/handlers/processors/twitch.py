@@ -4,11 +4,8 @@ from services.gkfeed import FeedItem
 
 from .._exceptions import FeedMediaExtractionError
 from ._simple_rendering import SendPhoto
+from .matching import matches_source_url
 from .registry import FeedProcessor
-
-
-def _matches_twitch(item: FeedItem) -> bool:
-    return item.link.startswith("https://www.twitch")
 
 
 def create_twitch_processor(send_photo: SendPhoto) -> FeedProcessor:
@@ -22,4 +19,8 @@ def create_twitch_processor(send_photo: SendPhoto) -> FeedProcessor:
         thumbnail_url = f"https://static-cdn.jtvnw.net/previews-ttv/live_user_{streamer_name}-1920x1080.jpg"
         await send_photo(item, thumbnail_url, item.text or item.title, streamer_name)
 
-    return FeedProcessor("twitch", _matches_twitch, process)
+    return FeedProcessor(
+        "twitch",
+        lambda item: matches_source_url(item, frozenset({"www.twitch.tv"})),
+        process,
+    )

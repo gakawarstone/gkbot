@@ -1,11 +1,11 @@
 import logging
 from collections.abc import Awaitable, Callable
-from typing import Any
+from typing import Any, ClassVar
 
 from services.gkfeed import FeedItem
 
-from ._base import BaseHandler
 from ._exceptions import RECOVERABLE_FEED_ERRORS
+from .policy import FeedSourcePolicy
 from .processors import FeedProcessorRegistry
 from .processors.discours import create_discours_processor
 from .processors.hltv import create_hltv_processor
@@ -36,7 +36,13 @@ class _RedactedFeedError(Exception):
     """Keep error type and stack frames without URL/payload-bearing messages."""
 
 
-class GkfeedItemProcessorExtension(BaseWebFeedItemView, BaseHandler):
+class GkfeedItemProcessorExtension(BaseWebFeedItemView):
+    _rejected_source_ids: ClassVar[frozenset[str]] = frozenset()
+
+    @property
+    def _source_policy(self) -> FeedSourcePolicy:
+        return FeedSourcePolicy(self._processor_registry, self._rejected_source_ids)
+
     @property
     def _processor_registry(self) -> FeedProcessorRegistry:
         rendering = FeedRendering(
@@ -69,24 +75,11 @@ class GkfeedItemProcessorExtension(BaseWebFeedItemView, BaseHandler):
             )
         )
 
-    @property
-    def _processors(self) -> dict[str, _ITEM_PROCESSOR]:
-        # TODO: create filters for processor matching instead of startswith prefixes.
-        return {}
-
     async def _process_item(self, item: FeedItem) -> None:
         entry = self._processor_registry.resolve(item)
         if entry is not None:
             await self._run_processor(item, entry.process, entry.source_id)
             return
-
-        for prefix, processor in self._processors.items():
-            if item.link.startswith(prefix):
-                processor_name = getattr(
-                    processor, "__name__", type(processor).__name__
-                )
-                await self._run_processor(item, processor, processor_name)
-                return
 
         await self._run_processor(item, self._process_base_item, "_process_base_item")
 

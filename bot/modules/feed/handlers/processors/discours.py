@@ -3,11 +3,8 @@ from collections.abc import Awaitable, Callable
 from services.gkfeed import FeedItem
 from services.http import HttpService
 
+from .matching import matches_source_url
 from .registry import FeedProcessor
-
-
-def _matches_discours(item: FeedItem) -> bool:
-    return item.link.startswith("https://discours.io")
 
 
 def create_discours_processor(
@@ -23,4 +20,8 @@ def create_discours_processor(
         )
         await send_photo(item, str(media_url), str(title))
 
-    return FeedProcessor("discours", _matches_discours, process)
+    return FeedProcessor(
+        "discours",
+        lambda item: matches_source_url(item, frozenset({"discours.io"})),
+        process,
+    )
