@@ -5,17 +5,14 @@ from . import (
     asura,
     bomber,
     books,
-    braintrash,
     chatgpt,
     cvision,
     download,
     exit,
     list,
-    platonus2indigo,
     reminder,
     road,
     sort_sources,
-    tasks,
     timer,
     timezone,
     tts,
@@ -23,12 +20,10 @@ from . import (
 )
 
 
-def setup(r: Router):
+def setup(r: Router) -> None:
     # Register first so active FSM handlers cannot consume /exit as regular input.
     exit.setup(r)
     tts.setup(r)
-    tasks.setup(r)
-    braintrash.setup(r)
     bomber.setup(r)
     reminder.setup(r)
     road.setup(r)
@@ -38,7 +33,6 @@ def setup(r: Router):
     books.setup(r)
     timezone.setup(r)
     list.setup(r)
-    platonus2indigo.setup(r)
     download.setup(r)
     asura.setup(r)
     sort_sources.setup(r)

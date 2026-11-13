@@ -1,0 +1,14 @@
+name: VK wall download keeps the post ID
+timeout: 30
+steps:
+  - send:
+      text: https://vk.com/wall-50883936_456247076
+  - expect:
+      method: sendMessage
+      text: https://vk.com/wall-50883936_456247076
+      callback_data: vkbtn:dlmp4:True:wall-50883936_456247076
+  - click:
+      callback_data: vkbtn:dlmp4:True:wall-50883936_456247076
+  - expect:
+      method: editMessageText
+      text: Cкачиваю https://vk.com/wall-50883936_456247076

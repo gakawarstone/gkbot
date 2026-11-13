@@ -1,4 +1,3 @@
-import asyncio
 
 from aiogram.types import CallbackQuery, InaccessibleMessage
 
@@ -41,13 +40,11 @@ class ItemEventHandler(GkfeedItemProcessorExtension, BaseHandler):
         ):
             raise ValueError("event must have message")
 
-        api = GkfeedApi(await self._gkfeed_credentials)
-
         match event:
             case FeedMarkup.data.delete:
                 await self.event.message.delete()
-                # BUG: can fail silently
-                asyncio.create_task(api.delete_item_by_id(data))
+                api = GkfeedApi(await self._gkfeed_credentials)
+                await api.delete_item_by_id(data)
             case FeedMarkup.data.keep:
                 await self.event.message.delete()
 

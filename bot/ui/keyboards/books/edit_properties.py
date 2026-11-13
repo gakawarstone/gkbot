@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
@@ -7,8 +9,8 @@ from .types import _BookProperties, _BookProperty
 
 
 class PropertiesMarkup:
-    prefix = 'ebk'
-    props: list[_BookProperty] = [p.value for p in _BookProperties]
+    prefix = "ebk"
+    props: ClassVar[list[_BookProperty]] = [p.value for p in _BookProperties]
 
     @classmethod
     def get_edit_properties_dialog(cls, book: Book) -> InlineKeyboardMarkup:
@@ -17,7 +19,7 @@ class PropertiesMarkup:
                 [
                     InlineKeyboardButton(
                         text=p.spell_ru,
-                        callback_data=f'{cls.prefix}:{p.name_in_db}:{book.id}'
+                        callback_data=f"{cls.prefix}:{p.name_in_db}:{book.id}",
                     )
                 ]
                 for p in cls.props
