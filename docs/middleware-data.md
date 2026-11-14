@@ -32,26 +32,14 @@ an empty list for a new user, including a first callback update. One-time messag
 extensions and the pomodoro restart flow append messages. DeleteQueueMiddleware
 consumes the pending batch before the next message handler runs.
 
-All remaining keys may be absent. Fields managed by the context manager
-can also be reset to `None`.
+The timezone and confirmation keys may be absent.
 
 - `tz: timedelta | None`: timezone middleware and reminder context write it;
   timezone-dependent handlers and reminder creation read it.
 - `confirmation`: the confirmation extension stores the yes/no callbacks and
   the state to enter after the response.
-- `messages: list[str] | None`: the ChatGPT conversation keeps prompt and reply
-  history.
-- `file_name: str | None`: the document-download conversation stores a filename.
-- `text: str | None`, `date: date | None`, `time: time | None`,
-  `message: Message | None`: the reminder conversation stores text, schedule and
-  its editable summary. The add-book conversation also uses `message`.
-- `name: str | None`, `author: str | None`, `chapter_cnt: int | None`: the
-  add-book conversation stores book details.
-- `property_name: str | None`, `new_value: str | None`, `book_id: int | None`:
-  the edit-book conversation stores the selected property, value and book.
-- `setting_name: str | None`, `setting_new_value: object | None`: the road settings
-  conversation stores its selected setting and parsed value. Its ContextField
-  accepts any value; the current time-setting handler writes a `time`.
+
+Conversation-specific fields are declared in their own `ContextField` schemas.
 
 These remain ordinary dictionaries at runtime. Message and callback middleware
 instances share the existing cache keyed by Telegram user ID, across chats.

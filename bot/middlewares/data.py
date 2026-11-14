@@ -1,8 +1,6 @@
 """Shared contracts for aiogram injection and the per-user conversation cache."""
 
 from collections.abc import Awaitable, Callable
-from datetime import date as Date
-from datetime import time as Time
 from datetime import timedelta
 from typing import Any, Required, TypedDict
 
@@ -15,8 +13,7 @@ class UserData(TypedDict, total=False):
     """Values retained between updates for one Telegram user.
 
     The queue exists as soon as UserDataMiddleware has run. Other fields are
-    populated by a flagged middleware or a conversation step, and may be absent.
-    ContextField values can also be reset to None.
+    populated by timezone or confirmation handlers and may be absent.
     """
 
     delete_queue: Required[list[Message]]
@@ -24,20 +21,6 @@ class UserData(TypedDict, total=False):
     confirmation: tuple[
         Callable[[], Awaitable[Any]], Callable[[], Awaitable[Any]] | None, State
     ]
-    messages: list[str] | None
-    file_name: str | None
-    text: str | None
-    date: Date | None
-    time: Time | None
-    message: Message | None
-    name: str | None
-    author: str | None
-    chapter_cnt: int | None
-    property_name: str | None
-    new_value: str | None
-    book_id: int | None
-    setting_name: str | None
-    setting_new_value: object | None
 
 
 class MiddlewareData(AiogramMiddlewareData, total=False):

@@ -41,8 +41,9 @@ async def test_document_download_cleans_up_after_upload(
     handler = DownloadHandler(
         event=event,
         state=MagicMock(set_state=AsyncMock()),
-        data={"file_name": "document.bin", "delete_queue": []},
+        data={"delete_queue": []},
     )
+    handler.set(handler.props.file_name, "document.bin")
     if failure == "cancel":
         with pytest.raises(asyncio.CancelledError):
             await handler.handle()

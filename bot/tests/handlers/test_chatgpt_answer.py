@@ -225,9 +225,8 @@ def make_handler() -> tuple[AnswerHandler, FSMContext, list[str], MessageRecorde
     event.caption = None
     state = FSMContext(MemoryStorage(), StorageKey(bot_id=1, chat_id=2, user_id=3))
     history: list[str] = []
-    handler = AnswerHandler(
-        event=event, state=state, data={"messages": history, "delete_queue": []}
-    )
+    handler = AnswerHandler(event=event, state=state, data={"delete_queue": []})
+    handler.set(handler.props.messages, history)
     return handler, state, history, recorder
 
 
