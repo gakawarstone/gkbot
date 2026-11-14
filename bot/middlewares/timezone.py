@@ -4,6 +4,7 @@ from aiogram.dispatcher.flags import get_flag
 from aiogram.dispatcher.middlewares.base import BaseMiddleware
 from aiogram.types import Message, TelegramObject
 
+from configs.commands import USER_COMMANDS
 from services.timezone import TimeZone, UserDontHaveTimeZone
 
 from .data import MiddlewareData, MiddlewareHandler, require_user_data
@@ -29,5 +30,5 @@ class TimeZoneMiddleware(BaseMiddleware):
             require_user_data(data)["tz"] = await TimeZone.get_user_timezone(user_id)
             return await handler(event, data)
         except UserDontHaveTimeZone:
-            await event.answer("Необходима таймзона /set_tz")
+            await event.answer(f"Необходима таймзона /{USER_COMMANDS.set_tz}")
             return None

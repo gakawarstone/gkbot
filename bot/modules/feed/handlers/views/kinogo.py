@@ -1,8 +1,8 @@
 from bs4 import BeautifulSoup, Tag
 
-from services.feed_parser import feed_parser
 from services.gkfeed import FeedItem
 from services.http import HttpService
+from workers.feed_parser import feed_parser
 
 from . import BaseFeedItemView
 

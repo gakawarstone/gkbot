@@ -1,11 +1,9 @@
-from typing import ClassVar
-
-from middlewares.data import UserData
+from typing import Any, ClassVar
 
 
 class MockedUserDataExtension:
-    __user_data: ClassVar[UserData] = {"delete_queue": []}
+    __user_data: ClassVar[dict[str, Any]] = {}
 
     @property
-    def user_data(self) -> UserData:
+    def user_data(self) -> dict[str, Any]:
         return self.__user_data

@@ -37,11 +37,8 @@ can also be reset to `None`.
 
 - `tz: timedelta | None`: timezone middleware and reminder context write it;
   timezone-dependent handlers and reminder creation read it.
-- `callback: RestartableHandler`: the pomodoro restart prompt saves a handler;
-  the yes/no step calls it again. The protocol specifies `event`, `state`,
-  `user_data`, and async `handle`.
-- `habit_name: str | None`, `habit_notify_time: time`: the habit conversation
-  writes these before creating a habit.
+- `confirmation`: the confirmation extension stores the yes/no callbacks and
+  the state to enter after the response.
 - `messages: list[str] | None`: the ChatGPT conversation keeps prompt and reply
   history.
 - `file_name: str | None`: the document-download conversation stores a filename.

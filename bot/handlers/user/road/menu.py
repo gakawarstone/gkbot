@@ -6,7 +6,6 @@ from aiogram.types import Message
 from middlewares.data import UserData
 from ui.keyboards.road import RoadMarkup
 
-from .habits import habit_tracker
 from .pomodoro import PomodoroHandler
 from .settings.start import InitSettingsHandler
 from .states import FSM
@@ -18,8 +17,6 @@ async def choose_tool(message: Message, state: FSMContext, data: UserData) -> No
     match message.text:
         case RoadMarkup.buttons.pomodoro | "1":
             await PomodoroHandler(message, state=state, data=data)
-        case RoadMarkup.buttons.habit_tracker | "2":
-            await habit_tracker(message, state)
         case RoadMarkup.buttons.settings | "3":
             await InitSettingsHandler(message, state=state, data=data)
 

@@ -4,24 +4,11 @@ from collections.abc import Awaitable, Callable
 from datetime import date as Date
 from datetime import time as Time
 from datetime import timedelta
-from typing import Any, Protocol, Required, TypedDict
+from typing import Any, Required, TypedDict
 
 from aiogram.dispatcher.middlewares.data import MiddlewareData as AiogramMiddlewareData
-from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import State
 from aiogram.types import Message, TelegramObject
-
-
-class RestartableHandler(Protocol):
-    @property
-    def user_data(self) -> "UserData": ...
-
-    @property
-    def event(self) -> Message: ...
-
-    @property
-    def state(self) -> FSMContext: ...
-
-    async def handle(self) -> object: ...
 
 
 class UserData(TypedDict, total=False):
@@ -34,9 +21,9 @@ class UserData(TypedDict, total=False):
 
     delete_queue: Required[list[Message]]
     tz: timedelta | None
-    callback: RestartableHandler
-    habit_name: str | None
-    habit_notify_time: Time
+    confirmation: tuple[
+        Callable[[], Awaitable[Any]], Callable[[], Awaitable[Any]] | None, State
+    ]
     messages: list[str] | None
     file_name: str | None
     text: str | None

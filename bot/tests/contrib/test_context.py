@@ -108,7 +108,7 @@ def test_validation_handles_optional_any_and_exact_types() -> None:
 
 
 def test_unsupported_annotation_fails_before_mutation() -> None:
-    class UnsupportedContext(BaseContext):
+    class UnsupportedContext(FakeContext):
         value = ContextField(dict[str, str])
 
     class UnsupportedManager(FakeContextManager):

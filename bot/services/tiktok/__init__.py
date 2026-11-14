@@ -9,8 +9,9 @@ from aiogram import Bot
 from aiogram.types import FSInputFile
 
 from services.cache_dir import CacheDir
-from services.ffmpeg import FfmpegService
 from services.http import HttpService
+from services.slideshow import SlideshowRenderer
+from services.video_metadata import VideoMetadataService
 
 from .exceptions import TikTokInfoExtractionFailed, TikTokVideoUrlExtractionFailed
 from .extractor import TikTokInfoExtractor
@@ -80,12 +81,12 @@ class TikTokService:
 
         is_generated_slideshow = bool(info.images_urls and not info.video_url)
         if is_generated_slideshow:
-            info.height = FfmpegService.SLIDESHOW_HEIGHT
-            info.width = FfmpegService.SLIDESHOW_WIDTH
+            info.height = SlideshowRenderer.SLIDESHOW_HEIGHT
+            info.width = SlideshowRenderer.SLIDESHOW_WIDTH
 
         try:
             if isinstance(info.video_input_file, FSInputFile):
-                metadata = await FfmpegService.get_video_metadata(
+                metadata = await VideoMetadataService.get_video_metadata(
                     str(info.video_input_file.path)
                 )
             else:
@@ -136,7 +137,7 @@ class TikTokService:
         if video is not None:
             await asyncio.to_thread(cache_dir.save_file, "video.mp4", video)
         elif info.images_urls:
-            await FfmpegService.make_slideshow_file_from_web(
+            await SlideshowRenderer.make_slideshow_file_from_web(
                 info.images_urls, info.music_url, cache_dir.get_file_path("video.mp4")
             )
         else:
