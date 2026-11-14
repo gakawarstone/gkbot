@@ -1,4 +1,5 @@
 from collections.abc import Iterator
+from importlib import import_module
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -9,18 +10,19 @@ from aiogram.filters import Command
 from aiogram.filters.logic import _AndFilter, _OrFilter
 from aiogram.types import Message, Update
 
-from bot import handlers, modules
 from configs.commands import USER_COMMANDS
 from configs.default_commands import DEFAULT_COMMANDS
 from filters.command import CommandWithPrompt
+from modules import setup as setup_modules
 from tests.mocks.message import make_fake_message
 
 
 @pytest.fixture
 def dispatcher() -> Dispatcher:
     dispatcher = Dispatcher()
-    handlers.setup(dispatcher)
-    modules.setup(dispatcher)
+    # Use the runtime namespace without colliding with tests.handlers.
+    import_module("handlers").setup(dispatcher)
+    setup_modules(dispatcher)
     return dispatcher
 
 

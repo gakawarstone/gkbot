@@ -31,7 +31,7 @@ class YoutubeApiService:
         channel_title = snippet["channelTitle"]
 
         thumbnail_url = f"https://i3.ytimg.com/vi/{video_code}/maxresdefault.jpg"
-        if "maxres" not in snippet["thumbnails"].keys():
+        if "maxres" not in snippet["thumbnails"]:
             thumbnail_url = snippet["thumbnails"]["high"]["url"]
 
         return YoutubeVideoData(

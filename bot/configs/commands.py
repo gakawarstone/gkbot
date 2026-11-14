@@ -12,7 +12,6 @@ class _UserCommands(_Commands):
     start_timer = "start_timer", "start timer"
     admins = "admins", "tag all admins in a group"
     books = "books", "personal book shelf"
-    platonus2indigo = "platonus2indigo", "convert test"
     dl = "dl", "download file"
     tts = "tts", "text to speech"
     sort_sources = "sort_sources", "sort sources"

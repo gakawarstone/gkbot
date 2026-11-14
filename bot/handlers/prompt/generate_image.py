@@ -5,9 +5,9 @@ from aiogram import Router
 from aiogram.types import (
     BufferedInputFile,
     InputMediaPhoto,
-    MediaUnion,
     Message,
 )
+from aiogram.types.media_union import MediaUnion
 
 from configs.commands import USER_COMMANDS
 from filters.command import CommandWithPrompt
