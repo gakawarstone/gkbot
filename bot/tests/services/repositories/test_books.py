@@ -4,6 +4,17 @@ import pytest
 
 from models.books import Book
 from services.repositories.books import BooksRepository
+from tests.mocks.db import use_db
+
+
+@pytest.mark.asyncio
+@use_db
+async def test_create_book_preserves_duplicate_matching() -> None:
+    assert await BooksRepository.create_book("Dune", "Frank Herbert", 22, 10)
+    assert not await BooksRepository.create_book("Dune", "Frank Herbert", 22, 10)
+    assert await BooksRepository.create_book("Dune", "Frank Herbert", 23, 10)
+    assert await BooksRepository.create_book("Dune", "Frank Herbert", 22, 11)
+    assert await Book.all().count() == 3
 
 
 @pytest.mark.asyncio

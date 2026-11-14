@@ -1,6 +1,7 @@
 import asyncio
 import shutil
 from pathlib import Path
+from typing import ClassVar
 
 from services.audio import AudioService
 from services.cache_dir import CacheDir
@@ -12,14 +13,14 @@ class FfmpegService:
     SLIDESHOW_WIDTH = 720
     SLIDESHOW_HEIGHT = 1080
 
-    __resize_image_options = [
+    __resize_image_options: ClassVar[list[str]] = [
         "-vf",
         (
             "scale=trunc(oh*a/2)*2:720,"
             "pad=max(iw\\,ih*9/16):max(ih\\,iw*16/9):(ow-iw)/2:(oh-ih)/2:black"
         ),
     ]
-    __make_slideshow_options = [
+    __make_slideshow_options: ClassVar[list[str]] = [
         "-c:v",
         "libx264",
         "-shortest",

@@ -13,6 +13,7 @@ from services.cache_dir import CacheDir
 from services.http import HttpService
 from services.open_graph import OpenGraphService
 from services.ytdlp._types import AudioFileInfo
+from workers.feed_parser import feed_parser
 
 _HLS_URL_PATTERN = re.compile(r'https:(?:\\u002F){2}[^"]+?master\.m3u8\?[^"]+')
 
@@ -53,7 +54,7 @@ class MatreshkaService:
     async def get_video(cls, url: str) -> MatreshkaVideo:
         video_id = cls.get_video_id(url)
         page = await HttpService.get(url)
-        return cls.parse_video(page, video_id)
+        return await feed_parser.run(cls.parse_video, page, video_id)
 
     @staticmethod
     def parse_video(page: bytes | str, video_id: str) -> MatreshkaVideo:

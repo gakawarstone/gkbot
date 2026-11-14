@@ -1,5 +1,3 @@
-from typing import Optional
-
 from aiogram.types.keyboard_button import KeyboardButton
 from aiogram.types.reply_keyboard_markup import ReplyKeyboardMarkup
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
@@ -11,7 +9,7 @@ class KeyboardBuilder:
         cls,
         buttons: list[list[str]],
         hide: bool = True,
-        placeholder: Optional[str] = None,
+        placeholder: str | None = None,
     ) -> ReplyKeyboardMarkup:
         """add telegram keyboard with row of {buttons}"""
         return ReplyKeyboardBuilder(  # TODO: use markup?
