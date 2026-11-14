@@ -4,6 +4,7 @@ from services.gkfeed import FeedItem
 from services.http import HttpService
 from workers.feed_parser import feed_parser
 
+from .._exceptions import FeedMediaExtractionError
 from . import BaseFeedItemView
 
 
@@ -55,7 +56,7 @@ class ShikiFeedItemView(BaseFeedItemView):
             if isinstance(content, str) and content.strip():
                 return cls._normalize_media_url(content)
 
-        raise ValueError("media url not found")
+        raise FeedMediaExtractionError("media url not found")
 
     @staticmethod
     def _normalize_media_url(url: str) -> str:
@@ -68,9 +69,9 @@ class ShikiFeedItemView(BaseFeedItemView):
     def _get_title_name(soup: BeautifulSoup) -> str:
         h1_tag = soup.find("h1")
         if not isinstance(h1_tag, Tag):
-            raise TypeError("h1 tag not found")
+            raise FeedMediaExtractionError("h1 tag not found")
 
         title = h1_tag.get_text(" ", strip=True).partition("/")[0].strip()
         if not title:
-            raise ValueError("title name not found")
+            raise FeedMediaExtractionError("title name not found")
         return title

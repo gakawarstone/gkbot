@@ -48,10 +48,7 @@ class RedditFeedItemView(VideoFeedItemView, BaseFeedItemView):
             return await self._send_video(item, post.content)
         if post.kind == "link":
             return await self._send_link_response(post.title, post.content, item)
-        try:
-            await self._send_telegraph_response(post.title, item, post.content)
-        except Exception:  # noqa: BLE001 - Preserve the plain-link fallback.
-            await self._send_item(item)
+        await self._send_telegraph_response(post.title, item, post.content)
 
     @classmethod
     def _parse_post(cls, html: bytes) -> _RedditPost | None:

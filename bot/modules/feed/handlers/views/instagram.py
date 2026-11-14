@@ -7,6 +7,7 @@ from services.gkfeed import FeedItem
 from workers.feed_parser import feed_parser
 
 from ...ui.keyboards import FeedMarkup
+from .._exceptions import FeedMediaExtractionError
 from . import BaseFeedItemView
 
 
@@ -15,7 +16,10 @@ class InstagramFeedItemView(BaseFeedItemView):
         photo_data = await feed_parser.run(
             InstagramFeedItemView._decode_photo, item.text
         )
-        caption = item.title.split("/")[-1].split(":")[1]
+        caption_parts = item.title.split("/")[-1].split(":")
+        if len(caption_parts) < 2:
+            raise FeedMediaExtractionError("Image caption not found")
+        caption = caption_parts[1]
         photo = BufferedInputFile(photo_data, filename="image.jpg")
 
         await self.answer_photo(
@@ -30,14 +34,19 @@ class InstagramFeedItemView(BaseFeedItemView):
 
         img_tag = soup.find("img")
         if not isinstance(img_tag, Tag):
-            raise ValueError("No image tag found in the item content")  # noqa: TRY004
+            raise FeedMediaExtractionError("No image tag found in the item content")
 
         src = img_tag.get("src")
         if not isinstance(src, str):
-            raise ValueError("No src attribute found in the image tag")  # noqa: TRY004
+            raise FeedMediaExtractionError("No src attribute found in the image tag")
 
         if not src.startswith("data:image"):
-            raise ValueError("Image src is not a base64 data URL")
+            raise FeedMediaExtractionError("Image src is not a base64 data URL")
 
-        _, encoded = src.split(",", 1)
-        return base64.b64decode(encoded)
+        _, separator, encoded = src.partition(",")
+        if not separator:
+            raise FeedMediaExtractionError("Image data URL has no payload")
+        try:
+            return base64.b64decode(encoded, validate=True)
+        except ValueError as error:
+            raise FeedMediaExtractionError("Invalid base64 image") from error
