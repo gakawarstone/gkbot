@@ -3,11 +3,11 @@ from typing import Any, ClassVar
 from aiogram.dispatcher.middlewares.base import BaseMiddleware
 from aiogram.types import TelegramObject
 
-from .data import MiddlewareData, MiddlewareHandler, UserData
+from .data import MiddlewareData, MiddlewareHandler
 
 
 class UserDataMiddleware(BaseMiddleware):
-    __data: ClassVar[dict[int, UserData]] = {}
+    __data: ClassVar[dict[int, dict[str, Any]]] = {}
 
     async def __call__(  # type: ignore[override]  # pyright: ignore[reportIncompatibleMethodOverride]
         # Aiogram accepts dict[str, Any]; its docs recommend a TypedDict here.

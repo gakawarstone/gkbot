@@ -1,28 +1,16 @@
 """Shared contracts for aiogram injection and the per-user conversation cache."""
 
 from collections.abc import Awaitable, Callable
-from datetime import timedelta
-from typing import Any, Required, TypedDict
+from typing import Any
 
 from aiogram.dispatcher.middlewares.data import MiddlewareData as AiogramMiddlewareData
-from aiogram.types import Message, TelegramObject
-
-
-class UserData(TypedDict, total=False):
-    """Values retained between updates for one Telegram user.
-
-    The queue exists as soon as UserDataMiddleware has run. The timezone
-    is populated for handlers that require it.
-    """
-
-    delete_queue: Required[list[Message]]
-    tz: timedelta | None
+from aiogram.types import TelegramObject
 
 
 class MiddlewareData(AiogramMiddlewareData, total=False):
     """Aiogram context, including project values at their injection stages."""
 
-    data: UserData
+    data: dict[str, Any]
     admins: list[int]
 
 
@@ -30,7 +18,7 @@ class MiddlewareData(AiogramMiddlewareData, total=False):
 MiddlewareHandler = Callable[[TelegramObject, MiddlewareData], Awaitable[Any]]
 
 
-def require_user_data(data: MiddlewareData) -> UserData:
+def require_user_data(data: MiddlewareData) -> dict[str, Any]:
     """Require the value installed by UserDataMiddleware on messages/callbacks."""
     user_data = data.get("data")
     if user_data is None:

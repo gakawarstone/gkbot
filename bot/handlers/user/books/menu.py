@@ -1,3 +1,5 @@
+from typing import Any
+
 from aiogram import Router
 from aiogram.filters import Command, StateFilter, and_f, or_f
 from aiogram.fsm.context import FSMContext
@@ -5,7 +7,6 @@ from aiogram.types import Message, ReplyKeyboardRemove
 
 from configs.commands import USER_COMMANDS
 from filters.not_command import NotCommandFilter
-from middlewares.data import UserData
 from ui.keyboards.books import MenuMarkup
 from ui.static import Images
 
@@ -25,7 +26,7 @@ async def show_menu(message: Message, state: FSMContext):
 
 
 async def check_menu_command(
-    message: Message, state: FSMContext, data: UserData
+    message: Message, state: FSMContext, data: dict[str, Any]
 ) -> None:
     match message.text:
         case MenuMarkup.buttons.add_new_book:

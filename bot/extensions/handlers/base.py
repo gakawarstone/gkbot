@@ -4,7 +4,7 @@ from typing import Any, TypeVar, cast
 from aiogram.fsm.context import FSMContext
 from aiogram.handlers import BaseHandler as _BaseHandler
 
-from middlewares.data import MiddlewareData, UserData, require_user_data
+from middlewares.data import MiddlewareData, require_user_data
 
 Event = TypeVar("Event")
 
@@ -14,7 +14,7 @@ class BaseHandler(_BaseHandler[Event], ABC):
         self,
         event: Event,
         *,
-        data: UserData | None = None,
+        data: dict[str, Any] | None = None,
         state: FSMContext | None = None,
         **kwargs: Any,
     ) -> None:
@@ -27,7 +27,7 @@ class BaseHandler(_BaseHandler[Event], ABC):
         self.context = cast(MiddlewareData, self.data)
 
     @property
-    def user_data(self) -> UserData:
+    def user_data(self) -> dict[str, Any]:
         return require_user_data(self.context)
 
     @property

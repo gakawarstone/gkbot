@@ -1,9 +1,10 @@
+from typing import Any
+
 from aiogram import Router
 from aiogram.filters.state import StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
-from middlewares.data import UserData
 from ui.keyboards.road import RoadMarkup
 
 from .pomodoro import PomodoroHandler
@@ -11,7 +12,9 @@ from .settings.start import InitSettingsHandler
 from .states import FSM
 
 
-async def choose_tool(message: Message, state: FSMContext, data: UserData) -> None:
+async def choose_tool(
+    message: Message, state: FSMContext, data: dict[str, Any]
+) -> None:
     await state.set_state(FSM.finish)
     await message.delete()
     match message.text:

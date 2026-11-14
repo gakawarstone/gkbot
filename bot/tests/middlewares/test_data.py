@@ -1,4 +1,5 @@
 from datetime import timedelta
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -8,7 +9,7 @@ from extensions.handlers.message.base import BaseHandler as MessageHandler
 from extensions.handlers.message.use_timezone_extension import (
     UseTimeZoneHandlerExtension,
 )
-from middlewares.data import MiddlewareData, UserData, require_user_data
+from middlewares.data import MiddlewareData, require_user_data
 from middlewares.user_data import UserDataMiddleware
 
 
@@ -56,7 +57,7 @@ def test_missing_dependencies_have_explicit_errors() -> None:
 @pytest.mark.parametrize(
     "data", [{"delete_queue": []}, {"delete_queue": [], "tz": None}]
 )
-def test_timezone_handler_requires_a_populated_timezone(data: UserData) -> None:
+def test_timezone_handler_requires_a_populated_timezone(data: dict[str, Any]) -> None:
     handler = TimezoneHandler(MagicMock(), data=data)
     with pytest.raises(RuntimeError, match="requires a timezone"):
         _ = handler.tz

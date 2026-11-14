@@ -1,8 +1,8 @@
 # Middleware data contract
 
 `middlewares.data.MiddlewareData` extends the TypedDict shipped with aiogram
-3.31.0. `UserData` describes the nested `data` argument injected into project
-handlers. Do not annotate that argument as the outer `MiddlewareData`.
+3.31.0. The nested `data` argument is an extensible internal dictionary;
+conversation fields are defined by their own `ContextField` schemas.
 
 ## Injection stages
 
@@ -13,7 +13,7 @@ handlers. Do not annotate that argument as the outer `MiddlewareData`.
   `BotAdmin`, startup and error handlers consume it.
 - `RegisterUserMiddleware` checks the event's user and registers it. It adds no
   context keys. Inline queries only pass through this project middleware.
-- `UserDataMiddleware` installs `data: UserData` for messages and callbacks.
+- `UserDataMiddleware` installs `data: dict[str, Any]` for messages and callbacks.
   The outer key is optional before this stage. `require_user_data(context)`
   checks its presence and returns the typed value.
 - `TimeZoneMiddleware` writes `data["tz"]` for messages whose selected handler
@@ -25,31 +25,9 @@ The upstream context also carries flag metadata in `handler`. The project
 boolean filters do not add context entries. Button handlers declare their own
 button-specific payload types; those are outside the shared user cache.
 
-## User cache inventory
-
-`delete_queue: list[Message]` is required. UserDataMiddleware initializes it to
-an empty list for a new user, including a first callback update. One-time message
-extensions and the pomodoro restart flow append messages. DeleteQueueMiddleware
-consumes the pending batch before the next message handler runs.
-
-The timezone key may be absent.
-
-- `tz: timedelta | None`: timezone middleware and reminder context write it;
-  timezone-dependent handlers and reminder creation read it.
-Confirmation callbacks and conversation-specific fields are typed in their
-respective handlers and `ContextField` schemas.
-
-
-These remain ordinary dictionaries at runtime. Message and callback middleware
-instances share the existing cache keyed by Telegram user ID, across chats.
-This change does not add eviction or alter cache ownership. Tests can replace
-`UserDataMiddleware._UserDataMiddleware__data` with a fresh dictionary using
-pytest's `monkeypatch.setattr`; `test_data.py` demonstrates isolation without
-clearing another dispatcher's cache.
-
 ## Handler access and boundaries
 
-Function handlers annotate their injected argument as `data: UserData`, and
+Function handlers annotate their injected argument as `data: dict[str, Any]`, and
 FSM dependencies as `state: FSMContext`. Message and callback class handlers
 share a typed base constructor and `user_data`/`state` properties. Their base
 keeps `context` as a reference to aiogram's injection dictionary. One cast at
@@ -58,16 +36,13 @@ A handler that does not use these dependencies can omit them when instantiated
 directly. Accessing an omitted dependency raises an explicit error. The `tz` property
 checks for an available offset and returns `timedelta`.
 
-Use `.get()` or a membership check for optional keys before consuming them.
-Pyright rejects unguarded optional-key indexing. Mypy permits that indexing,
-but both reject assigning an unchecked `.get()` result to a non-optional type.
-Both reject a missing required queue, unknown keys, incompatible values and
-wrongly typed constructor dependencies.
+Use `.get()` or a membership check for optional middleware dependencies. Both
+checkers reject incompatible middleware and constructor dependencies. The
+internal user dictionary intentionally has no exhaustive key schema.
 
 The context manager uses typed `ContextField` descriptors and validates their
-values against the declared schema. Its writes use runtime field names at one
-`MutableMapping[str, Any]` boundary. Common injected values do not pass through
-that dynamic-write boundary.
+values against the declared schema. It writes dynamic field names to the
+internal user dictionary.
 Aiogram's arbitrary downstream result and extra framework constructor kwargs
 also retain `Any` at framework boundaries.
 
