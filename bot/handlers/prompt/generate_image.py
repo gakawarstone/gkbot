@@ -9,6 +9,7 @@ from aiogram.types import (
 )
 from aiogram.types.media_union import MediaUnion
 
+from configs.commands import USER_COMMANDS
 from filters.command import CommandWithPrompt
 from services.agents.image_prompt_enhancer import ImagePromptEnhancer
 from services.http import HttpService
@@ -51,4 +52,4 @@ def _generate_url(prompt: str) -> str:
 
 
 def setup(r: Router) -> None:
-    r.message.register(generate_image, CommandWithPrompt("img"))
+    r.message.register(generate_image, CommandWithPrompt(USER_COMMANDS.img))
