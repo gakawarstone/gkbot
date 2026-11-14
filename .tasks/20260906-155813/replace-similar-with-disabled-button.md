@@ -21,3 +21,10 @@ The feed keyboard advertises a Similar action, but its callback branch is a stub
 - No `show_all_feed` callback branch remains.
 - Dependency and lock files agree on the aiogram version.
 - The full unit test suite and static checks pass.
+
+## Remaining acceptance criteria
+
+PR #11 is merged. PR #16 remains draft and this task stays OPEN pending
+client evidence, explicit production approval, confirmed Bot API 10.3 server
+rollout, and live keyboard checks. Existing global lint failures also remain.
+See `services/bot-api/README.md` for the required rollout order.
