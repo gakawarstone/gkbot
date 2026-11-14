@@ -32,14 +32,13 @@ an empty list for a new user, including a first callback update. One-time messag
 extensions and the pomodoro restart flow append messages. DeleteQueueMiddleware
 consumes the pending batch before the next message handler runs.
 
-The timezone and confirmation keys may be absent.
+The timezone key may be absent.
 
 - `tz: timedelta | None`: timezone middleware and reminder context write it;
   timezone-dependent handlers and reminder creation read it.
-- `confirmation`: the confirmation extension stores the yes/no callbacks and
-  the state to enter after the response.
+Confirmation callbacks and conversation-specific fields are typed in their
+respective handlers and `ContextField` schemas.
 
-Conversation-specific fields are declared in their own `ContextField` schemas.
 
 These remain ordinary dictionaries at runtime. Message and callback middleware
 instances share the existing cache keyed by Telegram user ID, across chats.

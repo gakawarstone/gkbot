@@ -5,22 +5,18 @@ from datetime import timedelta
 from typing import Any, Required, TypedDict
 
 from aiogram.dispatcher.middlewares.data import MiddlewareData as AiogramMiddlewareData
-from aiogram.fsm.state import State
 from aiogram.types import Message, TelegramObject
 
 
 class UserData(TypedDict, total=False):
     """Values retained between updates for one Telegram user.
 
-    The queue exists as soon as UserDataMiddleware has run. Other fields are
-    populated by timezone or confirmation handlers and may be absent.
+    The queue exists as soon as UserDataMiddleware has run. The timezone
+    is populated for handlers that require it.
     """
 
     delete_queue: Required[list[Message]]
     tz: timedelta | None
-    confirmation: tuple[
-        Callable[[], Awaitable[Any]], Callable[[], Awaitable[Any]] | None, State
-    ]
 
 
 class MiddlewareData(AiogramMiddlewareData, total=False):

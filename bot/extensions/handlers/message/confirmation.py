@@ -1,5 +1,5 @@
 from collections.abc import Awaitable, Callable
-from typing import Any
+from typing import Any, cast
 
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State
@@ -9,6 +9,12 @@ from middlewares.data import UserData
 from ui.keyboards.bool import BoolMarkup
 
 from .base import BaseHandler
+
+
+class _ConfirmationData(UserData, total=False):
+    confirmation: tuple[
+        Callable[[], Awaitable[Any]], Callable[[], Awaitable[Any]] | None, State
+    ]
 
 
 class ConfirmationHandlerExtension(BaseHandler):
@@ -23,10 +29,13 @@ class ConfirmationHandlerExtension(BaseHandler):
         prompt = await self.event.answer(text, reply_markup=BoolMarkup.yes_or_no)
         self.user_data["delete_queue"].append(prompt)
         await self.state.set_state(waiting_state)
-        self.user_data["confirmation"] = (on_yes, on_no, finished_state)
+        data = cast(_ConfirmationData, self.user_data)
+        data["confirmation"] = (on_yes, on_no, finished_state)
 
 
-async def choose_bool(message: Message, state: FSMContext, data: UserData) -> None:
+async def choose_bool(
+    message: Message, state: FSMContext, data: _ConfirmationData
+) -> None:
     confirmation = data.pop("confirmation", None)
     if confirmation is None:
         return
