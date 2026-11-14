@@ -1,13 +1,6 @@
-from aiogram import Router, Dispatcher
+from aiogram import Dispatcher, Router
 
-from . import user
-from . import text
-from . import inline
-from . import on_startup
-from . import error
-from . import prompt
-from . import button
-from . import on_shutdown
+from . import button, error, inline, on_shutdown, on_startup, prompt, text, user
 
 
 def setup(dp: Dispatcher):

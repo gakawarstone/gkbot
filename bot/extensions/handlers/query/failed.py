@@ -1,8 +1,8 @@
 import hashlib
-from typing import Type, Callable, Awaitable
+from collections.abc import Awaitable, Callable
 from functools import wraps
 
-from aiogram.types import InputTextMessageContent, InlineQueryResultArticle, InlineQuery
+from aiogram.types import InlineQuery, InlineQueryResultArticle, InputTextMessageContent
 
 
 def get_failed_result(query: InlineQuery, message_to_send: str, description: str):
@@ -15,7 +15,7 @@ def get_failed_result(query: InlineQuery, message_to_send: str, description: str
 
 
 def async_return_failed_result_if(
-    exceptions_to_handle: list[Type[BaseException]],
+    exceptions_to_handle: list[type[BaseException]],
     message_to_send: str,
     description: str,
 ) -> Callable:

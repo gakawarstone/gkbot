@@ -1,12 +1,13 @@
 import re
 from typing import Any
 
-from ui.static import Images
 from extensions.handlers.message.file_extension import (
     FileHandlerExtension,
     NoFileException,
 )
 from extensions.handlers.message.text_document import send_text_document
+from ui.static import Images
+
 from ._states import FSM
 
 

@@ -1,16 +1,17 @@
-from typing import Awaitable, Callable, Dict, Any
+from collections.abc import Awaitable, Callable
+from typing import Any
 
 from aiogram.dispatcher.middlewares.base import BaseMiddleware
-from aiogram.types import TelegramObject, Message
 from aiogram.exceptions import TelegramBadRequest
+from aiogram.types import Message, TelegramObject
 
 
 class NotEnoughRightsMiddleware(BaseMiddleware):
     async def __call__(
         self,
-        handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
+        handler: Callable[[TelegramObject, dict[str, Any]], Awaitable[Any]],
         event: TelegramObject,
-        data: Dict[str, Any],
+        data: dict[str, Any],
     ) -> Any:
         try:
             return await handler(event, data)

@@ -2,6 +2,7 @@ from aiogram.types import BufferedInputFile
 
 from services.gkfeed import FeedItem
 from services.http import HttpService
+
 from ...ui.keyboards import FeedMarkup
 from . import BaseFeedItemView
 

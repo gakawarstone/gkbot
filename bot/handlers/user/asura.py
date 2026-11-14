@@ -1,16 +1,16 @@
-from typing import Any
+from typing import Any, ClassVar
 
 from aiogram import Router
 from aiogram.filters import Command
 from aiogram.types import BufferedInputFile
 
+from configs.commands import USER_COMMANDS
 from extensions.handlers.message.base import BaseHandler
 from services.http import HttpService
-from configs.commands import USER_COMMANDS
 
 
 class DownloadAsura(BaseHandler):
-    _headers = {
+    _headers: ClassVar[dict] = {
         "User-Agent": (
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
             "AppleWebKit/537.36 (KHTML, like Gecko) "

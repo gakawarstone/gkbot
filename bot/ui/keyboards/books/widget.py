@@ -1,14 +1,15 @@
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from models.books import Book
+
 from .base import BaseMarkup
-from .types import _Events, _BookProperties
 from .edit_properties import PropertiesMarkup
+from .types import _BookProperties, _Events
 
 
 class WidgetMarkup(BaseMarkup):
-    prefix = 'book'
+    prefix = "book"
     events = _Events
 
     @classmethod
@@ -17,23 +18,25 @@ class WidgetMarkup(BaseMarkup):
             [
                 [
                     InlineKeyboardButton(
-                        text='Прогресс:',
+                        text="Прогресс:",
                         callback_data=(
-                            f'{PropertiesMarkup.prefix}:'
-                            f'{_BookProperties.PROGRESS.value.name_in_db}:'
-                            f'{str(book.id)}'
-                        )
+                            f"{PropertiesMarkup.prefix}:"
+                            f"{_BookProperties.PROGRESS.value.name_in_db}:"
+                            f"{book.id!s}"
+                        ),
                     ),
                     InlineKeyboardButton(
-                        text='-',
+                        text="-",
                         callback_data=cls._gen_callback_data(
-                            cls.events.decrement, str(book.id)),
+                            cls.events.decrement, str(book.id)
+                        ),
                     ),
                     InlineKeyboardButton(
-                        text='+',
+                        text="+",
                         callback_data=cls._gen_callback_data(
-                            cls.events.increment, str(book.id))
-                    )
+                            cls.events.increment, str(book.id)
+                        ),
+                    ),
                 ],
             ]
         ).as_markup()

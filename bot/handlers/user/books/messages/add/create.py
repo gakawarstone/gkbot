@@ -1,14 +1,15 @@
 from typing import Any
 
-from models.books import Book  # FIXME should service
-from ._base import BaseHandler
+from services.repositories.books import BooksRepository
+
 from ...states import FSM
+from ._base import BaseHandler
 
 
 class CreateBookHandler(BaseHandler):
     async def handle(self) -> Any:
         await self.state.set_state(FSM.check_menu_command)
-        _, is_created = await Book.get_or_create(
+        is_created = await BooksRepository.create_book(
             name=self.ctx.name,
             author=self.ctx.author,
             chapters_cnt=self.ctx.chapter_cnt,

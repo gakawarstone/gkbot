@@ -3,8 +3,9 @@ from typing import override
 import pytest
 
 from handlers.text.tiktok import TikTokVideoHandler
-from .. import integration_test
-from . import Event, Bot
+
+from .. import requires_integration
+from . import Bot, Event
 
 
 class MockedHandler(TikTokVideoHandler):
@@ -15,16 +16,20 @@ class MockedHandler(TikTokVideoHandler):
 
 
 async def _handle_url(url: str):
-    await MockedHandler(event=Event(text=url, breakpoint_at_delete=False)).handle()  # type: ignore[arg-type]
+    await MockedHandler(event=Event(text=url)).handle()  # type: ignore[arg-type]
 
 
-@integration_test
+@requires_integration(
+    "Telegram Bot API credentials, ADMIN_IDS and live TikTok providers, yt-dlp and ffmpeg"
+)
 @pytest.mark.asyncio(loop_scope="session")
 async def test_download_video():
     await _handle_url("https://vm.tiktok.com/ZGdm6LB6D/")
 
 
-@integration_test
+@requires_integration(
+    "Telegram Bot API credentials, ADMIN_IDS and live TikTok providers, yt-dlp and ffmpeg"
+)
 @pytest.mark.asyncio(loop_scope="session")
 async def test_download_slideshow():
     urls = [
@@ -35,4 +40,3 @@ async def test_download_slideshow():
     ]
     for url in urls:
         await _handle_url(url)
-

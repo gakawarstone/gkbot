@@ -4,8 +4,8 @@ from aiogram import Router
 from aiogram.types import Message
 
 from core.notifier import Notifier
-from services.schedule import Schedule, Task
 from filters.command import CommandWithPrompt
+from services.schedule import Schedule, Task
 
 
 async def init_handler(m: Message):

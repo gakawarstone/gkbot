@@ -1,21 +1,22 @@
-from dataclasses import dataclass
-from datetime import timedelta
 from datetime import date as date_type
 from datetime import time as time_type
-from typing import Optional
+from datetime import timedelta
 
 from aiogram.types import Message
 
-from extensions.handlers.context_manager import BaseContextManager, BaseContext
+from extensions.handlers.context_manager import (
+    BaseContext,
+    BaseContextManager,
+    ContextField,
+)
 
 
-@dataclass
 class _ReminderContext(BaseContext):
-    text: Optional[str] = None
-    tz: Optional[timedelta] = None
-    date: Optional[date_type] = None
-    time: Optional[time_type] = None
-    message: Optional[Message] = None
+    text = ContextField(str)
+    tz = ContextField(timedelta)
+    date = ContextField(date_type)
+    time = ContextField(time_type)
+    message = ContextField(Message)
 
 
 class ReminderContextManager(BaseContextManager[_ReminderContext]):

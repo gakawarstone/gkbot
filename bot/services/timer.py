@@ -1,7 +1,8 @@
 from datetime import datetime
 from email import utils
+from typing import ClassVar
 
-from .exceptions import TimerNotStartedException, TimerNotFinishedException
+from .exceptions import TimerNotFinishedException, TimerNotStartedException
 
 
 class Timer:
@@ -29,16 +30,14 @@ class Timer:
     @property
     def start_time_rfc2882(self) -> str:
         if self.__started:
-            return self.__format_to_rfc2882_from_timestamp(
-                self.__start_timestamp)
+            return self.__format_to_rfc2882_from_timestamp(self.__start_timestamp)
         else:
             raise TimerNotStartedException
 
     @property
     def finish_time_rfc2882(self) -> str:
         if self.__finished:
-            return self.__format_to_rfc2882_from_timestamp(
-                self.__finish_timestamp)
+            return self.__format_to_rfc2882_from_timestamp(self.__finish_timestamp)
         else:
             raise TimerNotFinishedException
 
@@ -48,7 +47,7 @@ class Timer:
 
 
 class TimersManager:
-    __timers: dict[str, Timer] = {}
+    __timers: ClassVar[dict[str, Timer]] = {}
 
     @classmethod
     def get_or_create_timer(cls, id: str) -> Timer:

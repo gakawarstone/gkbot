@@ -1,12 +1,12 @@
-from dataclasses import dataclass
-from typing import Optional
+from extensions.handlers.context_manager import (
+    BaseContext,
+    BaseContextManager,
+    ContextField,
+)
 
-from extensions.handlers.context_manager import BaseContextManager, BaseContext
 
-
-@dataclass
 class _ChatGPTContext(BaseContext):
-    messages: Optional[list] = None  # BUG: list[str] not works
+    messages = ContextField(list[str])
 
 
 class ChatGPTContextManager(BaseContextManager[_ChatGPTContext]):

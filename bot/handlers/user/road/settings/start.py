@@ -1,9 +1,10 @@
 from typing import Any
 
-from ui.keyboards.pomodoro import PomodoroSettingsMarkup
 from services.repositories.road_settings import RoadSettingsRepository
-from ._base import BaseHandler
+from ui.keyboards.pomodoro import PomodoroSettingsMarkup
+
 from ..states import FSM
+from ._base import BaseHandler
 
 
 class InitSettingsHandler(BaseHandler):

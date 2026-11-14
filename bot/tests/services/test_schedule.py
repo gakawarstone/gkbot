@@ -1,11 +1,11 @@
 import asyncio
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime, timedelta, timezone
 
 import pytest
+
 from models.tasks import Task as TaskModel
 from services.schedule import Schedule, Task
 from tests.mocks.db import use_db
-
 
 _probe_results: list[str] = []
 
@@ -117,7 +117,7 @@ class TestScheduleTimezone:
 
     def test_to_local_tz_preserves_instant(self):
         """Ensure to_local_tz preserves the same instant in time."""
-        utc_time = datetime(2026, 2, 6, 12, 0, 0, tzinfo=timezone.utc)
+        utc_time = datetime(2026, 2, 6, 12, 0, 0, tzinfo=UTC)
         local_time = Schedule.to_local_tz(utc_time)
 
         # The timestamp should be the same (same instant in time)

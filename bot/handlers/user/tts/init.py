@@ -4,6 +4,7 @@ from extensions.handlers.message.base import BaseHandler
 from extensions.handlers.message.one_time_extension import (
     OneTimeMessageHandlerExtension,
 )
+
 from ._states import FSM
 
 

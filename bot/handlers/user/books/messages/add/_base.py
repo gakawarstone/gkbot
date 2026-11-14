@@ -1,8 +1,7 @@
-from typing import Optional
-
 from aiogram.exceptions import TelegramBadRequest
 
 from ui.components.book_creator import BookCreatorComponent
+
 from ._context import AddBookContextManager
 
 
@@ -14,7 +13,7 @@ class _Status:
 class BaseHandler(AddBookContextManager):
     status = _Status
 
-    async def render_widget(self, status_message: Optional[str] = None):
+    async def render_widget(self, status_message: str | None = None):
         if self.ctx.message is None:
             raise ValueError("Message context is not set.")
 

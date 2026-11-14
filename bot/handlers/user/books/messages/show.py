@@ -1,10 +1,11 @@
 from aiogram import Router
-from aiogram.types import Message
-from aiogram.fsm.context import FSMContext
 from aiogram.filters import StateFilter
+from aiogram.fsm.context import FSMContext
+from aiogram.types import Message
 
 from services.repositories.books import BooksRepository
 from ui.keyboards.books import EventsMarkup
+
 from ..states import FSM
 
 

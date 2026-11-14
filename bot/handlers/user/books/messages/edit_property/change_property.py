@@ -1,10 +1,11 @@
-from aiogram.exceptions import TelegramBadRequest
-
 from typing import Any
 
+from aiogram.exceptions import TelegramBadRequest
+
 from services.repositories.books import BooksRepository
-from ._base import BaseHandler
+
 from ...states import FSM
+from ._base import BaseHandler
 
 
 class ChangeBookPropertyHandler(BaseHandler):

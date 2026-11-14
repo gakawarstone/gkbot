@@ -1,18 +1,18 @@
-from typing import Any
 import time
+from typing import Any
 
 from aiogram import Router
 from aiogram.filters import Command
 from aiogram.filters.state import StateFilter
 from aiogram.fsm.state import State, StatesGroup
 
-from services.agents.image_explainer import ImageExplainer
+from configs.commands import USER_COMMANDS
+from extensions.handlers.message.file_extension import FileHandlerExtension
 from extensions.handlers.message.markdown_render import MarkdownRenderHandlerExtension
 from extensions.handlers.message.one_time_extension import (
     OneTimeMessageHandlerExtension,
 )
-from extensions.handlers.message.file_extension import FileHandlerExtension
-from configs.commands import USER_COMMANDS
+from services.agents.image_explainer import ImageExplainer
 
 
 class _CVisionFSM(StatesGroup):

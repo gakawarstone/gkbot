@@ -1,8 +1,9 @@
 from datetime import timedelta
 
 import pytest
+from tortoise import Tortoise
 
-from services.timezone import TimeZone, UserDontHaveTimeZone, InvalidTimeZone
+from services.timezone import InvalidTimeZone, TimeZone, UserDontHaveTimeZone
 
 INVALID_TZ_SET = [timedelta(hours=-12, minutes=-1), timedelta(hours=14, seconds=1)]
 
@@ -40,3 +41,28 @@ async def test_set_invalid_timezone():
 
     for tz in VALID_TZ_SET:
         await MockedTimeZone.set_user_timezone(1001, tz)
+
+
+@pytest.mark.asyncio
+async def test_utc_round_trip_and_updates_are_isolated() -> None:
+    await Tortoise.init(
+        db_url="sqlite://:memory:", modules={"models": ["models.timezone"]}
+    )
+    try:
+        await Tortoise.generate_schemas()
+        await TimeZone.set_user_timezone(2, timedelta(hours=3))
+        for offset in (
+            timedelta(0),
+            timedelta(0),
+            timedelta(hours=5),
+            timedelta(hours=-12),
+            timedelta(hours=14),
+        ):
+            await TimeZone.set_user_timezone(1, offset)
+            assert await TimeZone.get_user_timezone(1) == offset
+            assert await TimeZone.get_user_timezone(2) == timedelta(hours=3)
+        with pytest.raises(InvalidTimeZone):
+            await TimeZone.set_user_timezone(1, timedelta(hours=14, seconds=1))
+        assert await TimeZone.get_user_timezone(1) == timedelta(hours=14)
+    finally:
+        await Tortoise.close_connections()
