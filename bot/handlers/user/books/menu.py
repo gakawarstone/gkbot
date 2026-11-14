@@ -5,6 +5,7 @@ from aiogram.types import Message, ReplyKeyboardRemove
 
 from configs.commands import USER_COMMANDS
 from filters.not_command import NotCommandFilter
+from middlewares.data import UserData
 from ui.keyboards.books import MenuMarkup
 from ui.static import Images
 
@@ -23,7 +24,9 @@ async def show_menu(message: Message, state: FSMContext):
     await state.set_state(FSM.check_menu_command)
 
 
-async def check_menu_command(message: Message, state: FSMContext, data: dict):
+async def check_menu_command(
+    message: Message, state: FSMContext, data: UserData
+) -> None:
     match message.text:
         case MenuMarkup.buttons.add_new_book:
             await InitAddBookHandler(message, state=state, data=data)

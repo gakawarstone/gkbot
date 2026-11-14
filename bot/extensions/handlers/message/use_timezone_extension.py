@@ -1,12 +1,17 @@
+from datetime import timedelta
+from typing import Any, cast
+
 from aiogram import flags
 
 from .base import BaseHandler
 
 
-# NOTE: added to silence linter
-#       because aiogram flags is not typed correctly
-@flags.require_timezone
-class UseTimeZoneHandlerExtension(BaseHandler):  # type: ignore[misc]
+# Aiogram types this class decorator as a generic callable.
+@cast(Any, flags.require_timezone)
+class UseTimeZoneHandlerExtension(BaseHandler):
     @property
-    def tz(self):
-        return self.user_data["tz"]
+    def tz(self) -> timedelta:
+        tz = self.user_data.get("tz")
+        if tz is None:
+            raise RuntimeError("This handler requires a timezone")
+        return tz

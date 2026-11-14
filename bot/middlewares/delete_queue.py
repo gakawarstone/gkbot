@@ -1,5 +1,4 @@
 import logging
-from collections.abc import Awaitable, Callable
 from typing import Any
 
 from aiogram.dispatcher.middlewares.base import BaseMiddleware
@@ -10,6 +9,8 @@ from aiogram.exceptions import (
     TelegramUnauthorizedError,
 )
 from aiogram.types import Message, TelegramObject
+
+from .data import MiddlewareData, MiddlewareHandler, require_user_data
 
 logger = logging.getLogger(__name__)
 
@@ -31,20 +32,21 @@ class DeleteQueueMiddleware(BaseMiddleware):
     message can never block later updates.
     """
 
-    async def __call__(
+    async def __call__(  # type: ignore[override]  # pyright: ignore[reportIncompatibleMethodOverride]
+        # Aiogram accepts dict[str, Any]; its docs recommend a TypedDict here.
         self,
-        handler: Callable[[TelegramObject, dict[str, Any]], Awaitable[Any]],
+        handler: MiddlewareHandler,
         event: TelegramObject,
-        data: dict[str, Any],
+        data: MiddlewareData,
     ) -> Any:
         for message in self._detach_batch(data):
             await self._try_delete(message)
         return await handler(event, data)
 
     @staticmethod
-    def _detach_batch(data: dict[str, Any]) -> list[Message]:
+    def _detach_batch(data: MiddlewareData) -> list[Message]:
         """Take ownership of pending deletions, leaving a fresh queue behind."""
-        queue = data["data"].setdefault("delete_queue", [])
+        queue = require_user_data(data).setdefault("delete_queue", [])
         batch = list(queue)
         queue.clear()
         return batch

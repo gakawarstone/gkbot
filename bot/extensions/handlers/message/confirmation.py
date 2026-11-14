@@ -5,6 +5,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State
 from aiogram.types import Message
 
+from middlewares.data import UserData
 from ui.keyboards.bool import BoolMarkup
 
 from .base import BaseHandler
@@ -25,9 +26,7 @@ class ConfirmationHandlerExtension(BaseHandler):
         self.user_data["confirmation"] = (on_yes, on_no, finished_state)
 
 
-async def choose_bool(
-    message: Message, state: FSMContext, data: dict[str, Any]
-) -> None:
+async def choose_bool(message: Message, state: FSMContext, data: UserData) -> None:
     confirmation = data.pop("confirmation", None)
     if confirmation is None:
         return
