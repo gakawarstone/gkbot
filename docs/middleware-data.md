@@ -90,9 +90,8 @@ under substitution rules. This is the incompatibility described in
 [aiogram's dependency injection documentation](https://docs.aiogram.dev/en/v3.31.0/dispatcher/dependency_injection.html#using-type-hints).
 Flag lookup reads the selected `HandlerObject` directly from the context.
 
-The timezone extension declares aiogram's `aiogram_flag` attribute directly.
-The flag decorator's return annotation erases class types, so using it here
-would hide the extension's typed dependencies from checkers.
+The timezone extension uses aiogram's `require_timezone` decorator. A cast at
+the decorator boundary preserves the class type for static checkers.
 
 ## Verification
 
