@@ -16,5 +16,5 @@ class TextInputHandler(BaseHandler, OneTimeMessageHandlerExtension):
         self.set(self.props.text, self.event.text)
         await self.render_widget()
         self._set_one_time_message(
-            (await self.event.answer("Введите дату", reply_markup=RemindMarkup.date))
+            await self.event.answer("Введите дату", reply_markup=RemindMarkup.date)
         )

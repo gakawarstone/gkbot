@@ -6,7 +6,7 @@ def get_vk_id(url: str) -> str:
     if url.startswith("https://vk.cc/"):
         return url
 
-    match = re.search(r"(wall-\d+|video-\d+_\d+)", url)
+    match = re.search(r"(wall-\d+(?:_\d+)?|video-\d+_\d+)", url)
     if match:
         return match.group(1)
 

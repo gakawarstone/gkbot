@@ -1,0 +1,56 @@
+name: Pomodoro restart confirmation
+timeout: 30
+steps:
+  - send:
+      text: /road
+  - expect:
+      method: sendMessage
+      text_contains: инструмент
+  - send:
+      text: ⚙️  Настройки
+  - expect:
+      method: sendMessage
+      callback_data: psm:time_focused
+  - click:
+      callback_data: psm:time_focused
+  - expect:
+      method: sendMessage
+      text_contains: Введите новое значение
+  - send:
+      text: "0"
+  - expect:
+      method: sendMessage
+      text_contains: Изменено
+  - send:
+      text: ⚙️  Настройки
+  - expect:
+      method: sendMessage
+      callback_data: psm:time_relax
+  - click:
+      callback_data: psm:time_relax
+  - expect:
+      method: sendMessage
+      text_contains: Введите новое значение
+  - send:
+      text: "0"
+  - expect:
+      method: sendMessage
+      text_contains: Изменено
+  - send:
+      text: 🕔 Помидор
+  - expect:
+      method: sendMessage
+      text_contains: Хотите начать новый помидор?
+  - send:
+      text: Да
+  - expect:
+      method: sendMessage
+      text_contains: Хотите начать новый помидор?
+  - send:
+      text: Нет
+  - expect_none:
+      method: sendMessage
+      text_contains: Вы включили
+      duration: 1
+  - expect_chat:
+      no_errors: true

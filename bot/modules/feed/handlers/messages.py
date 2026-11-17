@@ -17,7 +17,7 @@ class ShowFeedItemsHandler(GkfeedItemProcessorExtension, BaseHandler):
 
     async def handle(self) -> Any:
         if not isinstance(self.event, Message):
-            raise ValueError("event must be Message")
+            raise TypeError("event must be Message")
 
         await self.event.delete()
 
@@ -39,6 +39,5 @@ class ShowFeedItemsHandler(GkfeedItemProcessorExtension, BaseHandler):
                         len(item.text),
                     )
                     tg.create_task(self._process_item(item))
-        except* Exception as exc:
-            for e in exc.exceptions:
-                raise e
+        except ExceptionGroup as error:
+            raise error.exceptions[0]

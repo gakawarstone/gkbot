@@ -1,14 +1,13 @@
 # Middleware user data retention
 
-`UserDataMiddleware` injects a mutable `UserData` dictionary as `data["data"]`.
+`UserDataMiddleware` injects a mutable user dictionary as `data["data"]`.
 One dispatcher-owned `UserDataStore` serves messages and callbacks, currently
 keyed by Telegram user ID across chats. Each new dictionary contains
 `delete_queue: []`. Separate dispatchers have separate stores.
 
-The [middleware inventory](middleware-data.md#user-cache-inventory) lists the
-stored fields. Form drafts, editable message references, pomodoro restart
-callbacks and ChatGPT history must survive between FSM steps. Timezone middleware
-reloads `tz` when needed; pending deletions can outlive the flow that queued them.
+Form drafts, editable message references, confirmation callbacks and ChatGPT
+history must survive between FSM steps. Timezone middleware reloads `tz` when
+needed; pending deletions can outlive the flow that queued them.
 FSM storage's `state.get_data()`, database records and scheduled jobs are separate
 and are not bounded by this store. Middleware dictionaries do not survive restart.
 

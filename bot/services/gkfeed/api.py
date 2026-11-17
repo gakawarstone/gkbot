@@ -7,8 +7,8 @@ from typing import ClassVar
 import aiohttp
 from bs4 import BeautifulSoup
 
-from ._decoder import FeedDecoder, feed_item_from_raw_data
-from ._types import FeedItem, GkfeedCredentials
+from ._decoder import FeedDecoder
+from ._types import FeedItem, FeedItemSummary, GkfeedCredentials
 
 
 class GkfeedApi:
@@ -16,7 +16,7 @@ class GkfeedApi:
     _items_lock: ClassVar[asyncio.Lock] = asyncio.Lock()
     _items_decoder: ClassVar[FeedDecoder] = FeedDecoder()
     _items_cache: ClassVar[
-        dict[tuple[str, str, int, int | None], tuple[float, list[FeedItem]]]
+        dict[tuple[str, str, int, int | None], tuple[float, list[FeedItemSummary]]]
     ] = {}
 
     def __init__(self, credentials: GkfeedCredentials) -> None:
@@ -25,7 +25,7 @@ class GkfeedApi:
 
     async def get_user_items(
         self, limit: int = 1000, cursor: int | None = None
-    ) -> AsyncGenerator[FeedItem]:
+    ) -> AsyncGenerator[FeedItemSummary]:
         cache_key = (self.__login, self.__password, limit, cursor)
         async with self._items_lock:
             now = monotonic()
@@ -39,7 +39,7 @@ class GkfeedApi:
 
             cached = self._items_cache.get(cache_key)
             if cached is None:
-                url = self._api_root + f"get_items?limit={limit}"
+                url = self._api_root + f"get_items?view=summary&limit={limit}"
                 if cursor:
                     url += f"&cursor={cursor}"
                 items = await self._items_decoder.decode(await self._get_html(url))
@@ -80,19 +80,26 @@ class GkfeedApi:
         if not resp["created"]:
             raise ValueError
 
-    async def get_item_by_item_id(self, item_id: int) -> FeedItem:
-        resp = await self._get_html(self._api_root + f"item?id={item_id}")
+    async def get_item_by_item_id(self, item_id: int) -> FeedItem | None:
+        try:
+            resp = await self._get_html(self._api_root + f"item?id={item_id}")
+        except aiohttp.ClientResponseError as error:
+            if error.status == 404:
+                return None
+            raise
         data = json.loads(resp)
         item = data["item"]
-        return self._convert_raw_data_to_feed_item(item)
+        return FeedItem(
+            id=item["id"],
+            feed_id=item["feed_id"],
+            link=item["link"],
+            title=item["title"],
+            text=item["text"],
+        )
 
     async def get_raw_item_data(self, item_id: int) -> dict:
         resp = await self._get_html(self._api_root + f"item?id={item_id}")
         return json.loads(resp)
-
-    @staticmethod
-    def _convert_raw_data_to_feed_item(raw_data: dict) -> FeedItem:
-        return feed_item_from_raw_data(raw_data)
 
     async def _get_soup(self, url: str) -> BeautifulSoup:
         html = await self._get_html(url)

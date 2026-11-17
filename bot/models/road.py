@@ -12,11 +12,3 @@ class RoadSettings(Model):
     user_id = fields.IntField(primary_key=True)
     time_focused = fields.TimeField()
     time_relax = fields.TimeField()
-
-
-# NOTE: unused
-class Habits(Model):
-    habit_id = fields.IntField(primary_key=True)
-    user_id = fields.IntField()
-    name = fields.TextField()
-    notify_time = fields.TimeField()

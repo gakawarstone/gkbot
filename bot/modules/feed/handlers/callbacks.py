@@ -1,4 +1,3 @@
-import asyncio
 from typing import Any
 
 from aiogram.types import CallbackQuery, InaccessibleMessage
@@ -16,7 +15,7 @@ class ItemEventHandler(GkfeedItemProcessorExtension, BaseHandler):
         data_str = getattr(self.event, "data", None)
 
         if not isinstance(data_str, str):
-            raise ValueError("Callback data is required")
+            raise TypeError("Callback data is required")
 
         parts = data_str.split(":")
         if len(parts) < 3:
@@ -30,22 +29,20 @@ class ItemEventHandler(GkfeedItemProcessorExtension, BaseHandler):
         await self._handle_event(event, data)
         await self._send_one_feed_item()
 
-    async def _handle_event(self, event: str, data: int):
+    async def _handle_event(self, event: str, data: int) -> None:
         if not isinstance(self.event, CallbackQuery):
-            raise ValueError("event must be CallbackQuery")
+            raise TypeError("event must be CallbackQuery")
 
         if not self.event.message or isinstance(
             self.event.message, InaccessibleMessage
         ):
             raise ValueError("event must have message")
 
-        api = GkfeedApi(await self._gkfeed_credentials)
-
         match event:
             case FeedMarkup.data.delete:
                 await self.event.message.delete()
-                # BUG: can fail silently
-                asyncio.create_task(api.delete_item_by_id(data))
+                api = GkfeedApi(await self._gkfeed_credentials)
+                await api.delete_item_by_id(data)
             case FeedMarkup.data.keep:
                 await self.event.message.delete()
             # NOTE: Deprecated
@@ -54,7 +51,7 @@ class ItemEventHandler(GkfeedItemProcessorExtension, BaseHandler):
                 pass
                 # await self._send_items_from_feed(data)
 
-    async def _send_one_feed_item(self):
+    async def _send_one_feed_item(self) -> None:
         picker = GkfeedItemsPicker(await self._gkfeed_credentials)
 
         if item := await picker.get_next_item():

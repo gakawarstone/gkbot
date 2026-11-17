@@ -1,4 +1,3 @@
-from collections.abc import Sequence
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
@@ -10,9 +9,7 @@ from aiogram.exceptions import (
     TelegramNotFound,
     TelegramUnauthorizedError,
 )
-from aiogram.types import Message, TelegramObject
 
-from middlewares.data import MiddlewareData, MiddlewareHandler, require_user_data
 from middlewares.delete_queue import DeleteQueueMiddleware
 
 UNDELETABLE_ERRORS = (
@@ -44,11 +41,9 @@ def handler() -> AsyncMock:
 
 
 async def run(
-    middleware: DeleteQueueMiddleware,
-    queue: Sequence[Message],
-    handler: MiddlewareHandler,
-) -> tuple[Any, MiddlewareData]:
-    data: MiddlewareData = {"data": {"delete_queue": list(queue)}}
+    middleware: DeleteQueueMiddleware, queue: list, handler: Any
+) -> tuple[Any, dict]:
+    data = {"data": {"delete_queue": queue}}
     result = await middleware(handler, MagicMock(), data)
     return result, data
 
@@ -63,7 +58,7 @@ async def test_clears_queue_on_success(
     assert result == "ok"
     for message in messages:
         message.delete.assert_awaited_once()
-    assert require_user_data(data)["delete_queue"] == []
+    assert data["data"]["delete_queue"] == []
 
 
 @pytest.mark.parametrize("error_cls", UNDELETABLE_ERRORS)
@@ -80,7 +75,7 @@ async def test_poison_message_does_not_block_queue(
     assert result == "ok"
     poison.delete.assert_awaited_once()
     healthy.delete.assert_awaited_once()
-    assert require_user_data(data)["delete_queue"] == []
+    assert data["data"]["delete_queue"] == []
 
 
 async def test_subsequent_update_does_not_retry_poison_message(
@@ -89,7 +84,7 @@ async def test_subsequent_update_does_not_retry_poison_message(
     poison = make_message(make_telegram_error(TelegramBadRequest))
 
     _, data = await run(middleware, [poison], handler)
-    await run(middleware, require_user_data(data)["delete_queue"], handler)
+    await run(middleware, data["data"]["delete_queue"], handler)
 
     poison.delete.assert_awaited_once()
     assert handler.await_count == 2
@@ -100,8 +95,8 @@ async def test_new_entries_added_during_handling_are_preserved(
 ) -> None:
     old, new = make_message(), make_message()
 
-    async def handler(event: TelegramObject, handler_data: MiddlewareData) -> str:
-        require_user_data(handler_data)["delete_queue"].append(new)
+    async def handler(event: Any, handler_data: Any) -> str:
+        handler_data["data"]["delete_queue"].append(new)
         return "ok"
 
     result, data = await run(middleware, [old], handler)
@@ -109,17 +104,17 @@ async def test_new_entries_added_during_handling_are_preserved(
     assert result == "ok"
     old.delete.assert_awaited_once()
     new.delete.assert_not_awaited()
-    assert require_user_data(data)["delete_queue"] == [new]
+    assert data["data"]["delete_queue"] == [new]
 
 
 async def test_unexpected_error_detaches_queue_but_propagates(
     middleware: DeleteQueueMiddleware, handler: AsyncMock
 ) -> None:
     broken = make_message(RuntimeError("boom"))
-    data: MiddlewareData = {"data": {"delete_queue": [broken]}}
+    data = {"data": {"delete_queue": [broken]}}
 
     with pytest.raises(RuntimeError, match="boom"):
         await middleware(handler, MagicMock(), data)
 
     handler.assert_not_awaited()
-    assert require_user_data(data)["delete_queue"] == []
+    assert data["data"]["delete_queue"] == []

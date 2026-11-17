@@ -8,11 +8,12 @@ from urllib.parse import urlparse
 from aiogram.types import FSInputFile
 from bs4 import BeautifulSoup, Tag
 
+from services.audio import AudioService
 from services.cache_dir import CacheDir
-from services.ffmpeg import FfmpegService
 from services.http import HttpService
 from services.open_graph import OpenGraphService
 from services.ytdlp._types import AudioFileInfo
+from workers.feed_parser import feed_parser
 
 _HLS_URL_PATTERN = re.compile(r'https:(?:\\u002F){2}[^"]+?master\.m3u8\?[^"]+')
 
@@ -53,7 +54,7 @@ class MatreshkaService:
     async def get_video(cls, url: str) -> MatreshkaVideo:
         video_id = cls.get_video_id(url)
         page = await HttpService.get(url)
-        return cls.parse_video(page, video_id)
+        return await feed_parser.run(cls.parse_video, page, video_id)
 
     @staticmethod
     def parse_video(page: bytes | str, video_id: str) -> MatreshkaVideo:
@@ -89,9 +90,7 @@ class MatreshkaService:
     async def download_audio(video: MatreshkaVideo) -> AsyncIterator[AudioFileInfo]:
         cache_dir = CacheDir()
         try:
-            await FfmpegService.download_and_prepare_audio(
-                video.hls_url, cache_dir.path
-            )
+            await AudioService.download_and_prepare_audio(video.hls_url, cache_dir.path)
 
             yield AudioFileInfo(
                 input_file=FSInputFile(cache_dir.get_file_path("audio.m4a")),

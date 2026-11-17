@@ -1,11 +1,12 @@
 from typing import Any
 
 from aiogram import Router
+from aiogram.enums import ChatType
 from aiogram.filters import and_f
 
 from extensions.handlers.message.base import BaseHandler
 from extensions.handlers.message.send_voice import SendVoiceHandlerExtension
-from filters.chat_type import ChatType, ChatTypeFilter
+from filters.chat_type import ChatTypeFilter
 from filters.long_message import LongMessageFilter
 
 
@@ -19,5 +20,5 @@ class TextToSpeechHandler(SendVoiceHandlerExtension, BaseHandler):
 def setup(r: Router):
     r.message.register(
         TextToSpeechHandler,
-        and_f(LongMessageFilter(), ChatTypeFilter(ChatType.private)),
+        and_f(LongMessageFilter(), ChatTypeFilter(ChatType.PRIVATE)),
     )

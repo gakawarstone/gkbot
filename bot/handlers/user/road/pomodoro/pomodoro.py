@@ -2,13 +2,14 @@ from typing import Any
 
 from aiogram.types import ReplyKeyboardRemove
 
+from extensions.handlers.message.confirmation import ConfirmationHandlerExtension
 from services.pomodoro import Pomodoro as PomodoroService
 
+from ..states import FSM
 from ._base import BaseHandler
-from .restart import ask_to_restart
 
 
-class PomodoroHandler(BaseHandler):
+class PomodoroHandler(ConfirmationHandlerExtension, BaseHandler):
     async def handle(self) -> Any:
         if self.event.from_user is None:
             raise ValueError("from_user is None")
@@ -33,7 +34,12 @@ class PomodoroHandler(BaseHandler):
             user_id=self.event.from_user.id
         )
         await self.event.answer(
-            "<b>Поздравляю</b> вы получили <b>[<i>%s</i>🍅]</b>" % cnt
+            f"<b>Поздравляю</b> вы получили <b>[<i>{cnt}</i>🍅]</b>"
         )
 
-        await ask_to_restart(self, "Хотите начать новый помидор?")
+        await self.ask_confirmation(
+            "Хотите начать новый помидор?",
+            self.handle,
+            FSM.choose_bool,
+            FSM.finish,
+        )

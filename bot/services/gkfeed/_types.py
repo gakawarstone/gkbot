@@ -2,6 +2,15 @@ from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
+class FeedItemSummary:
+    id: int
+    feed_id: int
+    link: str
+    title: str
+    date: str
+
+
+@dataclass(frozen=True)
 class FeedItem:
     id: int
     feed_id: int

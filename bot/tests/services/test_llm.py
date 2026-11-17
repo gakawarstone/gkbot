@@ -2,7 +2,7 @@ import asyncio
 
 from services.llm import OpenRouter
 
-from .. import integration_test
+from .. import requires_integration
 
 
 async def stream_open_router_response():
@@ -11,7 +11,7 @@ async def stream_open_router_response():
         assert len(chunk.text) != 0
 
 
-@integration_test
+@requires_integration("OpenRouter network access and API credentials")
 async def test_event_loop_not_blocked():
     started = asyncio.Event()
     finished = asyncio.Event()

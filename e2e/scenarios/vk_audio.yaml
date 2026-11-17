@@ -1,0 +1,14 @@
+name: VK audio download sends uploaded audio
+timeout: 240
+steps:
+  - send:
+      text: https://vk.com/video-211282506_456240577
+  - expect:
+      method: sendMessage
+      text: https://vk.com/video-211282506_456240577
+      callback_data: vkbtn:dlmp3:True:video-211282506_456240577
+  - click:
+      callback_data: vkbtn:dlmp3:True:video-211282506_456240577
+  - expect:
+      method: sendAudio
+      media_type: audio

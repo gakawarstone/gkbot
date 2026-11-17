@@ -1,3 +1,4 @@
+from collections.abc import Awaitable, Callable
 from typing import Any
 
 from aiogram.dispatcher.middlewares.base import BaseMiddleware
@@ -5,16 +6,13 @@ from aiogram.types import TelegramObject, User
 
 from models.users import Users
 
-from .data import MiddlewareData, MiddlewareHandler
-
 
 class RegisterUserMiddleware(BaseMiddleware):
-    async def __call__(  # type: ignore[override]  # pyright: ignore[reportIncompatibleMethodOverride]
-        # Aiogram accepts dict[str, Any]; its docs recommend a TypedDict here.
+    async def __call__(
         self,
-        handler: MiddlewareHandler,
+        handler: Callable[[TelegramObject, dict[str, Any]], Awaitable[Any]],
         event: TelegramObject,
-        data: MiddlewareData,
+        data: dict[str, Any],
     ) -> Any:
         user: User | None = getattr(event, "from_user", None)
         if not user:

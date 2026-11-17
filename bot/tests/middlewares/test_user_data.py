@@ -2,6 +2,7 @@ import asyncio
 from collections.abc import Iterator
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -12,7 +13,6 @@ from aiogram.fsm.storage.base import StorageKey
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.types import CallbackQuery, Chat, Message, TelegramObject, Update, User
 
-from middlewares.data import MiddlewareData, UserData, require_user_data
 from middlewares.delete_queue import DeleteQueueMiddleware
 from middlewares.user_data import UserDataMiddleware
 from middlewares.user_data_store import UserDataCapacityError, UserDataStore
@@ -140,20 +140,19 @@ async def test_finish_drops_context_but_keeps_queue_until_next_message(
     middleware = UserDataMiddleware(store)
     pending = AsyncMock()
 
-    async def finish(event: TelegramObject, data: MiddlewareData) -> None:
-        user_data = require_user_data(data)
+    async def finish(event: TelegramObject, data: dict[str, Any]) -> None:
+        user_data = data["data"]
         user_data["messages"] = ["history"]
-        user_data["callback"] = MagicMock()
         user_data["delete_queue"] = [pending]
         await state.set_state("FSM:finish")
 
     await middleware(finish, make_event(), {"state": state})
     assert len(store) == 1
 
-    async def next_message(event: TelegramObject, data: MiddlewareData) -> None:
-        assert require_user_data(data) == {"delete_queue": []}
+    async def next_message(event: TelegramObject, data: dict[str, Any]) -> None:
+        assert data["data"] == {"delete_queue": []}
 
-    async def with_delete_queue(event: TelegramObject, data: MiddlewareData) -> None:
+    async def with_delete_queue(event: TelegramObject, data: dict[str, Any]) -> None:
         await DeleteQueueMiddleware()(next_message, event, data)
 
     await middleware(with_delete_queue, make_event(), {"state": state})
@@ -169,12 +168,12 @@ async def test_busy_finish_does_not_expire_running_handler(
     started, resume = asyncio.Event(), asyncio.Event()
     history = ["prompt"]
 
-    async def generate(event: TelegramObject, data: MiddlewareData) -> None:
-        require_user_data(data)["messages"] = history
+    async def generate(event: TelegramObject, data: dict[str, Any]) -> None:
+        data["data"]["messages"] = history
         await state.set_state("FSM:finish")
         started.set()
         await resume.wait()
-        assert require_user_data(data).get("messages") == history
+        assert data["data"].get("messages") == history
         await state.set_state("FSM:get_message")
 
     task = asyncio.create_task(middleware(generate, make_event(), {"state": state}))
@@ -187,8 +186,8 @@ async def test_busy_finish_does_not_expire_running_handler(
         resume.set()
         await task
 
-    async def continue_chat(event: TelegramObject, data: MiddlewareData) -> None:
-        assert require_user_data(data).get("messages") == history
+    async def continue_chat(event: TelegramObject, data: dict[str, Any]) -> None:
+        assert data["data"].get("messages") == history
         await state.clear()
 
     await middleware(continue_chat, make_event(), {"state": state})
@@ -201,8 +200,8 @@ async def test_callback_after_cleanup_resets_stale_fsm_before_handler(
 ) -> None:
     middleware = UserDataMiddleware(store)
 
-    async def start(event: TelegramObject, data: MiddlewareData) -> None:
-        require_user_data(data)["messages"] = ["prompt"]
+    async def start(event: TelegramObject, data: dict[str, Any]) -> None:
+        data["data"]["messages"] = ["prompt"]
         await state.set_state("FSM:get_message")
 
     await middleware(start, make_event(), {"state": state})
@@ -230,11 +229,11 @@ async def test_dispatcher_skips_expired_handler_and_allows_restart(
     monkeypatch.setattr(bot.session, "make_request", request)
     replies: list[str] = []
 
-    async def start(message: Message, state: FSMContext, data: UserData) -> None:
+    async def start(message: Message, state: FSMContext, data: dict[str, Any]) -> None:
         data["messages"] = ["system"]
         await state.set_state("FSM:get_message")
 
-    async def reply(message: Message, state: FSMContext, data: UserData) -> None:
+    async def reply(message: Message, state: FSMContext, data: dict[str, Any]) -> None:
         assert message.text is not None
         messages = data.get("messages")
         assert messages is not None
@@ -279,7 +278,7 @@ async def test_dispatcher_skips_expired_handler_and_allows_restart(
 async def test_failure_releases_handler_pin(
     store: UserDataStore, state: FSMContext, clock: Clock, error: BaseException
 ) -> None:
-    async def fail(event: TelegramObject, data: MiddlewareData) -> None:
+    async def fail(event: TelegramObject, data: dict[str, Any]) -> None:
         await state.set_state("FSM:get_message")
         raise error
 
@@ -302,7 +301,7 @@ async def test_failed_fsm_lookup_still_releases_pin(
             raise OSError("storage unavailable")
         return None
 
-    async def finish(event: TelegramObject, data: MiddlewareData) -> None:
+    async def finish(event: TelegramObject, data: dict[str, Any]) -> None:
         nonlocal handler_finished
         handler_finished = True
 

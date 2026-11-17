@@ -2,7 +2,7 @@ from abc import ABC
 
 from aiogram.types import BufferedInputFile
 
-from services.ffmpeg import FfmpegService
+from services.audio import AudioService
 from services.tts import TextToSpeechService, TTSProviderType
 
 from .base import BaseHandler as _BaseHandler
@@ -19,5 +19,5 @@ class SendVoiceHandlerExtension(_BaseHandler, ABC):
         await self.answer_voice(voice_file)
 
     async def answer_voice(self, music: bytes) -> None:
-        voice_file = await FfmpegService.convert_music_to_voice(music)
+        voice_file = await AudioService.convert_music_to_voice(music)
         await self.event.answer_voice(BufferedInputFile(voice_file, "voice.ogg"))

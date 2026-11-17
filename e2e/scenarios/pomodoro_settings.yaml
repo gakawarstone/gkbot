@@ -1,0 +1,65 @@
+name: Pomodoro settings can be edited independently
+timeout: 20
+steps:
+  - send:
+      text: /road
+  - expect:
+      method: sendMessage
+      text_contains: инструмент
+  - send:
+      text: "3"
+  - expect:
+      method: sendMessage
+      text: Настройки
+  - click:
+      button_text: "Время работы: 15"
+  - expect:
+      method: sendMessage
+      text_contains: Введите новое значение
+  - send:
+      text: "25"
+  - expect:
+      method: sendMessage
+      text: Изменено
+  - send:
+      text: "3"
+  - expect:
+      method: sendMessage
+      text: Настройки
+  - click:
+      button_text: "Время отдыха: 15"
+  - expect:
+      method: sendMessage
+      text_contains: Введите новое значение
+  - send:
+      text: "5"
+  - expect:
+      method: sendMessage
+      text: Изменено
+  - send:
+      text: "3"
+  - expect:
+      method: sendMessage
+      text: Настройки
+  - click:
+      button_text: "Время работы: 25"
+  - expect:
+      method: sendMessage
+      text_contains: Введите новое значение
+  - send:
+      text: "25"
+  - expect:
+      method: sendMessage
+      text: Изменено
+  - send:
+      text: "3"
+  - expect:
+      method: sendMessage
+      text: Настройки
+  - click:
+      button_text: "Время отдыха: 5"
+  - expect:
+      method: sendMessage
+      text_contains: Введите новое значение
+  - expect_chat:
+      no_errors: true
