@@ -24,4 +24,4 @@ COPY static static
 
 COPY bot bot
 
-CMD python bot/main.py
+CMD ["python", "bot/main.py"]
