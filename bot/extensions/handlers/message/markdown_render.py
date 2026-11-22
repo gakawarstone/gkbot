@@ -1,8 +1,6 @@
 import re
-from html import escape
 
 from aiogram.utils.formatting import Bold, Code, Pre, Text
-from aiogram.utils.text_decorations import HtmlDecoration
 
 from .base import BaseHandler
 
@@ -35,15 +33,8 @@ def _render_list_markers(text: str) -> str:
     return text.replace(" * ", "👉 ").replace("\n* ", "\n📌 ")
 
 
-class _TelegramHTMLDecoration(HtmlDecoration):
-    def pre_language(self, value: str, language: str) -> str:
-        # aiogram 3.26 uses a language attribute; Telegram requires class.
-        return f'<pre><code class="language-{escape(language, quote=True)}">{value}</code></pre>'
-
-
 def render_html(text: Text) -> str:
-    value, entities = text.render()
-    return _TelegramHTMLDecoration().unparse(value, entities)
+    return text.as_html()
 
 
 class MarkdownRenderHandlerExtension(BaseHandler):
