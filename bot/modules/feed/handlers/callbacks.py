@@ -1,4 +1,3 @@
-from typing import Any
 
 from aiogram.types import CallbackQuery, InaccessibleMessage
 
@@ -24,8 +23,11 @@ class ItemEventHandler(GkfeedItemProcessorExtension, BaseHandler):
         _, event, data = parts
         return event, int(data)
 
-    async def handle(self) -> Any:
+    async def handle(self) -> None:
         event, data = await self._parse_callback()
+        if event not in (FeedMarkup.data.delete, FeedMarkup.data.keep):
+            return
+
         await self._handle_event(event, data)
         await self._send_one_feed_item()
 
@@ -45,11 +47,6 @@ class ItemEventHandler(GkfeedItemProcessorExtension, BaseHandler):
                 await api.delete_item_by_id(data)
             case FeedMarkup.data.keep:
                 await self.event.message.delete()
-            # NOTE: Deprecated
-            # NOTE: need to be replaced with general actions button
-            case FeedMarkup.data.show_all_feed:
-                pass
-                # await self._send_items_from_feed(data)
 
     async def _send_one_feed_item(self) -> None:
         picker = GkfeedItemsPicker(await self._gkfeed_credentials)
@@ -58,15 +55,3 @@ class ItemEventHandler(GkfeedItemProcessorExtension, BaseHandler):
             await self._process_item(item)
         else:
             await self.answer("На данный момент ничего нового")
-
-    # NOTE : Deprecated
-    # async def _send_items_from_feed(self, feed_id: int, limit=10) -> None:
-    #     picker = GkfeedItemsPicker(await self._gkfeed_credentials)
-    #
-    #     for _ in range(limit):
-    #         item = await picker.get_next_item(lambda i: i.feed_id == feed_id)
-    #
-    #         if not item:
-    #             break
-    #
-    #         await self._process_item(item)

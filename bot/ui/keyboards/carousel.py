@@ -1,4 +1,4 @@
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import DisabledButton, InlineKeyboardButton, InlineKeyboardMarkup
 
 
 class CarouselMarkupButtons:
@@ -33,7 +33,7 @@ class BaseCarouselMarkup[T: CarouselMarkupButtons, S: CarouselMarkupData]:
             ),
             InlineKeyboardButton(
                 text=str(media_current_num + 1),
-                callback_data="void",
+                disabled=DisabledButton(),
             ),
             InlineKeyboardButton(
                 text=cls.buttons.show_next_media,
