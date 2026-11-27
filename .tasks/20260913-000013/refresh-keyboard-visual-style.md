@@ -22,3 +22,8 @@ Newer Bot API versions support button styles and custom emoji icons. The current
 - Accepted styles use shared helpers instead of per-handler constants.
 - The task records a keep or reject decision.
 
+## Evaluation update, 2026-10-23
+
+[Experiment and decision](../../docs/keyboard-visual-style-experiment.md):
+reject production styling for now. Keep OPEN pending real client screenshots
+and accessibility/fallback evidence; custom emoji eligibility is unverified.
