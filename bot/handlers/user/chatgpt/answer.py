@@ -1,19 +1,23 @@
 import base64
 import time
 from collections.abc import AsyncGenerator
+from contextlib import aclosing
+from typing import Any
 
-from aiogram.types import LinkPreviewOptions, Message
-from aiogram.utils.formatting import BlockQuote
+from aiogram.enums import ChatType
+from aiogram.types import Message
 
 from extensions.handlers.message.file_extension import FileHandlerExtension
 from extensions.handlers.message.markdown_render import MarkdownRenderHandlerExtension
 from services.agents.image_explainer import ImageExplainer
 from services.llm import OpenRouter
 from services.llm.openrouter import DEFAULT_MODEL, StreamChunk
+from ui.ai_chat_stream import AIChatStream
 
 from ._base import BaseHandler
-from ._response import split_response
 from ._states import FSM
+
+__all__ = ("AnswerHandler", "time")
 
 
 class AnswerHandler(BaseHandler, MarkdownRenderHandlerExtension, FileHandlerExtension):
@@ -24,27 +28,35 @@ class AnswerHandler(BaseHandler, MarkdownRenderHandlerExtension, FileHandlerExte
         try:
             await self._answer_prompt()
         finally:
-            await self.state.set_state(FSM.get_message)
+            # A concurrent /exit must not be undone by stream cleanup.
+            if await self.state.get_state() == FSM.finish.state:
+                await self.state.set_state(FSM.get_message)
 
     async def _answer_prompt(self) -> None:
         assert self.ctx.messages is not None
 
+        delivery = self._delivery
         prompt = await self._build_prompt()
         if not prompt:
-            await self.event.answer("Отправь текст или изображение с подписью.")
+            await delivery._answer("Отправь текст или изображение с подписью.")
             return
 
         self.ctx.messages.append(prompt)
 
-        _message = await self.event.answer("Подождите")
-        text = await self._stream_to_message(
-            _message,
+        async with aclosing(
             OpenRouter(self._MODEL).stream(
                 " | ".join(self.ctx.messages), await self._get_images()
-            ),
-        )
+            )
+        ) as stream:
+            if self.event.chat.type == ChatType.PRIVATE:
+                text = await delivery._private_response(stream)
+            else:
+                text = await delivery._stream_to_message(
+                    await delivery._answer("Подождите"), stream
+                )
 
-        self.ctx.messages.append(text)
+        if text is not None:
+            self.ctx.messages.append(text)
 
     async def _build_prompt(self) -> str | None:
         prompt = self.event.text or self.event.caption
@@ -75,58 +87,40 @@ class AnswerHandler(BaseHandler, MarkdownRenderHandlerExtension, FileHandlerExte
             text += chunk
         return text
 
-    async def _stream_to_message(
-        self, message: Message, stream: AsyncGenerator[StreamChunk]
+    # Keep the existing entry points for callers while delivery lives in services.
+    @property
+    def _delivery(self) -> AIChatStream:
+        return AIChatStream(self.event, self.data.get("bot"), self.data.get("state"))
+
+    async def _answer(self, text: str, **kwargs: Any) -> Message:
+        return await self._delivery._answer(text, **kwargs)
+
+    async def _private_response(
+        self, stream: AsyncGenerator[StreamChunk]
+    ) -> str | None:
+        return await self._delivery._private_response(stream)
+
+    async def _send_draft(self, draft_id: int, text: str) -> bool:
+        return await self._delivery._send_draft(draft_id, text)
+
+    async def _stream_to_draft(
+        self, stream: AsyncGenerator[StreamChunk], draft_id: int
     ) -> str:
-        reason = ""
-        text = ""
-        messages = [(message, message.html_text or "")]
-        last_update = time.monotonic()
+        return await self._delivery._stream_to_draft(stream, draft_id)
 
-        async for chunk, chunk_type in stream:
-            if chunk_type == "reason":
-                reason += chunk
-            if chunk_type == "content":
-                text += chunk
-
-            now = time.monotonic()
-            if now - last_update >= 1.5:
-                last_update = now
-                if not text and reason:
-                    chunks = [BlockQuote(reason[-500:]).as_html()]
-                else:
-                    chunks = split_response(text)
-                await self._update_messages(messages, chunks)
-
-        await self._update_messages(
-            messages, split_response(text) or ["Модель не вернула ответ."]
+    async def _stream_to_message(
+        self,
+        message: Message,
+        stream: AsyncGenerator[StreamChunk],
+        *,
+        text: str = "",
+        reason: str = "",
+    ) -> str:
+        return await self._delivery._stream_to_message(
+            message, stream, text=text, reason=reason
         )
-        return text
 
     async def _update_messages(
         self, messages: list[tuple[Message, str]], chunks: list[str]
     ) -> None:
-        for index, chunk in enumerate(chunks):
-            if index >= len(messages):
-                message = await messages[-1][0].answer(
-                    chunk,
-                    parse_mode="HTML",
-                    link_preview_options=LinkPreviewOptions(is_disabled=True),
-                )
-            else:
-                message, previous_text = messages[index]
-                if chunk != previous_text:
-                    await message.edit_text(
-                        chunk,
-                        parse_mode="HTML",
-                        link_preview_options=LinkPreviewOptions(is_disabled=True),
-                    )
-            if index >= len(messages):
-                messages.append((message, chunk))
-            else:
-                messages[index] = (message, chunk)
-
-        # Completing Markdown can remove delimiters and reduce the chunk count.
-        while len(messages) > max(1, len(chunks)):
-            await messages[-1][0].delete()
-            messages.pop()
+        await self._delivery._update_messages(messages, chunks)
