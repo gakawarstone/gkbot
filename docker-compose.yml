@@ -3,6 +3,7 @@ services:
     build: .
     image: gkbot
     tty: True
+    stop_grace_period: 30s
     volumes:
       - gkbot_data:/data
       - $HOME/.cache/gkbot:/root/.cache/gkbot
