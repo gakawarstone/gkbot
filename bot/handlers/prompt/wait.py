@@ -3,12 +3,13 @@ from datetime import datetime, timedelta
 from aiogram import Router
 from aiogram.types import Message
 
+from configs.commands import USER_COMMANDS
 from core.notifier import Notifier
 from filters.command import CommandWithPrompt
 from services.schedule import Schedule, Task
 
 
-async def init_handler(m: Message):
+async def init_handler(m: Message) -> None:
     if not m.text or not m.from_user:
         raise ValueError("Invalid message or user data")
 
@@ -21,5 +22,5 @@ async def init_handler(m: Message):
     await m.delete()
 
 
-def setup(r: Router):
-    r.message.register(init_handler, CommandWithPrompt("wait"))
+def setup(r: Router) -> None:
+    r.message.register(init_handler, CommandWithPrompt(USER_COMMANDS.wait))

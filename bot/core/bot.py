@@ -52,6 +52,7 @@ class BotStarter:
         await self.dp.start_polling(
             self.bot,
             tasks_concurrency_limit=self.polling_tasks_concurrency_limit,
+            tasks_shutdown_timeout=20,
         )
 
     def start(self) -> None:

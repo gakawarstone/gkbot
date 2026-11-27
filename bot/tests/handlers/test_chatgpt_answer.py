@@ -12,9 +12,9 @@ from aiogram.fsm.storage.base import StorageKey
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.methods import EditMessageText
 from aiogram.types import Chat, Message
-from aiogram.utils.formatting import sizeof
+from aiogram.utils.formatting import Pre, sizeof
 
-from extensions.handlers.message.markdown_render import parse_markdown
+from extensions.handlers.message.markdown_render import parse_markdown, render_html
 from handlers.user.chatgpt._response import (
     RESPONSE_MESSAGE_LIMIT,
     split_response,
@@ -104,6 +104,15 @@ def test_split_response_preserves_formatting(markdown: str, tag: str) -> None:
 )
 def test_markdown_is_escaped_once(markdown: str, expected: str) -> None:
     assert "".join(map(visible_text, split_response(markdown))) == expected
+
+
+def test_code_block_escapes_language_and_content() -> None:
+    html = render_html(Pre('<script>& "', language='x" & <tag>'))
+    root = ET.fromstring(f"<root>{html}</root>")
+    code = root.find("pre/code")
+    assert code is not None
+    assert code.attrib == {"class": 'language-x" & <tag>'}
+    assert code.text == '<script>& "'
 
 
 class MessageRecorder:
