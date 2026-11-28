@@ -1,10 +1,10 @@
 import asyncio
 import json
 import re
+from dataclasses import dataclass
 from typing import ClassVar
 
 import aiohttp
-from aiogram.types import BufferedInputFile, InputMediaPhoto
 from bs4 import BeautifulSoup, Tag
 
 
@@ -12,19 +12,23 @@ class InstagramDownloadError(Exception):
     """An Instagram post could not be extracted or downloaded."""
 
 
+@dataclass(frozen=True, slots=True)
+class InstagramPhoto:
+    content: bytes
+    filename: str
+
+
 class InstagramService:
     _headers: ClassVar[dict[str, str]] = {"User-Agent": "Mozilla/5.0"}
     _post_shortcode_pattern = re.compile(r"/p/([^/?#]+)")
 
     @classmethod
-    async def get_photos_album(cls, url: str) -> list[InputMediaPhoto]:
+    async def get_photos(cls, url: str) -> list[InstagramPhoto]:
         try:
             links = await cls._extract_photo_links(url)
-            photos = await cls._download_photos(links, referer=url)
+            return await cls._download_photos(links, referer=url)
         except (aiohttp.ClientError, json.JSONDecodeError, TimeoutError) as error:
             raise InstagramDownloadError(url) from error
-
-        return [InputMediaPhoto(media=photo) for photo in photos]
 
     @classmethod
     async def _extract_photo_links(cls, url: str) -> list[str]:
@@ -36,9 +40,10 @@ class InstagramService:
             f"https://www.instagram.com/p/{shortcode_match.group(1)}/embed/captioned/"
         )
         timeout = aiohttp.ClientTimeout(total=30)
-        async with aiohttp.ClientSession(
-            headers=cls._headers, timeout=timeout
-        ) as session, session.get(embed_url) as response:
+        async with (
+            aiohttp.ClientSession(headers=cls._headers, timeout=timeout) as session,
+            session.get(embed_url) as response,
+        ):
             response.raise_for_status()
             html = await response.text()
 
@@ -134,7 +139,7 @@ class InstagramService:
     @classmethod
     async def _download_photos(
         cls, links: list[str], referer: str
-    ) -> list[BufferedInputFile]:
+    ) -> list[InstagramPhoto]:
         timeout = aiohttp.ClientTimeout(total=30)
         headers = {**cls._headers, "Referer": referer}
         async with aiohttp.ClientSession(headers=headers, timeout=timeout) as session:
@@ -148,11 +153,11 @@ class InstagramService:
     @staticmethod
     async def _download_photo(
         session: aiohttp.ClientSession, link: str, index: int
-    ) -> BufferedInputFile:
+    ) -> InstagramPhoto:
         async with session.get(link) as response:
             response.raise_for_status()
             content = await response.read()
 
         if not content:
             raise InstagramDownloadError(link)
-        return BufferedInputFile(content, filename=f"instagram_{index}.jpg")
+        return InstagramPhoto(content=content, filename=f"instagram_{index}.jpg")
