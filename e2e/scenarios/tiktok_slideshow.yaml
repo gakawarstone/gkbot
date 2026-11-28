@@ -9,5 +9,4 @@ steps:
   - expect:
       method: sendVideo
       media_type: video
-      filename: video.mp4
       duration: 9

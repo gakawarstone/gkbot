@@ -46,5 +46,18 @@ steps:
       method: sendMessage
       text_contains: Testgram ownership book
       duration: 0.5
+  - click:
+      callback_data: book:del:1
+  - expect_none:
+      method: sendMessage
+      text: Удалено
+      duration: 0.5
+  - send:
+      text: 📚 Мои книги
+  - expect:
+      method: sendMessage
+      text: "Ваши книги: "
+      reply_markup:
+        inline_keyboard: []
   - expect_chat:
       no_errors: true

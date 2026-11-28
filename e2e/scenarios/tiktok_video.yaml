@@ -9,4 +9,3 @@ steps:
   - expect:
       method: sendVideo
       media_type: video
-      filename: video_converted.mp4

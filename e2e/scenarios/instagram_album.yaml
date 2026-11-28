@@ -9,4 +9,3 @@ steps:
   - expect:
       method: sendMediaGroup
       media_type: photo
-      filename: instagram_1.jpg
