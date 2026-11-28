@@ -6,6 +6,9 @@ This file contains information about using various tools and commands in this pr
 
 - Use Conventional Commits
 - Follow all coding conventions strictly
+- In new or modified code, keep Telegram-specific aiogram imports and
+  presentation logic in UI or handlers, not services. Check this boundary in
+  review; fix existing violations only when they are within an appropriate scope.
 
 ## Build/Lint/Test Commands
 
