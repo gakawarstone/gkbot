@@ -1,5 +1,5 @@
 from aiogram import F, Router
-from aiogram.types import CallbackQuery, InaccessibleMessage
+from aiogram.types import CallbackQuery, FSInputFile, InaccessibleMessage
 
 from configs.timeouts import AUDIO_TRANSFER_TIMEOUT_SECONDS
 from services.matreshka import MatreshkaService
@@ -27,7 +27,7 @@ async def download(callback: CallbackQuery) -> None:
     async with MatreshkaService.download_audio(video) as audio:
         await callback.bot(
             callback.message.answer_audio(
-                audio=audio.input_file,
+                audio=FSInputFile(audio.path),
                 title=audio.title,
                 performer="GKBOT",
                 duration=audio.duration,

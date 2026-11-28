@@ -3,9 +3,9 @@ import re
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
+from pathlib import Path
 from urllib.parse import urlparse
 
-from aiogram.types import FSInputFile
 from bs4 import BeautifulSoup, Tag
 
 from services.audio import AudioService
@@ -93,7 +93,7 @@ class MatreshkaService:
             await AudioService.download_and_prepare_audio(video.hls_url, cache_dir.path)
 
             yield AudioFileInfo(
-                input_file=FSInputFile(cache_dir.get_file_path("audio.m4a")),
+                path=Path(cache_dir.get_file_path("audio.m4a")),
                 duration=video.duration,
                 title=video.title,
             )

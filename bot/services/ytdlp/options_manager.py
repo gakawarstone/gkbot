@@ -1,6 +1,6 @@
 from typing import Any
 
-from services.cache_dir import CacheDir
+from services.cache_dir import CacheDir, ReadProtectedCacheDir
 
 from ._options import AudioDownloadOptions, VideoDownloadOptions
 from .source import DownloadSource
@@ -34,6 +34,8 @@ class YtDlpOptionsManager:
         }
         opts: dict[str, Any] = dict(presets.get(source, VideoDownloadOptions.default))
 
-        cache_dir = CacheDir()
+        cache_dir = (
+            ReadProtectedCacheDir() if source is DownloadSource.TIKTOK else CacheDir()
+        )
         opts["outtmpl"] = cache_dir.get_file_path("video.mp4")
         return opts, cache_dir

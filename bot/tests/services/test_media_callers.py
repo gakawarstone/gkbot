@@ -3,7 +3,6 @@ from subprocess import CalledProcessError
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from aiogram.types import FSInputFile, URLInputFile
 
 from services.audio import AudioService
 from services.cache_dir import CacheDir
@@ -48,7 +47,7 @@ async def test_audio_callers_use_audio_service_and_keep_upload_lifetime(
             ),
         )
         monkeypatch.setattr(
-            YtdlpDownloader, "_download_file", AsyncMock(return_value=URLInputFile(url))
+            YtdlpDownloader, "_download_file", AsyncMock(return_value=url)
         )
         operation = YtdlpDownloader.download_audio("https://youtube.com/watch?v=id")
 
@@ -59,9 +58,8 @@ async def test_audio_callers_use_audio_service_and_keep_upload_lifetime(
         assert raised.value is error
     else:
         async with operation as info:
-            assert isinstance(info.input_file, FSInputFile)
-            assert Path(info.input_file.path).name == "audio.m4a"
-            assert Path(info.input_file.path).read_bytes() == b"audio"
+            assert info.path.name == "audio.m4a"
+            assert info.path.read_bytes() == b"audio"
             assert (info.title, info.duration) == ("title", 12)
     prepare_mock.assert_awaited_once()
     assert list(tmp_path.iterdir()) == []
@@ -81,11 +79,9 @@ async def test_downloader_metadata_fallback_keeps_existing_fields_and_errors(
     path = tmp_path / "video.mp4"
     if isinstance(error, ValueError):
         with pytest.raises(ValueError) as raised:
-            await YtdlpDownloader._fill_missing_metadata(original, FSInputFile(path))
+            await YtdlpDownloader._fill_missing_metadata(original, path)
         assert raised.value is error
     else:
-        result = await YtdlpDownloader._fill_missing_metadata(
-            original, FSInputFile(path)
-        )
+        result = await YtdlpDownloader._fill_missing_metadata(original, path)
         assert result == (original if error else _YtDlpInfo(12, "title", 480, 640))
     metadata.assert_awaited_once_with(str(path))

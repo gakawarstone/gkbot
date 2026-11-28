@@ -9,6 +9,7 @@ from services.tiktok.exceptions import (
     TikTokInfoExtractionFailed,
     TikTokInvalidUrl,
 )
+from ui.media import media_input_file
 
 
 class TikTokVideoHandler(BaseHandler):
@@ -38,7 +39,7 @@ class TikTokVideoHandler(BaseHandler):
         video = await TikTokService.get_video(link)
 
         await self.event.answer_video(
-            video.input_file,
+            media_input_file(video.file, protect_from_cleanup=True),
             caption=caption,
             height=video.height,
             width=video.width,

@@ -6,6 +6,7 @@ from aiogram.filters import or_f
 from extensions.handlers.message.base import BaseHandler
 from filters.x import XVideoLink
 from services.ytdlp import YtdlpDownloader
+from ui.media import media_input_file
 
 
 class YtdlpShortVideoHandler(BaseHandler):
@@ -23,7 +24,7 @@ class YtdlpShortVideoHandler(BaseHandler):
         async with YtdlpDownloader.download_video(self.event.text) as video:
             caption = f"<b>{self.event.from_user.username}</b> {self.event.text}"
             await self.event.answer_video(
-                video.input_file,
+                media_input_file(video.file),
                 height=video.height,
                 width=video.width,
                 duration=int(video.duration),

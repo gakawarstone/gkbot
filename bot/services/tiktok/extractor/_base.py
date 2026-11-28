@@ -2,10 +2,10 @@ from abc import ABC, abstractmethod
 from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import ClassVar
 from urllib.parse import urlsplit, urlunsplit
 
-from aiogram.types import InputFile
 from aiohttp import ClientError
 
 from services.http import HttpRequestError, HttpService
@@ -19,7 +19,7 @@ class ExtractedVideoData:
     """Provider data. Omitted fields receive defaults in BaseExtractor."""
 
     video_url: str | None = None
-    video_input_file: InputFile | None = None
+    video_file: Path | str | None = None
     music_url: str | None = ""
     images_urls: list[str] | None = field(default_factory=list)
     height: int | None = None
@@ -48,7 +48,7 @@ class BaseExtractor(ABC):
             data = await self._extract_video_data(url)
             return InfoVideoTikTok(
                 video_url=data.video_url,
-                video_input_file=data.video_input_file,
+                video_file=data.video_file,
                 music_url=data.music_url,
                 images_urls=data.images_urls,
                 height=data.height,
