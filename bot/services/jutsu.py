@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 
-from aiogram.types import BufferedInputFile
 from bs4 import BeautifulSoup, Tag
 
 from services.http import HttpRequestError, HttpService
@@ -21,13 +20,12 @@ class InvalidUrl(Exception):
 
 class JutSuDownloader:
     @classmethod
-    async def download_video(cls, url: str) -> BufferedInputFile:
+    async def download_video(cls, url: str) -> bytes:
         try:
             video_url = (await cls.__get_sources(url))[-1].link
-            file = await HttpService.get(video_url)
+            return await HttpService.get(video_url)
         except (IndexError, HttpRequestError):
             raise InvalidUrl
-        return BufferedInputFile(file, "video.mp4")
 
     @classmethod
     async def __get_sources(cls, url: str) -> list[_Source]:
