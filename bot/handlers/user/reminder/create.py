@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from typing import Any
 
+from core.notifier import Notifier
 from services.reminder import Reminder
 
 from ._base import BaseHandler
@@ -11,7 +12,12 @@ class CreateRemindHandler(BaseHandler):
         if self.event.from_user is None or self.ctx.text is None:
             raise ValueError("User and text must be provided in the context.")
 
-        await Reminder.add_remind(self.event.from_user.id, self.datetime, self.ctx.text)
+        await Reminder.add_remind(
+            self.event.from_user.id,
+            self.datetime,
+            self.ctx.text,
+            deliver=Notifier.notify,
+        )
 
         await self.render_widget(status_message=self.status.success)
 
