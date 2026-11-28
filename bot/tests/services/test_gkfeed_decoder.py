@@ -1,13 +1,15 @@
 import asyncio
+import gc
 import json
 import multiprocessing
 import threading
+from concurrent.futures import ProcessPoolExecutor
 from concurrent.futures.process import BrokenProcessPool
 from unittest.mock import Mock
 
 import pytest
 
-from services.gkfeed._decoder import FeedDecoder, _decode_items
+from services.gkfeed._decoder import FeedDecoder
 from services.gkfeed._types import FeedItemSummary
 
 
@@ -16,8 +18,7 @@ async def test_worker_reuse_errors_and_cleanup() -> None:
     decoder = FeedDecoder()
     try:
         await decoder.start()
-        pool = decoder._pool
-        assert pool is not None
+        # The decoder must reuse one child instead of spawning one per response.
         children = {child.pid for child in multiprocessing.active_children()}
         assert len(children - original_children) == 1
         payload = json.dumps(
@@ -35,29 +36,23 @@ async def test_worker_reuse_errors_and_cleanup() -> None:
                 ]
             }
         ).encode()
-        assert (
-            await decoder.decode(payload)
-            == _decode_items(payload)
-            == [
-                FeedItemSummary(
-                    7,
-                    2,
-                    "https://example.invalid/7",
-                    "Заголовок",
-                    "2026-10-26T10:00:00Z",
-                )
-            ]
-        )
+        assert await decoder.decode(payload) == [
+            FeedItemSummary(
+                7,
+                2,
+                "https://example.invalid/7",
+                "Заголовок",
+                "2026-10-26T10:00:00Z",
+            )
+        ]
         with pytest.raises(json.JSONDecodeError):
             await decoder.decode(b"invalid json")
         with pytest.raises(KeyError, match="items"):
             await decoder.decode(b"{}")
         assert await decoder.decode(b'{"items":[]}') == []
-        assert decoder._pool is pool
         assert {child.pid for child in multiprocessing.active_children()} == children
     finally:
         await decoder.close()
-    assert decoder._pool is None
     assert {
         child.pid for child in multiprocessing.active_children()
     } == original_children
@@ -101,13 +96,16 @@ async def test_cancellation_keeps_one_job_and_shutdown_drains_it(
         closing.cancel()
         with pytest.raises(asyncio.CancelledError):
             await closing
-        assert decoder._closing is not None
-        assert not decoder._closing.done()
+        retry_close = asyncio.create_task(decoder.close())
+        await asyncio.sleep(0)
+        assert not retry_close.done()
     finally:
         release.set()
         await decoder.close()
+    await retry_close
     assert submissions == [b"first"]
-    assert decoder._pending is None
+    with pytest.raises(RuntimeError, match="closed"):
+        await decoder.decode(b"later")
 
 
 async def test_cancelled_job_error_is_observed_and_next_decode_succeeds(
@@ -125,11 +123,13 @@ async def test_cancelled_job_error_is_observed_and_next_decode_succeeds(
         return []
 
     monkeypatch.setattr(decoder, "_execute", decode)
+    loop = asyncio.get_running_loop()
+    previous_handler = loop.get_exception_handler()
+    unhandled_errors: list[dict[str, object]] = []
+    loop.set_exception_handler(lambda _loop, context: unhandled_errors.append(context))
     task = asyncio.create_task(decoder.decode(b"cancelled"))
     try:
         assert await asyncio.to_thread(entered.wait, 5)
-        pending = decoder._pending
-        assert pending is not None
         task.cancel()
         with pytest.raises(asyncio.CancelledError):
             await task
@@ -138,11 +138,13 @@ async def test_cancelled_job_error_is_observed_and_next_decode_succeeds(
         assert not next_decode.done()
         release.set()
         assert await next_decode == []
-        assert pending.done()
-        assert not pending._log_traceback
+        gc.collect()
+        await asyncio.sleep(0)
+        assert not unhandled_errors
     finally:
         release.set()
         await decoder.close()
+        loop.set_exception_handler(previous_handler)
 
 
 async def test_broken_worker_is_disposed_and_next_request_restarts(
@@ -151,12 +153,19 @@ async def test_broken_worker_is_disposed_and_next_request_restarts(
     decoder = FeedDecoder()
     broken_pool = Mock()
     broken_pool.submit.side_effect = BrokenProcessPool("worker exited")
-    monkeypatch.setattr(decoder, "_pool", broken_pool)
+    factory = Mock(
+        side_effect=[
+            broken_pool,
+            ProcessPoolExecutor(
+                max_workers=1, mp_context=multiprocessing.get_context("spawn")
+            ),
+        ]
+    )
+    monkeypatch.setattr("utils.process_worker.ProcessPoolExecutor", factory)
     try:
         with pytest.raises(BrokenProcessPool):
             await decoder.decode(b'{"items":[]}')
         broken_pool.shutdown.assert_called_once_with(wait=True, cancel_futures=True)
-        assert decoder._pool is None
         assert await decoder.decode(b'{"items":[]}') == []
     finally:
         await decoder.close()
