@@ -10,6 +10,7 @@ from extensions.handlers.message.markdown_render import MarkdownRenderHandlerExt
 from services.agents.image_explainer import ImageExplainer
 from services.llm import OpenRouter
 from services.llm.openrouter import DEFAULT_MODEL, StreamChunk
+from ui.image_description import IMAGE_DESCRIPTION_FORMAT
 
 from ._base import BaseHandler
 from ._response import split_response
@@ -70,8 +71,11 @@ class AnswerHandler(BaseHandler, MarkdownRenderHandlerExtension, FileHandlerExte
         return [f"data:image/jpeg;base64,{image_base64}"]
 
     async def _explain_image(self) -> str:
+        image_bytes = (await self.photo_io).getvalue()
         text = ""
-        async for chunk in ImageExplainer.explain((await self.photo_io).getvalue()):
+        async for chunk in ImageExplainer.explain(
+            image_bytes, response_instructions=IMAGE_DESCRIPTION_FORMAT
+        ):
             text += chunk
         return text
 

@@ -13,6 +13,7 @@ from extensions.handlers.message.one_time_extension import (
     OneTimeMessageHandlerExtension,
 )
 from services.agents.image_explainer import ImageExplainer
+from ui.image_description import IMAGE_DESCRIPTION_FORMAT
 
 
 class _CVisionFSM(StatesGroup):
@@ -42,7 +43,9 @@ class AnswerHandler(MarkdownRenderHandlerExtension, FileHandlerExtension):
         _message = await self.event.answer("Подождите..")
         text = ""
         last_update = time.time()
-        async for chunk in ImageExplainer.explain(image_bytes):
+        async for chunk in ImageExplainer.explain(
+            image_bytes, response_instructions=IMAGE_DESCRIPTION_FORMAT
+        ):
             text += chunk
             now = time.time()
             if now - last_update >= 0.5:
