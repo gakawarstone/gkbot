@@ -6,6 +6,7 @@ This file contains information about using various tools and commands in this pr
 
 - Use Conventional Commits
 - Follow all coding conventions strictly
+- Tests should verify observable contracts rather than private implementation, except for explicit non-functional requirements and mocks at external boundaries.
 
 ## Build/Lint/Test Commands
 

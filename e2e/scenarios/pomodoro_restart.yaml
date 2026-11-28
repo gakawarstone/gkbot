@@ -10,9 +10,8 @@ steps:
       text: ⚙️  Настройки
   - expect:
       method: sendMessage
-      callback_data: psm:time_focused
   - click:
-      callback_data: psm:time_focused
+      button_text: "Время работы: 15"
   - expect:
       method: sendMessage
       text_contains: Введите новое значение
@@ -25,9 +24,8 @@ steps:
       text: ⚙️  Настройки
   - expect:
       method: sendMessage
-      callback_data: psm:time_relax
   - click:
-      callback_data: psm:time_relax
+      button_text: "Время отдыха: 15"
   - expect:
       method: sendMessage
       text_contains: Введите новое значение
