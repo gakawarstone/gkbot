@@ -1,7 +1,6 @@
 import os
 from pathlib import Path
 
-from aiogram.types import FSInputFile, InputFile
 from yt_dlp.utils import DownloadError
 
 from configs.services.cache_dir import CACHE_DIR_PATH
@@ -18,17 +17,11 @@ class YtDlp(BaseExtractor):
             url, cleanup_delay_minutes=5
         ) as video_file_info:
             return ExtractedVideoData(
-                video_input_file=video_file_info.input_file,
+                video_file=video_file_info.file,
                 duration=video_file_info.duration,
                 height=video_file_info.height,
                 width=video_file_info.width,
             )
-
-    async def _get_video_input_file(self, url: str) -> InputFile:
-        async with YtdlpDownloader.download_video(
-            url, cleanup_delay_minutes=5
-        ) as video_file_info:
-            return video_file_info.input_file
 
     async def get_video_file_url(self, url: str) -> str:
         with self._translate_errors():
@@ -38,10 +31,10 @@ class YtDlp(BaseExtractor):
             async with YtdlpDownloader.download_video(
                 url, cleanup_delay_minutes=5
             ) as video_file_info:
-                input_file = video_file_info.input_file
-                if not isinstance(input_file, FSInputFile):
-                    raise TypeError("Input file is not an FSInputFile instance")
-                video_path = "/".join(str(input_file.path).split("/")[-3:])
+                file = video_file_info.file
+                if not isinstance(file, Path):
+                    raise TypeError("Serveo requires a local video file")
+                video_path = "/".join(file.parts[-3:])
                 return serveo_url + "/" + video_path
 
     @classmethod

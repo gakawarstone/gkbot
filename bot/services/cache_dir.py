@@ -1,5 +1,11 @@
+import asyncio
 import os
 import shutil
+from collections import Counter
+from collections.abc import Iterator
+from contextlib import contextmanager
+from pathlib import Path
+from typing import ClassVar
 from uuid import uuid4
 
 from configs.services.cache_dir import CACHE_DIR_PATH
@@ -34,3 +40,26 @@ class CacheDir:
             Task(self._delete),
             minutes * 60,
         )
+
+
+class ReadProtectedCacheDir(CacheDir):
+    # Scheduled callbacks are pickled. Keep live readers shared by cache path.
+    _active_readers: ClassVar[Counter[Path]] = Counter()
+
+    @classmethod
+    @contextmanager
+    def reading(cls, file: Path) -> Iterator[None]:
+        directory = file.parent
+        cls._active_readers[directory] += 1
+        try:
+            yield
+        finally:
+            cls._active_readers[directory] -= 1
+            if not cls._active_readers[directory]:
+                del cls._active_readers[directory]
+
+    async def _delete(self) -> None:
+        if self._active_readers[Path(self.path)]:
+            await self.delete_after(minutes=5)
+            return
+        await asyncio.to_thread(self.delete)

@@ -2,11 +2,11 @@ import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
+from pathlib import Path
 from subprocess import SubprocessError
 from typing import Any, cast
 
 import yt_dlp
-from aiogram.types import FSInputFile, InputFile, URLInputFile
 
 from services.audio import AudioService
 from services.video_conversion import VideoConversionService
@@ -37,15 +37,15 @@ class YtdlpDownloader:
         opts, cache_dir = YtDlpOptionsManager.choose_audio_options(source)
         try:
             file = await cls._download_file(url, opts, source)
-            if isinstance(file, URLInputFile):
-                output_path = cast(str, opts["outtmpl"])
+            if isinstance(file, str):
+                output_path = Path(cast(str, opts["outtmpl"]))
                 await AudioService.download_and_prepare_audio(
-                    file.url, os.path.dirname(output_path)
+                    file, str(output_path.parent)
                 )
-                file = FSInputFile(output_path)
+                file = output_path
 
             yield AudioFileInfo(
-                input_file=file,
+                path=file,
                 duration=info.duration,
                 title=info.title,
             )
@@ -65,7 +65,7 @@ class YtdlpDownloader:
             info = await cls._fill_missing_metadata(info, file)
 
             yield VideoFileInfo(
-                input_file=file,
+                file=file,
                 duration=info.duration,
                 title=info.title,
                 height=info.height,
@@ -79,15 +79,13 @@ class YtdlpDownloader:
 
     @classmethod
     async def _fill_missing_metadata(
-        cls, info: _YtDlpInfo, file: InputFile
+        cls, info: _YtDlpInfo, file: Path | str
     ) -> _YtDlpInfo:
-        if not isinstance(file, FSInputFile) or (
-            info.duration and info.height and info.width
-        ):
+        if isinstance(file, str) or (info.duration and info.height and info.width):
             return info
 
         try:
-            metadata = await VideoMetadataService.get_video_metadata(str(file.path))
+            metadata = await VideoMetadataService.get_video_metadata(str(file))
         except SubprocessError:
             return info
 
@@ -120,10 +118,9 @@ class YtdlpDownloader:
     @classmethod
     async def _download_file(
         cls, url: str, opts: dict[str, Any], source: DownloadSource
-    ) -> InputFile:
+    ) -> Path | str:
         if source.uses_worker:
-            url = await download_video(url, opts)
-            return URLInputFile(url)
+            return await download_video(url, opts)
 
         # Finish the writer, including YoutubeDL.close(), before cancellation can
         # reach download_video/download_audio's directory cleanup.
@@ -139,7 +136,7 @@ class YtdlpDownloader:
             )
             output_path = converted_path
 
-        return FSInputFile(output_path)
+        return Path(output_path)
 
     @staticmethod
     def _extract_info_sync(url: str) -> Any:

@@ -7,7 +7,6 @@ from unittest.mock import AsyncMock
 
 import pytest
 from aiogram import Bot
-from aiogram.types import FSInputFile
 
 from services.audio import AudioService
 from services.cache_dir import CacheDir
@@ -20,6 +19,7 @@ from services.tiktok.exceptions import TikTokInfoExtractionFailed
 from services.tiktok.extractor import TikTokInfoExtractor
 from services.tiktok.types import InfoVideoTikTok
 from services.video_metadata import VideoMetadataService
+from ui.media import media_input_file
 
 
 @pytest.fixture
@@ -40,9 +40,7 @@ async def scheduled(monkeypatch: pytest.MonkeyPatch) -> list[Task]:
     return tasks
 
 
-async def get_video(
-    info: InfoVideoTikTok, monkeypatch: pytest.MonkeyPatch
-) -> FSInputFile:
+async def get_video(info: InfoVideoTikTok, monkeypatch: pytest.MonkeyPatch) -> Path:
     monkeypatch.setattr(
         TikTokInfoExtractor, "get_video_info", AsyncMock(return_value=info)
     )
@@ -52,9 +50,9 @@ async def get_video(
         AsyncMock(return_value={"height": 1080, "width": 720, "duration": 9}),
     )
     video = await TikTokService.get_video("https://example.invalid/tiktok")
-    assert isinstance(video.input_file, FSInputFile)
+    assert isinstance(video.file, Path)
     assert (video.height, video.width, video.duration) == (1080, 720, 9)
-    return video.input_file
+    return video.file
 
 
 async def test_download_writes_off_loop_and_survives_return(
@@ -71,12 +69,8 @@ async def test_download_writes_off_loop_and_survives_return(
     monkeypatch.setattr(CacheDir, "save_file", save)
     monkeypatch.setattr(HttpService, "get", AsyncMock(return_value=payload))
     info = InfoVideoTikTok("https://example.invalid/video", None, None, None)
-    input_file = await get_video(info, monkeypatch)
-    assert (
-        b"".join([chunk async for chunk in input_file.read(Bot("12345678:token"))])
-        == payload
-    )
-    assert Path(input_file.path).exists()
+    path = await get_video(info, monkeypatch)
+    assert path.read_bytes() == payload
     assert len(scheduled) == 1
 
     delete = CacheDir.delete
@@ -104,8 +98,8 @@ async def test_slideshow_output_remains_available_until_scheduled_cleanup(
     monkeypatch.setattr(AudioService, "download_and_prepare_audio", AsyncMock())
     monkeypatch.setattr(FfmpegRunner, "run", run)
     info = InfoVideoTikTok(None, None, audio_url, ["https://example.invalid/image"])
-    input_file = await get_video(info, monkeypatch)
-    assert Path(input_file.path).read_bytes() == b"generated slideshow"
+    path = await get_video(info, monkeypatch)
+    assert path.read_bytes() == b"generated slideshow"
     assert len(list(cache_root.iterdir())) == 1
     await scheduled[0].run()
     assert list(cache_root.iterdir()) == []
@@ -212,11 +206,13 @@ async def test_scheduled_cleanup_defers_during_upload(
 
         monkeypatch.setattr(SlideshowRenderer, "make_slideshow_file_from_web", render)
         info = InfoVideoTikTok(None, None, None, ["image"])
-    input_file = await get_video(info, monkeypatch)
-    reader = input_file.read(Bot("12345678:token"))
+    path = await get_video(info, monkeypatch)
+    reader = media_input_file(path, protect_from_cleanup=True).read(
+        Bot("12345678:token")
+    )
     assert await anext(reader)
     await scheduled[0].run()
-    assert Path(input_file.path).exists()
+    assert path.exists()
     assert len(scheduled) == 2
     await reader.aclose()
     assert not _TikTokCacheDir._active_readers
@@ -224,18 +220,18 @@ async def test_scheduled_cleanup_defers_during_upload(
     assert list(cache_root.iterdir()) == []
 
 
-async def test_existing_input_file_and_metadata_are_preserved(
+async def test_existing_file_and_metadata_are_preserved(
     cache_root: Path, scheduled: list[Task], monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    input_file = FSInputFile(cache_root / "existing.mp4")
-    info = InfoVideoTikTok(None, input_file, None, None, 480, 640, 12)
+    path = cache_root / "existing.mp4"
+    info = InfoVideoTikTok(None, path, None, None, 480, 640, 12)
     monkeypatch.setattr(
         TikTokInfoExtractor, "get_video_info", AsyncMock(return_value=info)
     )
     metadata = AsyncMock()
     monkeypatch.setattr(VideoMetadataService, "get_video_metadata", metadata)
     video = await TikTokService.get_video("https://example.invalid/tiktok")
-    assert video.input_file is input_file
+    assert video.file == path
     assert (video.height, video.width, video.duration) == (480, 640, 12)
     metadata.assert_not_awaited()
     assert scheduled == []
@@ -300,7 +296,7 @@ async def test_metadata_probe_failure_keeps_uploadable_file(
     )
     video = await TikTokService.get_video("https://example.invalid/tiktok")
     assert (video.height, video.width, video.duration) == (1080, 720, None)
-    assert isinstance(video.input_file, FSInputFile)
-    assert Path(video.input_file.path).read_bytes() == b"slideshow"
+    assert isinstance(video.file, Path)
+    assert video.file.read_bytes() == b"slideshow"
     await scheduled[0].run()
     assert list(cache_root.iterdir()) == []

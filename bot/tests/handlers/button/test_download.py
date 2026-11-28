@@ -62,6 +62,9 @@ def state(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> DownloadState:
 
     async def send_media(*args: object, **kwargs: object) -> None:
         # Uploads must retain their downloaded file and progress message until done.
+        media = args[0] if args else kwargs["audio"]
+        assert isinstance(media, FSInputFile)
+        assert media.path == state.media_path
         assert state.media_path.is_file()
         assert state.visible_messages
         state.fail_at("send")
@@ -74,11 +77,11 @@ def state(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> DownloadState:
     message.answer_video = AsyncMock(side_effect=send_media)
 
     @asynccontextmanager
-    async def media_file() -> AsyncIterator[FSInputFile]:
+    async def media_file() -> AsyncIterator[Path]:
         state.media_path.write_bytes(b"downloaded media")
         try:
             state.fail_at("download")
-            yield FSInputFile(state.media_path)
+            yield state.media_path
         finally:
             state.media_path.unlink()
             state.fail_at("cleanup")

@@ -4,10 +4,11 @@ from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from typing import Literal
 
-from aiogram.types import CallbackQuery, InaccessibleMessage, InputFile
+from aiogram.types import CallbackQuery, FSInputFile, InaccessibleMessage, InputFile
 
 from services.ytdlp import YtdlpDownloader
 from services.ytdlp._types import VideoFileInfo
+from ui.media import media_input_file
 
 type MediaType = Literal["audio", "video"]
 
@@ -67,7 +68,7 @@ async def download(
         if request.media_type == "audio":
             async with YtdlpDownloader.download_audio(request.url) as audio:
                 await message.answer_audio(
-                    audio=audio.input_file,
+                    audio=FSInputFile(audio.path),
                     title=audio.title,
                     performer="GKBOT",
                     duration=audio.duration,
@@ -80,7 +81,7 @@ async def download(
                     else VideoOptions()
                 )
                 await message.answer_video(
-                    video.input_file,
+                    media_input_file(video.file),
                     height=video.height,
                     width=video.width,
                     duration=video.duration,

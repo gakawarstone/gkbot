@@ -1,18 +1,17 @@
 from dataclasses import dataclass
-
-from aiogram.types import InputFile
+from pathlib import Path
 
 
 @dataclass
 class AudioFileInfo:
-    input_file: InputFile
+    path: Path
     duration: int
     title: str
 
 
 @dataclass
 class VideoFileInfo:
-    input_file: InputFile
+    file: Path | str
     height: int | None
     width: int | None
     duration: int
