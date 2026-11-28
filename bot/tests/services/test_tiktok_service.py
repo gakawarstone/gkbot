@@ -1,6 +1,7 @@
 import asyncio
 import pickle
 import threading
+import tracemalloc
 from pathlib import Path
 from subprocess import CalledProcessError
 from unittest.mock import AsyncMock
@@ -15,7 +16,7 @@ from services.ffmpeg_runner import FfmpegRunner
 from services.http import HttpService
 from services.schedule import Schedule, Task
 from services.slideshow import SlideshowRenderer
-from services.tiktok import TikTokService, _TikTokCacheDir
+from services.tiktok import TikTokService
 from services.tiktok.exceptions import TikTokInfoExtractionFailed
 from services.tiktok.extractor import TikTokInfoExtractor
 from services.tiktok.types import InfoVideoTikTok
@@ -196,11 +197,13 @@ async def test_cancelled_write_finishes_before_cleanup(
 
 
 @pytest.mark.parametrize("slideshow", [False, True])
+@pytest.mark.parametrize("close_early", [False, True])
 async def test_scheduled_cleanup_defers_during_upload(
     cache_root: Path,
     scheduled: list[Task],
     monkeypatch: pytest.MonkeyPatch,
     slideshow: bool,
+    close_early: bool,
 ) -> None:
     payload = b"v" * 100_000
     monkeypatch.setattr(HttpService, "get", AsyncMock(return_value=payload))
@@ -214,12 +217,14 @@ async def test_scheduled_cleanup_defers_during_upload(
         info = InfoVideoTikTok(None, None, None, ["image"])
     input_file = await get_video(info, monkeypatch)
     reader = input_file.read(Bot("12345678:token"))
-    assert await anext(reader)
+    first_chunk = await anext(reader)
     await scheduled[0].run()
-    assert Path(input_file.path).exists()
     assert len(scheduled) == 2
-    await reader.aclose()
-    assert not _TikTokCacheDir._active_readers
+    if close_early:
+        await reader.aclose()
+    else:
+        remaining = b"".join([chunk async for chunk in reader])
+        assert first_chunk + remaining == payload
     await scheduled[1].run()
     assert list(cache_root.iterdir()) == []
 
@@ -302,5 +307,33 @@ async def test_metadata_probe_failure_keeps_uploadable_file(
     assert (video.height, video.width, video.duration) == (1080, 720, None)
     assert isinstance(video.input_file, FSInputFile)
     assert Path(video.input_file.path).read_bytes() == b"slideshow"
+    await scheduled[0].run()
+    assert list(cache_root.iterdir()) == []
+
+
+async def test_large_slideshow_does_not_buffer_output_in_memory(
+    cache_root: Path, scheduled: list[Task], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    size = 16 * 1024 * 1024
+
+    def create_file(output: str) -> None:
+        with open(output, "wb") as file:
+            file.truncate(size)
+
+    async def render(urls: list[str], audio: str | None, output: str) -> None:
+        await asyncio.to_thread(create_file, output)
+
+    monkeypatch.setattr(SlideshowRenderer, "make_slideshow_file_from_web", render)
+    tracemalloc.start()
+    try:
+        input_file = await get_video(
+            InfoVideoTikTok(None, None, None, ["image"]), monkeypatch
+        )
+        _, peak = tracemalloc.get_traced_memory()
+    finally:
+        tracemalloc.stop()
+    # A full Python bytes copy would exceed this budget.
+    assert peak < size // 2
+    assert Path(input_file.path).stat().st_size == size
     await scheduled[0].run()
     assert list(cache_root.iterdir()) == []
